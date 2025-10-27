@@ -7,16 +7,27 @@
 		{
 			"Name": "KORAProject",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"CoreUObject",
+				"Engine"
+			]
+		},
+		{
+			"Name": "KORACustomEditors",
+			"Type": "Editor",
+			"LoadingPhase": "PreDefault",
+			"AdditionalDependencies": [
+				"EditorSubsystem",
+				"DeveloperSettings",
+				"CoreUObject"
+			]
 		}
 	],
 	"Plugins": [
 		{
 			"Name": "ModelingToolsEditorMode",
-			"Enabled": true,
-			"TargetAllowList": [
-				"Editor"
-			]
+			"Enabled": true
 		}
 	]
 }

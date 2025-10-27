@@ -1,0 +1,6 @@
+Index,SampleName,Width,Height,SampleEnum,MaxElementCount,SampleIndex1,SampleWidth1,SampleHeight1,SampleIndex2,SampleWidth2,SampleHeight2,SampleIndex3,SampleWidth3,SampleHeight3,SampleIndex4,SampleWidth4,SampleHeight4,SampleIndex5,SampleWidth5,SampleHeight5
+1,Name_1,3,10,Sample1,5,2,8,13,20,30,80,100,-1,-1000,800,2000,3100,555,8426,1440
+2,Name_2,6,20,Sample2,5,3,9,16,21,31,81,200,-2,-1001,900,2100,3200,666,5987,487
+3,Name_3,9,30,Sample3,5,4,10,19,22,32,82,300,-3,-1002,1000,2200,3303,777,215,2514
+4,Name_4,12,40,Sample4,5,5,11,22,23,33,83,400,-4,-1003,1100,2300,3854,888,8472,7589
+5,Name_5,15,50,Sample5,5,6,12,25,24,34,84,500,-5,-1004,1200,2400,3217,999,3295,456897
