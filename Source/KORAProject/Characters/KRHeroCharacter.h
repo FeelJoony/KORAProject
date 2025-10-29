@@ -5,8 +5,11 @@
 #include "KRHeroCharacter.generated.h"
 
 
+class UDataAsset_InputConfig;
 class USpringArmComponent;
 class UCameraComponent;
+struct FInputActionValue;
+
 
 UCLASS()
 class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter
@@ -18,10 +21,18 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	USpringArmComponent* SpringArm;
+	TObjectPtr<USpringArmComponent> SpringArm;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	UCameraComponent* Camera;
+	TObjectPtr<UCameraComponent> Camera;
+
+private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UDataAsset_InputConfig> InputConfigDataAsset;
+
+	void Input_Move(const FInputActionValue& Value);
+	void Input_Look(const FInputActionValue& Value);
 };
