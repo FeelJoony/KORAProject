@@ -12,6 +12,7 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	AddDataTable(EGameDataType::SampleData, FString(TEXT("SampleData")));
+	AddDataTable(EGameDataType::WeaponItemData, FString(TEXT("WeaponItemData")));
 }
 
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
