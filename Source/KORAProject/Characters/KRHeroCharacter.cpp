@@ -36,6 +36,20 @@ AKRHeroCharacter::AKRHeroCharacter()
 void AKRHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (SwordClass)
+	{
+		CurrentSword = GetWorld()->SpawnActor<AActor>(SwordClass);
+		CurrentSword->AttachToComponent(GetMesh(), 
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+			TEXT("hand_rSocket"));
+	}
+	if (PistolClass) 
+	{ 
+		CurrentPistol = GetWorld()->SpawnActor<AActor>(PistolClass);
+		CurrentPistol->AttachToComponent(GetMesh(), 
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+			TEXT("hand_lSocket")); 
+	}
 }
 
 void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
