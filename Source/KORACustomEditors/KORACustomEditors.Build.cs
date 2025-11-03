@@ -10,7 +10,8 @@ public class KORACustomEditors: ModuleRules
             "Core", 
             "CoreUObject", 
             "Engine", 
-            "KORAProject", 
+            "KORAProject",
+            "DirectoryWatcher"
             //"EditorScriptingUtilities" 
         });
 
@@ -35,7 +36,8 @@ public class KORACustomEditors: ModuleRules
             "AssetRegistry",
             "UMG",
             "GameplayTags",
-            "KORAProject"
+            "KORAProject",
+            "DirectoryWatcher"
         });
     }
 }

@@ -1,10 +1,13 @@
 #include "KORACustomEditorsModule.h"
+#include "DebugHeader.h"
 #include "Modules/ModuleManager.h"
+#include "Core/DirectoryChangeWatcher.h"
 #include "DataTool/CSVToDataTableToolSubsystem.h"
 #include "DataTool/DataTableToolSettings.h"
 
-#include "Widgets/Notifications/SNotificationList.h"
-#include "Framework/Notifications/NotificationManager.h"
+
+//#include "Widgets/Notifications/SNotificationList.h"
+//#include "Framework/Notifications/NotificationManager.h"
 #include "Styling/AppStyle.h"
 
 #define LOCTEXT_NAMESPACE "FPlayfabTestEditorModule"
@@ -16,6 +19,9 @@ void FKORACustomEditors::StartupModule()
 	ToolMenuExtensibilityManagerDelegateHandle = UToolMenus::RegisterStartupCallback(
 		FSimpleDelegate::CreateRaw(this, &FKORACustomEditors::RegisterMenus)
 	);
+
+	SetOnDirectoryChangeWatcherCallbacks();
+	SetOnInitializedEditorCallbacks();
 }
 
 void FKORACustomEditors::ShutdownModule()
@@ -27,6 +33,10 @@ void FKORACustomEditors::ShutdownModule()
 		UToolMenus::UnRegisterStartupCallback(ToolMenuExtensibilityManagerDelegateHandle);
 		ToolMenuExtensibilityManagerDelegateHandle.Reset();
 	}
+
+	FEditorDelegates::OnEditorInitialized.RemoveAll(this);
+
+	Watcher.Reset();
 }
 
 void FKORACustomEditors::RegisterMenus()
@@ -57,6 +67,12 @@ void FKORACustomEditors::RegisterMyToolsMenu(FMenuBuilder& MenuBuilder)
 
 void FKORACustomEditors::OnConvertCSVToDataTablesClicked()
 {
+	EAppReturnType::Type DialogReturnType = FDebugHeader::ShowMsgDialog(EAppMsgType::OkCancel, TEXT("CSV 파일이 변경 되었습니다. 업데이트 하시겠습니까?"));
+	if (DialogReturnType == EAppReturnType::Cancel)
+	{
+		return;
+	}
+
 	UCSVToDataTableToolSubsystem* Subsystem = GEditor->GetEditorSubsystem<UCSVToDataTableToolSubsystem>();
 	if (Subsystem)
 	{
@@ -70,4 +86,25 @@ void FKORACustomEditors::OnConvertCSVToDataTablesClicked()
 		FSlateNotificationManager::Get().AddNotification(Info);
 		UE_LOG(LogTemp, Error, TEXT("UCSVToDataTableToolSubsystem not found or not initialized!"));
 	}
+}
+
+void FKORACustomEditors::OnConvertCSVToDataTablesClicked(double EditorLoadTime)
+{
+	OnConvertCSVToDataTablesClicked();
+}
+
+void FKORACustomEditors::SetOnDirectoryChangeWatcherCallbacks()
+{
+	if (false == Watcher.IsValid())
+	{
+		Watcher = MakeUnique<FDirectoryChangeWatcher>();
+	}
+	Watcher->StartWatchingDirectory(TEXT("Data/CSV"), FDirectoryChangeDelegate::CreateLambda([&]() {
+		OnConvertCSVToDataTablesClicked();
+	}));
+}
+
+void FKORACustomEditors::SetOnInitializedEditorCallbacks()
+{
+	FEditorDelegates::OnEditorInitialized.AddRaw(this, &FKORACustomEditors::OnConvertCSVToDataTablesClicked);
 }
