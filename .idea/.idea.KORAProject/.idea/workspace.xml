@@ -26,11 +26,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="34dd77b5-0842-4646-9c9b-5a2a80418b5f" name="변경" comment="" />
+    <list default="true" id="34dd77b5-0842-4646-9c9b-5a2a80418b5f" name="변경" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.KORAProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.KORAProject/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -52,7 +57,25 @@
     &quot;accountId&quot;: &quot;731d0f67-ab88-4763-ba3d-e8928e3c068c&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/InventoryComponent/KRInventoryComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRBaseItem.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRBaseItem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRConsumeItem.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRConsumeItem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KREquipItem.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KREquipItem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRModuleItem.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRModuleItem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRWeaponItem.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRWeaponItem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../3rd_4th-Team7-CH4-Project/Source/TreasureHunter/Game/GameFlowTags.cpp" root0="SKIP_HIGHLIGHTING" />
+  </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 7
@@ -64,8 +87,10 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;C/C++ 프로젝트.KORAProject.executor&quot;: &quot;Debug&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;feature/Inventory__System&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -194,6 +219,8 @@
       <option name="presentableId" value="Default" />
       <updated>1761791799114</updated>
       <workItem from="1761791799825" duration="2099000" />
+      <workItem from="1761868798713" duration="9581000" />
+      <workItem from="1762127594859" duration="13955000" />
     </task>
     <task id="LOCAL-00001" summary="[feat] 프로젝트 초기 설정 파일 추가">
       <option name="closed" value="true" />
@@ -203,7 +230,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761793397997</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="[feat] .idea 프로젝트 설정 파일 추가">
+      <option name="closed" value="true" />
+      <created>1761869038279</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1761869038279</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -222,7 +257,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="feature/Inventory_System" />
+                        <option value="origin/feature/Character_Input" />
                       </list>
                     </value>
                   </entry>
@@ -238,7 +273,8 @@
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="Add configuration files for `.idea` project setup" />
     <MESSAGE value="[feat] 프로젝트 초기 설정 파일 추가" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] 프로젝트 초기 설정 파일 추가" />
+    <MESSAGE value="[feat] .idea 프로젝트 설정 파일 추가" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] .idea 프로젝트 설정 파일 추가" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
