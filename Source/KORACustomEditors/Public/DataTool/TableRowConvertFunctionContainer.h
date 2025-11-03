@@ -26,6 +26,8 @@ public:
 
 	UFUNCTION()
 	void CreateSampleData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateWeaponItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);
