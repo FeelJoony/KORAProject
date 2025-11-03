@@ -57,7 +57,15 @@ void UTableRowConvertFunctionContainer::CreateSampleData(UDataTable* OutDataTabl
                     SampleData.TestSampleDataArray.Add(SampleArrayData);
                 }
 
-                OutDataTable->AddRow(*FString::Printf(TEXT("Sample_%d"), i), SampleData);
+                FName RowName = *FString::Printf(TEXT("Sample_%d"), i);
+                if (FSampleDataStruct* FindRow = OutDataTable->FindRow<FSampleDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = SampleData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, SampleData);
+                }
             }
         }));
 }
@@ -120,7 +128,15 @@ void UTableRowConvertFunctionContainer::CreateWeaponItemData(UDataTable* OutData
                 OutRow.ReloadTime = ParseFloatValue(Get(TEXT("ReloadTime")));
                 //OutRow.AttackSpeed = ParseFloatValue(Get(TEXT("AttackSpeed")));
 
-                OutDataTable->AddRow(*FString::Printf(TEXT("Weapon_%d"), OutRow.Index), OutRow);
+                FName RowName = *FString::Printf(TEXT("Weapon_%d"), OutRow.Index);
+                if (FWeaponItemDataStruct* FindRow = OutDataTable->FindRow<FWeaponItemDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = OutRow;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, OutRow);
+                }
             }
         }));
 }
