@@ -1,0 +1,3 @@
+Index,ItemID,DisplayName,Description,BasePrice,StackMax,BaseATK,BaseCritChance,BaseCritMulti,ReloadTime
+1,WPN_Sword_01,코라의 검,코어 관리 본부에서 배급되는 보안관용 칼,0,1,58,0.08,1.4,1
+2,WPN_Pistol_01,코라의 총,코어 관리 본부 배급되는 보안관용 총,0,1,43,0.1,1.6,1

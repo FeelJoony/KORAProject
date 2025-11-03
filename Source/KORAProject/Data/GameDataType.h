@@ -5,5 +5,6 @@
 UENUM(BlueprintType)
 enum class EGameDataType : uint8
 {
-	SampleData
+	SampleData,
+	WeaponItemData,
 };

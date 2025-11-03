@@ -150,11 +150,11 @@ bool UCSVToDataTableToolSubsystem::ProcessCSVFile(const FString& InFullCSVFilePa
 
     if (DataTableToUse)
     {
-        TArray<FName> RowNames = DataTableToUse->GetRowNames();
+        /*TArray<FName> RowNames = DataTableToUse->GetRowNames();
         for (const auto& RowName : RowNames)
         {
             DataTableToUse->RemoveRow(RowName);
-        }
+        }*/
         UE_LOG(LogCSVToDataTableTool, Log, TEXT("Found existing Data Table: %s. Updating..."), *DataTableAssetPath);
         if (DataTableToUse->RowStruct != RowStruct)
         {
