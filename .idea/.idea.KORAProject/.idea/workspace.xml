@@ -60,6 +60,14 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/InventoryComponent/KRInventoryComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRGameplayTags_Ability.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRGameplayTags_Ability.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRGameplayTags_Item.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRGameplayTags_Item.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRGameplayTags_Shop.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRGameplayTags_Shop.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRProjectTagsModule.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/Item/GameplayTags/KRProjectTagsModule.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRBaseItem.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRBaseItem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/Item/KRConsumeItem.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -274,7 +282,7 @@
     <MESSAGE value="Add configuration files for `.idea` project setup" />
     <MESSAGE value="[feat] 프로젝트 초기 설정 파일 추가" />
     <MESSAGE value="[feat] .idea 프로젝트 설정 파일 추가" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] .idea 프로젝트 설정 파일 추가" />
+    <option name="LAST_COMMIT_MESSAGE" value="" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
