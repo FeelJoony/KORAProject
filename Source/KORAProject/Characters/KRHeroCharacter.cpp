@@ -6,6 +6,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Data/DataAsset_InputConfig.h"
 #include "Components/Input/KRInputComponent.h"
+#include "Data/StartUpData/DataAsset_StartUpDataBase.h"
+#include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/KRGameplayTags.h"
 #include "Player/KRPlayerState.h"
 
@@ -63,10 +65,17 @@ void AKRHeroCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
+	if (!HasAuthority()) return;
+
+	if (!CharacterStartUpData.IsNull())
 	{
-		KRPS->InitializeAbilitySystemForPawn(this);
-		SetCachedASC(KRPS->GetAbilitySystemComponent());
+		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
+		{
+			if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(GetAbilitySystemComponent()))
+			{
+				LoadedData->GiveToAbilitySystemComponent(KRASC);
+			}
+		}
 	}
 }
 
@@ -76,7 +85,7 @@ void AKRHeroCharacter::OnRep_PlayerState()
 
 	if (AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
 	{
-		KRPS->InitializeAbilitySystemForPawn(this);
+		KRPS->InitASCForAvatar(this);
 		SetCachedASC(KRPS->GetAbilitySystemComponent());
 	}
 }
