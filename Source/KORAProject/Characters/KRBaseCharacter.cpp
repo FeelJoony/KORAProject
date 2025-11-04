@@ -8,3 +8,7 @@ AKRBaseCharacter::AKRBaseCharacter()
 	GetMesh()->bReceivesDecals = false;
 }
 
+UAbilitySystemComponent* AKRBaseCharacter::GetAbilitySystemComponent() const
+{
+	return CachedASC;
+}

@@ -7,6 +7,7 @@
 #include "Data/DataAsset_InputConfig.h"
 #include "Components/Input/KRInputComponent.h"
 #include "GAS/KRGameplayTags.h"
+#include "Player/KRPlayerState.h"
 
 AKRHeroCharacter::AKRHeroCharacter()
 {
@@ -36,6 +37,20 @@ AKRHeroCharacter::AKRHeroCharacter()
 void AKRHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (SwordClass)
+	{
+		CurrentSword = GetWorld()->SpawnActor<AActor>(SwordClass);
+		CurrentSword->AttachToComponent(GetMesh(), 
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+			TEXT("hand_rSocket"));
+	}
+	if (PistolClass) 
+	{ 
+		CurrentPistol = GetWorld()->SpawnActor<AActor>(PistolClass);
+		CurrentPistol->AttachToComponent(GetMesh(), 
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+			TEXT("hand_lSocket")); 
+	}
 }
 
 void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -49,15 +64,35 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
 		{
 			Subsystem->AddMappingContext(InputConfigDataAsset->DefaultMappingContext, 0);
-
-			UKRInputComponent* KRInputComponent = CastChecked<UKRInputComponent>(PlayerInputComponent);
-
-			KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
-			KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
 		}
 	}
-
 	
+	UKRInputComponent* KRInputComponent = CastChecked<UKRInputComponent>(PlayerInputComponent);
+
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+}
+
+void AKRHeroCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
+	{
+		KRPS->InitializeAbilitySystemForPawn(this);
+		SetCachedASC(KRPS->GetAbilitySystemComponent());
+	}
+}
+
+void AKRHeroCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
+	{
+		KRPS->InitializeAbilitySystemForPawn(this);
+		SetCachedASC(KRPS->GetAbilitySystemComponent());
+	}
 }
 
 void AKRHeroCharacter::Input_Move(const FInputActionValue& Value)

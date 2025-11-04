@@ -18,16 +18,34 @@ class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter
 	
 public:
 	AKRHeroCharacter();
+
+	FORCEINLINE TObjectPtr<AActor> GetCurrentSword() const
+	{
+		return CurrentSword;
+	}
 	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
 
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArm;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> Camera;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	TSubclassOf<AActor> SwordClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	TSubclassOf<AActor> PistolClass;
+	
+	UPROPERTY()
+	AActor* CurrentSword;
+	UPROPERTY()
+	AActor* CurrentPistol;
 
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
