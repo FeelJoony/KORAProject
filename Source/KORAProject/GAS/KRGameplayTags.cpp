@@ -8,4 +8,7 @@ namespace KRGameplayTags
 
 	/* State Tags */
 	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Attaking, "State.Acting.Attaking");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Step, "Player.Can.Step");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Jump, "Player.Can.Jump");
 }
