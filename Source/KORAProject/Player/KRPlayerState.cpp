@@ -1,32 +1,35 @@
 #include "Player/KRPlayerState.h"
 #include "GAS/KRPlayerAbilitySystemComponent.h"
+#include "GAS/KRAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Pawn.h"
 
 AKRPlayerState::AKRPlayerState()
 {
-	KRPlayerASC = CreateDefaultSubobject<UKRPlayerAbilitySystemComponent>(TEXT("ASC"));
+	SetNetUpdateFrequency(100.f);
+	
+	KRPlayerASC = CreateDefaultSubobject<UKRAbilitySystemComponent>(TEXT("ASC"));
 	KRPlayerASC->SetIsReplicated(true);
 	KRPlayerASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
+void AKRPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 UAbilitySystemComponent* AKRPlayerState::GetAbilitySystemComponent() const
 {
-	return KRPlayerASC;
+	return GetKRPlayerAbilitySystemComponent();
 }
 
 
-void AKRPlayerState::InitializeAbilitySystemForPawn(APawn* NewPawn)
+void AKRPlayerState::InitASCForAvatar(AActor* NewAvatar)
 {
-	if (!KRPlayerASC) return;
-
-	KRPlayerASC->InitAbilityActorInfo(this, NewPawn);
-
-	if (HasAuthority() && !bStartupGiven)
+	if (IsValid(KRPlayerASC))
 	{
-		KRPlayerASC->ApplyInitialEffects();
-		KRPlayerASC->GiveInitialAbilities();
-		KRPlayerASC->GiveInputAbilities();
-		bStartupGiven = true;
+		KRPlayerASC->InitAbilityActorInfo(this, NewAvatar);
 	}
+
+	
 }

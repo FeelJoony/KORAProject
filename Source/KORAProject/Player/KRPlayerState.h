@@ -5,8 +5,10 @@
 #include "AbilitySystemInterface.h"
 #include "KRPlayerState.generated.h"
 
+class UKRAttributeSet;
 class APawn;
 class UKRPlayerAbilitySystemComponent;
+class UKRAbilitySystemComponent;
 
 UCLASS()
 class KORAPROJECT_API AKRPlayerState : public APlayerState, public IAbilitySystemInterface
@@ -15,17 +17,26 @@ class KORAPROJECT_API AKRPlayerState : public APlayerState, public IAbilitySyste
 
 public:
 	AKRPlayerState();
-
+	virtual void BeginPlay() override;
+	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	void InitializeAbilitySystemForPawn(APawn* NewPawn);
+	void InitASCForAvatar(AActor* NewAvatar);
 
 	UFUNCTION(BlueprintPure, Category = "GAS")
-	UKRPlayerAbilitySystemComponent* GetKRPlayerASC() const {return KRPlayerASC;}
+	UKRAbilitySystemComponent* GetKRPlayerASC() const {return KRPlayerASC;}
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UKRPlayerAbilitySystemComponent> KRPlayerASC;
+	TObjectPtr<UKRAbilitySystemComponent> KRPlayerASC;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	TObjectPtr<UKRAttributeSet> KRAttributeSet;
+	
 	bool bStartupGiven = false;
+
+public:
+	FORCEINLINE UKRAbilitySystemComponent* GetKRPlayerAbilitySystemComponent() const {return KRPlayerASC;}
+	FORCEINLINE UKRAttributeSet* GetKRAttributeSet() const {return KRAttributeSet;}
+	
 };
