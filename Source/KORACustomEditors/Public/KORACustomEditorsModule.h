@@ -15,6 +15,12 @@ private:
 
 	static void RegisterMyToolsMenu(FMenuBuilder& MenuBuilder);
 	static void OnConvertCSVToDataTablesClicked();
+	void OnConvertCSVToDataTablesClicked(double EditorLoadTime);
+
+	void SetOnDirectoryChangeWatcherCallbacks();
+	void SetOnInitializedEditorCallbacks();
+
+	TUniquePtr<class FDirectoryChangeWatcher> Watcher;
 
 	FDelegateHandle ToolMenuExtensibilityManagerDelegateHandle;
 };
