@@ -9,7 +9,7 @@ void UKRAnimNotifyState_AttackTag::NotifyBegin(USkeletalMeshComponent* MeshComp,
 
 	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(MeshComp->GetOwner()))
 	{
-		if (AActor* Sword = Character->GetCurrentSword())
+		//if (AActor* Sword = Character->GetCurrentSword())//컴포넌트로 변경. 제목 변경
 		{
 			// 태그 추가
 			//Sword->ComponentTags.AddUnique(WeaponDamageTag);
@@ -25,7 +25,7 @@ void UKRAnimNotifyState_AttackTag::NotifyEnd(USkeletalMeshComponent* MeshComp, U
 
 	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(MeshComp->GetOwner()))
 	{
-		if (AActor* Sword = Character->GetCurrentSword())
+		//if (AActor* Sword = Character->GetCurrentSword())
 		{
 			// 태그 제거
 			//Sword->ComponentTags.Remove(WeaponDamageTag);
