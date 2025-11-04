@@ -28,7 +28,6 @@
   <component name="ChangeListManager">
     <list default="true" id="34dd77b5-0842-4646-9c9b-5a2a80418b5f" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.KORAProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.KORAProject/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +40,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="feature/Inventory" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -79,12 +78,14 @@
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="cidr-memory-view://0" root0="FORCE_HIGHLIGHTING" />
-    <setting file="cidr-memory-view://1" root0="FORCE_HIGHLIGHTING" />
+    <setting file="cidr-memory-view://2" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/GAS/KRGameplayTags.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/GAS/KRGameplayTags.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/GAS/KRGameplayTags.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/GAS/KRGameplayTags.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/GAS/KRGameplayTags.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/GAS/KRGameplayTags.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock://C:/Git/3rd_4th-Team1-CH6-Project/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/KORAProject/InventoryComponent/KRInventoryComponent.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -115,23 +116,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "C/C++ 프로젝트.KORAProject.executor": "Debug",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feature/Inventory__System",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "ml.llm.AIAssistantPromptsLibrary",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;C/C++ 프로젝트.KORAProject.executor&quot;: &quot;Debug&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/Inventory__System&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.AIAssistantPromptsLibrary&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="C/C++ 프로젝트.KORAProject">
     <configuration name="KORAProject" type="CppProject" factoryName="C++ Project">
       <configuration_1 setup="1">
