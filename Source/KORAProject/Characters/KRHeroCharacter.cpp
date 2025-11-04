@@ -39,6 +39,7 @@ AKRHeroCharacter::AKRHeroCharacter()
 void AKRHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
 }
 
 void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
