@@ -16,4 +16,8 @@ public:
 	virtual void DeInitialize() override;
 
 	virtual void SetUserData() override;
+
+
+private:
+	TSharedPtr<struct FItemGameplayTagContainer> ItemContainer;
 };
