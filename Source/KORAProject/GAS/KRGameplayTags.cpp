@@ -55,7 +55,7 @@ namespace KRGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Step, "Player.Can.Step");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Jump, "Player.Can.Jump");
-}
+
 	// ----- Item Property -----
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Item_Property, "Item.Property", "아이템 속성");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Item_Property_Stackable, "Item.Property.Stackable", "아이템 스택 가능 여부");
