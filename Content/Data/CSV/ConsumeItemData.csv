@@ -1,0 +1,11 @@
+Index,ItemID,TypeTag,RarityTag,AbilityTags,DisplayName,Description,ItemIcon,BasePrice,StackMax,PoolTag
+0,ITM_Violic_FirstAid,ItemType.Consume.Potion,Rarity.Common,Ability.Item.Stackable;Ability.Item.Buyable;Ability.Item.Sellable;Ability.Consume.Heal,바이올릭산 : 응급 회복 키트,상자형 응급키트,/Game/Items/TestImage/FirstAid.FirstAid,120,5,Pool.AlwaysOn
+1,ITM_Violic_Stamina,ItemType.Consume.Potion,Rarity.Uncommon,Ability.Item.Stackable;Ability.Item.Buyable;Ability.Item.Sellable;Ability.Consume.Stamina,바이올릭산 : 기력 보충 앰플,하늘색 앰플,/Game/Items/TestImage/Stamina.Stamina,90,5,Pool.AlwaysOn
+2,ITM_Violic_All,ItemType.Consume.Potion,Rarity.Rare,Ability.Item.Buyable;Ability.Item.Sellable;Ability.Consume.Heal;Ability.Consume.Stamina;Ability.Consume.CoreCharge,바이올릭산 : 통합 회복 모듈,종합 회복 키트,/Game/Items/TestImage/All.All,150,1,Pool.Rotation.R2
+3,ITM_Violic_ATKBoost,ItemType.Consume.Potion,Rarity.Uncommon,Ability.Item.Stackable;Ability.Item.Buyable;Ability.Item.Sellable;Ability.Consume.ATKBuff,바이올릭산 : 전투 촉진제,주황 용액,/Game/Items/TestImage/ATKBoost.ATKBoost,100,3,Pool.Rotation.R1
+4,ITM_Violic_Suppress,ItemType.Consume.Potion,Rarity.Uncommon,Ability.Item.Stackable;Ability.Item.Buyable;Ability.Item.Sellable;Ability.Consume.Stealth,바이올릭산 : 생체 억제제,청록 용액,/Game/Items/TestImage/Suppress.Suppress,180,3,Pool.Rotation.R1
+5,ITM_CoreBattery_AE01,ItemType.Consume.Potion,Rarity.Uncommon,Ability.Item.Stackable;Ability.Item.Buyable;Ability.Item.Sellable,코어 배터리 : AE-01,칩형 배터리,/Game/Items/TestImage/AE01.AE01,200,3,Pool.Rotation.R1
+6,ITM_LuxLamp,ItemType.Tool.Light,Rarity.Uncommon,Ability.Item.Buyable;Ability.Item.Sellable;Ability.Consume.CoreCharge,룩스 램프,휴대 발광 장치,/Game/Items/TestImage/LuxLamp.LuxLamp,160,1,Pool.AlwaysOn
+7,ITM_Sora_Coin,ItemType.Consume.Insurance.Coin,Rarity.Rare,Ability.Item.Buyable;Ability.Item.Sellable,소라 벨의 동전,벨 문양 동전,/Game/Items/TestImage/BellCoin.BellCoin,420,1,Pool.Rotation.R2
+8,ITM_Sora_Wallet,ItemType.Consume.Insurance.Wallet,Rarity.Epic,Ability.Item.Buyable;Ability.Item.Sellable,소라 벨의 지갑,가죽 지갑,/Game/Items/TestImage/BellWallet.BellWallet,1200,1,Pool.Rotation.R3
+9,ITM_Clara_Key,ItemType.Consume.Key,Rarity.Uncommon,Ability.Item.Stackable;Ability.Item.Buyable;Ability.Item.Sellable,클라라 바이스의 열쇠,고풍 열쇠,/Game/Items/TestImage/ClaraKey.ClaraKey,2000,99,Pool.Rotation.R2

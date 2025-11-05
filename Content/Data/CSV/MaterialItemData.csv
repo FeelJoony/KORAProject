@@ -1,0 +1,17 @@
+Index,ItemID,TypeTag,RarityTag,AbilityTags,DisplayName,Description,ItemIcon,BasePrice,StackMax
+0,ITM_WornKnuckle,ItemType.Material.Scrap,Rarity.Common,Ability.Item.Sellable,닳은 너클 가드,근접단 잔존 장비,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+1,ITM_TornUniform,ItemType.Material.Scrap,Rarity.Common,Ability.Item.Sellable,찢어진 용병 복장 조각,패브릭 스크랩,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+2,ITM_RustedBadge,ItemType.Material.Doc,Rarity.Uncommon,Ability.Item.Sellable,녹슨 배지,신분 흔적,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+3,ITM_SpentBrass,ItemType.Material.Tech,Rarity.Common,Ability.Item.Sellable,비어있는 탄피 묶음,금속 수거,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+4,ITM_DamagedScope,ItemType.Material.Tech,Rarity.Uncommon,Ability.Item.Sellable,손상된 스코프,부품 재활용,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+5,ITM_EncryptedChip,ItemType.Material.Tech,Rarity.Rare,Ability.Item.Sellable,암호화 통신 칩,블랙 인기 매물,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+6,ITM_BloodstainedNote,ItemType.Material.Doc,Rarity.Uncommon,Ability.Item.Sellable,피묻은 쪽지,피묻은 쪽지,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+7,ITM_Ferro_ChippedSickle,ItemType.Material.Tech,Rarity.Common,Ability.Item.Sellable,깨진 낫날 조각,조잡한 낫 파편,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+8,ITM_Ferro_RatmailPlate,ItemType.Material.Tech,Rarity.Uncommon,Ability.Item.Sellable,쥐갑옷 금속판,낡은 금속 방편,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+9,ITM_Arbid_WebSpool,ItemType.Material.Tech,Rarity.Common,Ability.Item.Sellable,응축 거미실 뭉치,끈끈한 실 뭉치,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+10,ITM_Arbid_EyeCluster,ItemType.Material.Tech,Rarity.Uncommon,Ability.Item.Sellable,소형 겹눈 다발,감시 반응성 조직,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+11,ITM_Spinder_VenomFang,ItemType.Material.Tech,Rarity.Common,Ability.Item.Sellable,독니,강한 독성 보유,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+12,ITM_Spinder_ChitinPlate,ItemType.Material.Tech,Rarity.Common,Ability.Item.Sellable,강화 키틴 판,내절단성 외골격,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+13,ITM_Spinder_CompoundLens,ItemType.Material.Tech,Rarity.Uncommon,Ability.Item.Sellable,복합 렌즈 조각,광학용 재가공 가능 재료,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+14,ITM_Nerras_DualBladeFrag,ItemType.Material.Tech,Rarity.Common,Ability.Item.Sellable,쌍검 합금 파편,군용 합금 잔해,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999
+15,ITM_Nerras_ExoPlating,ItemType.Material.Tech,Rarity.Uncommon,Ability.Item.Sellable,코어융합 외골격판,고강도 융합 조직,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,999

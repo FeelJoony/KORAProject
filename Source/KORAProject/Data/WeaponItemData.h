@@ -1,26 +1,50 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EquipItemData.h"
 #include "WeaponItemData.generated.h"
 
 USTRUCT(BlueprintType)
-struct KORAPROJECT_API FWeaponItemData
+struct KORAPROJECT_API FWeaponItemData : public FEquipItemData
 {
 	GENERATED_BODY()
 
 public:
 	FWeaponItemData()
-		: Index(0)
-		, Width(0.f)
-		, Height(0.f)
+		: BaseATK(0), BaseCritChance(0.f), BaseCritMulti(1.f),
+		BaseRange(1000.f), BaseAccuracy(1.f), BaseRecoil(0.f),
+		BaseCapacity(1), AttackSpeed(1.f),
+		ReloadTime(1.f), BaseEnforceCost(0)
 	{
-
 	}
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Index;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Width;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Height;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int32 BaseATK;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float BaseCritChance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float BaseCritMulti;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float BaseRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float BaseAccuracy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float BaseRecoil;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int32 BaseCapacity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float AttackSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float ReloadTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int32 BaseEnforceCost;
 };

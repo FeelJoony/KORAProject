@@ -7,4 +7,6 @@ enum class EGameDataType : uint8
 {
 	SampleData,
 	WeaponItemData,
+	ConsumeItemData,
+	MaterialItemData
 };
