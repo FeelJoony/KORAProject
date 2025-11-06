@@ -6,6 +6,7 @@
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Data/KRItemUIData.h"
+#include "SubSystem/KRUIInputSubsystem.h"
 
 #include "CommonButtonBase.h"
 #include "GameplayTagsManager.h"
@@ -17,6 +18,30 @@
 // 필요 함수 리스트 !! 
 /* 현재 위젯 소유자 Pawn에서 인벤토리 컴포넌트 가져오는 함수 */
 /* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+
+void UKREquipmentMain::NativeOnActivated()
+{
+	Super::NativeOnActivated();
+
+	UE_LOG(LogTemp, Log, TEXT("NativeOnActivated... Equipment"));
+	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	{
+		InputSubsys->BindBackDefault(this, TEXT("Equipment"));
+		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
+		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleNext));
+		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandlePrev));
+	}
+}
+
+void UKREquipmentMain::NativeOnDeactivated()
+{
+	UE_LOG(LogTemp, Log, TEXT("NativeOnDeactivated... Equipment"));
+	//if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	//{
+	//	InputSubsys->UnbindAll(this);
+	//}
+	Super::NativeOnDeactivated();
+}
 
 void UKREquipmentMain::NativeConstruct()
 {
@@ -38,15 +63,6 @@ void UKREquipmentMain::NativeConstruct()
 void UKREquipmentMain::NativeDestruct()
 {
 	Super::NativeDestruct();
-}
-
-void UKREquipmentMain::SetupInputBindings()
-{
-	UnbindAll();
-	BindBackDefault(Row_Back);
-	//BindRow(Row_Prev, FSimpleDelegate::CreateUObject(this, &ThisClass::OnPrevItem));
-	//BindRow(Row_Next, FSimpleDelegate::CreateUObject(this, &ThisClass::OnNextItem));
-	//BindRow(Row_Select, FSimpleDelegate::CreateUObject(this, &ThisClass::OnSelectItem));
 }
 
 void UKREquipmentMain::OnClickSwordModule()
@@ -133,4 +149,16 @@ void UKREquipmentMain::UpdateDescriptionUI(int32 CellIndex)
 	{
 		ModuleDescription->SetVisibility(ESlateVisibility::Collapsed);
 	}
+}
+
+void UKREquipmentMain::HandleSelect()
+{
+}
+
+void UKREquipmentMain::HandleNext()
+{
+}
+
+void UKREquipmentMain::HandlePrev()
+{
 }

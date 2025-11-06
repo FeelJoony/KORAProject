@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UI/KRCommonUIWidget.h"
+#include "CommonActivatableWidget.h"
 #include "GameplayTagContainer.h"
 #include "KREquipmentMain.generated.h"
 
@@ -14,7 +14,7 @@ struct FKRItemUIData;
 // 인벤토리 컴포넌트
 
 UCLASS()
-class KORAPROJECT_API UKREquipmentMain : public UKRCommonUIWidget
+class KORAPROJECT_API UKREquipmentMain : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
 
@@ -30,15 +30,13 @@ public:
 	UPROPERTY(meta = (BindWidget)) UKRItemDescriptionBase* ModuleDescription = nullptr;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Back = "Back";
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Select = "Select";
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Next = "Next";
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Prev = "Prev";
+	virtual void NativeOnActivated() override;
+	virtual void NativeOnDeactivated() override;
 
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-	virtual void SetupInputBindings() override;
+	//virtual void SetupInputBindings() override;
 
 private:
 	//TWeakObjectPtr<UKRInventoryComponent> InventoryComp;
@@ -58,4 +56,8 @@ private:
 
 	//void BindInventoryEvents();
 	void UpdateDescriptionUI(int32 CellIndex);
+
+	void HandleSelect();
+	void HandleNext();
+	void HandlePrev();
 };

@@ -6,6 +6,7 @@
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Data/KRItemUIData.h"
+#include "SubSystem/KRUIInputSubsystem.h"
 
 #include "CommonButtonBase.h"
 #include "GameplayTagsManager.h"
@@ -19,6 +20,28 @@
 // 필요 함수 리스트 !! 
 /* 현재 위젯 소유자 Pawn에서 인벤토리 컴포넌트 가져오는 함수 */
 /* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+
+void UKRInventoryMain::NativeOnActivated()
+{
+	Super::NativeOnActivated();
+
+	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	{
+		InputSubsys->BindBackDefault(this, TEXT("Inventory"));
+		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
+		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleNext));
+		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandlePrev));
+	}
+}
+
+void UKRInventoryMain::NativeOnDeactivated()
+{
+	//if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	//{
+	//	InputSubsys->UnbindAll(this);
+	//}
+	Super::NativeOnDeactivated();
+}
 
 void UKRInventoryMain::NativeConstruct()
 {
@@ -40,15 +63,6 @@ void UKRInventoryMain::NativeConstruct()
 void UKRInventoryMain::NativeDestruct()
 {
 	Super::NativeDestruct();
-}
-
-void UKRInventoryMain::SetupInputBindings()
-{
-	UnbindAll();
-    BindBackDefault(Row_Back);
-    //BindRow(Row_Prev, FSimpleDelegate::CreateUObject(this, &ThisClass::OnPrevItem));
-    //BindRow(Row_Next, FSimpleDelegate::CreateUObject(this, &ThisClass::OnNextItem));
-    //BindRow(Row_Select, FSimpleDelegate::CreateUObject(this, &ThisClass::OnSelectItem));
 }
 
 void UKRInventoryMain::OnClickConsumables()
@@ -121,4 +135,16 @@ void UKRInventoryMain::UpdateDescriptionUI(int32 CellIndex)
 	{
 		ItemDescriptionWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
+}
+
+void UKRInventoryMain::HandleSelect()
+{
+}
+
+void UKRInventoryMain::HandleNext()
+{
+}
+
+void UKRInventoryMain::HandlePrev()
+{
 }
