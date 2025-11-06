@@ -17,6 +17,7 @@ struct KORAPROJECT_API FKRItemUIData
     UPROPERTY(BlueprintReadOnly, EditAnywhere) TSoftObjectPtr<UTexture2D> ItemIcon;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Quantity = 0;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Price = 0;
+    UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 UpgradeLevel = 0;
     //UPROPERTY(BlueprintReadOnly, EditAnywhere) FGameplayTagContainer Tags;
 
     //UPROPERTY() TWeakObjectPtr<UKRBaseItem> SourceItem;

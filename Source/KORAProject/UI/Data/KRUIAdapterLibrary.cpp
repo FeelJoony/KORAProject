@@ -19,7 +19,8 @@
 //    D.ItemIcon = Item->GetItemIcon();
 //    D.Quantity = Item->GetStackCount();
 //    D.Price = Item->GetBasePrice();
-//    D.Tags = Item->GetAbilityTags(); // BaseItem 받고 다시 수정
+//	  if (Item.GetTypeTag() == FGameplayTag::RequestGameplayTag(TEXT("ItemType.Equip.Gun")) || Item.GetTypeTag() == FGameplayTag::RequestGameplayTag(TEXT("ItemType.Equip.Sword"))) 
+//    { D.UpgradeLevel = Item->GetEnforceLevel(); }
 //
 //    return D;
 //}

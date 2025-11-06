@@ -14,5 +14,5 @@ class KORAPROJECT_API UKRItemDescriptionBase : public UCommonUserWidget
 	
 public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void UpdateItemInfo(const FText& ItemName, const FText& ItemDescription, const TSoftObjectPtr<UTexture2D>& ItemIcon);
+	void UpdateItemInfo(const FText& ItemName, const FText& ItemDescription, const TSoftObjectPtr<UTexture2D>& ItemIcon, int32 UpgradeLevel = -1);
 };
