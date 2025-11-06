@@ -35,7 +35,6 @@ namespace KRGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Material_Scrap, "ItemType.Material.Scrap", "재료 - 스크랩");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Material_Tech, "ItemType.Material.Tech", "재료 - 테크 재료");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Material_Doc, "ItemType.Material.Doc", "재료 - 문서");
-
 	// ----- ItemType.Quest -----
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Quest, "ItemType.Quest", "퀘스트 아이템");
 
@@ -94,5 +93,4 @@ namespace KRGameplayTags
 	// ----- Item Tool Effect ----
 
 	// ----- Equipment Slot -----
-
 }

@@ -37,7 +37,7 @@ namespace KRGameplayTags
 	KORAPROJECT_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ItemType_Material_Scrap);
 	KORAPROJECT_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ItemType_Material_Tech);
 	KORAPROJECT_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ItemType_Material_Doc);
-
+	
 	// ----- ItemType.Quest -----
 	KORAPROJECT_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ItemType_Quest);
 
@@ -97,5 +97,4 @@ namespace KRGameplayTags
 	// ----- Item Tool Effect ----
 
 	// ----- Equipment Slot -----
-
 }
