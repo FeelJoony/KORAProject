@@ -23,13 +23,17 @@ void UKRGA_HeroSprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
-	ASC->AddLooseGameplayTag(CanStepTag);
-	
-	UAbilityTask_WaitDelay* DelayStep = UAbilityTask_WaitDelay::WaitDelay(this, 0.15f);
-	if (DelayStep)
+	UAbilityTask_WaitDelay* DelayAllowStep = UAbilityTask_WaitDelay::WaitDelay(this, 0.01f);
+	if (DelayAllowStep)
 	{
-		DelayStep->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnBlockStep);
-		DelayStep->ReadyForActivation();
+		DelayAllowStep->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnAllowStep);
+		DelayAllowStep->ReadyForActivation();
+	}
+	UAbilityTask_WaitDelay* DelayBlockStep = UAbilityTask_WaitDelay::WaitDelay(this, 0.15f);
+	if (DelayBlockStep)
+	{
+		DelayBlockStep->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnBlockStep);
+		DelayBlockStep->ReadyForActivation();
 	}
 	UAbilityTask_WaitDelay* DelayJump = UAbilityTask_WaitDelay::WaitDelay(this, 0.25f);
 	if (DelayJump)
@@ -54,6 +58,8 @@ void UKRGA_HeroSprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+	
 	if (EndDelayTask)
 	{
 		EndDelayTask->EndTask();
@@ -69,31 +75,30 @@ void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 			MoveComp->MaxWalkSpeed = 600.f; // 기획서 탐색 후 수정요망
 		}
 	}
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
 	{
-		if (ASC->HasMatchingGameplayTag(CanJumpTag))
+		return;
+	}
+	for (FGameplayAbilitySpec& JumpSpec : ASC->GetActivatableAbilities())
+	{
+		const FGameplayTagContainer& JumpGATags = JumpSpec.Ability->GetAssetTags();
+		if (JumpGATags.HasTagExact(JumpAbilityTag))
 		{
-			for (FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+			if (!ASC->TryActivateAbility(JumpSpec.Handle))
 			{
-				FGameplayTagContainer SourceTags = Spec.GetDynamicSpecSourceTags();
-				if (SourceTags.HasTagExact(CanJumpTag))
+				for (FGameplayAbilitySpec& StepSpec : ASC->GetActivatableAbilities())
 				{
-					ASC->TryActivateAbility(Spec.Handle);
-					break;
-				}
+					const FGameplayTagContainer& StepGATags = StepSpec.Ability->GetAssetTags();
+					if (StepGATags.HasTagExact(StepAbilityTag))
+					{
+						ASC->TryActivateAbility(StepSpec.Handle);
+						return;
+					}
+				}	
 			}
-		}
-		if (ASC->HasMatchingGameplayTag(CanStepTag))
-		{
-			for (FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-			{
-				FGameplayTagContainer SourceTags = Spec.GetDynamicSpecSourceTags();
-				if (SourceTags.HasTagExact(CanStepTag))
-				{
-					ASC->TryActivateAbility(Spec.Handle);
-					break;
-				}
-			}
+			return;
 		}
 	}
 }
@@ -120,6 +125,14 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 		{
 			MoveComp->MaxWalkSpeed = 400.f;
 		}
+	}
+}
+
+void UKRGA_HeroSprint::OnAllowStep()
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->AddLooseGameplayTag(CanStepTag);
 	}
 }
 

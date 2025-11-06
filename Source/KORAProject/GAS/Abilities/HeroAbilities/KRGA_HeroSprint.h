@@ -20,20 +20,22 @@ public:
 	
 protected:
 	UFUNCTION()
+	void OnAllowStep();
+	UFUNCTION()
 	void OnBlockStep();
 	UFUNCTION()
 	void OnAllowJumpStep();
 	UFUNCTION()
 	void OnAbilityEnd();
 
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag StepAbilityTag;
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag JumpAbilityTag;
 
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag CanStepTag;
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag CanJumpTag;
 	
 	UPROPERTY()

@@ -11,11 +11,6 @@ void UKRHeroAnimInstance::NativeInitializeAnimation()
 	if (CachedCharacter)
 	{
 		CachedMoveComponent = CachedCharacter->GetCharacterMovement();
-        if (!CachedMoveComponent)
-        {
-        	UE_LOG(LogTemp,Warning,TEXT("[UKRHeroAnimInstance] Character is null"));
-        	return;
-        }
 	}
 }
 
@@ -25,7 +20,6 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	
 	if (!CachedMoveComponent)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("[UKRHeroAnimInstance] Character is null"));
 		return;
 	}
 	
