@@ -11,7 +11,9 @@
 			"AdditionalDependencies": [
 				"CoreUObject",
 				"Engine",
-				"GameplayAbilities"
+				"GameplayAbilities",
+				"EnhancedInput",
+				"GameplayTasks"
 			]
 		},
 		{

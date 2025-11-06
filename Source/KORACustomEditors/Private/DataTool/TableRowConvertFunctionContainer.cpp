@@ -6,6 +6,8 @@
 #include "GameplayTagsManager.h"
 #include "Data/SampleDataStruct.h"
 #include "Data/WeaponItemDataStruct.h"
+#include "Data/ConsumeItemDataStruct.h"
+#include "Data/MaterialItemDataStruct.h"
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 {
@@ -83,6 +85,7 @@ void UTableRowConvertFunctionContainer::CreateWeaponItemData(UDataTable* OutData
 
                 FWeaponItemDataStruct OutRow;
 
+                // 안전한 컬럼 접근 매크로
                 auto Get = [&](const TCHAR* Key) -> FString
                     {
                         int32 Idx = GetHeaderIndex(Headers, Key);
@@ -91,44 +94,62 @@ void UTableRowConvertFunctionContainer::CreateWeaponItemData(UDataTable* OutData
 
                 OutRow.Index = ParseIntValue(Get(TEXT("Index")));
                 OutRow.ItemID = FName(*Get(TEXT("ItemID")));
-
                 OutRow.DisplayName = FText::FromString(Get(TEXT("DisplayName")));
                 OutRow.Description = FText::FromString(Get(TEXT("Description")));
 
-               /* OutRow.ItemIcon = TSoftObjectPtr<UTexture2D>(FSoftObjectPath(Get(TEXT("ItemIcon"))));
+                // Gameplay Tags
+                auto ParseTag = [&](const TCHAR* Key) -> FGameplayTag
+                    {
+                        FString TagStr = Get(Key);
+                        return TagStr.IsEmpty() ? FGameplayTag() :
+                            FGameplayTag::RequestGameplayTag(FName(*TagStr));
+                    };
 
-                OutRow.TypeTag = FGameplayTag::RequestGameplayTag(*Get(TEXT("TypeTag")));
-                OutRow.RarityTag = FGameplayTag::RequestGameplayTag(*Get(TEXT("RarityTag")));*/
+                OutRow.TypeTag = ParseTag(TEXT("TypeTag"));
+                OutRow.RarityTag = ParseTag(TEXT("RarityTag"));
 
-                /*{
+                // AbilityTags parsing
+                {
                     FString TagsString = Get(TEXT("AbilityTags"));
                     TArray<FString> TagStrings;
-                    TagsString.ParseIntoArray(TagStrings, TEXT("|"));
+                    TagsString.ParseIntoArray(TagStrings, TEXT(";"));
 
                     for (const FString& TagStr : TagStrings)
                     {
                         if (!TagStr.IsEmpty())
                         {
-                            OutRow.AbilityTags.Add(FGameplayTag::RequestGameplayTag(*TagStr));
+                            OutRow.AbilityTags.Add(FGameplayTag::RequestGameplayTag(FName(*TagStr)));
                         }
                     }
-                }*/
+                }
 
+                // Icon Path
+                FString IconString = Get(TEXT("ItemIcon"));
+                if (!IconString.IsEmpty())
+                {
+                    OutRow.ItemIcon = TSoftObjectPtr<UTexture2D>(FSoftObjectPath(IconString));
+                }
+
+                // Numeric Stats
                 OutRow.BasePrice = ParseIntValue(Get(TEXT("BasePrice")));
                 OutRow.StackMax = ParseIntValue(Get(TEXT("StackMax")));
 
                 OutRow.BaseATK = ParseIntValue(Get(TEXT("BaseATK")));
                 OutRow.BaseCritChance = ParseFloatValue(Get(TEXT("BaseCritChance")));
                 OutRow.BaseCritMulti = ParseFloatValue(Get(TEXT("BaseCritMulti")));
-                //OutRow.BaseRange = ParseFloatValue(Get(TEXT("BaseRange")));
-                /*OutRow.BaseAccuracy = ParseFloatValue(Get(TEXT("BaseAccuracy")));
+
+                OutRow.BaseRange = ParseFloatValue(Get(TEXT("BaseRange")));
+                OutRow.BaseAccuracy = ParseFloatValue(Get(TEXT("BaseAccuracy")));
                 OutRow.BaseRecoil = ParseFloatValue(Get(TEXT("BaseRecoil")));
                 OutRow.BaseCapacity = ParseIntValue(Get(TEXT("BaseCapacity")));
-                OutRow.BaseEnforceCost = ParseIntValue(Get(TEXT("BaseEnforceCost")));*/
-                OutRow.ReloadTime = ParseFloatValue(Get(TEXT("ReloadTime")));
-                //OutRow.AttackSpeed = ParseFloatValue(Get(TEXT("AttackSpeed")));
+                OutRow.BaseEnforceCost = ParseIntValue(Get(TEXT("BaseEnforceCost")));
 
+                OutRow.ReloadTime = ParseFloatValue(Get(TEXT("ReloadTime")));
+                OutRow.AttackSpeed = ParseFloatValue(Get(TEXT("AttackSpeed")));
+
+                // Commit to DataTable
                 FName RowName = *FString::Printf(TEXT("Weapon_%d"), OutRow.Index);
+
                 if (FWeaponItemDataStruct* FindRow = OutDataTable->FindRow<FWeaponItemDataStruct>(RowName, TEXT("")))
                 {
                     *FindRow = OutRow;
@@ -141,6 +162,128 @@ void UTableRowConvertFunctionContainer::CreateWeaponItemData(UDataTable* OutData
         }));
 }
 
+
+void UTableRowConvertFunctionContainer::CreateConsumeItemData(UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("ConsumeItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+                int32 ItemID_Index = GetHeaderIndex(Headers, TEXT("ItemID"));
+                int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
+                int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
+                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags")); // ';'구분 리스트
+                int32 DisplayName_Index = GetHeaderIndex(Headers, TEXT("DisplayName"));
+                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+                int32 Icon_Index = GetHeaderIndex(Headers, TEXT("ItemIcon"));
+                int32 BasePrice_Index = GetHeaderIndex(Headers, TEXT("BasePrice"));
+                int32 StackMax_Index = GetHeaderIndex(Headers, TEXT("StackMax"));
+                int32 PoolTag_Index = GetHeaderIndex(Headers, TEXT("PoolTag"));
+
+                FConsumeItemDataStruct ConsumeData;
+
+                ConsumeData.Index = ParseIntValue(RowValue[Index_Index]);
+                ConsumeData.ItemID = FName(*RowValue[ItemID_Index]);
+
+                ConsumeData.TypeTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[TypeTag_Index]));
+                ConsumeData.RarityTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[RarityTag_Index]));
+                ConsumeData.PoolTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[PoolTag_Index]));
+
+                // AbilityTags CSV에서 분리 (예: "Tag1;Tag2;Tag3")
+                TArray<FString> AbilityStrList;
+                RowValue[AbilityTags_Index].ParseIntoArray(AbilityStrList, TEXT(";"), true);
+                for (const FString& TagStr : AbilityStrList)
+                {
+                    ConsumeData.AbilityTags.Add(FGameplayTag::RequestGameplayTag(FName(*TagStr)));
+                }
+
+                ConsumeData.DisplayName = FText::FromString(RowValue[DisplayName_Index]);
+                ConsumeData.Description = FText::FromString(RowValue[Description_Index]);
+
+                FString IconString = RowValue[Icon_Index];
+                ConsumeData.ItemIcon = TSoftObjectPtr<UTexture2D>(FSoftObjectPath(IconString));
+
+                ConsumeData.BasePrice = ParseIntValue(RowValue[BasePrice_Index]);
+                ConsumeData.StackMax = ParseIntValue(RowValue[StackMax_Index]);
+
+                FName RowName = *FString::Printf(TEXT("Consume_%d"), i);
+                if (FConsumeItemDataStruct* FindRow = OutDataTable->FindRow<FConsumeItemDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = ConsumeData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, ConsumeData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateMaterialItemData(UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("MaterialItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+                int32 ItemID_Index = GetHeaderIndex(Headers, TEXT("ItemID"));
+                int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
+                int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
+                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags")); // ';'구분 리스트
+                int32 DisplayName_Index = GetHeaderIndex(Headers, TEXT("DisplayName"));
+                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+                int32 Icon_Index = GetHeaderIndex(Headers, TEXT("ItemIcon"));
+                int32 BasePrice_Index = GetHeaderIndex(Headers, TEXT("BasePrice"));
+                int32 StackMax_Index = GetHeaderIndex(Headers, TEXT("StackMax"));
+
+                FMaterialItemDataStruct MaterialData;
+
+                MaterialData.Index = ParseIntValue(RowValue[Index_Index]);
+                MaterialData.ItemID = FName(*RowValue[ItemID_Index]);
+
+                MaterialData.TypeTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[TypeTag_Index]));
+                MaterialData.RarityTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[RarityTag_Index]));
+
+                // AbilityTags CSV에서 분리 (예: "Tag1;Tag2;Tag3")
+                TArray<FString> AbilityStrList;
+                RowValue[AbilityTags_Index].ParseIntoArray(AbilityStrList, TEXT(";"), true);
+                for (const FString& TagStr : AbilityStrList)
+                {
+                    MaterialData.AbilityTags.Add(FGameplayTag::RequestGameplayTag(FName(*TagStr)));
+                }
+
+                MaterialData.DisplayName = FText::FromString(RowValue[DisplayName_Index]);
+                MaterialData.Description = FText::FromString(RowValue[Description_Index]);
+
+                FString IconString = RowValue[Icon_Index];
+                MaterialData.ItemIcon = TSoftObjectPtr<UTexture2D>(FSoftObjectPath(IconString));
+
+                MaterialData.BasePrice = ParseIntValue(RowValue[BasePrice_Index]);
+                MaterialData.StackMax = ParseIntValue(RowValue[StackMax_Index]);
+
+                FName RowName = *FString::Printf(TEXT("Material_%d"), i);
+                if (FMaterialItemDataStruct* FindRow = OutDataTable->FindRow<FMaterialItemDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = MaterialData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, MaterialData);
+                }
+            }
+        }));
+}
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)
 {

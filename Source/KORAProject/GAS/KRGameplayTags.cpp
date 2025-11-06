@@ -2,6 +2,10 @@
 
 namespace KRGameplayTags
 {
+	/* Input Tags */
+	UE_DEFINE_GAMEPLAY_TAG(Input_Move, "Input.Move");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Look, "Input.Look");
+	
 	// ----- ItemType -----
 	UE_DEFINE_GAMEPLAY_TAG(TAG_ItemType, "ItemType");
 
@@ -31,7 +35,6 @@ namespace KRGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Material_Scrap, "ItemType.Material.Scrap", "재료 - 스크랩");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Material_Tech, "ItemType.Material.Tech", "재료 - 테크 재료");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Material_Doc, "ItemType.Material.Doc", "재료 - 문서");
-	
 	// ----- ItemType.Quest -----
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Quest, "ItemType.Quest", "퀘스트 아이템");
 
@@ -46,12 +49,44 @@ namespace KRGameplayTags
 
 	// ----- Ability -----
 
+	/* State Tags */
+	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Attaking, "State.Acting.Attaking");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Step, "Player.Can.Step");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Jump, "Player.Can.Jump");
+
 	// ----- Item Property -----
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Item_Property, "Item.Property", "아이템 속성");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Item_Property_Stackable, "Item.Property.Stackable", "아이템 스택 가능 여부");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Item_Property_Buyable, "Item.Property.Buyable", "구매 가능 여부");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Item_Property_Sellable, "Item.Property.Sellable", "판매 가능 여부");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Item_Property_Unsellable, "Item.Property.Unsellable", "판매 불가 여부");
+	
+	// ----- PoolTags -----
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Pool_AlwaysOn, "Pool.AlwaysOn", "상점 상시 품목");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Pool_Rotation_R1, "Pool.Rotation.R1", "상점 1 품목");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Pool_Rotation_R2, "Pool.Rotation.R2", "상점 2 품목");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Pool_Rotation_R3, "Pool.Rotation.R3", "상점 3 품목");
+	// ===== Item =====
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Item_Stackable, "Ability.Item.Stackable", "Stackable item");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Item_Buyable, "Ability.Item.Buyable", "Buyable item");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Item_Sellable, "Ability.Item.Sellable", "Sellable item");
+
+	// ===== Consume =====
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Consume_Heal, "Ability.Consume.Heal", "Recover HP");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Consume_Stamina, "Ability.Consume.Stamina", "Recover stamina");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Consume_CoreCharge, "Ability.Consume.CoreCharge", "Recover core");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Consume_ATKBuff, "Ability.Consume.ATKBuff", "Attack buff");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Consume_Stealth, "Ability.Consume.Stealth", "Stealth ability");
+
+	// ===== Tool =====
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Tool_Light, "Ability.Tool.Light", "Light tool ability");
+
+	// ===== Rarity =====
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Common, "Rarity.Common", "Rarity Common");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Uncommon, "Rarity.Uncommon", "Rarity Uncommon");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Rare, "Rarity.Rare", "Rarity Rare");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Epic, "Rarity.Epic", "Rarity Epic");
 
 	// ----- Item Consume Effect ----
 
