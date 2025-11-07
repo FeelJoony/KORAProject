@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Items/Weapons/KRWeaponBase.h"
+#include "Item/Weapons/KRWeaponBase.h"
 #include "KRMeleeWeapon.generated.h"
 
 class UBoxComponent;

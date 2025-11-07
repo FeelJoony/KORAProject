@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Items/Weapons/KRMeleeWeapon.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
 #include "KRHeroMeleeWeapon.generated.h"
 
 UCLASS()

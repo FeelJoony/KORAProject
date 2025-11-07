@@ -1,4 +1,4 @@
-#include "Items/Weapons/KRMeleeWeapon.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
 #include "Components/BoxComponent.h"
 
 AKRMeleeWeapon::AKRMeleeWeapon()
