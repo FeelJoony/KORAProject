@@ -8,7 +8,6 @@
 class UKRAttributeSet;
 class APawn;
 class UKRPlayerAbilitySystemComponent;
-class UKRAbilitySystemComponent;
 
 UCLASS()
 class KORAPROJECT_API AKRPlayerState : public APlayerState, public IAbilitySystemInterface
@@ -24,11 +23,11 @@ public:
 	void InitASCForAvatar(AActor* NewAvatar);
 
 	UFUNCTION(BlueprintPure, Category = "GAS")
-	UKRAbilitySystemComponent* GetKRPlayerASC() const {return KRPlayerASC;}
+	UKRPlayerAbilitySystemComponent* GetKRPlayerASC() const {return KRPlayerASC;}
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UKRAbilitySystemComponent> KRPlayerASC;
+	TObjectPtr<UKRPlayerAbilitySystemComponent> KRPlayerASC;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UKRAttributeSet> KRAttributeSet;
@@ -36,7 +35,7 @@ protected:
 	bool bStartupGiven = false;
 
 public:
-	FORCEINLINE UKRAbilitySystemComponent* GetKRPlayerAbilitySystemComponent() const {return KRPlayerASC;}
+	FORCEINLINE UKRPlayerAbilitySystemComponent* GetKRPlayerAbilitySystemComponent() const {return KRPlayerASC;}
 	FORCEINLINE UKRAttributeSet* GetKRAttributeSet() const {return KRAttributeSet;}
 	
 };
