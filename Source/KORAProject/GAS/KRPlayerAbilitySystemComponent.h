@@ -15,6 +15,10 @@ public:
 
 	virtual void GiveInputAbilities();
 
+	void OnAbilityInputPressed(const FGameplayTag& InInputTag);
+	void OnAbilityInputReleased(const FGameplayTag& InInputTag);
+
+	
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TMap<int32, TSubclassOf<class UGameplayAbility>> InitialInputAbilities;

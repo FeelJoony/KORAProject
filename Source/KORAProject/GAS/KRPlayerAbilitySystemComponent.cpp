@@ -19,3 +19,20 @@ void UKRPlayerAbilitySystemComponent::GiveInputAbilities()
 		GiveAbility(InputSpec);
 	}
 }
+
+void UKRPlayerAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& InInputTag)
+{
+	if (!InInputTag.IsValid()) return;
+
+	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (!AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InInputTag)) continue;
+
+		TryActivateAbility(AbilitySpec.Handle);
+		
+	}
+}
+
+void UKRPlayerAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& InInputTag)
+{
+}
