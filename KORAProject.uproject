@@ -70,6 +70,10 @@
 		{
 			"Name": "MutableClothing",
 			"Enabled": true
-		}
-	]
+		},
+        {
+          "Name": "GameplayMessageRouter",
+          "Enabled": true
+        }
+    ]
 }

@@ -1,47 +1,47 @@
 #include "Inventory/KRInventoryItemInstance.h"
-#include "Inventory/KRInventoryItemDefinition.h"
+#include "KRInventoryItemDefinition.h"
+#include "GameplayTagContainer.h"
 
 
-//#include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventoryItemInstance)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventoryItemInstance)
 
-class FLifetimeProperty;
+UKRInventoryItemInstance::UKRInventoryItemInstance(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
 
-//UKRInventoryItemInstance::UKRInventoryItemInstance(const FObjectInitializer& ObjectInitializer)
-//	: Super(ObjectInitializer)
-//{
-//}
+TArray<FGameplayTag> UKRInventoryItemInstance::GetAllFragmentTags() const
+{
+	if (ItemDef)
+	{
+		return ItemDef->GetAllFragmentTags();
+	}
 
-//void UKRInventoryItemInstance::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
-//{
-//	StatTags.AddStack(Tag, StackCount);
-//}
-//
-//void UKRInventoryItemInstance::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
-//{
-//	StatTags.RemoveStack(Tag, StackCount);
-//}
-//
-//int32 UKRInventoryItemInstance::GetStatTagStackCount(FGameplayTag Tag) const
-//{
-//	return StatTags.GetStackCount(Tag);
-//}
-//
-//bool UKRInventoryItemInstance::HasStatTag(FGameplayTag Tag) const
-//{
-//	return StatTags.ContainsTag(Tag);
-//}
+	return TArray<FGameplayTag>();
+}
 
-//void UKRInventoryItemInstance::SetItemDef(TSubclassOf<UKRInventoryItemDefinition> InDef)
-//{
-//	ItemDef = InDef;
-//}
+void UKRInventoryItemInstance::SetItemDef(UKRInventoryItemDefinition* InDef)
+{
+	ItemDef = InDef;
+}
 
-//const UKRInventoryItemFragment* UKRInventoryItemInstance::FindFragmentByClass(TSubclassOf<UKRInventoryItemFragment> FragmentClass) const
-//{
-//	if ((ItemDef != nullptr) && (FragmentClass != nullptr))
-//	{
-//		return GetDefault<UKRInventoryItemDefinition>(ItemDef)->FindFragmentByClass(FragmentClass);
-//	}
-//
-//	return nullptr;
-//}
+UKRInventoryItemInstance* UKRInventoryItemInstance::CreateItemDefinition()
+{
+	ItemDef = UKRInventoryItemDefinition::CreateItemDefinition();
+	
+	return this;
+}
+
+const UKRInventoryItemFragment* UKRInventoryItemInstance::FindFragmentByTag(FGameplayTag Tag) const
+{
+	const UKRInventoryItemFragment* Fragment = nullptr;
+	if (Tag.IsValid())
+	{
+		if (ItemDef)
+		{
+			Fragment = ItemDef->FindFragmentByTag(Tag);
+		}	
+	}
+	
+	return Fragment;
+}

@@ -82,5 +82,13 @@ private:
 	{
 		return TSoftObjectPtr<AssetType>(*ValueString);
 	}
+
+	TArray<FString> ParseArrayValue(const FString& ValueString)
+	{
+		TArray<FString> ValueArray;
+		ValueString.ParseIntoArray(ValueArray, TEXT("|"));
+		
+		return ValueArray;
+	}
 };
 

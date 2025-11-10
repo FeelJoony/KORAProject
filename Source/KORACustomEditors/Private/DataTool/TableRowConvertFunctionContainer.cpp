@@ -33,7 +33,7 @@ void UTableRowConvertFunctionContainer::CreateSampleData(UDataTable* OutDataTabl
                 int32 MaxElementCount_Index = GetHeaderIndex(Headers, TEXT("MaxElementCount"));
 
                 FSampleDataStruct SampleData;
-
+                
                 SampleData.Index = ParseIntValue(RowValue[Index_Index]);
                 SampleData.SampleName = RowValue[SampleName_Index];
                 SampleData.Width = ParseFloatValue(RowValue[Width_Index]);
@@ -85,7 +85,7 @@ void UTableRowConvertFunctionContainer::CreateWeaponItemData(UDataTable* OutData
 
                 FWeaponItemDataStruct OutRow;
 
-                // ¾ÈÀüÇÑ ÄÃ·³ Á¢±Ù ¸ÅÅ©·Î
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½
                 auto Get = [&](const TCHAR* Key) -> FString
                     {
                         int32 Idx = GetHeaderIndex(Headers, Key);
@@ -178,7 +178,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeItemData(UDataTable* OutDat
                 int32 ItemID_Index = GetHeaderIndex(Headers, TEXT("ItemID"));
                 int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
                 int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
-                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags")); // ';'±¸ºÐ ¸®½ºÆ®
+                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags")); // ';'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
                 int32 DisplayName_Index = GetHeaderIndex(Headers, TEXT("DisplayName"));
                 int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
                 int32 Icon_Index = GetHeaderIndex(Headers, TEXT("ItemIcon"));
@@ -195,7 +195,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeItemData(UDataTable* OutDat
                 ConsumeData.RarityTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[RarityTag_Index]));
                 ConsumeData.PoolTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[PoolTag_Index]));
 
-                // AbilityTags CSV¿¡¼­ ºÐ¸® (¿¹: "Tag1;Tag2;Tag3")
+                // AbilityTags CSVï¿½ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ (ï¿½ï¿½: "Tag1;Tag2;Tag3")
                 TArray<FString> AbilityStrList;
                 RowValue[AbilityTags_Index].ParseIntoArray(AbilityStrList, TEXT(";"), true);
                 for (const FString& TagStr : AbilityStrList)
@@ -240,7 +240,7 @@ void UTableRowConvertFunctionContainer::CreateMaterialItemData(UDataTable* OutDa
                 int32 ItemID_Index = GetHeaderIndex(Headers, TEXT("ItemID"));
                 int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
                 int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
-                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags")); // ';'±¸ºÐ ¸®½ºÆ®
+                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags")); // ';'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
                 int32 DisplayName_Index = GetHeaderIndex(Headers, TEXT("DisplayName"));
                 int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
                 int32 Icon_Index = GetHeaderIndex(Headers, TEXT("ItemIcon"));
@@ -255,7 +255,7 @@ void UTableRowConvertFunctionContainer::CreateMaterialItemData(UDataTable* OutDa
                 MaterialData.TypeTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[TypeTag_Index]));
                 MaterialData.RarityTag = FGameplayTag::RequestGameplayTag(FName(*RowValue[RarityTag_Index]));
 
-                // AbilityTags CSV¿¡¼­ ºÐ¸® (¿¹: "Tag1;Tag2;Tag3")
+                // AbilityTags CSVï¿½ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ (ï¿½ï¿½: "Tag1;Tag2;Tag3")
                 TArray<FString> AbilityStrList;
                 RowValue[AbilityTags_Index].ParseIntoArray(AbilityStrList, TEXT(";"), true);
                 for (const FString& TagStr : AbilityStrList)
