@@ -60,6 +60,13 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
 	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+	// Started 이벤트로 활성화
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_GASprint, 
+		ETriggerEvent::Started, this, &ThisClass::Input_Sprint_Started);
+    
+	// Completed로 Released
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_GASprint, 
+		ETriggerEvent::Completed, this, &ThisClass::Input_Sprint_Released);
 }
 
 void AKRHeroCharacter::PossessedBy(AController* NewController)
@@ -122,4 +129,42 @@ void AKRHeroCharacter::Input_Look(const FInputActionValue& Value)
 	{
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AKRHeroCharacter::Input_Sprint_Started(const FInputActionValue& Value)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC) return;
+    
+	FGameplayTag InputTag = FGameplayTag::RequestGameplayTag(FName("Input.GASprint"));
+    
+	// 어빌리티 활성화하고 Handle 저장
+	if (ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag)))
+	{
+		// 활성화된 Handle 찾기
+		TArray<FGameplayAbilitySpec*> ActivatableAbilities;
+		ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
+			FGameplayTagContainer(InputTag), ActivatableAbilities);
+        
+		if (ActivatableAbilities.Num() > 0)
+		{
+			CurrentSprintHandle = ActivatableAbilities[0]->Handle;
+			// InputPressed 수동 호출
+			ASC->AbilitySpecInputPressed(*ActivatableAbilities[0]);
+		}
+	}
+}
+
+void AKRHeroCharacter::Input_Sprint_Released(const FInputActionValue& Value)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC || !CurrentSprintHandle.IsValid()) return;
+    
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(CurrentSprintHandle);
+	if (Spec)
+	{
+		ASC->AbilitySpecInputReleased(*Spec);
+	}
+    
+	CurrentSprintHandle = FGameplayAbilitySpecHandle();
 }
