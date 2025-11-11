@@ -6,19 +6,37 @@
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "Kismet/GameplayStatics.h"
 
-//#include "SubSystem/KRUIInputSubsystem.h"
-//DEFINE_LOG_CATEGORY(LogKRUIInput);
-
-void UKRUIRouterSubsystem::RegisterStack(FName StackName, UCommonActivatableWidgetStack* Stack)
+static bool TryParseLayer(FName Name, EKRUILayer& OutLayer)
 {
-	if (IsValid(Stack))
+	if (Name == "Game" || Name == "Layer.Game" || Name == "HUD" || Name == "GameLayer") { OutLayer = EKRUILayer::Game;     return true; }
+	if (Name == "GameMenu" || Name == "Layer.GameMenu" || Name == "Inventory" || Name == "Equipment" || Name == "Shop") { OutLayer = EKRUILayer::GameMenu; return true; }
+	if (Name == "Menu" || Name == "Layer.Menu" || Name == "MainMenu") { OutLayer = EKRUILayer::Menu;     return true; }
+	if (Name == "Modal" || Name == "Layer.Modal" || Name == "Popup" || Name == "Dialog") { OutLayer = EKRUILayer::Modal;    return true; }
+	return false;
+}
+
+void UKRUIRouterSubsystem::RegisterLayer(FName LayerName, UCommonActivatableWidgetStack* Stack)
+{
+	if (!IsValid(Stack)) return;
+
+	EKRUILayer Layer;
+	if (!TryParseLayer(LayerName, Layer))
 	{
-		UIStacks.Add(StackName, Stack);
+		UE_LOG(LogTemp, Warning, TEXT("[Router] RegisterStack(%s) failed: unknown layer alias"), *LayerName.ToString());
+		return;
 	}
+
+	UILayerStacks.Add(Layer, Stack);
 }
 
 void UKRUIRouterSubsystem::RegisterRoute(FName Route, const FKRRouteSpec& Spec)
 {
+	if (!Spec.WidgetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Router] RegisterRoute(%s) FAILED: WidgetClass is null"), *Route.ToString());
+		return;
+	}
+
 	Routes.Add(Route, Spec);
 	RouteRefCounts.FindOrAdd(Route) = 0; 
 }
@@ -34,15 +52,19 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 	}
 
 	UCommonActivatableWidgetStack* Stack = nullptr;
-	if (const TWeakObjectPtr<UCommonActivatableWidgetStack>* Found = UIStacks.Find(Spec->StackName))
+	if (const TWeakObjectPtr<UCommonActivatableWidgetStack>* Found = UILayerStacks.Find(Spec->Layer))
 	{
 		Stack = Found->Get();
 	}
-
-	if (!Stack) return nullptr;
+	if (!Stack)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Router] OpenRoute(%s) failed: no stack for Layer %d"),
+			*Route.ToString(), (int32)Spec->Layer);
+		return nullptr;
+	}
 
 	int32& Ref = RouteRefCounts.FindOrAdd(Route);
-	const bool bFirstOpen = (Ref == 0);
+	const bool bFirstOpen = (Ref == 0) || !ActiveWidgets.FindRef(Route).IsValid();
 
 	UCommonActivatableWidget* W = nullptr;
 
@@ -95,11 +117,6 @@ bool UKRUIRouterSubsystem::CloseRoute(FName Route)
 		return false;
 	}
 
-	UCommonActivatableWidgetStack* Stack = nullptr;
-	if (const TWeakObjectPtr<UCommonActivatableWidgetStack>* Found = UIStacks.Find(Spec->StackName))
-	{
-		Stack = Found->Get();
-	}
 	--(*RefPtr);
 
 	if (*RefPtr == 0)
@@ -127,13 +144,16 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::ToggleRoute(FName Route)
 }
 
 /*****		 Widget Stack LookUp		 *****/
-UCommonActivatableWidget* UKRUIRouterSubsystem::GetActiveUIStack(FName StackName) const
+UCommonActivatableWidget* UKRUIRouterSubsystem::GetActiveOnLayer(FName LayerName) const
 {
-	if (const TWeakObjectPtr<UCommonActivatableWidgetStack>* Found = UIStacks.Find(StackName))
+	EKRUILayer Layer;
+	if (!TryParseLayer(LayerName, Layer)) return nullptr;
+
+	if (const TWeakObjectPtr<UCommonActivatableWidgetStack>* Found = UILayerStacks.Find(Layer))
 	{
-		if (UCommonActivatableWidgetStack* Stack = Found->Get())
+		if (UCommonActivatableWidgetStack* S = Found->Get())
 		{
-			return Stack->GetActiveWidget();
+			return S->GetActiveWidget();
 		}
 	}
 	return nullptr;

@@ -8,13 +8,16 @@
 class UCommonActivatableWidget;
 class UCommonActivatableWidgetStack;
 
+UENUM(BlueprintType)
+enum class EKRUILayer : uint8 // Priority
+{
+	Game = 0, GameMenu = 1, Menu = 2, Modal = 3
+};
 
 UENUM(BlueprintType)
 enum class EKRUIGameStopPolicy : uint8
 {
-	None,
-	PauseWhileOpen,			// RefCount가 1일 때 게임 정지
-	PauseWhileTop			// 위젯 활성화 (Top) 시 게임 정지
+	None, PauseWhileOpen, PauseWhileTop
 };
 
 USTRUCT(BlueprintType)
@@ -22,8 +25,8 @@ struct FKRRouteSpec
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) FName StackName = NAME_None;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TSubclassOf<UCommonActivatableWidget> WidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) EKRUILayer Layer = EKRUILayer::GameMenu;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) EKRUIGameStopPolicy GameStopPolicy = EKRUIGameStopPolicy::None;
 };
 
@@ -33,18 +36,21 @@ class KORAPROJECT_API UKRUIRouterSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 	
 public:
-	UFUNCTION(BlueprintCallable, Category = "UIRouter") void RegisterStack(FName StackName, UCommonActivatableWidgetStack* Stack);
+	/***** Register UI StackLayer/Route *****/
+	UFUNCTION(BlueprintCallable, Category = "UIRouter") void RegisterLayer(FName LayerName, UCommonActivatableWidgetStack* Stack);
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") void RegisterRoute(FName Route, const FKRRouteSpec& Spec);
 
-	UFUNCTION(BlueprintCallable, Category = "UIRouter") UCommonActivatableWidget* ToggleRoute(FName Route);
+	/***** Open/Close/Toggle Routes*****/
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") UCommonActivatableWidget* OpenRoute(FName Route);
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") bool CloseRoute(FName Route);
+	UFUNCTION(BlueprintCallable, Category = "UIRouter") UCommonActivatableWidget* ToggleRoute(FName Route);
 
-	UFUNCTION(BlueprintCallable, Category = "UIRouter") UCommonActivatableWidget* GetActiveUIStack(FName StackName) const;
+	UFUNCTION(BlueprintCallable, Category = "UIRouter") UCommonActivatableWidget* GetActiveOnLayer(FName LayerName) const;
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") bool IsRouteOpen(FName Route) const;
 
 private:
-	TMap<FName, TWeakObjectPtr<UCommonActivatableWidgetStack>> UIStacks;
+	TMap<EKRUILayer, TWeakObjectPtr<UCommonActivatableWidgetStack>> UILayerStacks;
+
 	TMap<FName, FKRRouteSpec> Routes;
 	UPROPERTY() TMap<FName, int32> RouteRefCounts;
 	UPROPERTY() TMap<FName, TWeakObjectPtr<UCommonActivatableWidget>> ActiveWidgets;
