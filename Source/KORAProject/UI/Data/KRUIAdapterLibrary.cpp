@@ -2,34 +2,55 @@
 
 
 #include "UI/Data/KRUIAdapterLibrary.h"
-#include "UI/Data/KRItemUIData.h"
+//#include "Inventory/KRInventoryItemInstance.h"
+//#include "SubSystem/KRInventorySubsystem.h"
 
-//#include "KRBaseItem.h"
+// fragments classes
+#include "Kismet/GameplayStatics.h"
 
-
-//FKRItemUIData UKRUIAdapterLibrary::MakeUIDataFromItem(UKRBaseItem* Item)
+//bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInstance* Instance, FKRItemUIData& Out)
 //{
-//    FKRItemUIData D;
-//    if (!Item) return D;
+//    Out = {};
+//    if (!Instance) return false;
 //
-//    D.SourceItem = Item;
-//    D.ItemID = Item->GetItemID();
-//    D.ItemName = Item->GetItemName();
-//    D.ItemDescription = Item->GetItemDescription();
-//    D.ItemIcon = Item->GetItemIcon();
-//    D.Quantity = Item->GetStackCount();
-//    D.Price = Item->GetBasePrice();
-//	  if (Item.GetTypeTag() == FGameplayTag::RequestGameplayTag(TEXT("ItemType.Equip.Gun")) || Item.GetTypeTag() == FGameplayTag::RequestGameplayTag(TEXT("ItemType.Equip.Sword"))) 
-//    { D.UpgradeLevel = Item->GetEnforceLevel(); }
+//    Out.ItemID = Instance->GetItemTag().GetTagName();
+//    Out.Quantity = Instance->GetStackCount();
 //
-//    return D;
+//    if (const UKRInvFragment* UI = Instance->FindFragment<UKRInvFragment>())
+//    {
+//        Out.ItemName = UI->ItemName;
+//        Out.ItemDescription = UI->Description;
+//        Out.ItemIcon = UI->Icon;
+//    }
+//
+//
+//    return true;
 //}
 //
-//void UKRUIAdapterLibrary::ConvertItemsToUIData(const TArray<UKRBaseItem*>& In, TArray<FKRItemUIData>& Out)
+//void UKRUIAdapterLibrary::ConvertItemInstancesToUIData(const TArray<UKRInventoryItemInstance*>& In, TArray<FKRItemUIData>& Out)
 //{
-//	Out.Empty();
-//	for (UKRBaseItem* Item : In)
-//	{
-//		Out.Add(MakeUIDataFromItem(Item));
-//	}
+//    Out.Reset(In.Num());
+//    for (const UKRInventoryItemInstance* I : In)
+//    {
+//        FKRItemUIData V;
+//        if (MakeUIDataFromItemInstance(I, V))
+//        {
+//            Out.Add(MoveTemp(V));
+//        }
+//    }
+//}
+//
+//void UKRUIAdapterLibrary::GetOwnerInventoryUIData(UObject* WorldContextObject, APlayerState* Owner, TArray<FKRItemUIData>& Out)
+//{
+//    Out.Reset();
+//    if (!WorldContextObject || !Owner) return;
+//
+//    if (UGameInstance* GI = UGameplayStatics::GetGameInstance(WorldContextObject))
+//    {
+//        if (auto* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
+//        {
+//            const TArray<UKRInventoryItemInstance*> Items = Inv->GetAllItems(Owner);
+//            ConvertItemInstancesToUIData(Items, Out);
+//        }
+//    }
 //}

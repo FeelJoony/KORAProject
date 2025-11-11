@@ -1,10 +1,8 @@
 #pragma once
 
-#include "GameplayTagContainer.h"
 #include "KRItemUIData.generated.h"
 
 class UTexture2D;
-// class UKRBaseItem;
 
 USTRUCT(BlueprintType)
 struct KORAPROJECT_API FKRItemUIData
@@ -18,7 +16,4 @@ struct KORAPROJECT_API FKRItemUIData
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Quantity = 0;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Price = 0;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 UpgradeLevel = 0;
-    //UPROPERTY(BlueprintReadOnly, EditAnywhere) FGameplayTagContainer Tags;
-
-    //UPROPERTY() TWeakObjectPtr<UKRBaseItem> SourceItem;
 };
