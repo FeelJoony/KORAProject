@@ -6,7 +6,7 @@
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "Kismet/GameplayStatics.h"
 
-static bool TryParseLayer(FName Name, EKRUILayer& OutLayer)
+bool UKRUIRouterSubsystem::TryParseLayer(FName Name, EKRUILayer& OutLayer) const
 {
 	if (Name == "Game" || Name == "Layer.Game" || Name == "HUD" || Name == "GameLayer") { OutLayer = EKRUILayer::Game;     return true; }
 	if (Name == "GameMenu" || Name == "Layer.GameMenu" || Name == "Inventory" || Name == "Equipment" || Name == "Shop") { OutLayer = EKRUILayer::GameMenu; return true; }

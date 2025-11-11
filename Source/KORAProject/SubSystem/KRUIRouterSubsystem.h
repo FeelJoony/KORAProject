@@ -40,6 +40,8 @@ class KORAPROJECT_API UKRUIRouterSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 	
 public:
+	bool TryParseLayer(FName Name, EKRUILayer& OutLayer) const;
+
 	/***** Register UI StackLayer/Route *****/
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") void RegisterLayer(FName LayerName, UCommonActivatableWidgetStack* Stack);
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") void RegisterRoute(FName Route, const FKRRouteSpec& Spec);
