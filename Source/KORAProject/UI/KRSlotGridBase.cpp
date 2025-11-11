@@ -85,6 +85,20 @@ int32 UKRSlotGridBase::GetSelectedIndex() const
 	return INDEX_NONE;
 }
 
+bool UKRSlotGridBase::SelectIndexSafe(int32 Index)
+{
+	if (!ButtonGroup) return false;
+	if (!Slots.IsValidIndex(Index)) return false;
+
+	ButtonGroup->SelectButtonAtIndex(Index);
+	return true;
+}
+
+UWidget* UKRSlotGridBase::GetSelectedWidget() const
+{
+	return ButtonGroup ? ButtonGroup->GetSelectedButtonBase() : nullptr;
+}
+
 void UKRSlotGridBase::NativeConstruct()
 {
 	Super::NativeConstruct();

@@ -27,6 +27,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Slots") int32 GetSelectedIndex() const;
 
+
+	UFUNCTION(BlueprintPure, Category = "Slots") FORCEINLINE int32 GetNumCells()   const { return Slots.Num(); }
+	UFUNCTION(BlueprintPure, Category = "Slots") FORCEINLINE int32 GetRowCount()   const { return Rows; }
+	UFUNCTION(BlueprintPure, Category = "Slots") FORCEINLINE int32 GetColumnCount()const { return Columns; }
+	UFUNCTION(BlueprintCallable, Category = "Slots") bool SelectIndexSafe(int32 Index);
+	UFUNCTION(BlueprintPure, Category = "Slots") UWidget* GetSelectedWidget() const;
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;

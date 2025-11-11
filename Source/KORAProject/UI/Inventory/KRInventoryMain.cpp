@@ -27,19 +27,22 @@ void UKRInventoryMain::NativeOnActivated()
 
 	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
 	{
+		InputSubsys->EnterUIMode();
 		InputSubsys->BindBackDefault(this, TEXT("Inventory"));
 		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
-		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleNext));
-		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandlePrev));
+		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveLeft));
+		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveRight));
+		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveUp));
+		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveDown));
 	}
 }
 
 void UKRInventoryMain::NativeOnDeactivated()
 {
-	//if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
-	//{
-	//	InputSubsys->UnbindAll(this);
-	//}
+	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	{
+		InputSubsys->ReleaseUIMode();
+	}
 	Super::NativeOnDeactivated();
 }
 
@@ -65,26 +68,14 @@ void UKRInventoryMain::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-void UKRInventoryMain::OnClickConsumables()
-{
-	auto& TM = UGameplayTagsManager::Get();
-	const FGameplayTag TagConsume = TM.RequestGameplayTag(TEXT("ItemType.Consume"));
-	const FGameplayTag TagTool = TM.RequestGameplayTag(TEXT("ItemType.Tool"));
-	RebuildInventoryUI(TArray<FGameplayTag>{ TagConsume, TagTool });
-}
+void UKRInventoryMain::OnClickConsumables() { RebuildByTag(TEXT("ItemType.Consume")); }
+void UKRInventoryMain::OnClickMaterial() { RebuildByTag(TEXT("ItemType.Material")); }
+void UKRInventoryMain::OnClickQuest() { RebuildByTag(TEXT("ItemType.Quest")); }
 
-void UKRInventoryMain::OnClickMaterial()
+void UKRInventoryMain::RebuildByTag(const FName& TagName)
 {
-	auto& TM = UGameplayTagsManager::Get();
-	const FGameplayTag TagMaterial = TM.RequestGameplayTag(TEXT("ItemType.Material"));
-	RebuildInventoryUI(TArray<FGameplayTag>{ TagMaterial });
-}
-
-void UKRInventoryMain::OnClickQuest()
-{
-	auto& TM = UGameplayTagsManager::Get();
-	const FGameplayTag TagQuest = TM.RequestGameplayTag(TEXT("ItemType.Quest"));
-	RebuildInventoryUI(TArray<FGameplayTag>{ TagQuest });
+	const FGameplayTag Tag = UGameplayTagsManager::Get().RequestGameplayTag(TagName);
+	RebuildInventoryUI({ Tag });
 }
 
 void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
@@ -92,10 +83,10 @@ void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
 	UpdateDescriptionUI(CellIndex);
 }
 
-void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
-{
-	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
-}
+//void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
+//{
+//	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+//}
 
 void UKRInventoryMain::RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny)
 {
@@ -137,14 +128,60 @@ void UKRInventoryMain::UpdateDescriptionUI(int32 CellIndex)
 	}
 }
 
+void UKRInventoryMain::HandleMoveLeft() { HandleMoveInternal(0); }
+void UKRInventoryMain::HandleMoveRight() { HandleMoveInternal(1); }
+void UKRInventoryMain::HandleMoveUp() { HandleMoveInternal(2); }
+void UKRInventoryMain::HandleMoveDown() { HandleMoveInternal(3); }
+
+void UKRInventoryMain::HandleMoveInternal(uint8 DirIdx)
+{
+	if (!InventorySlot) return;
+
+	const int32 Cols = InventorySlot->GetColumnCount();
+	const int32 Num = InventorySlot->GetNumCells();
+	if (Cols <= 0 || Num <= 0) return;
+
+	const int32 Cur = InventorySlot->GetSelectedIndex();
+	const int32 Next = StepGrid(Cur, DirIdx, Cols, Num);
+
+	if (Next != Cur)
+	{
+		InventorySlot->SelectIndexSafe(Next);
+		if (UWidget* W = InventorySlot->GetSelectedWidget()) W->SetFocus();
+		UpdateDescriptionUI(Next);
+	}
+}
+
 void UKRInventoryMain::HandleSelect()
 {
+	// For QuickSlot
 }
 
-void UKRInventoryMain::HandleNext()
+int32 UKRInventoryMain::StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const
 {
-}
+	if (Cols <= 0 || Num <= 0) return 0;
+	if (Cur < 0) Cur = 0;
 
-void UKRInventoryMain::HandlePrev()
-{
+	switch (DirIdx)
+	{
+	case 0: // Left
+	{
+		const int32 Col = Cur % Cols;
+		return (Col > 0) ? (Cur - 1) : Cur;
+	}
+	case 1: // Right
+	{
+		const int32 Col = Cur % Cols;
+		const bool bAtRight = (Col == Cols - 1) || (Cur + 1 >= Num);
+		return bAtRight ? Cur : (Cur + 1);
+	}
+	case 2: // Up
+		return (Cur - Cols >= 0) ? (Cur - Cols) : Cur;
+
+	case 3: // Down
+		return (Cur + Cols < Num) ? (Cur + Cols) : Cur;
+
+	default:
+		return Cur;
+	}
 }

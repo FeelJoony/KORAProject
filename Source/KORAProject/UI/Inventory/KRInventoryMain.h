@@ -40,17 +40,21 @@ private:
 	UFUNCTION() void OnClickConsumables();
 	UFUNCTION() void OnClickMaterial();
 	UFUNCTION() void OnClickQuest();
+	void RebuildByTag(const FName& TagName);
 
 	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
 
-	void FilterAndCacheItems(const FGameplayTag& FilterTag);
 	void RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny);
-
 	//void BindInventoryEvents();
 	void UpdateDescriptionUI(int32 CellIndex);
 
+	void HandleMoveLeft();
+	void HandleMoveRight();
+	void HandleMoveUp();
+	void HandleMoveDown();
+	void HandleMoveInternal(uint8 DirIdx); // 0:L,1:R,2:U,3:D
 
 	void HandleSelect();
-	void HandleNext();
-	void HandlePrev();
+
+	int32 StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const;
 };

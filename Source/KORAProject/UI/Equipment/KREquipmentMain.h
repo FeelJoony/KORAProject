@@ -10,6 +10,7 @@ class UUniformGridPanel;
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
+class UCommonButtonGroupBase;
 struct FKRItemUIData;
 // 인벤토리 컴포넌트
 
@@ -36,11 +37,16 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-	//virtual void SetupInputBindings() override;
-
 private:
 	//TWeakObjectPtr<UKRInventoryComponent> InventoryComp;
 	TArray<FKRItemUIData> CachedUIData;
+
+	enum class EFocusRegion : uint8 { Category, Grid };
+	EFocusRegion FocusRegion = EFocusRegion::Category;
+
+	UPROPERTY() TObjectPtr<UCommonButtonGroupBase> CategoryGroup;
+	UPROPERTY() TArray<TObjectPtr<UCommonButtonBase>> CategoryOrder;
+	int32 LastCategoryIndex = 0;
 
 	UFUNCTION() void OnClickSwordModule();
 	UFUNCTION() void OnClickSwordSkin();
@@ -49,15 +55,31 @@ private:
 	UFUNCTION() void OnClickHeadColor();
 	UFUNCTION() void OnClickDressColor();
 
+	struct FNavAdj { int32 L = -1, R = -1, U = -1, D = -1; };
+	TArray<FNavAdj> CategoryAdj;
+
+	void RebuildByTag(const FName& TagName);
+
+	void BuildCategoryGroup();
+	UFUNCTION() void HandleCategoryChanged(UCommonButtonBase* SelectedButton, int32 ButtonIndex);
+	void FocusCategory();
+	void FocusGrid(int32 PreferIndex = 0);
+
 	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
 
-	void FilterAndCacheItems(const FGameplayTag& FilterTag);
 	void RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny);
-
-	//void BindInventoryEvents();
 	void UpdateDescriptionUI(int32 CellIndex);
 
+	void HandleMoveLeft();
+	void HandleMoveRight();
+	void HandleMoveUp();
+	void HandleMoveDown();
+	void HandleMoveInternal(uint8 DirIdx); // 0:L,1:R,2:U,3:D
+
 	void HandleSelect();
-	void HandleNext();
-	void HandlePrev();
+	bool TryEquipSelectedItem();
+
+	int32 StepCategory(int32 Cur, uint8 DirIdx) const;                    // 0:L,1:R,2:U,3:D
+	int32 StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const; // 공통 스텝
+	bool  MoveGrid(uint8 DirIdx);
 };
