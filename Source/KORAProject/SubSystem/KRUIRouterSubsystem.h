@@ -56,6 +56,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "UIRouter|Events") FOnRouteClosed OnRouteClosed;
 
 private:
+	// When Multiplayer, expand this to Local Player-based TMap or place it in Local Player Subsystem
 	TMap<EKRUILayer, TWeakObjectPtr<UCommonActivatableWidgetStack>> UILayerStacks;
 
 	TMap<FName, FKRRouteSpec> Routes;
