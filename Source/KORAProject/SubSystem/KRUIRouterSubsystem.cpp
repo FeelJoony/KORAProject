@@ -70,10 +70,18 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 
 	if (bFirstOpen)
 	{
+		UClass* Loaded = Spec->WidgetClass.LoadSynchronous();
+		if (!Loaded)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[Router] OpenRoute(%s) FAILED: LoadSynchronous() returned null"), *Route.ToString());
+			return nullptr;
+		}
+		TSubclassOf<UCommonActivatableWidget> ClassToAdd = Loaded;
+
 #if (ENGINE_MAJOR_VERSION >= 5)
-		W = Stack->AddWidget(Spec->WidgetClass);
+		W = Stack->AddWidget(ClassToAdd);
 #else
-		W = Stack->BP_AddWidget(Spec->WidgetClass);
+		W = Stack->BP_AddWidget(ClassToAdd);
 #endif
 		if (!W)
 		{
@@ -97,6 +105,8 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 	}
 
 	++Ref;
+	ULocalPlayer* LP = Stack->GetOwningLocalPlayer();
+	OnRouteOpened.Broadcast(LP, Route, Spec->Layer);
 	return W;
 }
 
@@ -134,6 +144,14 @@ bool UKRUIRouterSubsystem::CloseRoute(FName Route)
 		}
 		ActiveWidgets.Remove(Route);
 	}
+
+	UCommonActivatableWidgetStack* Stack = nullptr;
+	if (const auto* Found = UILayerStacks.Find(Spec->Layer))
+	{
+		Stack = Found->Get();
+	}
+	ULocalPlayer* LP = Stack ? Stack->GetOwningLocalPlayer() : nullptr;
+	OnRouteClosed.Broadcast(LP, Route, Spec->Layer);
 
 	return true;
 }

@@ -20,12 +20,16 @@ enum class EKRUIGameStopPolicy : uint8
 	None, PauseWhileOpen, PauseWhileTop
 };
 
+// Some routes are intended for non-UI Mode access
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnRouteOpened, ULocalPlayer*, LocalPlayer, FName, Route, EKRUILayer, Layer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnRouteClosed, ULocalPlayer*, LocalPlayer, FName, Route, EKRUILayer, Layer);
+
 USTRUCT(BlueprintType)
 struct FKRRouteSpec
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) TSubclassOf<UCommonActivatableWidget> WidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TSoftClassPtr<UCommonActivatableWidget> WidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) EKRUILayer Layer = EKRUILayer::GameMenu;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) EKRUIGameStopPolicy GameStopPolicy = EKRUIGameStopPolicy::None;
 };
@@ -47,6 +51,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") UCommonActivatableWidget* GetActiveOnLayer(FName LayerName) const;
 	UFUNCTION(BlueprintCallable, Category = "UIRouter") bool IsRouteOpen(FName Route) const;
+
+	UPROPERTY(BlueprintAssignable, Category = "UIRouter|Events") FOnRouteOpened OnRouteOpened;
+	UPROPERTY(BlueprintAssignable, Category = "UIRouter|Events") FOnRouteClosed OnRouteClosed;
 
 private:
 	TMap<EKRUILayer, TWeakObjectPtr<UCommonActivatableWidgetStack>> UILayerStacks;

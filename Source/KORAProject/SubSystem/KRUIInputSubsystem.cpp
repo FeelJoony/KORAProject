@@ -3,17 +3,19 @@
 
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
+
+#include "Engine/LocalPlayer.h"
+#include "Engine/GameInstance.h"
+
 #include "CommonActivatableWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/CommonUIInputTypes.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 
-FUIActionBindingHandle UKRUIInputSubsystem::BindRow(
-    UCommonActivatableWidget* Widget, FName RowName, FSimpleDelegate Handler, bool bShowInBar, bool bConsume)
+FUIActionBindingHandle UKRUIInputSubsystem::BindRow(UCommonActivatableWidget* Widget, FName RowName, FSimpleDelegate Handler, bool bShowInBar, bool bConsume)
 {
     if (!Widget || !InputActionDataTable) return {};
-
     EnsureLifecycleHook(Widget);
 
     FSimpleDelegate Wrapped = FSimpleDelegate::CreateLambda([W = TWeakObjectPtr<UCommonActivatableWidget>(Widget),
@@ -26,6 +28,16 @@ FUIActionBindingHandle UKRUIInputSubsystem::BindRow(
     FUIActionBindingHandle Handle = Widget->RegisterUIActionBinding(Args);
     Handles.FindOrAdd(Widget).Add(Handle);
     return Handle;
+}
+
+FKRUIBindingHandle UKRUIInputSubsystem::BindRow_BP(UCommonActivatableWidget* Widget, FName RowName, FKRUISimpleDynDelegate Handler, bool bShowInBar, bool bConsume)
+{
+    FKRUIBindingHandle Out;
+    if (!Widget) return Out;
+
+    FSimpleDelegate Simple = MakeSimpleDelegateFromDynamic(Handler);
+    Out.Native = BindRow(Widget, RowName, MoveTemp(Simple), bShowInBar, bConsume);
+    return Out;
 }
 
 void UKRUIInputSubsystem::BindBackDefault(UCommonActivatableWidget* Widget, FName RouteName)
@@ -71,18 +83,16 @@ void UKRUIInputSubsystem::UnbindAll(UCommonActivatableWidget* Widget)
 
 void UKRUIInputSubsystem::EnterUIMode(EMouseCaptureMode Capture, bool bShowCursor)
 {
-    if (++UIModeRefCount == 1)
-    {
-        ApplyEnable(Capture, bShowCursor);
-    }
+    ++UIModeRefCount;
+    LastCapture = Capture;
+    bDesiredShowCursor = bShowCursor;
+    UpdateUIMode();
 }
 
 void UKRUIInputSubsystem::ReleaseUIMode()
 {
-    if (UIModeRefCount > 0 && --UIModeRefCount == 0)
-    {
-        ApplyDisable();
-    }
+    UIModeRefCount = FMath::Max(0, UIModeRefCount - 1);
+    UpdateUIMode();
 }
 
 void UKRUIInputSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -96,9 +106,36 @@ void UKRUIInputSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     if (!InputActionDataTable.IsValid())
     {
-        UE_LOG(LogTemp, Error, TEXT("InputActionDataTable is NOT set. "
-            "Please set in DefaultGame.ini [/Script/KORAProject.KRUIInputSubsystem]"));
+        UE_LOG(LogTemp, Error, TEXT("InputActionDataTable is NOT set. Please set in DefaultGame.ini [/Script/KORAProject.KRUIInputSubsystem]"));
     }
+
+    if (ULocalPlayer* LP = GetLocalPlayer())
+    {
+        if (UGameInstance* GI = LP->GetGameInstance())
+        {
+            if (auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+            {
+                Router->OnRouteOpened.AddDynamic(this, &ThisClass::OnRouterRouteOpened);
+                Router->OnRouteClosed.AddDynamic(this, &ThisClass::OnRouterRouteClosed);
+            }
+        }
+    }
+}
+
+void UKRUIInputSubsystem::Deinitialize()
+{
+    if (ULocalPlayer* LP = GetLocalPlayer())
+    {
+        if (UGameInstance* GI = LP->GetGameInstance())
+        {
+            if (auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+            {
+                Router->OnRouteOpened.RemoveAll(this);
+                Router->OnRouteClosed.RemoveAll(this);
+            }
+        }
+    }
+    Super::Deinitialize();
 }
 
 FDataTableRowHandle UKRUIInputSubsystem::MakeRow(FName RowName) const
@@ -167,4 +204,61 @@ void UKRUIInputSubsystem::ApplyDisable()
             }
         }
     }
+}
+
+bool UKRUIInputSubsystem::IsAnyNonGameLayerOpen() const
+{
+    const ULocalPlayer* LP = GetLocalPlayer();
+    if (!LP) return false;
+
+    const UGameInstance* GI = LP->GetGameInstance();
+    if (!GI) return false;
+
+    if (const auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+    {
+        return  Router->GetActiveOnLayer(TEXT("GameMenu")) != nullptr
+            || Router->GetActiveOnLayer(TEXT("Menu")) != nullptr
+            || Router->GetActiveOnLayer(TEXT("Modal")) != nullptr;
+    }
+    return false;
+}
+
+void UKRUIInputSubsystem::UpdateUIMode()
+{
+    const bool bShouldBeActive = (UIModeRefCount > 0) || IsAnyNonGameLayerOpen();
+
+    if (bShouldBeActive && !bUIModeApplied)
+    {
+        ApplyEnable(LastCapture, bDesiredShowCursor);
+        bUIModeApplied = true;
+    }
+    else if (!bShouldBeActive && bUIModeApplied)
+    {
+        ApplyDisable();
+        bUIModeApplied = false;
+    }
+}
+
+FSimpleDelegate UKRUIInputSubsystem::MakeSimpleDelegateFromDynamic(const FKRUISimpleDynDelegate& Dyn)
+{
+    if (!Dyn.IsBound())
+        return FSimpleDelegate();
+
+    FKRUISimpleDynDelegate Local = Dyn;
+    return FSimpleDelegate::CreateLambda([Local]() mutable
+        {
+            Local.ExecuteIfBound();
+        });
+}
+
+void UKRUIInputSubsystem::OnRouterRouteOpened(ULocalPlayer* LP, FName Route, EKRUILayer Layer)
+{
+    if (LP != GetLocalPlayer()) return;
+    UpdateUIMode();
+}
+
+void UKRUIInputSubsystem::OnRouterRouteClosed(ULocalPlayer* LP, FName Route, EKRUILayer Layer)
+{
+    if (LP != GetLocalPlayer()) return;
+    UpdateUIMode();
 }
