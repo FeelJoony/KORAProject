@@ -1,6 +1,7 @@
 #include "GAS/Abilities/KRHeroGameplayAbility.h"
 #include "Characters/KRHeroCharacter.h"
 #include "Controllers/KRHeroController.h"
+#include "GAS/KRPlayerAbilitySystemComponent.h"
 
 AKRHeroCharacter* UKRHeroGameplayAbility::GetHeroCharacterFromActorInfo()
 {
@@ -25,4 +26,9 @@ AKRHeroController* UKRHeroGameplayAbility::GetHeroControllerFromActorInfo()
 UHeroCombatComponent* UKRHeroGameplayAbility::GetHeroCombatComponentFromActorInfo()
 {
 	return GetHeroCharacterFromActorInfo()->GetHeroCombatComponent();
+}
+
+UKRPlayerAbilitySystemComponent* UKRHeroGameplayAbility::GetKRPlayerAbilitySystemComponentFromActorInfo() const
+{
+	return Cast<UKRPlayerAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent);
 }

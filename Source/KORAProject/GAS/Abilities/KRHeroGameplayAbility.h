@@ -5,6 +5,7 @@
 #include "KRHeroGameplayAbility.generated.h"
 
 class UHeroCombatComponent;
+class UKRPlayerAbilitySystemComponent;
 class AKRHeroCharacter;
 class AKRHeroController;
 
@@ -23,6 +24,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KR|Ability")
 	UHeroCombatComponent* GetHeroCombatComponentFromActorInfo();
 
+	UFUNCTION(BlueprintPure, Category = "KR|Ability")
+	UKRPlayerAbilitySystemComponent* GetKRPlayerAbilitySystemComponentFromActorInfo() const;
+	
 private:
 	TWeakObjectPtr<AKRHeroCharacter> CachedKRHeroCharacter;
 	TWeakObjectPtr<AKRHeroController> CachedKRHeroController;
