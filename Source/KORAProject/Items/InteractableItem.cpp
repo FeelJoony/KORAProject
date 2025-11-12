@@ -34,36 +34,20 @@ void AInteractableItem::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AInteractableItem::GatherInteractionOptions_Implementation(const FInteractionQuery& InteractQuery, TArray<FInteractionOption>& Options)
+void AInteractableItem::GatherInteractionOptions(const FInteractionQuery& InteractQuery, FInteractionOptionBuilder& OptionBuilder)
 {
 	FInteractionOption Option;
 	Option.InteractableTarget = this;
 	Option.Text = InteractionText;
 	Option.SubText = InteractionSubText;
-	Options.Add(Option);
+	Option.InteractionAbilityToGrant = InteractionGA;
+	OptionBuilder.AddInteractionOption(Option);
 }
 
-void AInteractableItem::OnInteractionTriggered_Implementation(AActor* InteractingActor)
+void AInteractableItem::CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag,
+	FGameplayEventData& InOutEventData)
 {
-	// Call blueprint event
-	OnInteracted(InteractingActor);
-
-	// Default behavior: log the interaction
-	if (GEngine)
-	{
-		FString Message = FString::Printf(TEXT("%s interacted with %s"),
-			*InteractingActor->GetName(), *GetName());
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, Message);
-	}
-}
-
-FVector AInteractableItem::GetInteractionIndicatorLocation_Implementation() const
-{
-	if (MeshComponent)
-	{
-		return MeshComponent->GetComponentLocation();
-	}
-	return GetActorLocation();
+	UE_LOG(LogTemp,Warning,TEXT("[InteractableItem] CustomizeInteractionEventData"));
 }
 
 bool AInteractableItem::CanInteract_Implementation(const FInteractionQuery& InteractQuery) const

@@ -12,7 +12,7 @@ UIndicatorDescriptor::UIndicatorDescriptor()
 {
 }
 
-FVector UIndicatorDescriptor::GetIndicatorLocation() const
+FVector UIndicatorDescriptor::IndicatorLocation() const
 {
 	if (ComponentToTrack.IsValid())
 	{

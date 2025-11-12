@@ -41,11 +41,11 @@ void UKRIndicatorManagerComponent::AddIndicator(UIndicatorDescriptor* IndicatorD
 	{
 		if (APlayerController* PC = GetOwningPlayerController())
 		{
-			IndicatorDescriptor->IndicatorWidget = CreateWidget<UUserWidget>(PC, IndicatorDescriptor->IndicatorWidgetClass);
-			if (IndicatorDescriptor->IndicatorWidget)
-			{
-				IndicatorDescriptor->IndicatorWidget->AddToViewport();
-			}
+			// IndicatorDescriptor->IndicatorWidget = CreateWidget<UUserWidget>(PC, IndicatorDescriptor->IndicatorWidgetClass);
+			// if (IndicatorDescriptor->IndicatorWidget)
+			// {
+			// 	IndicatorDescriptor->IndicatorWidget->AddToViewport();
+			// }
 		}
 	}
 }

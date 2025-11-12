@@ -55,75 +55,128 @@ void UAbilityTask_GrantNearbyInteraction::QueryInteractables()
 		return;
 	}
 	
-	// Perform a sphere overlap to find nearby interactables
-	TArray<FOverlapResult> Overlaps;
+	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(AvatarActor);
 
-	World->OverlapMultiByChannel(
-		Overlaps,
+	World->OverlapMultiByProfile(
+		OverlapResults,
 		AvatarActor->GetActorLocation(),
 		FQuat::Identity,
-		ECC_Pawn,
+		FName(TEXT("Interact_Sphere")),
 		FCollisionShape::MakeSphere(InteractionScanRange),
 		QueryParams
 	);
-
-	TArray<FInteractionOption> InteractionOptions;
-
-	for (const FOverlapResult& Overlap : Overlaps)
-	{
-		AActor* OverlappedActor = Overlap.GetActor();
-		if (!OverlappedActor)
-		{
-			continue;
-		}
-
-		IInteractableTarget* InteractableTarget = Cast<IInteractableTarget>(OverlappedActor);
-		if (InteractableTarget)
-		{
-			FInteractionQuery Query;
-			Query.RequestingActor = AvatarActor;
-			Query.RequestingController = AvatarActor->GetInstigatorController();
-
-			if (InteractableTarget->Execute_CanInteract(OverlappedActor, Query))
-			{
-				TArray<FInteractionOption> Options;
-				InteractableTarget->Execute_GatherInteractionOptions(OverlappedActor, Query, Options);
-				InteractionOptions.Append(Options);
-			}
-		}
-	}
-
-	UpdateInteractionAbility(InteractionOptions);
-}
-
-void UAbilityTask_GrantNearbyInteraction::UpdateInteractionAbility(const TArray<FInteractionOption>& InteractionOptions)
-{
-	if (!AbilitySystemComponent.IsValid() || !InteractionAbilityToGrant)
+	
+	if (OverlapResults.Num() <= 0)
 	{
 		return;
 	}
 
-	// If we have interactions and no ability is granted yet
-	if (InteractionOptions.Num() > 0 && GrantedAbilityHandles.Num() == 0)
+	TArray<TScriptInterface<IInteractableTarget>> InteractableTargets;
+	
+	for (const FOverlapResult& Overlap : OverlapResults)
 	{
-		FGameplayAbilitySpec AbilitySpec(InteractionAbilityToGrant, 1, INDEX_NONE, this);
-		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(AbilitySpec);
-		GrantedAbilityHandles.Add(Handle);
-		OnInteractionGranted.Broadcast(Handle);
-	}
-	// If we have no interactions but ability is granted
-	else if (InteractionOptions.Num() == 0 && GrantedAbilityHandles.Num() > 0)
-	{
-		for (const FGameplayAbilitySpecHandle& Handle : GrantedAbilityHandles)
+		TScriptInterface<IInteractableTarget> InteractableActor(Overlap.GetActor());
+		if (InteractableActor)
 		{
-			if (Handle.IsValid())
+			InteractableTargets.AddUnique(InteractableActor);
+		}
+
+		TScriptInterface<IInteractableTarget> InteractableComponent(Overlap.GetActor());
+		if (InteractableComponent)
+		{
+			InteractableTargets.AddUnique(InteractableComponent);
+		}
+	}
+
+	FInteractionQuery InteractionQuery;
+	InteractionQuery.RequestingActor = AvatarActor;
+	InteractionQuery.RequestingController=Cast<AController>(AvatarActor->GetOwner());
+
+// Option갱신 함수 분리 예정
+	
+	TArray<FInteractionOption> Options;
+	for (TScriptInterface<IInteractableTarget>& InteractableTarget : InteractableTargets)
+	{
+		FInteractionOptionBuilder InteractionBuilder(InteractableTarget, Options);
+		InteractableTarget->GatherInteractionOptions(InteractionQuery, InteractionBuilder);
+	}
+
+	for (const FInteractionOption& Option : Options)
+	{
+		if (Option.InteractionAbilityToGrant)
+		{
+			FObjectKey ObjectKey(Option.InteractionAbilityToGrant);
+			if (!InteractionAbilityCache.Find(ObjectKey))
 			{
-				AbilitySystemComponent->ClearAbility(Handle);
-				OnInteractionRemoved.Broadcast(Handle);
+				FGameplayAbilitySpec Spec(Option.InteractionAbilityToGrant,1,INDEX_NONE,this);
+				FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(Spec);
+				InteractionAbilityCache.Add(ObjectKey,Handle);
 			}
 		}
-		GrantedAbilityHandles.Empty();
+	}
+
+	bool bOptionChanged = false;
+	if (Options.Num() != CurrentOptions.Num())
+	{
+		bOptionChanged = true;
+	}
+	else
+	{
+		for (int32 i = 0; i < Options.Num(); ++i)
+		{
+			if (Options[i] != CurrentOptions[i])
+			{
+				bOptionChanged = true;
+				break;
+			}
+		}
+	}
+
+	if (bOptionChanged)
+	{
+		CurrentOptions=Options;
+		InteractionChanged.Broadcast(CurrentOptions);
+	}
+	//AddToViewport(Option[0]);
+}
+
+void UAbilityTask_GrantNearbyInteraction::UpdateInteractableOptions(
+	const FInteractionQuery& InInteractionQuery, const TScriptInterface<IInteractableTarget>& InteractableTarget)
+{
+	TArray<FInteractionOption> NewOptions;
+	TArray<FInteractionOption> TempOptions;
+
+	//중복 내용
+	FInteractionOptionBuilder InteractionBuilder(InteractableTarget, TempOptions);
+	InteractableTarget->GatherInteractionOptions(InInteractionQuery, InteractionBuilder);
+
+	//TargetASC가 있는지 확인 후 Option에 대입
+	FGameplayAbilitySpec* InteractionAbilitySpec = nullptr;
+	for (FInteractionOption& Option : TempOptions)
+	{
+		if (Option.TargetASC && Option.TargetInteractionAbilityHandle.IsValid())
+		{
+			InteractionAbilitySpec = Option.TargetASC->FindAbilitySpecFromHandle(Option.TargetInteractionAbilityHandle);
+		}
+		else if (Option.InteractionAbilityToGrant)
+		{
+			InteractionAbilitySpec = AbilitySystemComponent->FindAbilitySpecFromClass(Option.InteractionAbilityToGrant);
+
+			if (InteractionAbilitySpec)
+			{
+				Option.TargetASC = AbilitySystemComponent.Get();
+				Option.TargetInteractionAbilityHandle = InteractionAbilitySpec->Handle;
+			}
+		}
+
+		if (InteractionAbilitySpec)
+		{
+			if (InteractionAbilitySpec->Ability->CanActivateAbility(InteractionAbilitySpec->Handle, AbilitySystemComponent->AbilityActorInfo.Get()))
+			{
+				NewOptions.Add(Option); //CurrentOptions에 넣어야 함
+			}
+		}
 	}
 }

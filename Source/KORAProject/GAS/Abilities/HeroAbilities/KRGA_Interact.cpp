@@ -1,17 +1,20 @@
 #include "KRGA_Interact.h"
+
+#include "AbilitySystemComponent.h"
 #include "GAS/Tasks/AbilityTask_WaitForInteractableTargets_SingleLineTrace.h"
-#include "Interaction/InteractableTarget.h"
-#include "GameFramework/PlayerController.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/Character.h"
 #include "GAS/Tasks/AbilityTask_GrantNearbyInteraction.h"
+#include "GAS/KRGameplayTags.h"
+#include "Controllers/KRHeroController.h"
+#include "Interaction/InteractionStatics.h"
+#include "Interaction/InteractableTarget.h"
+#include "UI/Indicators/IndicatorDescriptor.h"
+#include "UI/Indicators/KRIndicatorManagerComponent.h"
 
 UKRGA_Interact::UKRGA_Interact()
 {
-	LineTraceProfile = FCollisionProfileName(TEXT("Pawn"));
 	InteractionRange = 500.f;
 	InteractionScanRate = 0.1f;
-	bShowDebug = false;
+	bShowLineTraceDebug = false;
 }
 
 void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -31,8 +34,6 @@ void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		return;
 	}
 
-	
-
 	UAbilityTask_WaitForInteractableTargets_SingleLineTrace* WaitTask =
 		UAbilityTask_WaitForInteractableTargets_SingleLineTrace::WaitForInteractableTargets_SingleLineTrace(
 			this,
@@ -40,7 +41,6 @@ void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 			InteractionScanRate,
 			bShowLineTraceDebug
 		);
-	//WaitTask->NewOption.AddDynamic(this, &UKRGA_Interact::OnLineTraceTargetsChanged);
 	WaitTask->ReadyForActivation();
 
 	UAbilityTask_GrantNearbyInteraction* GrantTask =
@@ -49,30 +49,38 @@ void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 			InteractionRange,
 			InteractionScanRate
 		);
-	//GrantTask->OnInteractionGranted.AddDynamic(this, &UKRGA_Interact::OnNearbyInteractionGranted);
-	//GrantTask->OnInteractionRemoved.AddDynamic(this, &UKRGA_Interact::OnNearbyInteractionRemoved);
 	GrantTask->ReadyForActivation();
-	
-	
-	// If we have current options, trigger the first one
-	if (CurrentOptions.Num() > 0)
-	{
-		TriggerInteraction();
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-	}
-	else
-	{
-		// No current interactions available
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-	}
 }
 
-void UKRGA_Interact::OnInteractableTargetsChanged(const TArray<FInteractionOption>& InteractableOptions)
+void UKRGA_Interact::UpdateInteractions(const TArray<FInteractionOption>& InteractiveOptions)
 {
-	CurrentOptions = InteractableOptions;
-
-	// Here you could update UI to show available interactions
-	// For now, we just store them
+	if (AKRHeroController* PC = Cast<AKRHeroController>(CurrentActorInfo->PlayerController.Get()))
+		{
+		if (UKRIndicatorManagerComponent* IndicatorManager = PC->FindComponentByClass<UKRIndicatorManagerComponent>())
+		{
+			for (UIndicatorDescriptor* Indicator : Indicators)
+			{
+				IndicatorManager->RemoveIndicator(Indicator);
+			}
+			Indicators.Reset();
+			for (const FInteractionOption& InteractionOption : InteractiveOptions)
+			{
+				AActor* InteractableTargetActor = UInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
+				TSoftClassPtr<UUserWidget> InteractionWidgetClass = InteractionOption.InteractionWidgetClass.IsNull() ? DefaultInteractionWidgetClass : InteractionOption.InteractionWidgetClass;
+				UIndicatorDescriptor* Indicator = NewObject<UIndicatorDescriptor>();
+				Indicator->SetDataObject(InteractableTargetActor);
+				Indicator->SetSceneComponent(InteractableTargetActor->GetRootComponent());
+				Indicator->SetIndicatorClass(InteractionWidgetClass);
+				IndicatorManager->AddIndicator(Indicator);
+				Indicators.Add(Indicator);
+			}
+		}
+		else
+			{
+				//TODO This should probably be a noisy warning. Why are we updating interactions on a PC that can never do anything with them?
+			}
+		}
+	CurrentOptions = InteractiveOptions;
 }
 
 void UKRGA_Interact::TriggerInteraction()
@@ -81,21 +89,26 @@ void UKRGA_Interact::TriggerInteraction()
 	{
 		return;
 	}
-
-	// Take the first available interaction
-	FInteractionOption& Option = CurrentOptions[0];
-
-	if (Option.InteractableTarget.GetObject())
+	UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo();
+	if (AbilitySystem)
 	{
-		AActor* TargetActor = Cast<AActor>(Option.InteractableTarget.GetObject());
-		if (TargetActor)
-		{
-			IInteractableTarget* InteractableTarget = Cast<IInteractableTarget>(TargetActor);
-			if (InteractableTarget)
-			{
-				AActor* AvatarActor = GetAvatarActorFromActorInfo();
-				InteractableTarget->Execute_OnInteractionTriggered(TargetActor, AvatarActor);
-			}
-		}
+		const FInteractionOption& InteractionOption = CurrentOptions[0];
+		
+		AActor* Instigator = GetAvatarActorFromActorInfo();
+		AActor* InteractableTargetActor = UInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
+
+		FGameplayEventData Payload;
+		Payload.EventTag = KRGameplayTags::State_Acting_Interacting;
+		Payload.Instigator = Instigator;
+		Payload.Target = InteractableTargetActor;
+
+		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRGameplayTags::State_Acting_Interacting, Payload);
+
+		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));//실행 주체
+		
+		FGameplayAbilityActorInfo ActorInfo;
+		ActorInfo.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetASC);
+
+		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfo, KRGameplayTags::State_Acting_Interacting, &Payload, *InteractionOption.TargetASC );
 	}
 }

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Interface.h"
 #include "InteractionOption.h"
+#include "Abilities/GameplayAbility.h"
 #include "InteractableTarget.generated.h"
 
 class FInteractionOptionBuilder
@@ -42,11 +42,7 @@ class IInteractableTarget
 public:
 	virtual void GatherInteractionOptions(const FInteractionQuery& InteractQuery, FInteractionOptionBuilder& OptionBuilder)=0;
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interaction")
-	void OnInteractionTriggered(AActor* InteractingActor);
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interaction")
-	FVector GetInteractionIndicatorLocation() const;
+	virtual void CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag, FGameplayEventData& InOutEventData){}
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interaction")
 	bool CanInteract(const FInteractionQuery& InteractQuery) const;

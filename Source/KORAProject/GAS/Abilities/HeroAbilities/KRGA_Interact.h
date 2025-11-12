@@ -21,9 +21,8 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	UFUNCTION()
-	void OnInteractableTargetsChanged(const TArray<FInteractionOption>& InteractableOptions);
-
+	void UpdateInteractions(const TArray<FInteractionOption>& InteractiveOptions);
+	
 	void TriggerInteraction();
 
 protected:
@@ -33,13 +32,13 @@ protected:
 	TArray<TObjectPtr<UIndicatorDescriptor>> Indicators;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	float InteractionScanRate=0.1f;
+	float InteractionScanRate;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	float InteractionRange=500.0f;
+	float InteractionRange;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	bool bShowLineTraceDebug=false;
+	bool bShowLineTraceDebug;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
 	TSoftClassPtr<UUserWidget> DefaultInteractionWidgetClass;

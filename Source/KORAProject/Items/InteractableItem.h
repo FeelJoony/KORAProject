@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -22,9 +20,8 @@ public:
 	AInteractableItem();
 
 	// IInteractableTarget interface
-	virtual void GatherInteractionOptions_Implementation(const FInteractionQuery& InteractQuery, TArray<FInteractionOption>& Options) override;
-	virtual void OnInteractionTriggered_Implementation(AActor* InteractingActor) override;
-	virtual FVector GetInteractionIndicatorLocation_Implementation() const override;
+	virtual void GatherInteractionOptions(const FInteractionQuery& InteractQuery, FInteractionOptionBuilder& OptionBuilder) override;
+	virtual void CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag, FGameplayEventData& InOutEventData) override;
 	virtual bool CanInteract_Implementation(const FInteractionQuery& InteractQuery) const override;
 	// End IInteractableTarget interface
 
@@ -47,8 +44,8 @@ protected:
 	FText InteractionSubText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
-	bool bCanInteract;
+	TSubclassOf<UGameplayAbility> InteractionGA;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction") //BP에서 구현 왜지 굳이?.
-	void OnInteracted(AActor* InteractingActor);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	bool bCanInteract;
 };

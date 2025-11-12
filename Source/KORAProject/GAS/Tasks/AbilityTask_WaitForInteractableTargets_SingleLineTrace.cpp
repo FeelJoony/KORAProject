@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "AbilityTask_WaitForInteractableTargets_SingleLineTrace.h"
 
 #include "AbilitySystemComponent.h"
@@ -9,7 +7,6 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
-
 
 UAbilityTask_WaitForInteractableTargets_SingleLineTrace* UAbilityTask_WaitForInteractableTargets_SingleLineTrace::
 WaitForInteractableTargets_SingleLineTrace(UGameplayAbility* OwningAbility,	float InteractionScanRange,
@@ -117,37 +114,38 @@ void UAbilityTask_WaitForInteractableTargets_SingleLineTrace::FixTraceDirection(
 }
 
 void UAbilityTask_WaitForInteractableTargets_SingleLineTrace::UpdateInteractableOptions(
-	const FInteractionQuery& InteractionQuery, const TScriptInterface<IInteractableTarget>& InteractableTarget)
+	const FInteractionQuery& InInteractionQuery, const TScriptInterface<IInteractableTarget>& InteractableTarget)
 {
-	TArray<FInteractionOption> NewOptions;
-	TArray<FInteractionOption> TempOptions;
-	FInteractionOptionBuilder InteractionBuilder(InteractableTarget, TempOptions);
-	InteractableTarget->GatherInteractionOptions(InteractionQuery, InteractionBuilder);
-
-	FGameplayAbilitySpec* InteractionAbilitySpec = nullptr;
-	for (FInteractionOption& Option : TempOptions)
-	{
-		if (Option.TargetASC && Option.TargetInteractionAbilityHandle.IsValid())
-		{
-			InteractionAbilitySpec = Option.TargetASC->FindAbilitySpecFromHandle(Option.TargetInteractionAbilityHandle);
-		}
-		else if (Option.InteractionAbilityToGrant)
-		{
-			InteractionAbilitySpec = AbilitySystemComponent->FindAbilitySpecFromClass(Option.InteractionAbilityToGrant);
-
-			if (InteractionAbilitySpec)
-			{
-				Option.TargetASC = AbilitySystemComponent.Get();
-				Option.TargetInteractionAbilityHandle = InteractionAbilitySpec->Handle;
-			}
-		}
-
-		if (InteractionAbilitySpec)
-		{
-			if (InteractionAbilitySpec->Ability->CanActivateAbility(InteractionAbilitySpec->Handle, AbilitySystemComponent->AbilityActorInfo.Get()))
-			{
-				NewOptions.Add(Option);
-			}
-		}
-	}
+	// Graple 전용 로직으로 변경 예정
+	// TArray<FInteractionOption> NewOptions;
+	// TArray<FInteractionOption> TempOptions;
+	// FInteractionOptionBuilder InteractionBuilder(InteractableTarget, TempOptions);
+	// InteractableTarget->GatherInteractionOptions(InInteractionQuery, InteractionBuilder);
+	//
+	// FGameplayAbilitySpec* InteractionAbilitySpec = nullptr;
+	// for (FInteractionOption& Option : TempOptions)
+	// {
+	// 	if (Option.TargetASC && Option.TargetInteractionAbilityHandle.IsValid())
+	// 	{
+	// 		InteractionAbilitySpec = Option.TargetASC->FindAbilitySpecFromHandle(Option.TargetInteractionAbilityHandle);
+	// 	}
+	// 	else if (Option.InteractionAbilityToGrant)
+	// 	{
+	// 		InteractionAbilitySpec = AbilitySystemComponent->FindAbilitySpecFromClass(Option.InteractionAbilityToGrant);
+	//
+	// 		if (InteractionAbilitySpec)
+	// 		{
+	// 			Option.TargetASC = AbilitySystemComponent.Get();
+	// 			Option.TargetInteractionAbilityHandle = InteractionAbilitySpec->Handle;
+	// 		}
+	// 	}
+	//
+	// 	if (InteractionAbilitySpec)
+	// 	{
+	// 		if (InteractionAbilitySpec->Ability->CanActivateAbility(InteractionAbilitySpec->Handle, AbilitySystemComponent->AbilityActorInfo.Get()))
+	// 		{
+	// 			NewOptions.Add(Option);
+	// 		}
+	// 	}
+	// }
 }

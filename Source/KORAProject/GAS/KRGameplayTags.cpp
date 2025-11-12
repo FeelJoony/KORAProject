@@ -13,11 +13,13 @@ namespace KRGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Sprint, "State.Acting.Sprinting");
 	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Steping, "State.Acting.Steping");
 	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Jumping, "State.Acting.Jumping");
+	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Laddering, "State.Acting.Laddering");
 	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Interacting, "State.Acting.Interacing");
 	
 	/*Action Tags*/
 	UE_DEFINE_GAMEPLAY_TAG(Player_Action_Step, "Player.Action.Step");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Action_Jump, "Player.Action.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(Player_Action_Ladder, "Player.Action.Ladder");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Step, "Player.Can.Step");
 	UE_DEFINE_GAMEPLAY_TAG(Player_Can_Jump, "Player.Can.Jump");
 

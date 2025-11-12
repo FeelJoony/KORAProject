@@ -31,7 +31,7 @@ public:
 	int32 Priority;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Indicator")
-	TSubclassOf<UUserWidget> IndicatorWidgetClass;
+	TSoftClassPtr<UUserWidget> IndicatorWidgetClass;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Indicator")
 	TObjectPtr<UUserWidget> IndicatorWidget;
@@ -39,11 +39,18 @@ public:
 	UIndicatorDescriptor();
 
 	UFUNCTION(BlueprintCallable, Category = "Indicator")
-	FVector GetIndicatorLocation() const;
+	FVector IndicatorLocation() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Indicator")
 	void SetSceneComponent(USceneComponent* Component);
 
 	UFUNCTION(BlueprintCallable, Category = "Indicator")
 	void SetDataObject(UObject* InDataObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Indicator")
+	void SetIndicatorClass(const TSoftClassPtr<UUserWidget> InIndicatorWidgetClass)
+	{
+		IndicatorWidgetClass=InIndicatorWidgetClass;
+	}
+	
 };
