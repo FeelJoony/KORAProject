@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractionOption.h"
+#include "Interaction/InteractionOption.h"
 #include "Abilities/GameplayAbility.h"
 #include "InteractableTarget.generated.h"
 

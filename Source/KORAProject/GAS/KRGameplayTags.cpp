@@ -7,6 +7,7 @@ namespace KRGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Look, "Input.Look");
 
 	UE_DEFINE_GAMEPLAY_TAG(Input_GASprint, "Input.GASprint");
+	UE_DEFINE_GAMEPLAY_TAG(Input_GAInteract, "Input.GAInteract");
 
 	/* State Tags */
 	UE_DEFINE_GAMEPLAY_TAG(State_Acting_Attaking, "State.Acting.Attaking");

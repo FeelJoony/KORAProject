@@ -15,6 +15,7 @@ UKRGA_Interact::UKRGA_Interact()
 	InteractionRange = 500.f;
 	InteractionScanRate = 0.1f;
 	bShowLineTraceDebug = false;
+	bShowSphereTraceDebug = false;
 }
 
 void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -46,6 +47,7 @@ void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	UAbilityTask_GrantNearbyInteraction* GrantTask =
 		UAbilityTask_GrantNearbyInteraction::GrantAbilitiesForNearbyInteractors(
 			this,
+			bShowSphereTraceDebug,
 			InteractionRange,
 			InteractionScanRate
 		);
@@ -81,10 +83,12 @@ void UKRGA_Interact::UpdateInteractions(const TArray<FInteractionOption>& Intera
 			}
 		}
 	CurrentOptions = InteractiveOptions;
+	//UE_LOG(LogTemp, Warning, TEXT("[Update] CurrentOptions updated: %d options"), CurrentOptions.Num());
 }
 
 void UKRGA_Interact::TriggerInteraction()
 {
+	//UE_LOG(LogTemp, Warning, TEXT("[Trigger] CurrentOptions Num: %d"), CurrentOptions.Num());
 	if (CurrentOptions.Num() == 0)
 	{
 		return;

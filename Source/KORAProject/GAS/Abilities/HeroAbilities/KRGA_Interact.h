@@ -8,7 +8,6 @@
 class UAbilityTask_GrantNearbyInteraction;
 class UIndicatorDescriptor;
 class UAbilityTask_WaitForInteractableTargets_SingleLineTrace;
-struct FInteractionOption;
 
 UCLASS()
 class KORAPROJECT_API UKRGA_Interact : public UKRGameplayAbility
@@ -39,22 +38,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
 	bool bShowLineTraceDebug;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
+	bool bShowSphereTraceDebug;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
 	TSoftClassPtr<UUserWidget> DefaultInteractionWidgetClass;
-	
-	// Lyra : 없음
-	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	// bool bShowDebug;
-
-	// Lyra : 여기 없음
-	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	// FCollisionProfileName TraceProfile;
-
-	// Lyra : 바로 실행
-	// UPROPERTY()
-	// TObjectPtr<UAbilityTask_WaitForInteractableTargets_SingleLineTrace> LineTraceTask;
-	// UPROPERTY()
-	// TObjectPtr<UAbilityTask_GrantNearbyInteraction> SphereTraceTask;
 	
 };

@@ -60,7 +60,7 @@ void UAbilityTask_WaitForInteractableTargets_SingleLineTrace::PerformTrace()
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(AvatarActor);
-	GetWorld()->LineTraceSingleByProfile(HitResult, TraceStart, TraceEnd, FName("Interact_Line"), Params);
+	GetWorld()->LineTraceSingleByProfile(HitResult, TraceStart, TraceEnd, FName("Interaction_Line"), Params);// !!!
 	
 	TScriptInterface<IInteractableTarget> InteractableTarget;
 

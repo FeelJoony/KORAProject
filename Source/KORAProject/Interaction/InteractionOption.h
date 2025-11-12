@@ -17,6 +17,9 @@ public:
 	TScriptInterface<IInteractableTarget> InteractableTarget;
 
 	UPROPERTY(BlueprintReadWrite)
+	int32 Priority;
+
+	UPROPERTY(BlueprintReadWrite)
 	FText Text;
 
 	UPROPERTY(BlueprintReadWrite)
@@ -38,6 +41,7 @@ public:
 	FORCEINLINE bool operator==(const FInteractionOption& Other) const
 	{
 		return InteractableTarget == Other.InteractableTarget &&
+			Priority == Other.Priority &&
 			Text.IdenticalTo(Other.Text) &&
 			SubText.IdenticalTo(Other.SubText) &&
 			InteractionAbilityToGrant == Other.InteractionAbilityToGrant &&
