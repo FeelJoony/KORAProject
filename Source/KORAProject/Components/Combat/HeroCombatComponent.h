@@ -13,5 +13,6 @@ class KORAPROJECT_API UHeroCombatComponent : public UPawnCombatComponent
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
 	AKRHeroMeleeWeapon* GetHeroCarriedMeleeWeaponByTag(FGameplayTag InWeaponTag) const;
 };
