@@ -61,8 +61,8 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	
 	UKRInputComponent* KRInputComponent = CastChecked<UKRInputComponent>(PlayerInputComponent);
 
-	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
-	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTag_Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTag_Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
 	
 	KRInputComponent->BindAbilityInputAction(InputConfigDataAsset, this, &ThisClass::Input_AbilityInputPressed, &ThisClass::Input_AbilityInputReleased);
 }
