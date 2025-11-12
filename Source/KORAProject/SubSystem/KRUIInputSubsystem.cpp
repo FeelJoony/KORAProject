@@ -206,26 +206,9 @@ void UKRUIInputSubsystem::ApplyDisable()
     }
 }
 
-bool UKRUIInputSubsystem::IsAnyNonGameLayerOpen() const
-{
-    const ULocalPlayer* LP = GetLocalPlayer();
-    if (!LP) return false;
-
-    const UGameInstance* GI = LP->GetGameInstance();
-    if (!GI) return false;
-
-    if (const auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
-    {
-        return  Router->GetActiveOnLayer(TEXT("GameMenu")) != nullptr
-            || Router->GetActiveOnLayer(TEXT("Menu")) != nullptr
-            || Router->GetActiveOnLayer(TEXT("Modal")) != nullptr;
-    }
-    return false;
-}
-
 void UKRUIInputSubsystem::UpdateUIMode()
 {
-    const bool bShouldBeActive = (UIModeRefCount > 0) || IsAnyNonGameLayerOpen();
+    const bool bShouldBeActive = (UIModeRefCount > 0);
 
     if (bShouldBeActive && !bUIModeApplied)
     {

@@ -31,9 +31,9 @@ void UKRUIRouterSubsystem::RegisterLayer(FName LayerName, UCommonActivatableWidg
 
 void UKRUIRouterSubsystem::RegisterRoute(FName Route, const FKRRouteSpec& Spec)
 {
-	if (!Spec.WidgetClass)
+	if (Spec.WidgetClass.IsNull())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Router] RegisterRoute(%s) FAILED: WidgetClass is null"), *Route.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("[Router] RegisterRoute(%s) FAILED: WidgetClass is null (soft path missing)"), *Route.ToString());
 		return;
 	}
 
@@ -45,9 +45,9 @@ void UKRUIRouterSubsystem::RegisterRoute(FName Route, const FKRRouteSpec& Spec)
 UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 {
 	const FKRRouteSpec* Spec = Routes.Find(Route);
-	if (!Spec || !Spec->WidgetClass)
+	if (!Spec)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Router] OpenRoute(%s) FAILED: no spec or class"), *Route.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("[Router] OpenRoute(%s) FAILED: no spec"), *Route.ToString());
 		return nullptr;
 	}
 
@@ -58,8 +58,7 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 	}
 	if (!Stack)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Router] OpenRoute(%s) failed: no stack for Layer %d"),
-			*Route.ToString(), (int32)Spec->Layer);
+		UE_LOG(LogTemp, Warning, TEXT("[Router] OpenRoute(%s) failed: no stack for Layer %d"), *Route.ToString(), (int32)Spec->Layer);
 		return nullptr;
 	}
 
@@ -93,8 +92,17 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 		if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileOpen)
 		{
 			UpdateGameStopState(W->GetWorld());
-		}
+		};
+		UE_LOG(LogTemp, Log, TEXT("BindLifecycle: Route=%s"), *Route.ToString());
 		BindLifecycle(Route, W, *Spec);
+
+		if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileTop)
+		{
+			if (W->IsActivated() || (Stack->GetActiveWidget() == W))
+			{
+				UpdateGameStopState(W->GetWorld());
+			}
+		}
 	}
 	else
 	{
@@ -135,11 +143,12 @@ bool UKRUIRouterSubsystem::CloseRoute(FName Route)
 		{
 			if (UCommonActivatableWidget* W = WPtr->Get())
 			{
+				W->DeactivateWidget();
+
 				if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileOpen)
 				{
 					ReleaseGameStopState(W->GetWorld());
 				}
-				W->DeactivateWidget();
 			}
 		}
 		ActiveWidgets.Remove(Route);
