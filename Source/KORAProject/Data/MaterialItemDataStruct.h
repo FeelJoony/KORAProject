@@ -55,7 +55,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stack")
 	int32 StackMax;
 
-	virtual int32 GetKey() const override
+	virtual uint32 GetKey() const override
 	{
 		return Index;
 	}

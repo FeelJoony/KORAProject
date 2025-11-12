@@ -1,9 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
 #include "Data/GameDataType.h"
 #include "Engine/DataTable.h"
+#include "GameplayTagContainer.h"
 #include "CacheDataTable.generated.h"
 
 UCLASS()
@@ -24,15 +24,31 @@ public:
 		return KeyList[InKey];
 	}
 
+	FORCEINLINE const FName& GetKeyName(FGameplayTag InKey) const
+	{
+		return KeyList[GetTypeHash(InKey)];
+	}
+
 	template<typename TRow>
-	TRow* FindRow(int32 InKey, const FString& ContextString, bool bWarnIfRowMissing)
+	TRow* FindRow(uint32 InKey, const FString& ContextString, bool bWarnIfRowMissing)
 	{
 		return CachedDataTable->FindRow<TRow>(KeyList[InKey], ContextString, bWarnIfRowMissing);
 	}
 
+	template<typename TRow>
+	TRow* FindRow(FGameplayTag InKey, const FString& ContextString, bool bWarnIfRowMissing)
+	{
+		return CachedDataTable->FindRow<TRow>(KeyList[GetTypeHash(InKey)], ContextString, bWarnIfRowMissing);
+	}
+
+	FORCEINLINE void GetKeys(TArray<uint32>& OutKeys) const
+	{
+		KeyList.GetKeys(OutKeys);
+	}
+
 private:
 	UPROPERTY()
-	TMap<int32, FName> KeyList;
+	TMap<uint32, FName> KeyList;
 	UPROPERTY()
 	TObjectPtr<UDataTable> CachedDataTable;
 

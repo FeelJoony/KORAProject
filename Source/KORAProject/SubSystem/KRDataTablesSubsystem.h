@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "GameplayTagContainer.h"
 #include "Data/CacheDataTable.h"
 #include "KRDataTablesSubsystem.generated.h"
 
@@ -18,9 +19,15 @@ public:
 	UCacheDataTable* GetTable(EGameDataType InDataType);
 
 	template<typename TRow>
-	TRow* GetData(EGameDataType InType, int32 InKey, const FString& StringContext = FString(TEXT("")), bool bWarnIfRowMissing = true)
+	TRow* GetData(EGameDataType InType, uint32 InKey, const FString& StringContext = FString(TEXT("")), bool bWarnIfRowMissing = true)
 	{
 		return GetTable(InType)->FindRow<TRow>(InKey, StringContext, bWarnIfRowMissing);
+	}
+
+	template<typename TRow>
+	TRow* GetData(EGameDataType InType, FGameplayTag KeyTag, const FString& StringContext = FString(TEXT("")), bool bWarnIfRowMissing = true)
+	{
+		return GetTable(InType)->FindRow<TRow>(KeyTag, StringContext, bWarnIfRowMissing);
 	}
 
 private:

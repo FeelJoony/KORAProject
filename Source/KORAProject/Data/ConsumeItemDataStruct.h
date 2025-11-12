@@ -58,7 +58,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pool Tag")
 	FGameplayTag PoolTag;
 
-	virtual int32 GetKey() const override
+	virtual uint32 GetKey() const override
 	{
 		return Index;
 	}

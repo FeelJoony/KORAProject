@@ -1,7 +1,9 @@
 #include "Data/CacheDataTable.h"
+
 #include "Engine/DataTable.h"
 #include "Interface/TableKey.h"
 #include "Data/SampleDataStruct.h"
+#include "Data/ItemDataStruct.h"
 #include "Data/WeaponItemDataStruct.h"
 #include "Data/ConsumeItemDataStruct.h"
 #include "Data/MaterialItemDataStruct.h"
@@ -33,5 +35,10 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 			InitKeyList<FMaterialItemDataStruct>(NewDataTable);
 		}
 		break;
+
+		case EGameDataType::ItemData:
+			{
+				InitKeyList<FItemDataStruct>(NewDataTable);
+			}
 	}
 }

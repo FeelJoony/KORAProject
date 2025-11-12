@@ -12,9 +12,10 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	AddDataTable(EGameDataType::SampleData, FString(TEXT("SampleData")));
-	AddDataTable(EGameDataType::WeaponItemData, FString(TEXT("WeaponItemData")));
-	AddDataTable(EGameDataType::ConsumeItemData, FString(TEXT("ConsumeItemData")));
-	AddDataTable(EGameDataType::MaterialItemData, FString(TEXT("MaterialItemData")));
+	//AddDataTable(EGameDataType::WeaponItemData, FString(TEXT("WeaponItemData")));
+	//AddDataTable(EGameDataType::ConsumeItemData, FString(TEXT("ConsumeItemData")));
+	//AddDataTable(EGameDataType::MaterialItemData, FString(TEXT("MaterialItemData")));
+	AddDataTable(EGameDataType::ItemData, FString(TEXT("ItemData")));
 }
 
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
@@ -36,7 +37,7 @@ UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
 void UKRDataTablesSubsystem::AddDataTable(EGameDataType InType, const FString& TableName)
 {
 	UCacheDataTable* CacheTable = NewObject<UCacheDataTable>(this);
-	class UDataTable* DataTable = Cast<class UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *FPaths::Combine(*TablePath, *FString::Printf(TEXT("%s.%s"), *TableName, *TableName))));
+	UDataTable* DataTable = Cast<class UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *FPaths::Combine(*TablePath, *FString::Printf(TEXT("%s.%s"), *TableName, *TableName))));
 
 	CacheTable->Init(InType, DataTable);
 

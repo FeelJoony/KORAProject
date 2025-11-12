@@ -1,3 +1,0 @@
-Index,ItemID,TypeTag,RarityTag,AbilityTags,DisplayName,Description,ItemIcon,BasePrice,StackMax,BaseATK,BaseCritChance,BaseCritMulti,BaseRange,BaseAccuracy,BaseRecoil,BaseCapacity,AttackSpeed,ReloadTime,BaseEnforceCost
-0,WPN_Sword_01,ItemType.Equip.Sword,Rarity.Epic,Rarity.Epic,코라의 검,코어 관리 본부에서 배급되는 보안관용 칼,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,0,1,58,0.08,1.4,0,0,0,0,0,1,300
-1,WPN_Pistol_01,ItemType.Equip.Gun,Rarity.Epic,Rarity.Epic,코라의 총,코어 관리 본부 배급되는 보안관용 총,/Game/Items/TestImage/Kora_Sword_1.Kora_Sword_1,0,1,42,0.1,1.6,18,1,1,15,1,1,300

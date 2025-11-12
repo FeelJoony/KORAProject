@@ -15,5 +15,5 @@ class KORAPROJECT_API ITableKey
 	GENERATED_BODY()
 
 public:
-	virtual int32 GetKey() const = 0;
+	virtual uint32 GetKey() const = 0;
 };

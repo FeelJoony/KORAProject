@@ -5,6 +5,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "KRInventorySubsystem.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogInventorySubSystem, Log, All);
+
 class UKRInventoryItemInstance;
 class UKRInventoryItemDefinition;
 class UKRInventoryItemFragment;
@@ -79,10 +81,12 @@ struct FKRInventoryList
 	
 	void RemoveItem(FGameplayTag InTag);
 	
-	const FKRInventoryEntry* AddItem(FGameplayTag InTag, int32 StackCount);
+	const FKRInventoryEntry* AddItem(FGameplayTag InTag, int32 StackCount, bool& OutIsNew);
 	
 	void SubtractItem(FGameplayTag InTag, int32 StackCount);
 	
+	FKRInventoryEntry* GetItem(FGameplayTag InTag);
+
 	const FKRInventoryEntry* GetItem(FGameplayTag InTag) const;
 
 	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
@@ -136,15 +140,11 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	// ========== Fragment Registry ==========
-	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	TSubclassOf<class UKRInventoryItemFragment> GetFragmentClass(FGameplayTag Tag) const;
 
-	// ========== Item Definition Registry ==========
-	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	int32 LoadItemDefinitionsFromDataTable();
+	void AddFragment(FGameplayTag ItemTag, FGameplayTag FragmentTag);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	const class UKRInventoryItemDefinition* GetItemDefinition(FGameplayTag ItemTag) const;
@@ -155,44 +155,42 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	TArray<FGameplayTag> GetAllRegisteredItemTags() const;
 
-	// ========== Player Inventory ==========
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	class UKRInventoryItemInstance* AddItem(FGameplayTag ItemTag, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	class UKRInventoryItemInstance* AddItem(APlayerState* Owner, FGameplayTag ItemTag, int32 StackCount = 1);
+	void SubtractItem(FGameplayTag ItemTag, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	void SubtractItem(APlayerState* Owner, FGameplayTag ItemTag, int32 StackCount = 1);
+	void RemoveItem(FGameplayTag InTag);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	void RemoveItem(APlayerState* Owner, FGameplayTag InTag);
+	const UKRInventoryItemInstance* GetItem(FGameplayTag InTag);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	const UKRInventoryItemInstance* GetItem(APlayerState* Owner, FGameplayTag InTag);
-
-	UFUNCTION(BlueprintCallable, Category = Inventory)
-	int32 GetItemCountByTag(APlayerState* Owner, FGameplayTag InTag);
+	int32 GetItemCountByTag(FGameplayTag InTag);
 	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	TArray<class UKRInventoryItemInstance*> GetAllItems(class APlayerState* Owner) const;
+	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	TArray<class UKRInventoryItemInstance*> FindItemsByTag(class APlayerState* Owner, FGameplayTag ItemTag) const;
+	TArray<class UKRInventoryItemInstance*> FindItemsByTag(FGameplayTag ItemTag) const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	void ClearInventory(APlayerState* Owner);
+	void ClearInventory();
 
 private:
 	UPROPERTY()
 	TMap<FGameplayTag, TSubclassOf<class UKRInventoryItemFragment>> FragmentRegistry;
 
 	UPROPERTY()
-	TMap<TObjectPtr<class APlayerState>, FKRInventoryList> PlayerInventories;
+	FKRInventoryList PlayerInventory;
 	
-	FKRInventoryList& GetOrCreateInventory(class APlayerState* Owner);
-
-	void InitializeItemDefinitionFragments(const FGameplayTagContainer& AbilityTags);
-	void InitialFragmentType(TSubclassOf<class UKRInventoryItemFragment> FragmentClass);
+	FKRInventoryList& GetInventory();
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	void RegisterFragmentClass(FGameplayTag Tag, TSubclassOf<class UKRInventoryItemFragment> FragmentClass);
+	void InitFragment(FGameplayTag ItemTag);
+	
+	void InitializeItemDefinitionFragments();
+	void InitialFragmentType(TSubclassOf<class UKRInventoryItemFragment> FragmentClass);
 };

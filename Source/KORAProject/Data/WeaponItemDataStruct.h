@@ -97,7 +97,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 BaseEnforceCost;
 
-	virtual int32 GetKey() const override
+	virtual uint32 GetKey() const override
 	{
 		return Index;
 	}

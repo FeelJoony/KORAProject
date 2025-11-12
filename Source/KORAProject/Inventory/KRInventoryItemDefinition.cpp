@@ -9,19 +9,28 @@ UKRInventoryItemDefinition::UKRInventoryItemDefinition(const FObjectInitializer&
 {
 }
 
+UKRInventoryItemFragment* UKRInventoryItemDefinition::FindFragmentByTag(FGameplayTag Tag)
+{
+	if (Tag.IsValid())
+	{
+		return FragmentContainer.FindRef(Tag);
+	}
+	return nullptr;
+}
+
 const UKRInventoryItemFragment* UKRInventoryItemDefinition::FindFragmentByTag(FGameplayTag Tag) const
 {
 	if (Tag.IsValid())
 	{
-		if (const auto FoundFragment = FragmentContainer.Find(Tag))
+		if (const auto FoundFragment = FragmentContainer.FindRef(Tag))
 		{
-			return GetDefault<UKRInventoryItemFragment>(*FoundFragment);
+			return FoundFragment;
 		}
 	}
 	return nullptr;
 }
 
-void UKRInventoryItemDefinition::AddFragment(FGameplayTag Tag, TSubclassOf<UKRInventoryItemFragment> Fragment)
+void UKRInventoryItemDefinition::AddFragment(FGameplayTag Tag, UKRInventoryItemFragment* Fragment)
 {
 	if (Tag.IsValid() && Fragment)
 	{
