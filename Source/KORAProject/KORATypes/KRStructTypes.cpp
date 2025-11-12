@@ -1,5 +1,5 @@
 #include "KORATypes/KRStructTypes.h"
-#include "GAS/Abilities/KRGameplayAbility.h"
+#include "GAS/Abilities/KRHeroGameplayAbility.h"
 
 bool FKRHeroAbilitySet::IsValid() const
 {

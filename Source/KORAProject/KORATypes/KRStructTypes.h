@@ -3,8 +3,9 @@
 #include "GameplayTagContainer.h"
 #include "KRStructTypes.generated.h"
 
+class UKRHeroLinkedAnimLayer;
 class UInputMappingContext;
-class UKRGameplayAbility;
+class UKRHeroGameplayAbility;
 
 USTRUCT(BlueprintType)
 struct FKRHeroAbilitySet
@@ -15,7 +16,7 @@ struct FKRHeroAbilitySet
 	FGameplayTag InputTag;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UKRGameplayAbility> AbilityToGrant;
+	TSubclassOf<UKRHeroGameplayAbility> AbilityToGrant;
 
 	bool IsValid() const;
 };
@@ -24,6 +25,9 @@ USTRUCT(BlueprintType)
 struct FKRHeroWeaponData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UKRHeroLinkedAnimLayer> WeaponAimLayerToLink;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UInputMappingContext> WeaponInputMappingContext;
