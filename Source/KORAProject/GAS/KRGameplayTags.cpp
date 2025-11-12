@@ -3,12 +3,14 @@
 namespace KRGameplayTags
 {
 	/* Input Tags */
-	UE_DEFINE_GAMEPLAY_TAG(Input_Move,			"Input.Move");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Look,			"Input.Look");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Equip_Sword,	"Input.Equip.Sword");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Equip_Gun,		"Input.Equip.Gun");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Unequip_Sword, "Input.Unequip.Sword");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Unequip_Gun,	"Input.Unequip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Move,				 "Input.Move");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Look,				 "Input.Look");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Equip_Sword,		 "Input.Equip.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Equip_Gun,			 "Input.Equip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Unequip_Sword,		 "Input.Unequip.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Unequip_Gun,		 "Input.Unequip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Input_LightAttack_Sword,	 "Input.LightAttack.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Input_ChargeAttack_Sword, "Input.ChargeAttack.Sword");
 	
 	
 	/* State Tags */
@@ -28,10 +30,11 @@ namespace KRGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Unequip_Gun,	"Event.Unequip.Gun");
 
 	/* Ability Tags */
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Equip_Sword,	  "Ability.Equip.Sword");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Unequip_Sword, "Ability.Unequip.Sword");	
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Equip_Gun,	  "Ability.Equip.Gun");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Unequip_Gun,	  "Ability.Unequip.Gun");
-
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Equip_Sword,			"Ability.Equip.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Unequip_Sword,		"Ability.Unequip.Sword");	
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Equip_Gun,			"Ability.Equip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Unequip_Gun,			"Ability.Unequip.Gun");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Light_Sword,	"Ability.Attack.Light.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Charge_Sword,	"Ability.Attack.Charge.Sword");
 	
 }
