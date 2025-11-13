@@ -8,9 +8,6 @@
 class USphereComponent;
 class UStaticMeshComponent;
 
-/**
- * Example interactable item that can be picked up or interacted with
- */
 UCLASS()
 class KORAPROJECT_API AInteractableItem : public AActor, public IInteractableTarget
 {
@@ -22,7 +19,6 @@ public:
 	// IInteractableTarget interface
 	virtual void GatherInteractionOptions(const FInteractionQuery& InteractQuery, FInteractionOptionBuilder& OptionBuilder) override;
 	virtual void CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag, FGameplayEventData& InOutEventData) override;
-	virtual bool CanInteract_Implementation(const FInteractionQuery& InteractQuery) const override;
 	// End IInteractableTarget interface
 
 protected:
@@ -34,8 +30,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TObjectPtr<USphereComponent> InteractionSphere;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	int32 Priority;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	FText InteractionText;
@@ -46,6 +45,4 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	TSubclassOf<UGameplayAbility> InteractionGA;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
-	bool bCanInteract;
 };

@@ -43,7 +43,4 @@ public:
 	virtual void GatherInteractionOptions(const FInteractionQuery& InteractQuery, FInteractionOptionBuilder& OptionBuilder)=0;
 
 	virtual void CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag, FGameplayEventData& InOutEventData){}
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interaction")
-	bool CanInteract(const FInteractionQuery& InteractQuery) const;
 };

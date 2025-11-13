@@ -28,4 +28,5 @@ namespace KRGameplayTags
 	
 	/*Cooldown Tags*/
 	KORAPROJECT_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ability);
+	KORAPROJECT_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ability_Jump);
 }

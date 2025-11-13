@@ -26,4 +26,5 @@ namespace KRGameplayTags
 
 	/*Cooldown Tags*/
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ability, "Cooldown.Ability");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ability_Jump, "Cooldown.Ability.Jump");
 }
