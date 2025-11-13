@@ -1,0 +1,209 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#include "UI/Shop/KRShopSell.h"
+#include "UI/KRSlotGridBase.h"
+#include "UI/KRItemDescriptionBase.h"
+#include "UI/Data/KRItemUIData.h"
+#include "SubSystem/KRUIInputSubsystem.h"
+#include "CommonTextBlock.h"
+#include "CommonButtonBase.h"
+#include "CommonNumericTextBlock.h"
+#include "Engine/Texture2D.h"
+
+void UKRShopSell::RefreshPlayerInventory()
+{
+	if (ShoppingSlot)
+	{
+		ShoppingSlot->InitializeItemGrid(CachedShopItems);
+		if (CachedShopItems.Num() > 0)
+		{
+			UpdateItemDescription(0);
+		}
+		else
+		{
+			UpdateItemDescription(INDEX_NONE);
+		}
+	}
+}
+
+void UKRShopSell::UpdatePlayerCurrency()
+{
+
+}
+
+void UKRShopSell::NativeOnActivated()
+{
+	Super::NativeOnActivated();
+
+	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	{
+		InputSubsys->BindBackDefault(this, TEXT("ShopSell"));
+
+		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &UKRShopSell::HandleMoveLeft));
+		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &UKRShopSell::HandleMoveRight));
+		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &UKRShopSell::HandleMoveUp));
+		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &UKRShopSell::HandleMoveDown));
+		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &UKRShopSell::HandleSelect));
+	}
+}
+
+void UKRShopSell::NativeOnDeactivated()
+{
+
+	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	{
+		InputSubsys->UnbindAll(this);
+	}
+	Super::NativeOnDeactivated();
+}
+
+void UKRShopSell::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	RefreshPlayerInventory();
+	//UpdatePlayerCurrency();
+}
+
+void UKRShopSell::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+}
+
+void UKRShopSell::FilterSellableItems()
+{
+
+}
+
+void UKRShopSell::OnPlayerItemSelected(int32 SelectedIndex)
+{
+
+	UpdateItemDescription(SelectedIndex);
+}
+
+void UKRShopSell::UpdateItemDescription(int32 CellIndex)
+{
+	if (!ShopItemDescription) return;
+
+	if (CachedShopItems.IsValidIndex(CellIndex))
+	{
+		ShopItemDescription->SetVisibility(ESlateVisibility::HitTestInvisible);
+		const FKRItemUIData& D = CachedShopItems[CellIndex];
+		ShopItemDescription->UpdateItemInfo(D.ItemName, D.ItemDescription, D.ItemIcon);
+	}
+	else
+	{
+		ShopItemDescription->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void UKRShopSell::HandleSelect()
+{
+
+}
+
+void UKRShopSell::HandleMoveLeft()
+{
+	if (!ShoppingSlot)
+	{
+		return;
+	}
+
+	int32 Current = ShoppingSlot->GetSelectedIndex();
+	int32 Columns = ShoppingSlot->GetColumnCount();
+	int32 Total = ShoppingSlot->GetNumCells();
+
+	int32 Next = StepGrid(Current, 0, Columns, Total);
+	ShoppingSlot->SelectIndexSafe(Next);
+
+	OnPlayerItemSelected(Next);
+}
+
+void UKRShopSell::HandleMoveRight()
+{
+	if (!ShoppingSlot)
+	{
+		return;
+	}
+
+	int32 Current = ShoppingSlot->GetSelectedIndex();
+	int32 Columns = ShoppingSlot->GetColumnCount();
+	int32 Total = ShoppingSlot->GetNumCells();
+
+	int32 Next = StepGrid(Current, 1, Columns, Total);
+	ShoppingSlot->SelectIndexSafe(Next);
+
+	OnPlayerItemSelected(Next);
+}
+
+void UKRShopSell::HandleMoveUp()
+{
+	if (!ShoppingSlot)
+	{
+		return;
+	}
+
+	int32 Current = ShoppingSlot->GetSelectedIndex();
+	int32 Columns = ShoppingSlot->GetColumnCount();
+	int32 Total = ShoppingSlot->GetNumCells();
+
+	int32 Next = StepGrid(Current, 2, Columns, Total);
+	ShoppingSlot->SelectIndexSafe(Next);
+
+	OnPlayerItemSelected(Next);
+}
+
+void UKRShopSell::HandleMoveDown()
+{
+	if (!ShoppingSlot)
+	{
+		return;
+	}
+
+	int32 Current = ShoppingSlot->GetSelectedIndex();
+	int32 Columns = ShoppingSlot->GetColumnCount();
+	int32 Total = ShoppingSlot->GetNumCells();
+
+	int32 Next = StepGrid(Current, 3, Columns, Total);
+	ShoppingSlot->SelectIndexSafe(Next);
+
+	OnPlayerItemSelected(Next);
+}
+
+int32 UKRShopSell::StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int32 NumTotal) const
+{
+	if (NumTotal <= 0 || NumColumns <= 0)
+	{
+		return Current;
+	}
+
+	int32 Row = Current / NumColumns;
+	int32 Col = Current % NumColumns;
+
+	switch (DirIndex)
+	{
+	case 0:  // Left
+		Col = (Col > 0) ? (Col - 1) : Col;
+		break;
+	case 1:  // Right
+		Col = (Col < NumColumns - 1) ? (Col + 1) : Col;
+		break;
+	case 2:  // Up
+		Row = (Row > 0) ? (Row - 1) : Row;
+		break;
+	case 3:  // Down
+	{
+		int32 MaxRow = (NumTotal - 1) / NumColumns;
+		Row = (Row < MaxRow) ? (Row + 1) : Row;
+		break;
+	}
+	default:
+		break;
+	}
+
+	int32 Next = Row * NumColumns + Col;
+	if (Next >= NumTotal) Next = NumTotal - 1;
+
+	return FMath::Clamp(Next, 0, NumTotal - 1);
+}
