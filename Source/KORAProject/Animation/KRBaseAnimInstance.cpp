@@ -9,7 +9,7 @@ void UKRBaseAnimInstance::NativeInitializeAnimation()
 	CachedCharacter = Cast<ACharacter>(TryGetPawnOwner());
 	if (!CachedCharacter)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("[UKRHeroAnimInstance] Character is null"));
+		//UE_LOG(LogTemp,Warning,TEXT("[UKRHeroAnimInstance] Character is null"));
 		return;
 	}
 }
@@ -20,7 +20,7 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	
 	if (!CachedCharacter)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("[UKRHeroAnimInstance] Character is null"));
+		//UE_LOG(LogTemp,Warning,TEXT("[UKRHeroAnimInstance] Character is null"));
 		return;
 	}
 	GroundSpeed = CachedCharacter->GetVelocity().Size2D();
