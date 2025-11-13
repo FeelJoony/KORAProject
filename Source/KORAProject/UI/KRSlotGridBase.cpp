@@ -29,7 +29,6 @@ void UKRSlotGridBase::InitializeItemGrid(const TArray<FKRItemUIData>& InData)
 			else
 			{
 				Cell->SetItemData(FKRItemUIData{});
-				Cell->SetIsEnabled(false);
 			}
 		}
 	}
