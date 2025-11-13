@@ -81,24 +81,32 @@ void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 	{
 		return;
 	}
-	for (FGameplayAbilitySpec& JumpSpec : ASC->GetActivatableAbilities())
+
+	const FGameplayTag JumpCooldownTag = FGameplayTag::RequestGameplayTag(FName("Cooldown.Ability"));
+
+	if (ASC->HasMatchingGameplayTag(JumpCooldownTag))
 	{
-		const FGameplayTagContainer& JumpGATags = JumpSpec.Ability->GetAssetTags();
-		if (JumpGATags.HasTagExact(JumpAbilityTag))
+		for (FGameplayAbilitySpec& StepSpec : ASC->GetActivatableAbilities())
 		{
-			if (!ASC->TryActivateAbility(JumpSpec.Handle))
+			const FGameplayTagContainer& StepGATags = StepSpec.Ability->GetAssetTags();
+			//UE_LOG(LogTemp, Warning, TEXT("Step GA Tags: %s"), *StepGATags.ToString());
+			if (StepGATags.HasTagExact(StepAbilityTag))
 			{
-				for (FGameplayAbilitySpec& StepSpec : ASC->GetActivatableAbilities())
-				{
-					const FGameplayTagContainer& StepGATags = StepSpec.Ability->GetAssetTags();
-					if (StepGATags.HasTagExact(StepAbilityTag))
-					{
-						ASC->TryActivateAbility(StepSpec.Handle);
-						return;
-					}
-				}	
+				ASC->TryActivateAbility(StepSpec.Handle);
+				return;
 			}
-			return;
+		}
+	}
+	else
+	{
+		for (FGameplayAbilitySpec& JumpSpec : ASC->GetActivatableAbilities())
+		{
+			const FGameplayTagContainer& JumpGATags = JumpSpec.Ability->GetAssetTags();
+			if (JumpGATags.HasTagExact(JumpAbilityTag))
+			{
+				ASC->TryActivateAbility(JumpSpec.Handle);
+				return;
+			}
 		}
 	}
 }

@@ -108,7 +108,7 @@ void UKRGA_Interact::TriggerInteraction()
 
 		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRGameplayTags::State_Acting_Interacting, Payload);
 
-		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));//실행 주체
+		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));// GA 실행 주체
 		
 		FGameplayAbilityActorInfo ActorInfo;
 		ActorInfo.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetASC);
