@@ -189,24 +189,19 @@ void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 		return;
 	}
 
-	UCacheDataTable* CacheDataTable = DataTableSubsystem->GetTable(EGameDataType::ItemData);
 	UCacheDataTable* EquipCacheDataTable = DataTableSubsystem->GetTable(EGameDataType::EquipData);
-	checkf(CacheDataTable, TEXT("Unvalid Data Table. Check CSV File"));
 
-	TArray<uint32> ItemDataKeyList;
-	CacheDataTable->GetKeys(ItemDataKeyList);
-	
 	FItemDataStruct* ItemData = DataTableSubsystem->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
 
 	for (const FGameplayTag& AbilityTag : ItemData->AbilityTags)
 	{
 		if (!FragmentRegistry.Contains(AbilityTag))
 		{
-			UE_LOG(LogInventorySubSystem, Log, TEXT("No exist %s Tag. You must be create this tag Fragment"), *AbilityTag.GetTagName().ToString());
+			UE_LOG(LogInventorySubSystem, Warning, TEXT("No exist %s Tag. You must be create this tag Fragment"), *AbilityTag.GetTagName().ToString());
 				
 			continue;
 		}
-
+		
 		AddFragment(ItemData->TypeTag, AbilityTag);
 	}
 }
