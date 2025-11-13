@@ -93,7 +93,6 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 		{
 			UpdateGameStopState(W->GetWorld());
 		};
-		UE_LOG(LogTemp, Log, TEXT("BindLifecycle: Route=%s"), *Route.ToString());
 		BindLifecycle(Route, W, *Spec);
 
 		if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileTop)
