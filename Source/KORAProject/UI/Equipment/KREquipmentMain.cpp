@@ -27,7 +27,6 @@ void UKREquipmentMain::NativeOnActivated()
 	UE_LOG(LogTemp, Log, TEXT("NativeOnActivated... Equipment"));
 	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
 	{
-		InputSubsys->EnterUIMode();
 		InputSubsys->BindBackDefault(this, TEXT("Equipment"));
 		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
 		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveRight));
@@ -40,10 +39,9 @@ void UKREquipmentMain::NativeOnActivated()
 void UKREquipmentMain::NativeOnDeactivated()
 {
 	UE_LOG(LogTemp, Log, TEXT("NativeOnDeactivated... Equipment"));
-	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
-	{
-		InputSubsys->ReleaseUIMode();
-	}
+	//if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	//{
+	//}
 	Super::NativeOnDeactivated();
 }
 

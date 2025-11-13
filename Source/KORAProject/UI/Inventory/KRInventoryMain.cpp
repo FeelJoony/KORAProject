@@ -27,7 +27,6 @@ void UKRInventoryMain::NativeOnActivated()
 
 	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
 	{
-		InputSubsys->EnterUIMode();
 		InputSubsys->BindBackDefault(this, TEXT("Inventory"));
 		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
 		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveLeft));
@@ -41,7 +40,7 @@ void UKRInventoryMain::NativeOnDeactivated()
 {
 	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
 	{
-		InputSubsys->ReleaseUIMode();
+		InputSubsys->UnbindAll(this);
 	}
 	Super::NativeOnDeactivated();
 }
@@ -159,29 +158,37 @@ void UKRInventoryMain::HandleSelect()
 
 int32 UKRInventoryMain::StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const
 {
-	if (Cols <= 0 || Num <= 0) return 0;
-	if (Cur < 0) Cur = 0;
+	if (Num <= 0 || Cols <= 0)
+	{
+		return Cur;
+	}
+
+	int32 Row = Cur / Cols;
+	int32 Col = Cur % Cols;
 
 	switch (DirIdx)
 	{
-	case 0: // Left
+	case 0:  // Left
+		Col = (Col > 0) ? (Col - 1) : Col;
+		break;
+	case 1:  // Right
+		Col = (Col < Cols - 1) ? (Col + 1) : Col;
+		break;
+	case 2:  // Up
+		Row = (Row > 0) ? (Row - 1) : Row;
+		break;
+	case 3:  // Down
 	{
-		const int32 Col = Cur % Cols;
-		return (Col > 0) ? (Cur - 1) : Cur;
+		int32 MaxRow = (Num - 1) / Cols;
+		Row = (Row < MaxRow) ? (Row + 1) : Row;
+		break;
 	}
-	case 1: // Right
-	{
-		const int32 Col = Cur % Cols;
-		const bool bAtRight = (Col == Cols - 1) || (Cur + 1 >= Num);
-		return bAtRight ? Cur : (Cur + 1);
-	}
-	case 2: // Up
-		return (Cur - Cols >= 0) ? (Cur - Cols) : Cur;
-
-	case 3: // Down
-		return (Cur + Cols < Num) ? (Cur + Cols) : Cur;
-
 	default:
-		return Cur;
+		break;
 	}
+
+	int32 Next = Row * Cols + Col;
+	if (Next >= Num) Next = Num - 1;
+
+	return FMath::Clamp(Next, 0, Num - 1);
 }
