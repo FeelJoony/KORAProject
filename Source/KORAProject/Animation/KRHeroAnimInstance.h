@@ -16,7 +16,6 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 protected:
-	/*-------------------백승수 수정부분-------------------*/
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|References")
 	TObjectPtr<AKRHeroCharacter> OwningHeroCharacter;
 
@@ -25,8 +24,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	float EnterRelaxStateTime = 5.f;
-
-	/*--------------------------------------------------*/
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	float Direction;
