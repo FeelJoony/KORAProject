@@ -5,18 +5,17 @@
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
-#include "UI/Data/KRItemUIData.h"
 
 #include "CommonButtonBase.h"
 #include "GameplayTagsManager.h"
 /*
-#include "Inventory/KRInventoryComponent.h"   // ÀÎº¥Åä¸® ÄÄÆ÷³ÍÆ® ¹Þ°í ¼öÁ¤
-#include "Item/KRBaseItem.h"                 // ¾ÆÀÌÅÛ ¹Þ°í ¼öÁ¤
+#include "Inventory/KRInventoryComponent.h"   // ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Þ°ï¿½ ï¿½ï¿½ï¿½ï¿½
+#include "Item/KRBaseItem.h"                 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ°ï¿½ ï¿½ï¿½ï¿½ï¿½
 */
 
-// ÇÊ¿ä ÇÔ¼ö ¸®½ºÆ® !! 
-/* ÇöÀç À§Á¬ ¼ÒÀ¯ÀÚ Pawn¿¡¼­ ÀÎº¥Åä¸® ÄÄÆ÷³ÍÆ® °¡Á®¿À´Â ÇÔ¼ö */
-/* Å×±× ¸ÅÄªÀ¸·Î ¾ÆÀÌÅÛ °¡Á®¿Í¼­ UIData·Î º¯È¯ÇÏ´Â ÇÔ¼ö*/
+// ï¿½Ê¿ï¿½ ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® !! 
+/* ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Pawnï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ */
+/* ï¿½×±ï¿½ ï¿½ï¿½Äªï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ UIDataï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½*/
 
 void UKREquipmentMain::NativeConstruct()
 {
@@ -98,12 +97,12 @@ void UKREquipmentMain::OnGridSlotSelected(int32 CellIndex)
 
 void UKREquipmentMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
 {
-	/* Å×±× ¸ÅÄªÀ¸·Î ¾ÆÀÌÅÛ °¡Á®¿Í¼­ UIData·Î º¯È¯ÇÏ´Â ÇÔ¼ö*/
+	/* ï¿½×±ï¿½ ï¿½ï¿½Äªï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ UIDataï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½*/
 }
 
 void UKREquipmentMain::RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny)
 {
-	/* Å×±× ¸ÅÄªÀ¸·Î ¾ÆÀÌÅÛ °¡Á®¿Í¼­ UIData·Î º¯È¯ÇÏ´Â ÇÔ¼ö*/
+	/* ï¿½×±ï¿½ ï¿½ï¿½Äªï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ UIDataï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½*/
 	if (InventorySlot)
 	{
 		InventorySlot->InitializeItemGrid(CachedUIData);
