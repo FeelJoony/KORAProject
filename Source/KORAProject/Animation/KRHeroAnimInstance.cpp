@@ -1,29 +1,35 @@
 #include "Animation/KRHeroAnimInstance.h"
-
-#include "GameFramework/Character.h"
+#include "Characters/KRHeroCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "KismetAnimationLibrary.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 void UKRHeroAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 	if (CachedCharacter)
 	{
-		CachedMoveComponent = CachedCharacter->GetCharacterMovement();
+		OwningHeroCharacter = Cast<AKRHeroCharacter>(CachedCharacter);
 	}
 }
 
 void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-	
-	if (!CachedMoveComponent)
+
+
+	if (bHasAcceleration)
 	{
-		return;
+		IdleElapsedTime = 0.f;
+		bShouldEnterRelaxState = false;
+	}
+	else
+	{
+		IdleElapsedTime += DeltaSeconds;
+		bShouldEnterRelaxState = (IdleElapsedTime >= EnterRelaxStateTime);
 	}
 	
-	Direction = UKismetAnimationLibrary::CalculateDirection(
+	
+	/*Direction = UKismetAnimationLibrary::CalculateDirection(
 			CachedCharacter->GetVelocity(),
 			CachedCharacter->GetActorRotation()
 	);
@@ -36,5 +42,5 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		LockOnDirection = UKismetMathLibrary::NormalizedDeltaRotator(VelocityRotation, ControlRotation).Yaw;
         
 		//CachedMoveComponent->MaxWalkSpeed=LockOnSpeed;
-	}
+	}*/
 }

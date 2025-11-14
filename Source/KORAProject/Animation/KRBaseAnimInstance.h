@@ -4,7 +4,7 @@
 #include "Animation/AnimInstance.h"
 #include "KRBaseAnimInstance.generated.h"
 
-class ACharacter;
+class AKRBaseCharacter;
 class UCharacterMovementComponent;
 
 UCLASS()
@@ -17,17 +17,22 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	
 protected:	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	float GroundSpeed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	bool bShouldMove;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement State")
+	/*-------------------백승수 수정부분-------------------*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
+	bool bHasAcceleration;
+	/*--------------------------------------------------*/
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	bool bIsFalling;
 
 	UPROPERTY()
-	TObjectPtr<ACharacter> CachedCharacter;
+	TObjectPtr<AKRBaseCharacter> CachedCharacter;
 	
 	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> CachedMoveComponent;

@@ -29,4 +29,3 @@ void AKRBaseCharacter::PossessedBy(AController* NewController)
 		ensureMsgf(!CharacterStartUpData.IsNull(), TEXT("Forgot to assing start up data to %s"), *GetName());
 	}
 }
-

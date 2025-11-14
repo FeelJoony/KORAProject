@@ -2,9 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Characters/KRBaseCharacter.h"
+#include "GameplayTagContainer.h"
 #include "KRHeroCharacter.generated.h"
 
 
+class UHeroCombatComponent;
 class UDataAsset_InputConfig;
 class USpringArmComponent;
 class UCameraComponent;
@@ -38,4 +40,10 @@ private:
 
 	void Input_Move(const FInputActionValue& Value);
 	void Input_Look(const FInputActionValue& Value);
+
+	void Input_AbilityInputPressed(FGameplayTag InInputTag);
+	void Input_AbilityInputReleased(FGameplayTag InInputTag);
+	
+public:
+	FORCEINLINE UHeroCombatComponent* GetHeroCombatComponent() const { return HeroCombatComponent; }
 };
