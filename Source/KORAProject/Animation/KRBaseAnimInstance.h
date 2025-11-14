@@ -32,8 +32,10 @@ protected:
 	bool bIsFalling;
 
 	UPROPERTY()
-	TObjectPtr<AKRBaseCharacter> CachedCharacter;
+	TObjectPtr<AKRBaseCharacter> CachedCharacter = nullptr;
 	
 	UPROPERTY()
-	TObjectPtr<UCharacterMovementComponent> CachedMoveComponent;
+	TObjectPtr<UCharacterMovementComponent> CachedMoveComponent = nullptr;
+
+	void RecacheOwner();
 };
