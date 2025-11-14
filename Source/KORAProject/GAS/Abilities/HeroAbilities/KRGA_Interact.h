@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRGameplayAbility.h"
+#include "GAS/Abilities/KRHeroGameplayAbility.h"
 #include "Interaction/InteractionOption.h"
 #include "KRGA_Interact.generated.h"
 
@@ -10,7 +10,7 @@ class UIndicatorDescriptor;
 class UAbilityTask_WaitForInteractableTargets_SingleLineTrace;
 
 UCLASS()
-class KORAPROJECT_API UKRGA_Interact : public UKRGameplayAbility
+class KORAPROJECT_API UKRGA_Interact : public UKRHeroGameplayAbility
 {
 	GENERATED_BODY()
 
