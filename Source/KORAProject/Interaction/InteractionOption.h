@@ -17,7 +17,7 @@ public:
 	TScriptInterface<IInteractableTarget> InteractableTarget;
 
 	UPROPERTY(BlueprintReadWrite)
-	int32 Priority;
+	int32 Priority = 3;
 
 	UPROPERTY(BlueprintReadWrite)
 	FText Text;
@@ -26,7 +26,7 @@ public:
 	FText SubText;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TSubclassOf<UGameplayAbility> InteractionAbilityToGrant;
+	TSubclassOf<UGameplayAbility> InteractionAbilityToGrant = nullptr;
 
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UAbilitySystemComponent> TargetASC = nullptr;
@@ -35,7 +35,7 @@ public:
 	FGameplayAbilitySpecHandle TargetInteractionAbilityHandle;
 	
 	UPROPERTY(BlueprintReadWrite)
-	TSoftClassPtr<UUserWidget> InteractionWidgetClass;
+	TSoftClassPtr<UUserWidget> InteractionWidgetClass = nullptr;
 
 public:
 	FORCEINLINE bool operator==(const FInteractionOption& Other) const

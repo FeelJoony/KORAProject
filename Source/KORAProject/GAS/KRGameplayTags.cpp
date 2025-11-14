@@ -1,7 +1,8 @@
 #include "GAS/KRGameplayTags.h"
 
 
-
+namespace KRGameplayTags
+{
 /* Input Tags */
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Move,				 "Input.Move");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Look,				 "Input.Look");
@@ -46,5 +47,6 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Attack_Light_Sword,	"Ability.Attack.Light.S
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Attack_Charge_Sword,	"Ability.Attack.Charge.Sword");
 
 /*Cooldown Tags*/
-UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ability, "Cooldown.Ability");
-UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ability_Jump, "Cooldown.Ability.Jump");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Cooldown_Ability,		"Cooldown.Ability");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Cooldown_Ability_Jump, "Cooldown.Ability.Jump");
+}

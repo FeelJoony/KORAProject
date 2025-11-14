@@ -102,17 +102,17 @@ void UKRGA_Interact::TriggerInteraction()
 		AActor* InteractableTargetActor = UInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
 
 		FGameplayEventData Payload;
-		Payload.EventTag = KRGameplayTags::State_Acting_Interacting;
+		Payload.EventTag = KRGameplayTags::KRTag_State_Acting_Interacting;
 		Payload.Instigator = Instigator;
 		Payload.Target = InteractableTargetActor;
 
-		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRGameplayTags::State_Acting_Interacting, Payload);
+		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRGameplayTags::KRTag_State_Acting_Interacting, Payload);
 
 		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));// GA 실행 주체
 		
 		FGameplayAbilityActorInfo ActorInfo;
 		ActorInfo.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetASC);
 
-		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfo, KRGameplayTags::State_Acting_Interacting, &Payload, *InteractionOption.TargetASC );
+		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfo, KRGameplayTags::KRTag_State_Acting_Interacting, &Payload, *InteractionOption.TargetASC );
 	}
 }
