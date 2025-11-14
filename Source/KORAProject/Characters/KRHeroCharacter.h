@@ -1,10 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-/*테스트용 임시*/
-#include "GameplayAbilitySpecHandle.h"
-
 #include "Characters/KRBaseCharacter.h"
 #include "KRHeroCharacter.generated.h"
 
@@ -42,10 +38,4 @@ private:
 
 	void Input_Move(const FInputActionValue& Value);
 	void Input_Look(const FInputActionValue& Value);
-
-	/*테스트용 임시 바인딩*/
-	UPROPERTY()
-	FGameplayAbilitySpecHandle CurrentSprintHandle;
-	void Input_Sprint_Started(const FInputActionValue& Value);
-	void Input_Sprint_Released(const FInputActionValue& Value);
 };
