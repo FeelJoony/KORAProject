@@ -10,8 +10,8 @@ struct KORAPROJECT_API FKRItemUIData
     GENERATED_BODY()
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere) FName ItemID = NAME_None;
-    UPROPERTY(BlueprintReadOnly, EditAnywhere) FText ItemName;
-    UPROPERTY(BlueprintReadOnly, EditAnywhere) FText ItemDescription;
+    UPROPERTY(BlueprintReadOnly, EditAnywhere) FName ItemNameKey;
+    UPROPERTY(BlueprintReadOnly, EditAnywhere) FName ItemDescriptionKey;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) TSoftObjectPtr<UTexture2D> ItemIcon;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Quantity = 0;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Price = -1;

@@ -38,6 +38,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Slot") void ClearItemData();
 
 protected:
+	static const FName ItemStringTableId;
+
 	UPROPERTY(meta = (BindWidgetOptional)) UCommonLazyImage* ItemIcon = nullptr;
 	UPROPERTY(meta = (BindWidgetOptional)) UCommonTextBlock* ItemName = nullptr;
 	UPROPERTY(meta = (BindWidgetOptional)) UCommonTextBlock* ItemDescription = nullptr;
@@ -51,4 +53,6 @@ private:
 	void ApplyFieldsVisibility(int32 FieldsToShow);
 	static void SetWidgetVisible(UWidget* W, bool bShow);
 	static bool IsDataEmpty(const FKRItemUIData& D);
+
+	FText GetSourceStringFromTable(const FName& InKey);
 };

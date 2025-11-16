@@ -174,7 +174,7 @@ void UKREquipmentMain::UpdateDescriptionUI(int32 CellIndex)
 	{
 		ModuleDescription->SetVisibility(ESlateVisibility::HitTestInvisible);
 		const FKRItemUIData& D = CachedUIData[CellIndex];
-		ModuleDescription->UpdateItemInfo(D.ItemName, D.ItemDescription, D.ItemIcon);
+		ModuleDescription->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon);
 	}
 	else
 	{

@@ -119,7 +119,7 @@ void UKRInventoryMain::UpdateDescriptionUI(int32 CellIndex)
 	{
 		ItemDescriptionWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		const FKRItemUIData& D = CachedUIData[CellIndex];
-		ItemDescriptionWidget->UpdateItemInfo(D.ItemName, D.ItemDescription, D.ItemIcon);
+		ItemDescriptionWidget->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon);
 	}
 	else
 	{

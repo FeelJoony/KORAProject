@@ -18,8 +18,8 @@
 //
 //    if (const UKRInvFragment* UI = Instance->FindFragment<UKRInvFragment>())
 //    {
-//        Out.ItemName = UI->ItemName;
-//        Out.ItemDescription = UI->Description;
+//        Out.ItemNameKey = UI->ItemName;
+//        Out.ItemDescriptionKey = UI->Description;
 //        Out.ItemIcon = UI->Icon;
 //    }
 //

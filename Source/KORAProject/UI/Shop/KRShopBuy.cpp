@@ -85,7 +85,7 @@ void UKRShopBuy::UpdateItemDescription(int32 CellIndex)
 	{
 		ShopItemDescription->SetVisibility(ESlateVisibility::HitTestInvisible);
 		const FKRItemUIData& D = CachedShopItems[CellIndex];
-		ShopItemDescription->UpdateItemInfo(D.ItemName, D.ItemDescription, D.ItemIcon);
+		ShopItemDescription->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon);
 	}
 	else
 	{

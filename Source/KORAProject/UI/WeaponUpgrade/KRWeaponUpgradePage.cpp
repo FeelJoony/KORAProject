@@ -60,8 +60,8 @@ void UKRWeaponUpgradePage::UpdateDescriptionUI(int32 CellIndex)
 	{
 		WeaponDescriptionWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		const FKRItemUIData& D = CachedUIData[CellIndex];
-		WeaponDescriptionWidget->UpdateItemInfo(D.ItemName, D.ItemDescription, D.ItemIcon);
-		WeaponInfoSlot->UpdateItemInfo(D.ItemName, D.ItemDescription, D.ItemIcon, D.UpgradeLevel);
+		WeaponDescriptionWidget->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon);
+		WeaponInfoSlot->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon, D.UpgradeLevel);
 	}
 	else
 	{
