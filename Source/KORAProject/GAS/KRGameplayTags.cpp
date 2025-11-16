@@ -32,3 +32,6 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Equip_Gun,				"Ability.Equip.Gun");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Unequip_Gun,			"Ability.Unequip.Gun");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Attack_Light_Sword,	"Ability.Attack.Light.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Attack_Charge_Sword,	"Ability.Attack.Charge.Sword");
+
+/* Enemy Tags */
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Enemy_Weapon,	"Enemy.Weapon");
