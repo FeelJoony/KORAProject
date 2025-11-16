@@ -32,8 +32,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, AttackPower)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat")
-	FGameplayAttributeData Defense;
-	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, Defense)
+	FGameplayAttributeData DefensePower;
+	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, DefensePower)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat")
 	FGameplayAttributeData DealDamageMult;
