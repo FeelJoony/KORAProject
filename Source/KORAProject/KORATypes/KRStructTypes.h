@@ -27,7 +27,7 @@ struct FKRHeroWeaponData
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UKRHeroLinkedAnimLayer> WeaponAimLayerToLink;
+	TSubclassOf<UKRHeroLinkedAnimLayer> WeaponAnimLayerToLink;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UInputMappingContext> WeaponInputMappingContext;
