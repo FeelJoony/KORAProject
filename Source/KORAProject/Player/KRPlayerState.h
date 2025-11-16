@@ -5,7 +5,8 @@
 #include "AbilitySystemInterface.h"
 #include "KRPlayerState.generated.h"
 
-class UKRAttributeSet;
+class UKRCombatCommonSet;
+class UKRPlayerAttributeSet;
 class APawn;
 class UKRPlayerAbilitySystemComponent;
 
@@ -23,19 +24,23 @@ public:
 	void InitASCForAvatar(AActor* NewAvatar);
 
 	UFUNCTION(BlueprintPure, Category = "GAS")
-	UKRPlayerAbilitySystemComponent* GetKRPlayerASC() const {return KRPlayerASC;}
+	UKRPlayerAbilitySystemComponent* GetKRPlayerASC() const {return PlayerASC;}
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UKRPlayerAbilitySystemComponent> KRPlayerASC;
+	TObjectPtr<UKRPlayerAbilitySystemComponent> PlayerASC;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UKRAttributeSet> KRAttributeSet;
+	TObjectPtr<UKRCombatCommonSet> CombatCommonSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	TObjectPtr<UKRPlayerAttributeSet> PlayerAttributeSet;
 	
 	bool bStartupGiven = false;
 
 public:
-	FORCEINLINE UKRPlayerAbilitySystemComponent* GetKRPlayerAbilitySystemComponent() const {return KRPlayerASC;}
-	FORCEINLINE UKRAttributeSet* GetKRAttributeSet() const {return KRAttributeSet;}
+	FORCEINLINE UKRPlayerAbilitySystemComponent* GetPlayerAbilitySystemComponent() const {return PlayerASC;}
+	FORCEINLINE UKRCombatCommonSet* GetCombatCommonSet() const {return CombatCommonSet;}
+	FORCEINLINE UKRPlayerAttributeSet* GetPlayerAttributeSet() const {return PlayerAttributeSet;}
 	
 };

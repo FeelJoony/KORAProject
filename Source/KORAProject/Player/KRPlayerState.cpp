@@ -1,15 +1,20 @@
 #include "Player/KRPlayerState.h"
-#include "GAS/KRPlayerAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
+#include "GAS/KRPlayerAbilitySystemComponent.h"
+#include "GAS/AttributeSets/KRCombatCommonSet.h"
+#include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 #include "GameFramework/Pawn.h"
 
 AKRPlayerState::AKRPlayerState()
 {
 	SetNetUpdateFrequency(100.f);
 	
-	KRPlayerASC = CreateDefaultSubobject<UKRPlayerAbilitySystemComponent>(TEXT("ASC"));
-	KRPlayerASC->SetIsReplicated(true);
-	KRPlayerASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	PlayerASC = CreateDefaultSubobject<UKRPlayerAbilitySystemComponent>(TEXT("ASC"));
+	PlayerASC->SetIsReplicated(true);
+	PlayerASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
+	PlayerAttributeSet = CreateDefaultSubobject<UKRPlayerAttributeSet>(TEXT("PlayerAttributeSet"));
 }
 
 void AKRPlayerState::BeginPlay()
@@ -19,15 +24,15 @@ void AKRPlayerState::BeginPlay()
 
 UAbilitySystemComponent* AKRPlayerState::GetAbilitySystemComponent() const
 {
-	return GetKRPlayerAbilitySystemComponent();
+	return GetPlayerAbilitySystemComponent();
 }
 
 
 void AKRPlayerState::InitASCForAvatar(AActor* NewAvatar)
 {
-	if (IsValid(KRPlayerASC))
+	if (IsValid(PlayerASC))
 	{
-		KRPlayerASC->InitAbilityActorInfo(this, NewAvatar);
+		PlayerASC->InitAbilityActorInfo(this, NewAvatar);
 	}
 
 	
