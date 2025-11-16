@@ -15,6 +15,9 @@ AKRPlayerState::AKRPlayerState()
 
 	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
 	PlayerAttributeSet = CreateDefaultSubobject<UKRPlayerAttributeSet>(TEXT("PlayerAttributeSet"));
+
+	PlayerASC->AddAttributeSetSubobject(CombatCommonSet.Get());
+	PlayerASC->AddAttributeSetSubobject(PlayerAttributeSet.Get());
 }
 
 void AKRPlayerState::BeginPlay()
