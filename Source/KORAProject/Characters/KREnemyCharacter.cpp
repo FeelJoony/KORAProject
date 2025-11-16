@@ -31,6 +31,15 @@ AKREnemyCharacter::AKREnemyCharacter()
 
 	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
 	EnemyAttributeSet = CreateDefaultSubobject<UKREnemyAttributeSet>(TEXT("EnemyAttributeSet"));
+
+	EnemyASC->AddAttributeSetSubobject(CombatCommonSet.Get());
+	EnemyASC->AddAttributeSetSubobject(EnemyAttributeSet.Get());
+
+}
+
+UAbilitySystemComponent* AKREnemyCharacter::GetAbilitySystemComponent() const
+{
+	return EnemyASC;
 }
 
 void AKREnemyCharacter::PossessedBy(AController* NewController)

@@ -8,6 +8,7 @@ class UKRCombatCommonSet;
 class UKRAbilitySystemComponent;
 class UEnemyCombatComponent;
 class UKREnemyAttributeSet;
+class UAbilitySystemComponent;
 
 UCLASS()
 class KORAPROJECT_API AKREnemyCharacter : public AKRBaseCharacter
@@ -17,6 +18,8 @@ class KORAPROJECT_API AKREnemyCharacter : public AKRBaseCharacter
 public:
 	AKREnemyCharacter();
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
 protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_Controller() override;
