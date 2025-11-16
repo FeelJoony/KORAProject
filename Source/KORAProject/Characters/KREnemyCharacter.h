@@ -4,8 +4,10 @@
 #include "Characters/KRBaseCharacter.h"
 #include "KREnemyCharacter.generated.h"
 
+class UKRCombatCommonSet;
 class UKRAbilitySystemComponent;
 class UEnemyCombatComponent;
+class UKREnemyAttributeSet;
 
 UCLASS()
 class KORAPROJECT_API AKREnemyCharacter : public AKRBaseCharacter
@@ -26,7 +28,10 @@ protected:
 	TObjectPtr<UKRAbilitySystemComponent> EnemyASC;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UKRAttributeSet> EnemyAttributeSet;
+	TObjectPtr<UKRCombatCommonSet> CombatCommonSet;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	TObjectPtr<UKREnemyAttributeSet> EnemyAttributeSet;
 
 
 private:
@@ -34,5 +39,8 @@ private:
 	void InitEnemyStartUpData();
 	
 public:
+	FORCEINLINE UKRAbilitySystemComponent* GetEnemyAbilitySystemCompoent() const { return EnemyASC; }
 	FORCEINLINE UEnemyCombatComponent* GetEnemyCombatComponent() const { return EnemyCombatComponent; }
+	FORCEINLINE UKRCombatCommonSet* GetCombatCommonSet() const { return CombatCommonSet; }
+	FORCEINLINE UKREnemyAttributeSet* GetEnemyAttributeSet() const { return EnemyAttributeSet; }
 };

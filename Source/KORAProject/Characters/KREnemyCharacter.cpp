@@ -2,7 +2,8 @@
 #include "Components/Combat/EnemyCombatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
-#include "GAS/KRAttributeSet.h"
+#include "GAS/AttributeSets/KRCombatCommonSet.h"
+#include "GAS/AttributeSets/KREnemyAttributeSet.h"
 #include "Engine/AssetManager.h"
 #include "Data/StartUpData/DataAsset_EnemyStartUpData.h"
 
@@ -28,7 +29,8 @@ AKREnemyCharacter::AKREnemyCharacter()
 	EnemyASC->SetIsReplicated(true);
 	EnemyASC->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
-	EnemyAttributeSet = CreateDefaultSubobject<UKRAttributeSet>(TEXT("EnemyAttributeSet"));
+	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
+	EnemyAttributeSet = CreateDefaultSubobject<UKREnemyAttributeSet>(TEXT("EnemyAttributeSet"));
 }
 
 void AKREnemyCharacter::PossessedBy(AController* NewController)
