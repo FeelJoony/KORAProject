@@ -34,10 +34,17 @@ void UKRPlayerAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& 
 
 		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InInputTag))
 		{
-			TryActivateAbility(AbilitySpec.Handle);
-			AbilitySpecInputPressed(AbilitySpec);
+			AbilitiesToActivate.Add(AbilitySpec.Handle);
 		}
 	}
+	for (const FGameplayAbilitySpecHandle& Handle : AbilitiesToActivate)
+    {
+        FGameplayAbilitySpec* Spec = FindAbilitySpecFromHandle(Handle);
+        if (!Spec) continue;
+    
+        AbilitySpecInputPressed(*Spec);
+        TryActivateAbility(Handle);
+    }
 }
 
 void UKRPlayerAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& InInputTag)
