@@ -1,2 +1,2 @@
 Index,TypeTag,RarityTag,AbilityTags,DisplayName,Description,Icon,EquipID,AbilityID,ConsumeID,MaterialID,QuestID
-1,ItemType.Weapon.Sword,Rarity.Epic,Item.Ability.Equippable|Item.Ability.SetStat|Item.Ability.SetIcon,?꾨뗀???野꺜,?꾨뗀??臾믪벥 燁살눘??/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,1001,-1,-1,-1,-1,-1
+1,ItemType.Weapon.Sword,Rarity.Epic,Item.Ability.Equippable|Item.Ability.SetStat|Item.Ability.SetIcon,코라의 검,ITM_Kora_Sword,/Game/Items/TestImage/Kora_Sword_0.Kora_Sword_0,1001,-1,-1,-1,-1,-1

@@ -63,6 +63,11 @@ private:
 		return FText::FromString(ValueString);
 	}
 
+	FName ParseNameValue(const FString& ValueString) const
+	{
+		return FName(*ValueString);
+	}
+
 	FGameplayTag ParseGameplayTagValue(const FString& ValueString) const
 	{
 		return FGameplayTag::RequestGameplayTag(FName(*ValueString));

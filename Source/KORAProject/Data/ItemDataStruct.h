@@ -20,9 +20,9 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	TArray<FGameplayTag> AbilityTags;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	FText DisplayName;
+	FName DisplayName;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	FText Description;
+	FName Description;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	TSoftObjectPtr<UTexture2D> Icon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
