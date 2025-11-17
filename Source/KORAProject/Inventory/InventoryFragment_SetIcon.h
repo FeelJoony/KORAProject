@@ -25,7 +25,7 @@ public:
 		return IconTexture.Get();
 	}
 
-	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Item.Ability.SetIcon"); }
+	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.SetIcon"); }
 	
 private:
 	TSoftObjectPtr<UTexture2D> IconTexture;

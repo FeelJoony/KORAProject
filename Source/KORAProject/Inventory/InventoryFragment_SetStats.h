@@ -18,7 +18,7 @@ public:
 	void ClearStat(FGameplayTag StatTag);
 	FORCEINLINE double GetStatByTag(FGameplayTag StatTag) const;
 
-	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Item.Ability.SetStat"); }
+	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.SetStat"); }
 	
 private:
 	UPROPERTY(EditDefaultsOnly)

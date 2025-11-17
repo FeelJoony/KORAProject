@@ -29,7 +29,7 @@ public:
 public:
 	virtual FGameplayTag GetFragmentTag() const override
 	{
-		return FGameplayTag::RequestGameplayTag("Item.Fragment.Weapon.CommonStats");
+		return FGameplayTag::RequestGameplayTag("Item.Fragment.Weapon.SwordStats");
 	}
 
 	/** 장착 시 ASC에 스탯 적용 */

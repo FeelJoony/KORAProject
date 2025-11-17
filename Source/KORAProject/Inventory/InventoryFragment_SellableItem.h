@@ -18,5 +18,5 @@ public:
 	int32 SellPrice = 0;
 
 public:
-	virtual FGameplayTag GetFragmentTag() const override;
+	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.Sellable"); }
 };

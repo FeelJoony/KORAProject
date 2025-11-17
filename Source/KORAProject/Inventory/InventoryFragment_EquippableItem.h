@@ -28,7 +28,7 @@ public:
 	// 	this->EquipInstance = NewInstance;
 	// }
 
-	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Item.Ability.Equippable"); }
+	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.Equippable"); }
 	
 private:
 	// UPROPERTY()

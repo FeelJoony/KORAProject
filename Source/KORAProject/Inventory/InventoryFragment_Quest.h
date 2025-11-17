@@ -20,6 +20,6 @@ public:
 
 	virtual FGameplayTag GetFragmentTag() const override 
 	{
-		return FGameplayTag::RequestGameplayTag("Item.Fragment.Material");
+		return FGameplayTag::RequestGameplayTag("Item.Fragment.Quest");
 	}
 };
