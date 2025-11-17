@@ -6,16 +6,20 @@
 #include "KRItemUIData.h"
 #include "KRUIAdapterLibrary.generated.h"
 
-// class UKRBaseItem;
+//class UKRInventoryItemInstance;
 
 UCLASS()
 class KORAPROJECT_API UKRUIAdapterLibrary : public UBlueprintFunctionLibrary
 {
     GENERATED_BODY()
-public:
-    //UFUNCTION(BlueprintCallable, Category = "KR|UI")
-    //static FKRItemUIData MakeUIDataFromItem(UKRBaseItem* Item);
 
-    //UFUNCTION(BlueprintCallable, Category = "KR|UI")
-    //static void ConvertItemsToUIData(const TArray<UKRBaseItem*>& In, TArray<FKRItemUIData>& Out);
+//public:
+//    UFUNCTION(BlueprintCallable, Category = "KR|UI")
+//    static bool MakeUIDataFromItemInstance(const UKRInventoryItemInstance* Instance, FKRItemUIData& Out);
+//
+//    UFUNCTION(BlueprintCallable, Category = "KR|UI")
+//    static void ConvertItemInstancesToUIData(const TArray<UKRInventoryItemInstance*>& In, TArray<FKRItemUIData>& Out);
+//
+//    UFUNCTION(BlueprintCallable, Category = "KR|UI", meta = (WorldContext = "WorldContextObject"))
+//    static void GetOwnerInventoryUIData(UObject* WorldContextObject, APlayerState* Owner, TArray<FKRItemUIData>& Out);
 };
