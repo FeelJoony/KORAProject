@@ -96,6 +96,11 @@ void AKRHeroCharacter::OnRep_PlayerState()
 	}
 }
 
+UPawnCombatComponent* AKRHeroCharacter::GetPawnCombatComponent() const
+{
+	return HeroCombatComponent;
+}
+
 void AKRHeroCharacter::Input_Move(const FInputActionValue& Value)
 {
 	const FVector2D MovementVector = Value.Get<FVector2D>();
