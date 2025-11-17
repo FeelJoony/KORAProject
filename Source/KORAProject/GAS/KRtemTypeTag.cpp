@@ -16,13 +16,16 @@ UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Equip_Costume, "ItemType.Equip.Costu
 // ----- ItemType.Consume -----
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume, "ItemType.Consume", "소모품 아이템");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Potion, "ItemType.Consume.Potion", "소모품 - 물약");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Potion_FirstAid, "ItemType.Consume.Potion.FirstAid", "소모품 - 회복 물약");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Potion_Stamina, "ItemType.Consume.Potion.Stamina", "소모품 - 스태미너 물약");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Potion_ViolicAll, "ItemType.Consume.Potion.ViolicAll", "소모품 - 전체 회복 물약");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Potion_ATKBoost, "ItemType.Consume.Potion.ATKBoost", "소모품 - 공격력 강화 물약");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Potion_Suppress, "ItemType.Consume.Potion.Suppress", "소모품 - 은신 물약");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Potion_CoreBattery, "ItemType.Consume.Potion.CoreBattery", "소모품 - 코어 배터리");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_InsuranceCoin, "ItemType.Consume.Insurance.Coin", "소모품 - 보험류 코인");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_InsuranceWallet, "ItemType.Consume.Insurance.Wallet", "소모품 - 보험류 지갑");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Key, "ItemType.Consume.Key", "소모품 - 키");
-
-// ----- ItemType.Tool -----
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Tool, "ItemType.Tool", "도구 아이템");
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Tool_Light, "ItemType.Tool.Light", "도구 - 광원");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Consume_Tool_Light, "ItemType.Consume.Tool.Light", "소모품 - 광원");
 
 // ----- ItemType.Material -----
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ItemType_Material, "ItemType.Material", "재료 아이템");
