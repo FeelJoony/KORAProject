@@ -74,8 +74,8 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
                 int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
                 int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags"));
-                int32 DisplayName_Index = GetHeaderIndex(Headers, TEXT("DisplayName"));
-                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+                int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
+                int32 DescriptionKey_Index = GetHeaderIndex(Headers, TEXT("DescriptionKey"));
                 int32 Icon_Index = GetHeaderIndex(Headers, TEXT("Icon"));
                 int32 EquipID_Index = GetHeaderIndex(Headers, TEXT("EquipID"));
                 int32 AbilityID_Index = GetHeaderIndex(Headers, TEXT("AbilityID"));
@@ -88,8 +88,8 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.Index = ParseIntValue(RowValue[Index_Index]);
                 ItemData.TypeTag = ParseGameplayTagValue(RowValue[TypeTag_Index]);
                 ItemData.RarityTag = ParseGameplayTagValue(RowValue[RarityTag_Index]);
-                ItemData.DisplayName = ParseNameValue(RowValue[DisplayName_Index]);
-                ItemData.Description = ParseNameValue(RowValue[Description_Index]);
+                ItemData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
+                ItemData.DescriptionKey = ParseNameValue(RowValue[DescriptionKey_Index]);
                 ItemData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
                 ItemData.EquipID = ParseIntValue(RowValue[EquipID_Index]);
                 ItemData.AbilityID = ParseIntValue(RowValue[AbilityID_Index]);

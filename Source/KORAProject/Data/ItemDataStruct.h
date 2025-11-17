@@ -11,6 +11,20 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 {
 	GENERATED_BODY()
 
+	FItemDataStruct()
+			: Index(0)
+			, EquipID(-1)
+			, AbilityID(-1)
+			, ConsumeID(-1)
+			, MaterialID(-1)
+			, QuestID(-1)
+			, TypeTag(FGameplayTag())
+			, RarityTag(FGameplayTag())
+			, DisplayNameKey(NAME_None)
+			, DescriptionKey(NAME_None)
+			, Icon(nullptr)
+	{}
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	int32 Index;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
@@ -20,9 +34,9 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	TArray<FGameplayTag> AbilityTags;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	FName DisplayName;
+	FName DisplayNameKey;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	FName Description;
+	FName DescriptionKey;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	TSoftObjectPtr<UTexture2D> Icon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
