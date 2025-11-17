@@ -13,6 +13,7 @@
 #include "Inventory/InventoryFragment_EquippableItem.h"
 #include "Inventory/InventoryFragment_SetStats.h"
 #include "Inventory/InventoryFragment_SetIcon.h"
+#include "Inventory/InventoryFragment_SellableItem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventorySubsystem)
 
@@ -269,6 +270,7 @@ void UKRInventorySubsystem::InitializeItemDefinitionFragments()
 	InitialFragmentType(UInventoryFragment_EquippableItem::StaticClass());
 	InitialFragmentType(UInventoryFragment_SetStats::StaticClass());
 	InitialFragmentType(UInventoryFragment_SetIcon::StaticClass());
+	InitialFragmentType(UKRInventoryFragment_SellableItem::StaticClass());
 }
 
 UKRInventoryItemInstance* UKRInventorySubsystem::AddItem(FGameplayTag ItemTag, int32 StackCount)

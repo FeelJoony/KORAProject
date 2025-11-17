@@ -34,7 +34,8 @@ public class KORAProject : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"AnimGraphRuntime",
-			"GameplayMessageRuntime"
+			"GameplayMessageRuntime", 
+			"ModularGameplay"
 		});
 
 		// Uncomment if you are using Slate UI
