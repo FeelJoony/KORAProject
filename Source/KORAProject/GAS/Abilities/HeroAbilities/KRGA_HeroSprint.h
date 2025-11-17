@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRGameplayAbility.h"
+#include "GAS/Abilities/KRHeroGameplayAbility.h"
 #include "KRGA_HeroSprint.generated.h"
 
 class UAbilityTask_WaitDelay;
 
 UCLASS()
-class KORAPROJECT_API UKRGA_HeroSprint : public UKRGameplayAbility
+class KORAPROJECT_API UKRGA_HeroSprint : public UKRHeroGameplayAbility
 {
 	GENERATED_BODY()
 	
@@ -20,20 +20,26 @@ public:
 	
 protected:
 	UFUNCTION()
+	void OnAllowStep();
+	UFUNCTION()
 	void OnBlockStep();
 	UFUNCTION()
 	void OnAllowJumpStep();
 	UFUNCTION()
 	void OnAbilityEnd();
 
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag StepAbilityTag;
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag JumpAbilityTag;
 
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
+	FGameplayTag CooldownJumpTag;
+
+	
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag CanStepTag;
-	UPROPERTY(EditDefaultsOnly, Category=KRTag)
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag CanJumpTag;
 	
 	UPROPERTY()

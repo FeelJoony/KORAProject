@@ -56,6 +56,8 @@ void UKRGA_HeroDash::LaunchCharacter(const FVector& InWorldDirection, ACharacter
 		);
 		PlayMontageTask->OnCompleted.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
 		PlayMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
+		PlayMontageTask->OnCancelled.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
+		PlayMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
 		PlayMontageTask->ReadyForActivation();
 
 		//Launch

@@ -4,14 +4,14 @@
 
 #include "UI/KRCommonUIWidget.h"
 #include "GameplayTagContainer.h"
+#include "UI/Data/KRItemUIData.h" //전방선언 오류나서 수정했어요
 #include "KREquipmentMain.generated.h"
 
 class UUniformGridPanel;
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
-struct FKRItemUIData;
-// �κ��丮 ������Ʈ
+// �κ��丮 ������Ʈ
 
 UCLASS()
 class KORAPROJECT_API UKREquipmentMain : public UKRCommonUIWidget

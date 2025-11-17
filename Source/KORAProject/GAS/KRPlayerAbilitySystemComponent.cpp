@@ -28,24 +28,31 @@ void UKRPlayerAbilitySystemComponent::OnAbilityInputPressed(const FGameplayTag& 
 
 	TArray<FGameplayAbilitySpecHandle> AbilitiesToActivate;
 	
-	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (!AbilitySpec.Ability) continue;
 
 		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InInputTag))
 		{
-			AbilitiesToActivate.Add(AbilitySpec.Handle);
+			TryActivateAbility(AbilitySpec.Handle);
+			AbilitySpecInputPressed(AbilitySpec);
 		}
-	}
-
-	for (const FGameplayAbilitySpecHandle& Handle : AbilitiesToActivate)
-	{
-		TryActivateAbility(Handle);
 	}
 }
 
 void UKRPlayerAbilitySystemComponent::OnAbilityInputReleased(const FGameplayTag& InInputTag)
 {
+	if (!InInputTag.IsValid()) return;
+	
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (!AbilitySpec.Ability) continue;
+	
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InInputTag))
+		{
+			AbilitySpecInputReleased(AbilitySpec);
+		}
+	}
 }
 
 void UKRPlayerAbilitySystemComponent::GrantHeroWeaponAbilities(
