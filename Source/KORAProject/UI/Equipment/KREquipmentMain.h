@@ -4,6 +4,7 @@
 
 #include "CommonActivatableWidget.h"
 #include "GameplayTagContainer.h"
+#include "UI/Data/KRItemUIData.h"
 #include "KREquipmentMain.generated.h"
 
 class UUniformGridPanel;
@@ -11,8 +12,6 @@ class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
 class UCommonButtonGroupBase;
-struct FKRItemUIData;
-// 인벤토리 컴포넌트
 
 UCLASS()
 class KORAPROJECT_API UKREquipmentMain : public UCommonActivatableWidget
