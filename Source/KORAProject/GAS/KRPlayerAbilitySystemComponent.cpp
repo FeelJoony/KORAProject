@@ -65,7 +65,7 @@ void UKRPlayerAbilitySystemComponent::GrantHeroWeaponAbilities(
 	{
 		if (!AbilitySet.IsValid()) continue;
 		
-		FGameplayAbilitySpec AbilitySpec(AbilitySet.AbilityToGrant);
+		FGameplayAbilitySpec AbilitySpec(AbilitySet.AbilityToGrant.Get());
 		AbilitySpec.SourceObject = GetAvatarActor();
 		AbilitySpec.Level = ApplyLevel;
 		AbilitySpec.GetDynamicSpecSourceTags().AddTag(AbilitySet.InputTag);
