@@ -7,6 +7,14 @@
 
 class AKRWeaponBase;
 
+UENUM(BlueprintType)
+enum class EToggleDamageType : uint8
+{
+	CurrentEquippedWeapon,
+	LeftHand,
+	RightHand
+};
+
 UCLASS()
 class KORAPROJECT_API UPawnCombatComponent : public UPawnExtensionComponentBase
 {
@@ -25,6 +33,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
 	AKRWeaponBase* GetCharacterCurrentEquippedWeapon() const;
 
+	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
+	void ToggleWeaponCollision(bool bShouldEnable, EToggleDamageType ToggleDamageType = EToggleDamageType::CurrentEquippedWeapon);
+	
 private:
 	TMap<FGameplayTag, AKRWeaponBase*> CharacterCarriedWeaponMap;
 };
