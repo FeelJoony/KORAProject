@@ -17,6 +17,11 @@ UAbilitySystemComponent* AKRBaseCharacter::GetAbilitySystemComponent() const
 	return CachedASC;
 }
 
+UPawnCombatComponent* AKRBaseCharacter::GetPawnCombatComponent() const
+{
+	return nullptr;
+}
+
 void AKRBaseCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
+#include "Interface/PawnCombatInterface.h"
 #include "KRBaseCharacter.generated.h"
 
 class UAbilitySystemComponent;
@@ -10,7 +11,7 @@ class UKRAttributeSet;
 class UDataAsset_StartUpDataBase;
 
 UCLASS()
-class KORAPROJECT_API AKRBaseCharacter : public ACharacter, public IAbilitySystemInterface
+class KORAPROJECT_API AKRBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IPawnCombatInterface
 {
 	GENERATED_BODY()
 
@@ -18,7 +19,8 @@ public:
 	AKRBaseCharacter();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
+	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
+	
 protected:
 	virtual void PossessedBy(AController* NewController) override;
 	
