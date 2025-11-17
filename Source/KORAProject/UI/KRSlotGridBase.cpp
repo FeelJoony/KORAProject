@@ -21,8 +21,6 @@ void UKRSlotGridBase::InitializeItemGrid(const TArray<FKRItemUIData>& InData)
 	{
 		if (UKRItemSlotBase* Cell = Slots[i])
 		{
-			Cell->SetCellIndex(i);
-
 			if (InData.IsValidIndex(i))
 			{
 				Cell->SetIsEnabled(true);
@@ -65,7 +63,6 @@ void UKRSlotGridBase::BuildGrid()
 			GridSlot->SetHorizontalAlignment(HAlign_Fill);
 			GridSlot->SetVerticalAlignment(VAlign_Fill);
 		}
-
 		BindSlot(Cell, i);
 		Slots.Add(Cell);
 	}
@@ -80,9 +77,23 @@ int32 UKRSlotGridBase::GetSelectedIndex() const
 
 	if (Slots.IsValidIndex(GroupIndex) && Slots[GroupIndex])
 	{
-		return Slots[GroupIndex]->GetCellIndex();
+		return GroupIndex;
 	}
 	return INDEX_NONE;
+}
+
+bool UKRSlotGridBase::SelectIndexSafe(int32 Index)
+{
+	if (!ButtonGroup) return false;
+	if (!Slots.IsValidIndex(Index)) return false;
+
+	ButtonGroup->SelectButtonAtIndex(Index);
+	return true;
+}
+
+UWidget* UKRSlotGridBase::GetSelectedWidget() const
+{
+	return ButtonGroup ? ButtonGroup->GetSelectedButtonBase() : nullptr;
 }
 
 void UKRSlotGridBase::NativeConstruct()
@@ -92,22 +103,25 @@ void UKRSlotGridBase::NativeConstruct()
 	if (!ButtonGroup)
 	{
 		ButtonGroup = NewObject<UCommonButtonGroupBase>(this);
-		ButtonGroup->SetSelectionRequired(false);
-
-		// 델리게이트 할까말까... 흐어어오어
-		//ButtonGroup->OnSelectedButtonBaseChanged().AddUObject(this, &UKRSlotGridBase::HandleSelectedChanged);
+		ButtonGroup->SetSelectionRequired(true);
+		ButtonGroup->OnHoveredButtonBaseChanged.AddDynamic(this, &ThisClass::HandleGroupHoveredChanged);
+		ButtonGroup->OnSelectedButtonBaseChanged.AddDynamic(this, &ThisClass::HandleGroupSelectedChanged);
 	}
 }
 
 void UKRSlotGridBase::NativeDestruct()
 {
+	if (ButtonGroup)
+	{
+		ButtonGroup->OnSelectedButtonBaseChanged.RemoveAll(this);
+		ButtonGroup->OnHoveredButtonBaseChanged.RemoveAll(this);
+	}
 	Super::NativeDestruct();
 }
 
 void UKRSlotGridBase::BindSlot(UKRItemSlotBase* CellWidget, int32 CellIndex)
 {
 	if (!CellWidget) return;
-	CellWidget->SetCellIndex(CellIndex);
 
 	if (ButtonGroup)
 	{
@@ -127,4 +141,22 @@ void UKRSlotGridBase::ClearGrid()
 	{
 		ButtonGroup->DeselectAll();
 	}
+}
+
+void UKRSlotGridBase::HandleGroupSelectedChanged(UCommonButtonBase* Selected, int32 SelectedIndex)
+{
+	UKRItemSlotBase* ItemSlot = Cast<UKRItemSlotBase>(Selected);
+	OnSelectionChanged.Broadcast(SelectedIndex, ItemSlot);
+}
+
+void UKRSlotGridBase::HandleGroupHoveredChanged(UCommonButtonBase* Hovered, int32 HoveredIndex)
+{
+	UKRItemSlotBase* ItemSlot = Cast<UKRItemSlotBase>(Hovered);
+
+	if (bSelectOnHover && ButtonGroup && HoveredIndex != INDEX_NONE)
+	{
+		ButtonGroup->SelectButtonAtIndex(HoveredIndex);
+	}
+
+	OnHoverChanged.Broadcast(HoveredIndex, ItemSlot);
 }

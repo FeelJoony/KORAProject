@@ -6,6 +6,8 @@
 #include "CommonTextBlock.h"
 #include "CommonNumericTextBlock.h"
 
+const FName UKRItemSlotBase::ItemStringTableId(TEXT("/Game/UI/StringTable/ST_ItemList"));
+
 void UKRItemSlotBase::SetItemData(const FKRItemUIData& InData, int32 OverrideFields)
 {
 	if (IsDataEmpty(InData))
@@ -15,8 +17,8 @@ void UKRItemSlotBase::SetItemData(const FKRItemUIData& InData, int32 OverrideFie
 		return;
 	}
 
-	if (ItemName)			ItemName->SetText(InData.ItemName);
-	if (ItemDescription)	ItemDescription->SetText(InData.ItemDescription);
+	if (ItemName)			ItemName->SetText(GetSourceStringFromTable(InData.ItemNameKey));
+	if (ItemDescription)	ItemDescription->SetText(GetSourceStringFromTable(InData.ItemDescriptionKey));
     if (ItemCount)			ItemCount->SetText(FText::AsNumber(InData.Quantity));
 	if (ItemPrice)			ItemPrice->SetText(FText::AsNumber(InData.Price));
 	if (ItemIcon)			ItemIcon->SetBrushFromLazyTexture(InData.ItemIcon, true);
@@ -52,10 +54,19 @@ void UKRItemSlotBase::SetWidgetVisible(UWidget* W, bool bShow)
 
 bool UKRItemSlotBase::IsDataEmpty(const FKRItemUIData& D)
 {
-	const bool bNoName = D.ItemName.IsEmptyOrWhitespace();
-	const bool bNoDesc = D.ItemDescription.IsEmptyOrWhitespace();
+	const bool bNoName = D.ItemNameKey.IsNone();
+	const bool bNoDesc = D.ItemDescriptionKey.IsNone();
 	const bool bNoIcon = D.ItemIcon.IsNull();
 	const bool bNoQty = (D.Quantity <= 0);
 	const bool bNoPrice = (D.Price <= -1);
 	return bNoName && bNoDesc && bNoIcon && bNoQty && bNoPrice;
+}
+
+FText UKRItemSlotBase::GetSourceStringFromTable(const FName& InKey)
+{
+	if (InKey.IsNone())
+	{
+		return FText::GetEmpty();
+	}
+	return FText::FromStringTable(ItemStringTableId, InKey.ToString());
 }

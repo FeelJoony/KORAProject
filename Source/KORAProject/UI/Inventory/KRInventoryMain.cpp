@@ -6,6 +6,7 @@
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Data/KRItemUIData.h"
+#include "SubSystem/KRUIInputSubsystem.h"
 
 #include "CommonButtonBase.h"
 #include "GameplayTagsManager.h"
@@ -19,6 +20,30 @@
 // 필요 함수 리스트 !! 
 /* 현재 위젯 소유자 Pawn에서 인벤토리 컴포넌트 가져오는 함수 */
 /* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+
+void UKRInventoryMain::NativeOnActivated()
+{
+	Super::NativeOnActivated();
+
+	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	{
+		InputSubsys->BindBackDefault(this, TEXT("Inventory"));
+		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
+		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveLeft));
+		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveRight));
+		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveUp));
+		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveDown));
+	}
+}
+
+void UKRInventoryMain::NativeOnDeactivated()
+{
+	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
+	{
+		InputSubsys->UnbindAll(this);
+	}
+	Super::NativeOnDeactivated();
+}
 
 void UKRInventoryMain::NativeConstruct()
 {
@@ -42,35 +67,14 @@ void UKRInventoryMain::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-void UKRInventoryMain::SetupInputBindings()
-{
-	UnbindAll();
-    BindBackDefault(Row_Back);
-    //BindRow(Row_Prev, FSimpleDelegate::CreateUObject(this, &ThisClass::OnPrevItem));
-    //BindRow(Row_Next, FSimpleDelegate::CreateUObject(this, &ThisClass::OnNextItem));
-    //BindRow(Row_Select, FSimpleDelegate::CreateUObject(this, &ThisClass::OnSelectItem));
-}
+void UKRInventoryMain::OnClickConsumables() { RebuildByTag(TEXT("ItemType.Consume")); }
+void UKRInventoryMain::OnClickMaterial() { RebuildByTag(TEXT("ItemType.Material")); }
+void UKRInventoryMain::OnClickQuest() { RebuildByTag(TEXT("ItemType.Quest")); }
 
-void UKRInventoryMain::OnClickConsumables()
+void UKRInventoryMain::RebuildByTag(const FName& TagName)
 {
-	auto& TM = UGameplayTagsManager::Get();
-	const FGameplayTag TagConsume = TM.RequestGameplayTag(TEXT("ItemType.Consume"));
-	const FGameplayTag TagTool = TM.RequestGameplayTag(TEXT("ItemType.Tool"));
-	RebuildInventoryUI(TArray<FGameplayTag>{ TagConsume, TagTool });
-}
-
-void UKRInventoryMain::OnClickMaterial()
-{
-	auto& TM = UGameplayTagsManager::Get();
-	const FGameplayTag TagMaterial = TM.RequestGameplayTag(TEXT("ItemType.Material"));
-	RebuildInventoryUI(TArray<FGameplayTag>{ TagMaterial });
-}
-
-void UKRInventoryMain::OnClickQuest()
-{
-	auto& TM = UGameplayTagsManager::Get();
-	const FGameplayTag TagQuest = TM.RequestGameplayTag(TEXT("ItemType.Quest"));
-	RebuildInventoryUI(TArray<FGameplayTag>{ TagQuest });
+	const FGameplayTag Tag = UGameplayTagsManager::Get().RequestGameplayTag(TagName);
+	RebuildInventoryUI({ Tag });
 }
 
 void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
@@ -78,10 +82,10 @@ void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
 	UpdateDescriptionUI(CellIndex);
 }
 
-void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
-{
-	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
-}
+//void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
+//{
+//	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+//}
 
 void UKRInventoryMain::RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny)
 {
@@ -115,10 +119,76 @@ void UKRInventoryMain::UpdateDescriptionUI(int32 CellIndex)
 	{
 		ItemDescriptionWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		const FKRItemUIData& D = CachedUIData[CellIndex];
-		ItemDescriptionWidget->UpdateItemInfo(D.ItemName, D.ItemDescription, D.ItemIcon);
+		ItemDescriptionWidget->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon);
 	}
 	else
 	{
 		ItemDescriptionWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
+}
+
+void UKRInventoryMain::HandleMoveLeft() { HandleMoveInternal(0); }
+void UKRInventoryMain::HandleMoveRight() { HandleMoveInternal(1); }
+void UKRInventoryMain::HandleMoveUp() { HandleMoveInternal(2); }
+void UKRInventoryMain::HandleMoveDown() { HandleMoveInternal(3); }
+
+void UKRInventoryMain::HandleMoveInternal(uint8 DirIdx)
+{
+	if (!InventorySlot) return;
+
+	const int32 Cols = InventorySlot->GetColumnCount();
+	const int32 Num = InventorySlot->GetNumCells();
+	if (Cols <= 0 || Num <= 0) return;
+
+	const int32 Cur = InventorySlot->GetSelectedIndex();
+	const int32 Next = StepGrid(Cur, DirIdx, Cols, Num);
+
+	if (Next != Cur)
+	{
+		InventorySlot->SelectIndexSafe(Next);
+		if (UWidget* W = InventorySlot->GetSelectedWidget()) W->SetFocus();
+		UpdateDescriptionUI(Next);
+	}
+}
+
+void UKRInventoryMain::HandleSelect()
+{
+	// For QuickSlot
+}
+
+int32 UKRInventoryMain::StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const
+{
+	if (Num <= 0 || Cols <= 0)
+	{
+		return Cur;
+	}
+
+	int32 Row = Cur / Cols;
+	int32 Col = Cur % Cols;
+
+	switch (DirIdx)
+	{
+	case 0:  // Left
+		Col = (Col > 0) ? (Col - 1) : Col;
+		break;
+	case 1:  // Right
+		Col = (Col < Cols - 1) ? (Col + 1) : Col;
+		break;
+	case 2:  // Up
+		Row = (Row > 0) ? (Row - 1) : Row;
+		break;
+	case 3:  // Down
+	{
+		int32 MaxRow = (Num - 1) / Cols;
+		Row = (Row < MaxRow) ? (Row + 1) : Row;
+		break;
+	}
+	default:
+		break;
+	}
+
+	int32 Next = Row * Cols + Col;
+	if (Next >= Num) Next = Num - 1;
+
+	return FMath::Clamp(Next, 0, Num - 1);
 }

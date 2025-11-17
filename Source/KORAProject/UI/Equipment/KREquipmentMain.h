@@ -2,19 +2,19 @@
 
 #pragma once
 
-#include "UI/KRCommonUIWidget.h"
+#include "CommonActivatableWidget.h"
 #include "GameplayTagContainer.h"
-#include "UI/Data/KRItemUIData.h" //전방선언 오류나서 수정했어요
+#include "UI/Data/KRItemUIData.h"
 #include "KREquipmentMain.generated.h"
 
 class UUniformGridPanel;
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
-// �κ��丮 ������Ʈ
+class UCommonButtonGroupBase;
 
 UCLASS()
-class KORAPROJECT_API UKREquipmentMain : public UKRCommonUIWidget
+class KORAPROJECT_API UKREquipmentMain : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
 
@@ -30,19 +30,22 @@ public:
 	UPROPERTY(meta = (BindWidget)) UKRItemDescriptionBase* ModuleDescription = nullptr;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Back = "Back";
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Select = "Select";
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Next = "Next";
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Input") FName Row_Prev = "Prev";
+	virtual void NativeOnActivated() override;
+	virtual void NativeOnDeactivated() override;
 
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-	virtual void SetupInputBindings() override;
-
 private:
 	//TWeakObjectPtr<UKRInventoryComponent> InventoryComp;
 	TArray<FKRItemUIData> CachedUIData;
+
+	enum class EFocusRegion : uint8 { Category, Grid };
+	EFocusRegion FocusRegion = EFocusRegion::Category;
+
+	UPROPERTY() TObjectPtr<UCommonButtonGroupBase> CategoryGroup;
+	UPROPERTY() TArray<TObjectPtr<UCommonButtonBase>> CategoryOrder;
+	int32 LastCategoryIndex = 0;
 
 	UFUNCTION() void OnClickSwordModule();
 	UFUNCTION() void OnClickSwordSkin();
@@ -51,11 +54,31 @@ private:
 	UFUNCTION() void OnClickHeadColor();
 	UFUNCTION() void OnClickDressColor();
 
+	struct FNavAdj { int32 L = -1, R = -1, U = -1, D = -1; };
+	TArray<FNavAdj> CategoryAdj;
+
+	void RebuildByTag(const FName& TagName);
+
+	void BuildCategoryGroup();
+	UFUNCTION() void HandleCategoryChanged(UCommonButtonBase* SelectedButton, int32 ButtonIndex);
+	void FocusCategory();
+	void FocusGrid(int32 PreferIndex = 0);
+
 	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
 
-	void FilterAndCacheItems(const FGameplayTag& FilterTag);
 	void RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny);
-
-	//void BindInventoryEvents();
 	void UpdateDescriptionUI(int32 CellIndex);
+
+	void HandleMoveLeft();
+	void HandleMoveRight();
+	void HandleMoveUp();
+	void HandleMoveDown();
+	void HandleMoveInternal(uint8 DirIdx); // 0:L,1:R,2:U,3:D
+
+	void HandleSelect();
+	bool TryEquipSelectedItem();
+
+	int32 StepCategory(int32 Cur, uint8 DirIdx) const;                    // 0:L,1:R,2:U,3:D
+	int32 StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const; // ���� ����
+	bool  MoveGrid(uint8 DirIdx);
 };
