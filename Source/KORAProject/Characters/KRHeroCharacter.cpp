@@ -4,11 +4,13 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/Combat/HeroCombatComponent.h"
 #include "Data/DataAsset_InputConfig.h"
 #include "Components/Input/KRInputComponent.h"
 #include "Data/StartUpData/DataAsset_StartUpDataBase.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/KRGameplayTags.h"
+#include "GAS/KRPlayerAbilitySystemComponent.h"
 #include "Player/KRPlayerState.h"
 
 AKRHeroCharacter::AKRHeroCharacter()
@@ -33,7 +35,8 @@ AKRHeroCharacter::AKRHeroCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	
+
+	HeroCombatComponent = CreateDefaultSubobject<UHeroCombatComponent>(TEXT("HeroCombatComponent"));
 }
 
 void AKRHeroCharacter::BeginPlay()
@@ -58,8 +61,10 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	
 	UKRInputComponent* KRInputComponent = CastChecked<UKRInputComponent>(PlayerInputComponent);
 
-	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
-	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRGameplayTags::Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTag_Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTag_Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+	
+	KRInputComponent->BindAbilityInputAction(InputConfigDataAsset, this, &ThisClass::Input_AbilityInputPressed, &ThisClass::Input_AbilityInputReleased);
 }
 
 void AKRHeroCharacter::PossessedBy(AController* NewController)
@@ -72,7 +77,7 @@ void AKRHeroCharacter::PossessedBy(AController* NewController)
 	{
 		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
 		{
-			if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(GetAbilitySystemComponent()))
+			if (UKRPlayerAbilitySystemComponent* KRASC = Cast<UKRPlayerAbilitySystemComponent>(GetAbilitySystemComponent()))
 			{
 				LoadedData->GiveToAbilitySystemComponent(KRASC);
 			}
@@ -121,5 +126,22 @@ void AKRHeroCharacter::Input_Look(const FInputActionValue& Value)
 	if (LookAxisVector.Y != 0.f)
 	{
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AKRHeroCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)
+{
+	if (UKRPlayerAbilitySystemComponent* KRASC = Cast<UKRPlayerAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		KRASC->OnAbilityInputPressed(InInputTag);
+	}
+
+}
+
+void AKRHeroCharacter::Input_AbilityInputReleased(FGameplayTag InInputTag)
+{
+	if (UKRPlayerAbilitySystemComponent* KRASC = Cast<UKRPlayerAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		KRASC->OnAbilityInputReleased(InInputTag);
 	}
 }

@@ -1,6 +1,6 @@
 #include "GAS/Abilities/KRGameplayAbility.h"
-
-#include "AbilitySystemComponent.h"
+#include "Components/Combat/PawnCombatComponent.h"
+#include "GAS/KRAbilitySystemComponent.h"
 
 void UKRGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
@@ -27,4 +27,14 @@ void UKRGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 			ActorInfo->AbilitySystemComponent->ClearAbility(Handle);
 		}
 	}
+}
+
+UPawnCombatComponent* UKRGameplayAbility::GetPawnCombatComponentFromActorInfo() const
+{
+	return GetAvatarActorFromActorInfo()->FindComponentByClass<UPawnCombatComponent>();
+}
+
+UKRAbilitySystemComponent* UKRGameplayAbility::GetKRAbilitySystemComponentFromActorInfo() const
+{
+	return Cast<UKRAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent);
 }

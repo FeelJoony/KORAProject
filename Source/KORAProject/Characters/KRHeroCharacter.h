@@ -2,9 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Characters/KRBaseCharacter.h"
+#include "GameplayTagContainer.h"
 #include "KRHeroCharacter.generated.h"
 
 
+class UHeroCombatComponent;
 class UDataAsset_InputConfig;
 class USpringArmComponent;
 class UCameraComponent;
@@ -37,6 +39,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> Camera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	TObjectPtr<UHeroCombatComponent> HeroCombatComponent;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<AActor> SwordClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
@@ -53,4 +58,10 @@ private:
 
 	void Input_Move(const FInputActionValue& Value);
 	void Input_Look(const FInputActionValue& Value);
+
+	void Input_AbilityInputPressed(FGameplayTag InInputTag);
+	void Input_AbilityInputReleased(FGameplayTag InInputTag);
+	
+public:
+	FORCEINLINE UHeroCombatComponent* GetHeroCombatComponent() const { return HeroCombatComponent; }
 };
