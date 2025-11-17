@@ -86,15 +86,15 @@ void UKRGA_Interact::UpdateInteractions(const TArray<FInteractionOption>& Intera
 	//UE_LOG(LogTemp, Warning, TEXT("[Update] CurrentOptions updated: %d options"), CurrentOptions.Num());
 }
 
-void UKRGA_Interact::TriggerInteraction()
+void UKRGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("[Trigger] CurrentOptions Num: %d"), CurrentOptions.Num());
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 	if (CurrentOptions.Num() == 0)
 	{
 		return;
 	}
-	UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo();
-	if (AbilitySystem)
+	//if (UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo())
 	{
 		const FInteractionOption& InteractionOption = CurrentOptions[0];
 		
@@ -102,17 +102,17 @@ void UKRGA_Interact::TriggerInteraction()
 		AActor* InteractableTargetActor = UInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
 
 		FGameplayEventData Payload;
-		Payload.EventTag = KRGameplayTags::KRTag_State_Acting_Interacting;
+		Payload.EventTag = KRTag_State_Acting_Interacting;
 		Payload.Instigator = Instigator;
 		Payload.Target = InteractableTargetActor;
 
-		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRGameplayTags::KRTag_State_Acting_Interacting, Payload);
+		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRTag_State_Acting_Interacting, Payload);
 
 		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));// GA 실행 주체
 		
-		FGameplayAbilityActorInfo ActorInfo;
-		ActorInfo.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetASC);
+		FGameplayAbilityActorInfo ActorInfomation;
+		ActorInfomation.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetASC);
 
-		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfo, KRGameplayTags::KRTag_State_Acting_Interacting, &Payload, *InteractionOption.TargetASC );
+		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfomation, KRTag_State_Acting_Interacting, &Payload, *InteractionOption.TargetASC );
 	}
 }

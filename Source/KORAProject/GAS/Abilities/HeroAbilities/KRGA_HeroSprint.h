@@ -34,6 +34,10 @@ protected:
 	FGameplayTag JumpAbilityTag;
 
 	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
+	FGameplayTag CooldownJumpTag;
+
+	
+	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag CanStepTag;
 	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag CanJumpTag;

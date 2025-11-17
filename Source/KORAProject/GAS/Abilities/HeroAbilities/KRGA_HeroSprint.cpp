@@ -82,9 +82,7 @@ void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	const FGameplayTag JumpCooldownTag = FGameplayTag::RequestGameplayTag(FName("Cooldown.Ability"));
-
-	if (ASC->HasMatchingGameplayTag(JumpCooldownTag))
+	if (ASC->HasMatchingGameplayTag(CooldownJumpTag))
 	{
 		for (FGameplayAbilitySpec& StepSpec : ASC->GetActivatableAbilities())
 		{

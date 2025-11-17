@@ -22,7 +22,7 @@ public:
 
 	void UpdateInteractions(const TArray<FInteractionOption>& InteractiveOptions);
 	
-	void TriggerInteraction();
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 protected:
 	UPROPERTY()
