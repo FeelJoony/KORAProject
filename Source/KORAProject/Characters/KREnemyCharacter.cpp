@@ -42,6 +42,11 @@ UAbilitySystemComponent* AKREnemyCharacter::GetAbilitySystemComponent() const
 	return EnemyASC;
 }
 
+UPawnCombatComponent* AKREnemyCharacter::GetPawnCombatComponent() const
+{
+	return EnemyCombatComponent;
+}
+
 void AKREnemyCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

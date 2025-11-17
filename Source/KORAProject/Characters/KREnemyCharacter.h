@@ -19,6 +19,7 @@ public:
 	AKREnemyCharacter();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
 	
 protected:
 	virtual void PossessedBy(AController* NewController) override;
