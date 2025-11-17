@@ -236,7 +236,7 @@ float UAbilityTask_GrantNearbyInteraction::CompareDistance(const FInteractionOpt
 	if (!AvatarActor)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[UAbilityTask_GrantNearbyInteraction] AvatarActor is NULL"))
-		return HUGE_VALF;
+		return FLT_MAX;
 	}
 	
 	const FVector PlayerLocation = AvatarActor->GetActorLocation();
@@ -261,6 +261,6 @@ float UAbilityTask_GrantNearbyInteraction::CompareDistance(const FInteractionOpt
 		}
 		return FVector::DistSquared(PlayerLocation, TargetLocation);
 	}
-	return HUGE_VALF;
+	return FLT_MAX;
 }
 
