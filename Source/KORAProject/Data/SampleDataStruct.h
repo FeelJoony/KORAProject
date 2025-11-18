@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
-#include "TestSampleData.h"
 #include "Interface/TableKey.h"
 #include "SampleDataStruct.generated.h"
 
@@ -41,12 +40,8 @@ public:
 	float Height;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sample Data")
 	ESampleType SampleType;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sample Data")
-	FTestSampleData TestSampleData;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sample Data")
-	TArray<FTestSampleData> TestSampleDataArray;
-
-	virtual int32 GetKey() const override
+	
+	virtual uint32 GetKey() const override
 	{
 		return Index;
 	}

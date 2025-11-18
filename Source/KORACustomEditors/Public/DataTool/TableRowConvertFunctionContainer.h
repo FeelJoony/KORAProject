@@ -27,7 +27,7 @@ public:
 	UFUNCTION()
 	void CreateSampleData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
-	void CreateWeaponItemData(class UDataTable* OutDataTable, const FString& InCSVString);
+	void CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);
@@ -58,6 +58,16 @@ private:
 		return FCString::Atod(*ValueString);
 	}
 
+	FText ParseTextValue(const FString& ValueString) const
+	{
+		return FText::FromString(ValueString);
+	}
+
+	FName ParseNameValue(const FString& ValueString) const
+	{
+		return FName(*ValueString);
+	}
+
 	FGameplayTag ParseGameplayTagValue(const FString& ValueString) const
 	{
 		return FGameplayTag::RequestGameplayTag(FName(*ValueString));
@@ -76,7 +86,18 @@ private:
 	template<typename AssetType>
 	TSoftObjectPtr<AssetType> ParseSoftObjectValue(const FString& ValueString)
 	{
-		return TSoftObjectPtr<AssetType>(*ValueString);
+		FSoftObjectPath ResourcePath = FSoftObjectPath(ValueString);
+		TSoftObjectPtr<AssetType> Resource(ResourcePath);
+		
+		return Resource;
+	}
+
+	TArray<FString> ParseArrayValue(const FString& ValueString)
+	{
+		TArray<FString> ValueArray;
+		ValueString.ParseIntoArray(ValueArray, TEXT("|"));
+		
+		return ValueArray;
 	}
 };
 

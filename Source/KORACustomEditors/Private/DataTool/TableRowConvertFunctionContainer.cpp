@@ -6,6 +6,9 @@
 #include "GameplayTagsManager.h"
 #include "Data/SampleDataStruct.h"
 #include "Data/WeaponItemDataStruct.h"
+#include "Data/ConsumeItemDataStruct.h"
+#include "Data/MaterialItemDataStruct.h"
+#include "Data/ItemDataStruct.h"
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 {
@@ -31,30 +34,16 @@ void UTableRowConvertFunctionContainer::CreateSampleData(UDataTable* OutDataTabl
                 int32 MaxElementCount_Index = GetHeaderIndex(Headers, TEXT("MaxElementCount"));
 
                 FSampleDataStruct SampleData;
-
+                
                 SampleData.Index = ParseIntValue(RowValue[Index_Index]);
                 SampleData.SampleName = RowValue[SampleName_Index];
                 SampleData.Width = ParseFloatValue(RowValue[Width_Index]);
                 SampleData.Height = ParseFloatValue(RowValue[Height_Index]);
                 SampleData.SampleType = ParseEnumValue<ESampleType>(RowValue[SampleEnum_Index]);
-                SampleData.TestSampleData = FTestSampleData();
-                SampleData.TestSampleData.Index = SampleData.Index;
-                SampleData.TestSampleData.Width = SampleData.Width;
-                SampleData.TestSampleData.Height = SampleData.Height;
-
+                
                 for (int32 j = 1; j <= MaxElementCount_Index; j++)
                 {
-                    FTestSampleData SampleArrayData = FTestSampleData();
 
-                    int32 TestIndex_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("SampleIndex%d"), j));
-                    int32 TestWidth_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("SampleWidth%d"), j));
-                    int32 TestHeight_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("SampleHeight%d"), j));
-
-                    SampleArrayData.Index = ParseIntValue(RowValue[TestIndex_Index]);
-                    SampleArrayData.Width = ParseFloatValue(RowValue[TestWidth_Index]);
-                    SampleArrayData.Height = ParseFloatValue(RowValue[TestHeight_Index]);
-
-                    SampleData.TestSampleDataArray.Add(SampleArrayData);
                 }
 
                 FName RowName = *FString::Printf(TEXT("Sample_%d"), i);
@@ -70,9 +59,9 @@ void UTableRowConvertFunctionContainer::CreateSampleData(UDataTable* OutDataTabl
         }));
 }
 
-void UTableRowConvertFunctionContainer::CreateWeaponItemData(UDataTable* OutDataTable, const FString& InCSVString)
+void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
-    CreateData(InCSVString, FString(TEXT("WeaponItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+    CreateData(InCSVString, FString(TEXT("ItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
         {
             auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
             auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
@@ -81,66 +70,52 @@ void UTableRowConvertFunctionContainer::CreateWeaponItemData(UDataTable* OutData
             {
                 TArray<FString>& RowValue = Values[i];
 
-                FWeaponItemDataStruct OutRow;
+                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+                int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
+                int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
+                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags"));
+                int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
+                int32 DescriptionKey_Index = GetHeaderIndex(Headers, TEXT("DescriptionKey"));
+                int32 Icon_Index = GetHeaderIndex(Headers, TEXT("Icon"));
+                int32 EquipID_Index = GetHeaderIndex(Headers, TEXT("EquipID"));
+                int32 AbilityID_Index = GetHeaderIndex(Headers, TEXT("AbilityID"));
+                int32 ConsumeID_Index = GetHeaderIndex(Headers, TEXT("ConsumeID"));
+                int32 MaterialID_Index = GetHeaderIndex(Headers, TEXT("MaterialID"));
+                int32 QuestID_Index = GetHeaderIndex(Headers, TEXT("QuestID"));
+                
+                FItemDataStruct ItemData;
 
-                auto Get = [&](const TCHAR* Key) -> FString
-                    {
-                        int32 Idx = GetHeaderIndex(Headers, Key);
-                        return RowValue.IsValidIndex(Idx) ? RowValue[Idx] : FString();
-                    };
+                ItemData.Index = ParseIntValue(RowValue[Index_Index]);
+                ItemData.TypeTag = ParseGameplayTagValue(RowValue[TypeTag_Index]);
+                ItemData.RarityTag = ParseGameplayTagValue(RowValue[RarityTag_Index]);
+                ItemData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
+                ItemData.DescriptionKey = ParseNameValue(RowValue[DescriptionKey_Index]);
+                ItemData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
+                ItemData.EquipID = ParseIntValue(RowValue[EquipID_Index]);
+                ItemData.AbilityID = ParseIntValue(RowValue[AbilityID_Index]);
+                ItemData.ConsumeID = ParseIntValue(RowValue[ConsumeID_Index]);
+                ItemData.MaterialID = ParseIntValue(RowValue[MaterialID_Index]);
+                ItemData.QuestID = ParseIntValue(RowValue[QuestID_Index]);
 
-                OutRow.Index = ParseIntValue(Get(TEXT("Index")));
-                OutRow.ItemID = FName(*Get(TEXT("ItemID")));
-
-                OutRow.DisplayName = FText::FromString(Get(TEXT("DisplayName")));
-                OutRow.Description = FText::FromString(Get(TEXT("Description")));
-
-               /* OutRow.ItemIcon = TSoftObjectPtr<UTexture2D>(FSoftObjectPath(Get(TEXT("ItemIcon"))));
-
-                OutRow.TypeTag = FGameplayTag::RequestGameplayTag(*Get(TEXT("TypeTag")));
-                OutRow.RarityTag = FGameplayTag::RequestGameplayTag(*Get(TEXT("RarityTag")));*/
-
-                /*{
-                    FString TagsString = Get(TEXT("AbilityTags"));
-                    TArray<FString> TagStrings;
-                    TagsString.ParseIntoArray(TagStrings, TEXT("|"));
-
-                    for (const FString& TagStr : TagStrings)
-                    {
-                        if (!TagStr.IsEmpty())
-                        {
-                            OutRow.AbilityTags.Add(FGameplayTag::RequestGameplayTag(*TagStr));
-                        }
-                    }
-                }*/
-
-                OutRow.BasePrice = ParseIntValue(Get(TEXT("BasePrice")));
-                OutRow.StackMax = ParseIntValue(Get(TEXT("StackMax")));
-
-                OutRow.BaseATK = ParseIntValue(Get(TEXT("BaseATK")));
-                OutRow.BaseCritChance = ParseFloatValue(Get(TEXT("BaseCritChance")));
-                OutRow.BaseCritMulti = ParseFloatValue(Get(TEXT("BaseCritMulti")));
-                //OutRow.BaseRange = ParseFloatValue(Get(TEXT("BaseRange")));
-                /*OutRow.BaseAccuracy = ParseFloatValue(Get(TEXT("BaseAccuracy")));
-                OutRow.BaseRecoil = ParseFloatValue(Get(TEXT("BaseRecoil")));
-                OutRow.BaseCapacity = ParseIntValue(Get(TEXT("BaseCapacity")));
-                OutRow.BaseEnforceCost = ParseIntValue(Get(TEXT("BaseEnforceCost")));*/
-                OutRow.ReloadTime = ParseFloatValue(Get(TEXT("ReloadTime")));
-                //OutRow.AttackSpeed = ParseFloatValue(Get(TEXT("AttackSpeed")));
-
-                FName RowName = *FString::Printf(TEXT("Weapon_%d"), OutRow.Index);
-                if (FWeaponItemDataStruct* FindRow = OutDataTable->FindRow<FWeaponItemDataStruct>(RowName, TEXT("")))
+                TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[AbilityTags_Index]);
+                for (const FString& StringValue : AbilityTagsStringValues)
                 {
-                    *FindRow = OutRow;
+                    FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName(StringValue));
+                    ItemData.AbilityTags.Add(AbilityTag);
+                }
+
+                FName RowName = *FString::Printf(TEXT("Item_%d"), i);
+                if (FItemDataStruct* FindRow = OutDataTable->FindRow<FItemDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = ItemData;
                 }
                 else
                 {
-                    OutDataTable->AddRow(RowName, OutRow);
+                    OutDataTable->AddRow(RowName, ItemData);
                 }
             }
         }));
 }
-
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)
 {

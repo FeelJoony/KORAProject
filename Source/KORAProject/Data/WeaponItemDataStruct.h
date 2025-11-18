@@ -11,12 +11,7 @@
 UENUM(BlueprintType)
 enum class EWeaponItemType : uint8
 {
-	None,
-	Sample1,
-	Sample2,
-	Sample3,
-	Sample4,
-	Sample5
+	Weapon1,
 };
 
 USTRUCT(BlueprintType)
@@ -35,76 +30,74 @@ public:
 		, BaseRange(1000.f)
 		, BaseAccuracy(1.f)
 		, BaseRecoil(0.f)
-		, BaseCapacity(30)
-		, BaseEnforceCost(0)
-		, ReloadTime(1.f)
+		, BaseCapacity(1)
 		, AttackSpeed(1.f)
+		, ReloadTime(1.f)
+		, BaseEnforceCost(0)
 	{
-
 	}
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ID")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base")
 	int32 Index;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base")
 	FName ItemID;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tags")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
 	FGameplayTag TypeTag;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tags")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
 	FGameplayTag RarityTag;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tags")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
 	TArray<FGameplayTag> AbilityTags;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	FText DisplayName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (MultiLine = true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	FText Description;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSoftObjectPtr<UTexture2D> ItemIcon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Economy")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Economy")
 	int32 BasePrice;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stack")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stack")
 	int32 StackMax;
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 BaseATK;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float BaseCritChance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float BaseCritMulti;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float BaseRange;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float BaseAccuracy;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float BaseRecoil;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 BaseCapacity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
-	int32 BaseEnforceCost;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
-	float ReloadTime;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float AttackSpeed;
 
-	virtual int32 GetKey() const override
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float ReloadTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int32 BaseEnforceCost;
+
+	virtual uint32 GetKey() const override
 	{
 		return Index;
 	}

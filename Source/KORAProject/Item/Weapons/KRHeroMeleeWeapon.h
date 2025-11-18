@@ -1,0 +1,12 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
+#include "KRHeroMeleeWeapon.generated.h"
+
+UCLASS()
+class KORAPROJECT_API AKRHeroMeleeWeapon : public AKRMeleeWeapon
+{
+	GENERATED_BODY()
+	
+};
