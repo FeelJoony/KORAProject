@@ -12,11 +12,15 @@ class KORAPROJECT_API UKRInventoryFragment_SellableItem : public UKRInventoryIte
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-	bool bCanBeSold = true;
+	int32 BasePrice = 0;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item", meta = (EditCondition = "bCanBeSold"))
-	int32 SellPrice = 0;
+	virtual FGameplayTag GetFragmentTag() const override
+	{
+		return FGameplayTag::RequestGameplayTag("Ability.Item.Sellable");
+	}
 
-public:
-	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.Sellable"); }
+	FORCEINLINE int32 GetBasePrice() const
+	{
+		return BasePrice;
+	}
 };
