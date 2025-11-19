@@ -9,12 +9,12 @@ void UKRAnimNotifyState_AttackTag::NotifyBegin(USkeletalMeshComponent* MeshComp,
 
 	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(MeshComp->GetOwner()))
 	{
-		if (AActor* Sword = Character->GetCurrentSword())
+		/*if (AActor* Sword = Character->GetCurrentSword())
 		{
 			// 태그 추가
 			//Sword->ComponentTags.AddUnique(WeaponDamageTag);
 			//Sword->오버랩 활성화
-		}
+		}*/
 	}
 }
 
@@ -25,11 +25,11 @@ void UKRAnimNotifyState_AttackTag::NotifyEnd(USkeletalMeshComponent* MeshComp, U
 
 	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(MeshComp->GetOwner()))
 	{
-		if (AActor* Sword = Character->GetCurrentSword())
+		/*if (AActor* Sword = Character->GetCurrentSword())
 		{
 			// 태그 제거
 			//Sword->ComponentTags.Remove(WeaponDamageTag);
 			//Sword->오버랩 취소
-		}
+		}*/
 	}
 }

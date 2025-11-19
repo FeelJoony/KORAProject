@@ -1,0 +1,28 @@
+{
+	"FileVersion": 3,
+	"Version": 100,
+	"VersionName": "1.0.0",
+	"FriendlyName": "SphereReveal",
+	"Description": "Reveal actors/maps only inside a growing sphere. Material Function + MPC + Controller Actor.",
+	"Category": "Gameplay Mechanics",
+	"CreatedBy": "STUDIO3F",
+	"CreatedByURL": "",
+	"DocsURL": "https://github.com/Ho-yeong/SphereRevealDocs/blob/main/README.md",
+	"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product/7de042c7-0232-4561-a02f-1896193ebb20",
+	"SupportURL": "mailto:ghdud0503@gmail.com",
+	"EngineVersion": "5.6.0",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "SphereReveal",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac"
+			]
+		}
+	]
+}

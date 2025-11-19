@@ -5,7 +5,6 @@
 #include "Data/DataAsset_InputConfig.h"
 #include "KRInputComponent.generated.h"
 
-
 UCLASS()
 class KORAPROJECT_API UKRInputComponent : public UEnhancedInputComponent
 {

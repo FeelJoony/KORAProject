@@ -2,9 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Characters/KRBaseCharacter.h"
+#include "GameplayTagContainer.h"
 #include "KRHeroCharacter.generated.h"
 
 
+class UHeroCombatComponent;
 class UDataAsset_InputConfig;
 class USpringArmComponent;
 class UCameraComponent;
@@ -19,17 +21,12 @@ class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter
 public:
 	AKRHeroCharacter();
 
-	FORCEINLINE TObjectPtr<AActor> GetCurrentSword() const
-	{
-		return CurrentSword;
-	}
-	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-
+	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArm;
@@ -37,15 +34,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> Camera;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
-	TSubclassOf<AActor> SwordClass;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
-	TSubclassOf<AActor> PistolClass;
-	
-	UPROPERTY()
-	AActor* CurrentSword;
-	UPROPERTY()
-	AActor* CurrentPistol;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	TObjectPtr<UHeroCombatComponent> HeroCombatComponent;
+
 
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
@@ -53,4 +44,10 @@ private:
 
 	void Input_Move(const FInputActionValue& Value);
 	void Input_Look(const FInputActionValue& Value);
+
+	void Input_AbilityInputPressed(FGameplayTag InInputTag);
+	void Input_AbilityInputReleased(FGameplayTag InInputTag);
+	
+public:
+	FORCEINLINE UHeroCombatComponent* GetHeroCombatComponent() const { return HeroCombatComponent; }
 };

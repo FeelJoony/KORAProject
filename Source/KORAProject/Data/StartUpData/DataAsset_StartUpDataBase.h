@@ -6,6 +6,7 @@
 
 class UKRGameplayAbility;
 class UKRAbilitySystemComponent;
+class UGameplayEffect;
 
 UCLASS()
 class KORAPROJECT_API UDataAsset_StartUpDataBase : public UDataAsset
@@ -22,6 +23,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "StartUpData")
 	TArray<TSubclassOf<UKRGameplayAbility>> ReactiveAbilities;
 
+	UPROPERTY(EditDefaultsOnly, Category = "StartUpData")
+	TArray<TSubclassOf<UGameplayEffect>> StartUpGameplayEffects;
+	
 	void GrantAbilities(const TArray<TSubclassOf<UKRGameplayAbility>>& InAbilitiesToGive, UKRAbilitySystemComponent* InASC, int32 ApplyLevel = 1);
 	
 };

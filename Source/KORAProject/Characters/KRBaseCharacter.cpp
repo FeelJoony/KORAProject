@@ -17,6 +17,11 @@ UAbilitySystemComponent* AKRBaseCharacter::GetAbilitySystemComponent() const
 	return CachedASC;
 }
 
+UPawnCombatComponent* AKRBaseCharacter::GetPawnCombatComponent() const
+{
+	return nullptr;
+}
+
 void AKRBaseCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -29,4 +34,3 @@ void AKRBaseCharacter::PossessedBy(AController* NewController)
 		ensureMsgf(!CharacterStartUpData.IsNull(), TEXT("Forgot to assing start up data to %s"), *GetName());
 	}
 }
-
