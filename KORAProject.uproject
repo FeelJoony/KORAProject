@@ -70,6 +70,30 @@
 		{
 			"Name": "MutableClothing",
 			"Enabled": true
+		},
+		{
+			"Name": "GameplayStateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "ZoneGraph",
+			"Enabled": true
+		},
+		{
+			"Name": "ZoneGraphAnnotations",
+			"Enabled": true
+		},
+		{
+			"Name": "MassAI",
+			"Enabled": true
+		},
+		{
+			"Name": "MassCrowd",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayMessageRouter",
+			"Enabled": true
 		}
 	]
 }

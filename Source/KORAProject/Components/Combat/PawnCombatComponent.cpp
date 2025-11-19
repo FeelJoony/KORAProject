@@ -1,9 +1,8 @@
 #include "Components/Combat/PawnCombatComponent.h"
-#include "Items/Weapons/KRWeaponBase.h"
 #include "Components/BoxComponent.h"
 
+#include "Item/Weapons/KRMeleeWeapon.h"
 #include "KORADebugHelper.h"
-#include "Items/Weapons/KRMeleeWeapon.h"
 
 void UPawnCombatComponent::RegisterSpawnedWeapon(FGameplayTag InWeaponTagToRegister, AKRWeaponBase* InWeaponToRegister,
                                                  bool bRegisterAsEquippedWeapon)
