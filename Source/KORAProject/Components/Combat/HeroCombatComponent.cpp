@@ -1,5 +1,5 @@
 #include "Components/Combat/HeroCombatComponent.h"
-#include "Items/Weapons/KRHeroMeleeWeapon.h"
+#include "Item/Weapons/KRHeroMeleeWeapon.h"
 
 AKRHeroMeleeWeapon* UHeroCombatComponent::GetHeroCarriedMeleeWeaponByTag(FGameplayTag InWeaponTag) const
 {
