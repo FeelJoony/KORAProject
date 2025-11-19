@@ -99,4 +99,11 @@ Plugins/**/Intermediate/*
 #Content/Data/Tables
 Content/Data/DataTables/*
 
+# Ignore Assets Folder
+Content/Levels/
+Content/Megascans/
+Content/MSPresets/
+Content/Rocket/
+Content/VFX_SFX/
+
 # End of https://www.toptal.com/developers/gitignore/api/unrealengine
