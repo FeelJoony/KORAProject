@@ -7,19 +7,13 @@
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Data/KRItemUIData.h"
 #include "SubSystem/KRUIInputSubsystem.h"
+#include "SubSystem/KRInventorySubsystem.h"
 
 #include "CommonButtonBase.h"
 #include "GameplayTagsManager.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
-/*
-#include "Inventory/KRInventoryComponent.h"   // 인벤토리 컴포넌트 받고 수정
-#include "Item/KRBaseItem.h"                 // 아이템 받고 수정
-*/
 
-// 필요 함수 리스트 !! 
-/* 현재 위젯 소유자 Pawn에서 인벤토리 컴포넌트 가져오는 함수 */
-/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
 
 void UKRInventoryMain::NativeOnActivated()
 {
@@ -82,14 +76,34 @@ void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
 	UpdateDescriptionUI(CellIndex);
 }
 
-//void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
-//{
-//	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
-//}
-
-void UKRInventoryMain::RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny)
+void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
 {
-	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+	CachedUIData.Reset();
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	if (UGameInstance* GI = World->GetGameInstance())
+	{
+		if (auto* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
+		{
+			TArray<UKRInventoryItemInstance*> FoundItems;
+			if (!FilterTag.IsValid())
+			{
+				FoundItems = Inv->GetAllItems();
+			}
+			else
+			{
+				FoundItems = Inv->FindItemsByTag(FilterTag);
+			}
+
+			UKRUIAdapterLibrary::ConvertItemInstancesToUIData(FoundItems, CachedUIData);
+		}
+	}
+}
+
+void UKRInventoryMain::RebuildInventoryUI(const FGameplayTag& TagsAny)
+{
+	FilterAndCacheItems(TagsAny);
 
 	if (InventorySlot)
 	{
