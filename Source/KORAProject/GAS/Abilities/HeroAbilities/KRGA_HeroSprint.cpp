@@ -60,7 +60,7 @@ void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 	
-	if (EndDelayTask)
+	if (IsValid(EndDelayTask))
 	{
 		EndDelayTask->EndTask();
 		EndDelayTask = nullptr;
@@ -114,7 +114,7 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 	
-	if (EndDelayTask)
+	if (IsValid(EndDelayTask))
 	{
 		EndDelayTask->EndTask();
 		EndDelayTask = nullptr;
