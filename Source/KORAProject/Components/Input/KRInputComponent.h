@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "EnhancedInputComponent.h"
-#include "Data/DataAsset_InputConfig.h"
+#include "Data/DataAssets/DataAsset_InputConfig.h"
 #include "KRInputComponent.generated.h"
 
 UCLASS()
