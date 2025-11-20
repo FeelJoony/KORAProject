@@ -1,6 +1,6 @@
 #include "Characters/KRBaseCharacter.h"
 
-#include "Data/StartUpData/DataAsset_StartUpDataBase.h"
+#include "Data/DataAssets/StartUpData/DataAsset_StartUpDataBase.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Player/KRPlayerState.h"
 
