@@ -101,9 +101,9 @@ void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
 	}
 }
 
-void UKRInventoryMain::RebuildInventoryUI(const FGameplayTag& TagsAny)
+void UKRInventoryMain::RebuildInventoryUI(const FGameplayTag& FilterTag)
 {
-	FilterAndCacheItems(TagsAny);
+	FilterAndCacheItems(FilterTag);
 
 	if (InventorySlot)
 	{
@@ -120,10 +120,10 @@ void UKRInventoryMain::RebuildInventoryUI(const FGameplayTag& TagsAny)
 	}
 }
 
-//void UKRInventoryMain::BindInventoryEvents()
-//{
-//	// 인벤토리 변경되면 UI에 반영 할 때 -> 필요 시에 구현 
-//}
+void UKRInventoryMain::BindInventoryEvents()
+{
+	// When Inventory's updated...
+}
 
 void UKRInventoryMain::UpdateDescriptionUI(int32 CellIndex)
 {
