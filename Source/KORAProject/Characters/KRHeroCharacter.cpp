@@ -67,6 +67,12 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	KRInputComponent->BindAbilityInputAction(InputConfigDataAsset, this, &ThisClass::Input_AbilityInputPressed, &ThisClass::Input_AbilityInputReleased);
 }
 
+void AKRHeroCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	CachedOutlinerComponent->GetDefaultSubobjectByName(TEXT("OutlinerComponent"));
+}
+
 void AKRHeroCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

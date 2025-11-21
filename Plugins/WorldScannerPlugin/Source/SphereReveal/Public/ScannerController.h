@@ -32,6 +32,9 @@ class SPHEREREVEAL_API AScannerController : public AActor
 public:
 	AScannerController();
 
+	UFUNCTION() // Custon 함수
+	FORCEINLINE float GetRadius() const {return Radius;};
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Scan")
 	UMaterialParameterCollection* ScannerMPC;
 

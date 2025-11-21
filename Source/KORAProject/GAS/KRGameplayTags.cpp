@@ -11,6 +11,7 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Unequip_Sword,		 "Input.Unequip.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Unequip_Gun,			 "Input.Unequip.Gun");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_LightAttack_Sword,	 "Input.LightAttack.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_ChargeAttack_Sword,	 "Input.ChargeAttack.Sword");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Scanning,			 "Input.Scanning");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Sprint,				 "Input.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Interact,			 "Input.Interact");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Step,				 "Input.Step");
@@ -18,6 +19,7 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_Input_Jump,				 "Input.Jump");
 
 /* State Tags */
 UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Attaking,		"State.Acting.Attaking");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Scanning,		"State.Acting.Scanning");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Sprint,		"State.Acting.Sprinting");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Steping,		"State.Acting.Steping");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Jumping,		"State.Acting.Jumping");
@@ -46,6 +48,7 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Move_Jump,				"Ability.Move.Jump");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Move_Step,				"Ability.Move.Step");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Interact,				"Ability.Interact");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Ladder,				"Ability.Ladder");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Scanning,				"Ability.Scanning");
 
 /* Enemy Tags */
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Enemy_Weapon,	"Enemy.Weapon");
