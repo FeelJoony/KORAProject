@@ -23,11 +23,13 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Laddering,	"State.Acting.Laddering");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Interacting,	"State.Acting.Interacing");
 
 /* Player Tags */
-UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Weapon_Sword,	"Player.Weapon.Sword");
-UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Weapon_Gun,		"Player.Weapon.Gun");
-UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Can_Step,		"Player.Can.Step");
-UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Can_Jump,		"Player.Can.Jump");
-UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_Ladder,	"Player.Action.Ladder");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Weapon_Sword,		"Player.Weapon.Sword");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Weapon_Gun,			"Player.Weapon.Gun");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Can_Step,			"Player.Can.Step");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Can_Jump,			"Player.Can.Jump");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_Ladder,		"Player.Action.Ladder");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_AddItem,		"Player.Action.AddItem");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_RemoveItem,	"Player.Action.RemoveItem");
 
 /* Event Tags */
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Equip_Sword,		"Event.Equip.Sword");
