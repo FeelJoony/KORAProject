@@ -3,22 +3,20 @@
 
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "Inventory/KRInventoryItemInstance.h"
-#include "SubSystem/KRInventorySubsystem.h"
-//#include "Inventrory/InventoryFragment_DisplayUI.h"
+#include "Subsystem/KRInventorySubsystem.h"
+#include "Inventory/Fragment/InventoryFragment_DisplayUI.h"
 #include "GAS/KRFragmentTag.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Engine/GameInstance.h"
-
-#include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventoryItemInstance)
 
 bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInstance* Instance, FKRItemUIData& Out)
 {
     Out = {};
     if (!Instance) return false;
 
-    const UKRInventoryItemFragment* RawFrag = Instance->FindFragmentByTag(KRFragmentTag::Tag_ItemFragment_UI);
-    const InventoryFragment_DisplayUI* UI = Cast<InventoryFragment_DisplayUI>(RawFrag);
+    const UKRInventoryItemFragment* RawFrag = Instance->FindFragmentByTag(TAG_Item_Fragment_DisplayUI);
+    const UInventoryFragment_DisplayUI* UI = Cast<UInventoryFragment_DisplayUI>(RawFrag);
     if (!UI) return false;
 
     Out.ItemNameKey = UI->DisplayNameKey;

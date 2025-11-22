@@ -10,10 +10,11 @@
 #include "Data/CacheDataTable.h"
 #include "Data/ItemDataStruct.h"
 #include "GameFramework/AsyncAction_ListenForGameplayMessage.h"
-#include "Inventory/InventoryFragment_EquippableItem.h"
-#include "Inventory/InventoryFragment_SetStats.h"
-#include "Inventory/InventoryFragment_SetIcon.h"
-#include "Inventory/InventoryFragment_SellableItem.h"
+#include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
+#include "Inventory/Fragment/InventoryFragment_SetStats.h"
+#include "Inventory/Fragment/InventoryFragment_DisplayUI.h"
+#include "Inventory/Fragment/InventoryFragment_SellableItem.h"
+#include "Inventory/Fragment/InventoryFragment_ConsumableItem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventorySubsystem)
 
@@ -33,7 +34,25 @@ FKRInventoryEntry* FKRInventoryList::CreateItem(FGameplayTag InTag)
 
 	ItemTagContainer.AddTag(InTag);
 	
-	Entries.Add(InTag, FKRInventoryEntry(UKRInventoryItemInstance::CreateItemInstance()->CreateItemDefinition()));
+	UKRInventoryItemInstance* Instance = NewObject<UKRInventoryItemInstance>();
+	
+	Instance->SetItemTag(InTag);
+
+	if (OwnerContext)
+	{
+		if (UWorld* World = OwnerContext->GetWorld())
+		{
+			if (UGameInstance* GI = World->GetGameInstance())
+			{
+				Instance->SetOwnerContext(GI);
+			}
+		}
+	}
+	
+	UKRInventoryItemDefinition* Def = UKRInventoryItemDefinition::CreateItemDefinition();
+	Instance->SetItemDef(Def);
+
+	Entries.Add(InTag, FKRInventoryEntry(Instance));
 
 	return &Entries[InTag];
 }
@@ -103,14 +122,14 @@ FKRInventoryEntry* FKRInventoryList::GetItem(FGameplayTag InTag)
 {
 	check(InTag.IsValid());
 
-	return &Entries[InTag];
+	return Entries.Find(InTag);
 }
 
 const FKRInventoryEntry* FKRInventoryList::GetItem(FGameplayTag InTag) const
 {
 	check(InTag.IsValid());
 
-	return &Entries[InTag];
+	return Entries.Find(InTag);
 }
 
 TArray<UKRInventoryItemInstance*> FKRInventoryList::GetAllItems() const
@@ -157,7 +176,7 @@ void UKRInventorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	Collection.InitializeDependency<UKRDataTablesSubsystem>();
+	PlayerInventory.SetOwnerContext(this);
 
 	InitializeItemDefinitionFragments();
 }
@@ -190,7 +209,7 @@ void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 		return;
 	}
 
-	UCacheDataTable* EquipCacheDataTable = DataTableSubsystem->GetTable(EGameDataType::EquipData);
+	//UCacheDataTable* EquipCacheDataTable = DataTableSubsystem->GetTable(EGameDataType::EquipData);
 
 	FItemDataStruct* ItemData = DataTableSubsystem->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
 
@@ -203,17 +222,28 @@ void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 			continue;
 		}
 		
-		AddFragment(ItemData->TypeTag, AbilityTag);
+		AddFragment(ItemTag, AbilityTag);
 	}
 }
 
 void UKRInventorySubsystem::AddFragment(FGameplayTag ItemTag, FGameplayTag FragmentTag)
 {
-	TSubclassOf<UKRInventoryItemFragment> FragmentClass = FragmentRegistry[FragmentTag]; 
-	UKRInventoryItemFragment* Fragment = FragmentClass->GetDefaultObject<UKRInventoryItemFragment>();
+	TSubclassOf<UKRInventoryItemFragment> FragmentClass = FragmentRegistry[FragmentTag];
+	if (!FragmentClass) return;
 	
 	FKRInventoryEntry* Entry = GetInventory().GetItem(ItemTag);
-	Entry->GetItemInstance()->GetItemDef()->AddFragment(FragmentTag, Fragment);
+	if (!Entry) return;
+	
+	UKRInventoryItemInstance* Instance = Entry->GetItemInstance();
+	if (!Instance) return;
+	
+	UKRInventoryItemFragment* NewFragment = NewObject<UKRInventoryItemFragment>(
+		Instance, FragmentClass
+	);
+	
+	Instance->GetItemDef()->AddFragment(FragmentTag, NewFragment);
+	
+	NewFragment->OnInstanceCreated(Instance);
 }
 
 TArray<FGameplayTag> UKRInventorySubsystem::GetAllRegisteredItemTags() const
@@ -269,8 +299,9 @@ void UKRInventorySubsystem::InitializeItemDefinitionFragments()
 	// Fragment 마다 StaticClass를 매개변수로 넣어주기만 하면 끝 
 	InitialFragmentType(UInventoryFragment_EquippableItem::StaticClass());
 	InitialFragmentType(UInventoryFragment_SetStats::StaticClass());
-	InitialFragmentType(UInventoryFragment_SetIcon::StaticClass());
+	InitialFragmentType(UInventoryFragment_DisplayUI::StaticClass());
 	InitialFragmentType(UKRInventoryFragment_SellableItem::StaticClass());
+	InitialFragmentType(UInventoryFragment_ConsumableItem::StaticClass());
 }
 
 UKRInventoryItemInstance* UKRInventorySubsystem::AddItem(FGameplayTag ItemTag, int32 StackCount)
@@ -282,17 +313,24 @@ UKRInventoryItemInstance* UKRInventorySubsystem::AddItem(FGameplayTag ItemTag, i
 		InitFragment(ItemTag);
 	}
 
-	// // Gameplay Message Subsystem Broadcast Sample
-	// FAddItemMessage AddItemMessage;
-	// AddItemMessage.ItemTag = FGameplayTag::RequestGameplayTag(FName("ItemType.Weapon"));
-	// AddItemMessage.StackCount = 10;
-	//
-	// FGameplayTag AddItemTag = FGameplayTag::RequestGameplayTag(FName("Interact.AddItem"));
-	//
-	// UGameplayMessageSubsystem::Get(this).BroadcastMessage<FAddItemMessage>(AddItemTag, AddItemMessage);
-	//
-	// // Gameplay Message Subsystem Listen Sample
-	// UAsyncAction_ListenForGameplayMessage::ListenForGameplayMessages(this, AddItemTag, FAddItemMessage::StaticStruct());
+	// Gameplay Message Subsystem Broadcast Sample
+	FAddItemMessage AddItemMessage;
+	AddItemMessage.ItemTag = ItemTag;
+	AddItemMessage.StackCount = StackCount;
+	
+	FGameplayTag AddItemTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.AddItem"));
+	
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage<FAddItemMessage>(AddItemTag, AddItemMessage);
+
+	FGameplayMessageListenerHandle ListenerHandle = UGameplayMessageSubsystem::Get(this).RegisterListener(
+		AddItemTag,
+		this,
+		&UKRInventorySubsystem::OnMessageReceived);
+
+	UGameplayMessageSubsystem::Get(this).UnregisterListener(ListenerHandle);
+	
+	// Gameplay Message Subsystem Listen Sample
+	UAsyncAction_ListenForGameplayMessage::ListenForGameplayMessages(this, AddItemTag, FAddItemMessage::StaticStruct());
 	
 	return Entry != nullptr ? Entry->GetItemInstance() : nullptr;
 }
@@ -304,6 +342,15 @@ void UKRInventorySubsystem::SubtractItem(FGameplayTag ItemTag, int32 StackCount)
 
 void UKRInventorySubsystem::RemoveItem(FGameplayTag InTag)
 {
+	FGameplayTag RemoveItemTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.RemoveItem"));
+	
+	FGameplayMessageListenerHandle ListenerHandle = UGameplayMessageSubsystem::Get(this).RegisterListener(
+			RemoveItemTag,
+			this,
+			&UKRInventorySubsystem::OnMessageReceived);
+
+	UGameplayMessageSubsystem::Get(this).UnregisterListener(ListenerHandle);
+	
 	GetInventory().RemoveItem(InTag);
 }
 
@@ -345,6 +392,15 @@ TArray<UKRInventoryItemInstance*> UKRInventorySubsystem::FindItemsByTag(FGamepla
 void UKRInventorySubsystem::ClearInventory()
 {
 	PlayerInventory.Clear();
+}
+
+void UKRInventorySubsystem::OnMessageReceived(const FGameplayTag Channel, const FAddItemMessage& Message)
+{
+	UE_LOG(LogInventorySubSystem, Log, TEXT("[Inventory Message] Tag:%s Item:%s Count:%d"),
+		*Channel.ToString(),
+		*Message.ItemTag.ToString(),
+		Message.StackCount
+	);
 }
 
 void UKRInventorySubsystem::InitialFragmentType(TSubclassOf<UKRInventoryItemFragment> FragmentClass)
