@@ -30,8 +30,10 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Can_Jump,			"Player.Can.Jump");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_Ladder,		"Player.Action.Ladder");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_AddItem,		"Player.Action.AddItem");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_RemoveItem,	"Player.Action.RemoveItem");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Mode_UI,			"Player.Mode.UI");
 
 /* Event Tags */
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Combat_Hit,        "Event.Combat.Hit");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Equip_Sword,		"Event.Equip.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Unequip_Sword,	"Event.Unequip.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Equip_Gun,		"Event.Equip.Gun");
@@ -63,3 +65,8 @@ UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Common, "Rarity.Common", "Rarity Common");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Uncommon, "Rarity.Uncommon", "Rarity Uncommon");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Rare, "Rarity.Rare", "Rarity Rare");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Rarity_Epic, "Rarity.Epic", "Rarity Epic");
+
+/* SetByCaller Tags */
+UE_DEFINE_GAMEPLAY_TAG(KRTag_SetByCaller_BaseDamage, "SetByCaller.BaseDamage");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_SetByCaller_AttackType_Light, "SetByCaller.AttackType.Light");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_SetByCaller_AttackType_Charge, "SetByCaller.AttackType.Charge");
