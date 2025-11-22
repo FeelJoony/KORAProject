@@ -74,6 +74,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
                 int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
                 int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags"));
+                int32 BasePrice_Index = GetHeaderIndex(Headers, TEXT("BasePrice"));
                 int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
                 int32 DescriptionKey_Index = GetHeaderIndex(Headers, TEXT("DescriptionKey"));
                 int32 Icon_Index = GetHeaderIndex(Headers, TEXT("Icon"));
@@ -88,6 +89,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.Index = ParseIntValue(RowValue[Index_Index]);
                 ItemData.TypeTag = ParseGameplayTagValue(RowValue[TypeTag_Index]);
                 ItemData.RarityTag = ParseGameplayTagValue(RowValue[RarityTag_Index]);
+                ItemData.BasePrice = ParseIntValue(RowValue[BasePrice_Index]);
                 ItemData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
                 ItemData.DescriptionKey = ParseNameValue(RowValue[DescriptionKey_Index]);
                 ItemData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
