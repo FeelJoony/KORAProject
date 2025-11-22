@@ -9,11 +9,10 @@ class UAbilitySystemComponent;
 class AActor;
 
 USTRUCT(BlueprintType)
-struct FKRHUDInitArgs
+struct FKRHUDInitArgs // Args For HUD
 {
 	GENERATED_BODY()
 	UPROPERTY(BlueprintReadOnly) TObjectPtr<UAbilitySystemComponent> ASC = nullptr;
-	//UPROPERTY(BlueprintReadOnly) TObjectPtr<AActor> Avatar = nullptr;
 };
 
 
@@ -26,6 +25,9 @@ class KORAPROJECT_API IKRHUDWidgetInterface
 	GENERATED_BODY()
 
 public:
-	virtual void InitializeHUD(const FKRHUDInitArgs& Args) = 0;
-	virtual void TearDownHUD() = 0;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void InitializeHUD(const FKRHUDInitArgs& Args);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void TearDownHUD();
 };
