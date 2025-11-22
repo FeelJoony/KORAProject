@@ -15,10 +15,21 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
-	void ApplyOutliner();
+	void ApplyOutliner(AActor* Overlap);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
+	void ClearOutliner(AActor* Overlap);
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	TArray<AActor*> CurrentOverlapActors;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	TArray<AActor*> OverlapActors;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	TMap<AActor*, bool> AllOverlapActors;
+	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	TArray<AActor*> CachedOverlapActors;
 	
 private:
 	UFUNCTION()
