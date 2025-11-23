@@ -38,6 +38,7 @@ public class KORAProject : ModuleRules
 			"GameplayMessageRuntime",
             "SphereReveal",
             "PropertyPath",
+			"ModularGameplay"
 		});
 
 		// Uncomment if you are using Slate UI

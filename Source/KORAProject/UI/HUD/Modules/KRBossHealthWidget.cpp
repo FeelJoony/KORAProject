@@ -3,13 +3,11 @@
 
 #include "UI/HUD/Modules/KRBossHealthWidget.h"
 #include "UI/Data/UIStruct/KRProgressBarMessages.h"
+#include "GameplayTag/KRUITag.h"
 #include "Components/ProgressBar.h"
 #include "AbilitySystemComponent.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
-
-static FGameplayTag TAG_UI_Message_ProgressBar() { return FGameplayTag::RequestGameplayTag(TEXT("UI.Message.ProgressBar")); }
-static FGameplayTag TAG_ProgressBar_Health() { return FGameplayTag::RequestGameplayTag(TEXT("UI.ProgressBar.HP")); }
 
 void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC)
 {
@@ -27,7 +25,7 @@ void UKRBossHealthWidget::OnHUDInitialized()
 		}
 
 		BossListenerHandle = UGameplayMessageSubsystem::Get(World).RegisterListener<FKRProgressBarMessages>(
-				TAG_UI_Message_ProgressBar(),
+				KRTAG_UI_MESSAGE_PROGRESSBAR,
 				this,
 				&UKRBossHealthWidget::OnBossMessage
 		);
@@ -62,7 +60,7 @@ void UKRBossHealthWidget::OnBossMessage(FGameplayTag ChannelTag, const FKRProgre
 	if (!IsMessageFromBoss(Message))
 		return;
 
-	if (Message.ProgressBarTag != TAG_ProgressBar_Health() || Message.MaxValue <= 0.f)
+	if (Message.ProgressBarTag != KRTAG_UI_PROGRESSBAR_HP || Message.MaxValue <= 0.f)
 		return;
 
 	const float NewPercent = Message.NewValue / Message.MaxValue;

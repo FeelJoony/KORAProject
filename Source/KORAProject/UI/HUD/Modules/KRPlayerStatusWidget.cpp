@@ -9,11 +9,6 @@
 #include "Engine/World.h"
 #include "GameplayTag/KRUITag.h"
 
-static FGameplayTag TAG_UI_Message_ProgressBar() { return KRTAG_UI_MESSAGE_PROGRESSBAR; }
-static FGameplayTag TAG_ProgressBar_Health() { return KRTAG_UI_PROGRESSBAR_HP; }
-static FGameplayTag TAG_ProgressBar_Stamina() { return KRTAG_UI_PROGRESSBAR_STAMINA; }
-static FGameplayTag TAG_ProgressBar_CoreDrive() { return KRTAG_UI_PROGRESSBAR_COREDRIVE; }
-
 static FTimerHandle GHealthAnimTimerHandle;
 static FTimerHandle GStaminaAnimTimerHandle;
 
@@ -29,7 +24,7 @@ void UKRPlayerStatusWidget::OnHUDInitialized()
 		}
 
 		PBMessageListener = UGameplayMessageSubsystem::Get(World).RegisterListener<FKRProgressBarMessages>(
-				TAG_UI_Message_ProgressBar(),
+				KRTAG_UI_MESSAGE_PROGRESSBAR,
 				this,
 				&UKRPlayerStatusWidget::ProcessMessage
 			);
@@ -66,7 +61,7 @@ void UKRPlayerStatusWidget::ProcessMessage(FGameplayTag InTag, const FKRProgress
 
 	const float Percent = Message.NewValue / Message.MaxValue;
 
-	if (Message.ProgressBarTag == TAG_ProgressBar_Health())
+	if (Message.ProgressBarTag == KRTAG_UI_PROGRESSBAR_HP)
 	{
 		if (!MainHPBar)
 			return;
@@ -99,7 +94,7 @@ void UKRPlayerStatusWidget::ProcessMessage(FGameplayTag InTag, const FKRProgress
 			}
 		}
 	}
-	else if (Message.ProgressBarTag == TAG_ProgressBar_Stamina())
+	else if (Message.ProgressBarTag == KRTAG_UI_PROGRESSBAR_STAMINA)
 	{
 		if (!StaminaBar)
 			return;
@@ -107,7 +102,7 @@ void UKRPlayerStatusWidget::ProcessMessage(FGameplayTag InTag, const FKRProgress
 		StaminaTargetPercent = Percent;
 		StartStaminaAnim();
 	}
-	else if (Message.ProgressBarTag == TAG_ProgressBar_CoreDrive())
+	else if (Message.ProgressBarTag == KRTAG_UI_PROGRESSBAR_COREDRIVE)
 	{
 		CoreDriveValue = Message.NewValue;
 		CoreDriveMax = (Message.MaxValue > 0.f) ? Message.MaxValue : 60.f;
