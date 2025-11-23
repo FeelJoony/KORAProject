@@ -34,7 +34,6 @@ protected:
 	virtual void NativeDestruct() override;
 
 private:
-	//TWeakObjectPtr<UKRInventoryComponent> InventoryComp;
 	TArray<FKRItemUIData> CachedUIData;
 
 	UFUNCTION() void OnClickConsumables();
@@ -44,8 +43,9 @@ private:
 
 	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
 
-	void RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny);
-	//void BindInventoryEvents();
+	void FilterAndCacheItems(const FGameplayTag& FilterTag);
+	void RebuildInventoryUI(const FGameplayTag& FilterTag);
+	void BindInventoryEvents();
 	void UpdateDescriptionUI(int32 CellIndex);
 
 	void HandleMoveLeft();

@@ -14,8 +14,8 @@ class KORAPROJECT_API UKRHUDWidgetBase : public UCommonUserWidget, public IKRHUD
 	GENERATED_BODY()
 	
 public:
-	virtual void InitializeHUD(const FKRHUDInitArgs& Args) override;
-	virtual void TearDownHUD() override;
+	virtual void InitializeHUD_Implementation(const FKRHUDInitArgs& Args) override;
+	virtual void TearDownHUD_Implementation() override;
 
 protected:
 	virtual void OnHUDInitialized() {}
@@ -23,4 +23,6 @@ protected:
 
 	TWeakObjectPtr<UAbilitySystemComponent> ASCWeak;
 	//TWeakObjectPtr<AActor> AvatarWeak;
+
+	virtual void NativeDestruct() override;
 };

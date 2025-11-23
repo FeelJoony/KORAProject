@@ -26,7 +26,13 @@ public:
 	{
 		return NewObject<UKRInventoryItemInstance>();
 	}
+	
+	FORCEINLINE void SetItemTag(FGameplayTag InTag) { ItemTag = InTag; }
+	FORCEINLINE FGameplayTag GetItemTag() const { return ItemTag; }
 
+	void SetOwnerContext(UObject* InOwner) { OwnerContext = InOwner; }
+	UObject* GetOwnerContext() const { return OwnerContext; }
+	
 	class UKRInventoryItemDefinition* GetItemDef() const
 	{
 		return ItemDef;
@@ -56,6 +62,12 @@ private:
 	//UPROPERTY()
 	//FGameplayTagStackContainer StatTags;
 
+	UPROPERTY()
+	FGameplayTag ItemTag;
+
+	UPROPERTY()
+	TObjectPtr<UObject> OwnerContext;
+	
 	UPROPERTY()
 	TObjectPtr<class UKRInventoryItemDefinition> ItemDef;
 };

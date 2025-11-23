@@ -23,7 +23,8 @@ public class KORAProject : ModuleRules
 			"Slate",
 			"SlateCore",
 			"CommonUI",
-			"CommonInput"
+			"CommonInput",
+			"StateTreeModule"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
@@ -34,7 +35,10 @@ public class KORAProject : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"AnimGraphRuntime",
-			"GameplayMessageRuntime"
+			"GameplayMessageRuntime",
+            "SphereReveal",
+            "PropertyPath",
+			"ModularGameplay"
 		});
 
 		// Uncomment if you are using Slate UI

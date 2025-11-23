@@ -27,8 +27,6 @@ public:
 protected:
 	UPROPERTY()
 	TArray<FInteractionOption> CurrentOptions;
-	UPROPERTY()
-	TArray<TObjectPtr<UIndicatorDescriptor>> Indicators;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
 	float InteractionScanRate;
