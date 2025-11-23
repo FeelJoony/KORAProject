@@ -77,6 +77,10 @@ struct FKRInventoryList
 
 	FKRInventoryList() {}
 
+	UObject* OwnerContext = nullptr;
+
+	void SetOwnerContext(UObject* InOwner) { OwnerContext = InOwner; }
+	
 	FKRInventoryEntry* CreateItem(FGameplayTag InTag);
 	
 	void RemoveItem(FGameplayTag InTag);
@@ -179,6 +183,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void ClearInventory();
 
+	UFUNCTION()
+	void OnMessageReceived(const FGameplayTag Channel, const FAddItemMessage& Message);
+	
+	template<typename T>
+	void ReceivedAddItemMessage(FGameplayTag Channel, const T& Message);
+	
 private:
 	UPROPERTY()
 	TMap<FGameplayTag, TSubclassOf<class UKRInventoryItemFragment>> FragmentRegistry;
@@ -194,3 +204,9 @@ private:
 	void InitializeItemDefinitionFragments();
 	void InitialFragmentType(TSubclassOf<class UKRInventoryItemFragment> FragmentClass);
 };
+
+template <typename T>
+void UKRInventorySubsystem::ReceivedAddItemMessage(FGameplayTag Channel, const T& Message)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AddItemMessage Received! Count: %d"), Message.Count);
+}

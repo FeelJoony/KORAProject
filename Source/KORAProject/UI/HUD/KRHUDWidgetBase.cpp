@@ -2,17 +2,22 @@
 
 
 #include "UI/HUD/KRHUDWidgetBase.h"
+#include "AbilitySystemComponent.h"
 
-void UKRHUDWidgetBase::InitializeHUD(const FKRHUDInitArgs& Args)
+void UKRHUDWidgetBase::InitializeHUD_Implementation(const FKRHUDInitArgs& Args)
 {
-	//ASCWeak = Args.ASC;
-	//AvatarWeak = Args.Avatar;
-	OnHUDInitialized();
+    ASCWeak = Args.ASC;
+    OnHUDInitialized();
 }
 
-void UKRHUDWidgetBase::TearDownHUD()
+void UKRHUDWidgetBase::TearDownHUD_Implementation()
 {
-	UnbindAll();
-	//ASCWeak.Reset();
-	//AvatarWeak.Reset();
+    UnbindAll();
+    ASCWeak = nullptr;
+}
+
+void UKRHUDWidgetBase::NativeDestruct()
+{
+    TearDownHUD_Implementation();
+    Super::NativeDestruct();
 }
