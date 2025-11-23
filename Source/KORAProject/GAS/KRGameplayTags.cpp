@@ -29,8 +29,14 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_State_Acting_Interacting,	"State.Acting.Interacing"
 /* Player Tags */
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Weapon_Sword,	"Player.Weapon.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Weapon_Gun,		"Player.Weapon.Gun");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Can_Step,		"Player.Can.Step");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Can_Jump,		"Player.Can.Jump");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Action_Ladder,	"Player.Action.Ladder");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Player_Mode_UI,		"Player.Mode.UI");
+
 
 /* Event Tags */
+UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Combat_Hit,		"Event.Combat.Hit");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Equip_Sword,		"Event.Equip.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Unequip_Sword,	"Event.Unequip.Sword");
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Event_Equip_Gun,		"Event.Equip.Gun");
@@ -53,8 +59,13 @@ UE_DEFINE_GAMEPLAY_TAG(KRTag_Ability_Scanning,				"Ability.Scanning");
 /* Enemy Tags */
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Enemy_Weapon,	"Enemy.Weapon");
 
-/*Cooldown Tags*/
+/* Cooldown Tags */
 UE_DEFINE_GAMEPLAY_TAG(KRTag_Cooldown_Ability,		"Cooldown.Ability");
+
+/* SetByCaller Tags */
+UE_DEFINE_GAMEPLAY_TAG(KRTag_SetByCaller_BaseDamage, "SetByCaller.BaseDamage");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_SetByCaller_AttackType_Light, "SetByCaller.AttackType.Light");
+UE_DEFINE_GAMEPLAY_TAG(KRTag_SetByCaller_AttackType_Charge, "SetByCaller.AttackType.Charge");
 
 // ----- PoolTags -----
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Pool_AlwaysOn, "Pool.AlwaysOn", "상점 상시 품목");

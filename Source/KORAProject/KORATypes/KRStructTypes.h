@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameplayTagContainer.h"
+#include "ScalableFloat.h"
 #include "KRStructTypes.generated.h"
 
 class UKRHeroLinkedAnimLayer;
@@ -19,6 +20,15 @@ struct FKRHeroAbilitySet
 	TSubclassOf<UKRHeroGameplayAbility> AbilityToGrant;
 
 	bool IsValid() const;
+};
+
+USTRUCT(BlueprintType)
+struct FKRWeaponCommonData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FScalableFloat WeaponBaseDamage;
 };
 
 USTRUCT(BlueprintType)

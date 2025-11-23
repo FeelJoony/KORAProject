@@ -5,7 +5,7 @@
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
 #include "Engine/AssetManager.h"
-#include "Data/StartUpData/DataAsset_EnemyStartUpData.h"
+#include "Data/DataAssets/StartUpData/DataAsset_EnemyStartUpData.h"
 
 #include "KORADebugHelper.h"
 

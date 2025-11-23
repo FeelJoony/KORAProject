@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/StartUpData/DataAsset_StartUpDataBase.h"
+#include "Data/DataAssets/StartUpData/DataAsset_StartUpDataBase.h"
 #include "KORATypes/KRStructTypes.h"
 #include "DataAsset_HeroStartUpData.generated.h"
 
