@@ -7,8 +7,6 @@
 #include "Controllers/KRHeroController.h"
 #include "Interaction/InteractionStatics.h"
 #include "Interaction/InteractableTarget.h"
-#include "UI/Indicators/IndicatorDescriptor.h"
-#include "UI/Indicators/KRIndicatorManagerComponent.h"
 
 UKRGA_Interact::UKRGA_Interact()
 {
@@ -56,32 +54,6 @@ void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UKRGA_Interact::UpdateInteractions(const TArray<FInteractionOption>& InteractiveOptions)
 {
-	if (AKRHeroController* PC = Cast<AKRHeroController>(CurrentActorInfo->PlayerController.Get()))
-		{
-		if (UKRIndicatorManagerComponent* IndicatorManager = PC->FindComponentByClass<UKRIndicatorManagerComponent>())
-		{
-			for (UIndicatorDescriptor* Indicator : Indicators)
-			{
-				IndicatorManager->RemoveIndicator(Indicator);
-			}
-			Indicators.Reset();
-			for (const FInteractionOption& InteractionOption : InteractiveOptions)
-			{
-				AActor* InteractableTargetActor = UInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
-				TSoftClassPtr<UUserWidget> InteractionWidgetClass = InteractionOption.InteractionWidgetClass.IsNull() ? DefaultInteractionWidgetClass : InteractionOption.InteractionWidgetClass;
-				UIndicatorDescriptor* Indicator = NewObject<UIndicatorDescriptor>();
-				Indicator->SetDataObject(InteractableTargetActor);
-				Indicator->SetSceneComponent(InteractableTargetActor->GetRootComponent());
-				Indicator->SetIndicatorClass(InteractionWidgetClass);
-				IndicatorManager->AddIndicator(Indicator);
-				Indicators.Add(Indicator);
-			}
-		}
-		else
-			{
-				//TODO This should probably be a noisy warning. Why are we updating interactions on a PC that can never do anything with them?
-			}
-		}
 	CurrentOptions = InteractiveOptions;
 	//UE_LOG(LogTemp, Warning, TEXT("[Update] CurrentOptions updated: %d options"), CurrentOptions.Num());
 }

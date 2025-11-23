@@ -28,6 +28,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	float Direction;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
+	FVector Velocity;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
 	bool bIsLockOn;
 	
