@@ -1,7 +1,7 @@
 #include "Components/Combat/HeroCombatComponent.h"
 #include "Item/Weapons/KRWeaponBase.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "GAS/KRGameplayTags.h"
+#include "GameplayTag/KREventTag.h"
 #include "KORATypes/KRStructTypes.h"
 
 #include "KORADebugHelper.h"
@@ -43,7 +43,7 @@ void UHeroCombatComponent::OnHitTargetActor(AActor* HitActor, const FHitResult& 
 	Data.Instigator = GetOwningPawn();
 	Data.Target = HitActor;
 
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetOwningPawn(), KRTag_Event_Combat_Hit, Data);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetOwningPawn(), KRTAG_EVENT_COMBAT_HIT, Data);
 	
 }
 

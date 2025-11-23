@@ -9,7 +9,7 @@
 #include "Components/Input/KRInputComponent.h"
 #include "Data/DataAssets/StartUpData/DataAsset_StartUpDataBase.h"
 #include "GAS/KRAbilitySystemComponent.h"
-#include "GAS/KRGameplayTags.h"
+#include "GameplayTag/KRInputTag.h"
 #include "GAS/KRPlayerAbilitySystemComponent.h"
 #include "Player/KRPlayerState.h"
 
@@ -61,8 +61,8 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	
 	UKRInputComponent* KRInputComponent = CastChecked<UKRInputComponent>(PlayerInputComponent);
 
-	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTag_Input_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
-	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTag_Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTAG_INPUT_MOVE, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
+	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTAG_INPUT_LOOK, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
 	
 	KRInputComponent->BindAbilityInputAction(InputConfigDataAsset, this, &ThisClass::Input_AbilityInputPressed, &ThisClass::Input_AbilityInputReleased);
 }

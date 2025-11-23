@@ -3,7 +3,7 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Tasks/AbilityTask_WaitForInteractableTargets_SingleLineTrace.h"
 #include "GAS/Tasks/AbilityTask_GrantNearbyInteraction.h"
-#include "GAS/KRGameplayTags.h"
+#include "GameplayTag/KRStateTag.h"
 #include "Controllers/KRHeroController.h"
 #include "Interaction/InteractionStatics.h"
 #include "Interaction/InteractableTarget.h"
@@ -74,17 +74,17 @@ void UKRGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const
 		AActor* InteractableTargetActor = UInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
 
 		FGameplayEventData Payload;
-		Payload.EventTag = KRTag_State_Acting_Interacting;
+		Payload.EventTag = KRTAG_STATE_ACTING_INTERACTING;
 		Payload.Instigator = Instigator;
 		Payload.Target = InteractableTargetActor;
 
-		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRTag_State_Acting_Interacting, Payload);
+		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRTAG_STATE_ACTING_INTERACTING, Payload);
 
 		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));// GA 실행 주체
 		
 		FGameplayAbilityActorInfo ActorInfomation;
 		ActorInfomation.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetASC);
 
-		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfomation, KRTag_State_Acting_Interacting, &Payload, *InteractionOption.TargetASC );
+		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfomation, KRTAG_STATE_ACTING_INTERACTING, &Payload, *InteractionOption.TargetASC );
 	}
 }

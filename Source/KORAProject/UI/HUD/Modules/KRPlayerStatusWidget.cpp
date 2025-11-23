@@ -7,11 +7,12 @@
 #include "AbilitySystemComponent.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "GameplayTag/KRUITag.h"
 
-static FGameplayTag TAG_UI_Message_ProgressBar() { return FGameplayTag::RequestGameplayTag(TEXT("UI.Message.ProgressBar")); }
-static FGameplayTag TAG_ProgressBar_Health() { return FGameplayTag::RequestGameplayTag(TEXT("UI.ProgressBar.HP")); }
-static FGameplayTag TAG_ProgressBar_Stamina() { return FGameplayTag::RequestGameplayTag(TEXT("UI.ProgressBar.Stamina")); }
-static FGameplayTag TAG_ProgressBar_CoreDrive() { return FGameplayTag::RequestGameplayTag(TEXT("UI.ProgressBar.CoreDrive")); }
+static FGameplayTag TAG_UI_Message_ProgressBar() { return KRTAG_UI_MESSAGE_PROGRESSBAR; }
+static FGameplayTag TAG_ProgressBar_Health() { return KRTAG_UI_PROGRESSBAR_HP; }
+static FGameplayTag TAG_ProgressBar_Stamina() { return KRTAG_UI_PROGRESSBAR_STAMINA; }
+static FGameplayTag TAG_ProgressBar_CoreDrive() { return KRTAG_UI_PROGRESSBAR_COREDRIVE; }
 
 static FTimerHandle GHealthAnimTimerHandle;
 static FTimerHandle GStaminaAnimTimerHandle;

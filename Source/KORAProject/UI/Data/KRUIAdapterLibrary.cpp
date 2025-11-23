@@ -5,17 +5,18 @@
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Subsystem/KRInventorySubsystem.h"
 #include "Inventory/Fragment/InventoryFragment_DisplayUI.h"
-#include "GAS/KRFragmentTag.h"
+#include "GameplayTag/KRItemTypeTag.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Engine/GameInstance.h"
+#include "GameplayTag/KRAbilityTag.h"
 
 bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInstance* Instance, FKRItemUIData& Out)
 {
     Out = {};
     if (!Instance) return false;
 
-    const UKRInventoryItemFragment* RawFrag = Instance->FindFragmentByTag(TAG_Item_Fragment_DisplayUI);
+    const UKRInventoryItemFragment* RawFrag = Instance->FindFragmentByTag(KRTAG_ABILITY_ITEM_DISPLAYUI);
     const UInventoryFragment_DisplayUI* UI = Cast<UInventoryFragment_DisplayUI>(RawFrag);
     if (!UI) return false;
 
