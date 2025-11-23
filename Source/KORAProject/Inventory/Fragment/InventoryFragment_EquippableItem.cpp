@@ -1,5 +1,4 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
-#include "Inventory/InventoryFragment_ConsumeAbility.h"
+#include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 

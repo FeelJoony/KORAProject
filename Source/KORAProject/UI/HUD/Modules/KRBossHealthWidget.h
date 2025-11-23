@@ -3,25 +3,42 @@
 #pragma once
 
 #include "UI/HUD/KRHUDWidgetBase.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "KRBossHealthWidget.generated.h"
 
-class UProgressBar; 
-class UKRAttributeSet;
+class UProgressBar;
+class UAbilitySystemComponent;
+struct FKRProgressBarMessages;
 
 UCLASS()
 class KORAPROJECT_API UKRBossHealthWidget : public UKRHUDWidgetBase
 {
 	GENERATED_BODY()
-	
+
 public:
-	UFUNCTION(BlueprintCallable) void SetBossASC(UAbilitySystemComponent* InASC);
+	UFUNCTION(BlueprintCallable)
+	void SetBossASC(UAbilitySystemComponent* InASC);
 
 protected:
-	void UnbindBoss();
-	void RefreshBoss();
-	//void OnBossAttrChanged( InData);
-
 	UPROPERTY(meta = (BindWidget)) UProgressBar* BossHP = nullptr;
-	TWeakObjectPtr<UAbilitySystemComponent> BossASC;
-	FDelegateHandle H_BossHP, H_BossMax;
+
+	virtual void OnHUDInitialized() override;
+	virtual void NativeDestruct() override;
+	virtual void UnbindAll() override;
+
+private:
+	TWeakObjectPtr<UAbilitySystemComponent> BossASCWeak;
+	FGameplayMessageListenerHandle BossListenerHandle;
+
+	float BossDisplayPercent = 1.f;
+	float BossTargetPercent = 1.f;
+	float BossAnimTime = 0.3f;
+	float BossAnimElapsed = 0.f;
+	FTimerHandle BossAnimTimerHandle;
+
+	void OnBossMessage(FGameplayTag ChannelTag, const FKRProgressBarMessages& Message);
+	bool IsMessageFromBoss(const FKRProgressBarMessages& Message) const;
+
+	void StartBossAnim();
+	void TickBossAnim();
 };

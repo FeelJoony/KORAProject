@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CommonActivatableWidget.h"
+#include "UI/HUD/KRHUDWidgetInterface.h"
 #include "KRHUD.generated.h"
 
 class UKRPlayerStatusWidget;
@@ -16,13 +17,17 @@ class KORAPROJECT_API UKRHUD : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
 
-public:
-	void InitializeHUD();
-
 protected:
 	UPROPERTY(meta = (BindWidget)) UKRPlayerStatusWidget* PlayerStatusBar = nullptr;
-	UPROPERTY(meta = (BindWidget)) UKRWeaponSwitchWidget* WeaponSwitch = nullptr;
-	UPROPERTY(meta = (BindWidget)) UKRBossHealthWidget* BossHP = nullptr;
+	UPROPERTY(meta = (BindWidget)) UKRBossHealthWidget* BossHPBar = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKRQuestPanelWidget* QuestPanel = nullptr;
 	UPROPERTY(meta = (BindWidget)) UCommonUserWidget* CurrencyPanel = nullptr;
+
+	virtual void NativeOnActivated() override;
+	virtual void NativeOnDeactivated() override;
+	virtual void NativeDestruct() override;
+
+private:
+	void InitializeChildrenHUD(const FKRHUDInitArgs& Args);
+	void TearDownChildrenHUD();
 };
