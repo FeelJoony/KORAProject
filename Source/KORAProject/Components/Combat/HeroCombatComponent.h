@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Components/Combat/PawnCombatComponent.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
 #include "HeroCombatComponent.generated.h"
 
 
-class AKRHeroMeleeWeapon;
+class AKRWeaponBase;
 
 UCLASS()
 class KORAPROJECT_API UHeroCombatComponent : public UPawnCombatComponent
@@ -14,5 +15,14 @@ class KORAPROJECT_API UHeroCombatComponent : public UPawnCombatComponent
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
-	AKRHeroMeleeWeapon* GetHeroCarriedMeleeWeaponByTag(FGameplayTag InWeaponTag) const;
+	AKRWeaponBase* GetHeroCarriedWeaponByTag(FGameplayTag InWeaponTag) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
+	AKRWeaponBase* GetHeroCurrentEquippedWeapon() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
+	float GetHeroCurrentEquippedWeaponDamageAtLevel(float InLevel) const;
+	
+	virtual void OnHitTargetActor(AActor* HitActor, const FHitResult& HitResult) override;
+	virtual void OnWeaponPulledFromTargetActor(AActor* InteractedActor, const FHitResult& HitResult) override;
 };

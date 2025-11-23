@@ -1,4 +1,4 @@
-#include "Data/StartUpData/DataAsset_EnemyStartUpData.h"
+#include "Data/DataAssets//StartUpData/DataAsset_EnemyStartUpData.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/Abilities/KREnemyGameplayAbility.h"
 

@@ -1,4 +1,4 @@
-#include "Data/StartUpData/DataAsset_HeroStartUpData.h"
+#include "Data/DataAssets/StartUpData/DataAsset_HeroStartUpData.h"
 #include "GAS/Abilities/KRHeroGameplayAbility.h"
 #include "GAS/KRAbilitySystemComponent.h"
 

@@ -5,9 +5,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Components/Combat/HeroCombatComponent.h"
-#include "Data/DataAsset_InputConfig.h"
+#include "Data/DataAssets/DataAsset_InputConfig.h"
 #include "Components/Input/KRInputComponent.h"
-#include "Data/StartUpData/DataAsset_StartUpDataBase.h"
+#include "Data/DataAssets/StartUpData/DataAsset_StartUpDataBase.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/KRGameplayTags.h"
 #include "GAS/KRPlayerAbilitySystemComponent.h"
@@ -65,6 +65,12 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	KRInputComponent->BindNativeInputAction(InputConfigDataAsset, KRTag_Input_Look, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
 	
 	KRInputComponent->BindAbilityInputAction(InputConfigDataAsset, this, &ThisClass::Input_AbilityInputPressed, &ThisClass::Input_AbilityInputReleased);
+}
+
+void AKRHeroCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	CachedOutlinerComponent->GetDefaultSubobjectByName(TEXT("OutlinerComponent"));
 }
 
 void AKRHeroCharacter::PossessedBy(AController* NewController)

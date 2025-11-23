@@ -35,6 +35,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
 	void ToggleWeaponCollision(bool bShouldEnable, EToggleDamageType ToggleDamageType = EToggleDamageType::CurrentEquippedWeapon);
+
+	virtual void OnHitTargetActor(AActor* HitActor, const FHitResult& HitResult);
+	virtual void OnWeaponPulledFromTargetActor(AActor* InteractedActor, const FHitResult& HitResult);
+
+protected:
+	TArray<TObjectPtr<AActor>> OverlappedActors;
 	
 private:
 	TMap<FGameplayTag, AKRWeaponBase*> CharacterCarriedWeaponMap;

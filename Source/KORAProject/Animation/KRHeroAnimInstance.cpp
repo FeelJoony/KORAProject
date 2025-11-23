@@ -27,7 +27,11 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		IdleElapsedTime += DeltaSeconds;
 		bShouldEnterRelaxState = (IdleElapsedTime >= EnterRelaxStateTime);
 	}
-	
+
+	if (CachedCharacter)
+	{
+		Velocity = CachedCharacter->GetVelocity();
+	}
 	
 	/*Direction = UKismetAnimationLibrary::CalculateDirection(
 			CachedCharacter->GetVelocity(),
