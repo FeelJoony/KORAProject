@@ -4,7 +4,7 @@
 #include "GAS/Abilities/KRHeroGameplayAbility.h"
 #include "KRGA_Scanning.generated.h"
 
-class AScannerController;
+//class AScannerController;
 
 UCLASS()
 class KORAPROJECT_API UKRGA_Scanning : public UKRHeroGameplayAbility
@@ -43,8 +43,8 @@ private:
 	UPROPERTY()
 	TObjectPtr<ACharacter> CachedCharacter;
 	
-	UPROPERTY()
-	TObjectPtr<AScannerController> CachedScannerController;
+	//UPROPERTY()
+	//TObjectPtr<AScannerController> CachedScannerController;
 
 	UPROPERTY()
 	FTimerHandle ScanTimer;
