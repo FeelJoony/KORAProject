@@ -89,7 +89,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.Index = ParseIntValue(RowValue[Index_Index]);
                 ItemData.TypeTag = ParseGameplayTagValue(RowValue[TypeTag_Index]);
                 ItemData.RarityTag = ParseGameplayTagValue(RowValue[RarityTag_Index]);
-                ItemData.BasePrice = ParseIntValue(RowValue[BasePrice_Index]);
+                ItemData.BasePrice = ParseFloatValue(RowValue[BasePrice_Index]);
                 ItemData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
                 ItemData.DescriptionKey = ParseNameValue(RowValue[DescriptionKey_Index]);
                 ItemData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
