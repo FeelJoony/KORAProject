@@ -4,11 +4,12 @@
 
 #include "CommonActivatableWidget.h"
 #include "GameplayTagContainer.h"
+#include "UI/Data/KRItemUIData.h"
 #include "KRWeaponUpgradePage.generated.h"
 
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
-struct FKRItemUIData;
+//struct FKRItemUIData;
 
 UCLASS()
 class KORAPROJECT_API UKRWeaponUpgradePage : public UCommonActivatableWidget
@@ -25,7 +26,6 @@ protected:
 	virtual void NativeOnDeactivated() override;
 
 private:
-	//TWeakObjectPtr<UKRInventoryComponent> InventoryComp;
 	TArray<FKRItemUIData> CachedUIData;
 
 	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
