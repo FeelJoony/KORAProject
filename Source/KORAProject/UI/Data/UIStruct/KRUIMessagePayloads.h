@@ -17,6 +17,7 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag QuickSlot() { return KRTAG_UI_MESSAGE_QUICKSLOT; }
 	static const FGameplayTag Quest() { return KRTAG_UI_MESSAGE_QUEST; }
 	static const FGameplayTag Currency() { return KRTAG_UI_MESSAGE_CURRENCY; }
+	static const FGameplayTag Confirm() { return KRTAG_UI_MESSAGE_CONFIRM; }
 };
 
  // -----  ProgressBar -----
@@ -161,4 +162,37 @@ struct KORAPROJECT_API FKRUIMessage_Currency
 	UPROPERTY(BlueprintReadOnly) int32 DeltaGearing = 0; // + Acq - Lost
 
 	UPROPERTY(BlueprintReadOnly) int32 CurrentCorbyte = 0;
+};
+
+//----- Confirm Modal -----
+
+UENUM(BlueprintType)
+enum class EConfirmResult : uint8
+{
+	None    UMETA(DisplayName = "None"),
+	Yes     UMETA(DisplayName = "Yes"),
+	No      UMETA(DisplayName = "No"),
+};
+
+UENUM(BlueprintType)
+enum class EConfirmContext : uint8
+{
+	Generic     UMETA(DisplayName = "Generic"),
+	NewGame     UMETA(DisplayName = "MainMenu|NewGame"),
+	Continue	UMETA(DisplayName = "MainMenu|Continue"),
+	QuitGame    UMETA(DisplayName = "Menu|QuitGame"),
+	ShopBuy     UMETA(DisplayName = "Shop|Buy"),
+	ShopSell    UMETA(DisplayName = "Shop|Sell"),
+	WeaponUpgrade   UMETA(DisplayName = "BlackSmith|WeaponUpgrade"),
+};
+
+USTRUCT(BlueprintType)
+struct KORAPROJECT_API FKRUIMessage_Confirm
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly) EConfirmContext Context = EConfirmContext::Generic;
+	UPROPERTY(BlueprintReadOnly) EConfirmResult Result = EConfirmResult::None;
+	UPROPERTY(BlueprintReadOnly) FGameplayTag ItemTag; // ItemTag, WeaponTag, etc.
+	UPROPERTY(BlueprintReadOnly) int32 Quantity = 0; // Item Quantity
 };
