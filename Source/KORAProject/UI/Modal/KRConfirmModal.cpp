@@ -49,10 +49,10 @@ void UKRConfirmModal::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    if (YesButton) YesButton->OnClicked().AddDynamic(this, &ThisClass::HandleYes);
-    if (NoButton) NoButton->OnClicked().AddDynamic(this, &ThisClass::HandleNo);
-    if (IncreaseButton) IncreaseButton->OnClicked().AddDynamic(this, &ThisClass::HandleIncrease);
-    if (DecreaseButton) DecreaseButton->OnClicked().AddDynamic(this, &ThisClass::HandleDecrease);
+    if (YesButton) YesButton->OnClicked().AddUObject(this, &ThisClass::HandleYes);
+    if (NoButton) NoButton->OnClicked().AddUObject(this, &ThisClass::HandleNo);
+    if (IncreaseButton) IncreaseButton->OnClicked().AddUObject(this, &ThisClass::HandleIncrease);
+    if (DecreaseButton) DecreaseButton->OnClicked().AddUObject(this, &ThisClass::HandleDecrease);
 }
 
 void UKRConfirmModal::NativeOnDeactivated()
