@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GameplayTagContainer.h"
 #include "KRItemUIData.generated.h"
 
 class UTexture2D;
@@ -8,6 +9,7 @@ USTRUCT(BlueprintType)
 struct KORAPROJECT_API FKRItemUIData
 {
     GENERATED_BODY()
+    UPROPERTY(BlueprintReadOnly, EditAnywhere) FGameplayTag ItemTag;
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere) FName ItemNameKey;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) FName ItemDescriptionKey;
