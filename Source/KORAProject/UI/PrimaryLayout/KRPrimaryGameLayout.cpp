@@ -17,6 +17,7 @@ void UKRPrimaryGameLayout::NativeOnInitialized()
             Router->RegisterLayer(TEXT("GameMenu"), GameMenuLayerStack);
             Router->RegisterLayer(TEXT("Menu"), MenuLayerStack);
             Router->RegisterLayer(TEXT("Modal"), ModalLayerStack);
+            Router->RegisterLayer(TEXT("GamePopup"), GamePopupLayerStack);
 
             if (!RouteTable.IsNull())
             {
