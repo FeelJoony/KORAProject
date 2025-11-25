@@ -7,9 +7,7 @@
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRQuickSlotWidget.generated.h"
 
-class UImage;
-class UTextBlock;
-class UBorder;
+class UKRQuickSlotButtonBase;
 
 UCLASS()
 class KORAPROJECT_API UKRQuickSlotWidget : public UCommonUserWidget
@@ -22,6 +20,12 @@ public:
 
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);
+	UKRQuickSlotButtonBase* GetSlotButton(EQuickSlotDirection Direction) const;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> NorthQuickSlot;
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> EastQuickSlot;
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> SouthQuickSlot;
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> WestQuickSlot;
 
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlot(EQuickSlotDirection Direction, int32 Quantity, const FSoftObjectPath& IconPath);
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void ClearSlot(EQuickSlotDirection Direction);
@@ -35,26 +39,6 @@ protected:
 	void BP_OnSlotRegistered(EQuickSlotDirection Direction);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot Selection Changed"))
 	void BP_OnSlotSelectionChanged(EQuickSlotDirection NewSelectedSlot);
-
-	void GetSlotWidgets(EQuickSlotDirection Direction, UImage*& OutIcon, UTextBlock*& OutQuantity, UBorder*& OutBorder);
-
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> NorthSlotIcon;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> NorthSlotQuantity;
-
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> EastSlotIcon;
-
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> EastSlotQuantity;
-
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> SouthSlotIcon;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SouthSlotQuantity;
-
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> WestSlotIcon;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> WestSlotQuantity;
-
-
-	UPROPERTY(EditDefaultsOnly, Category = "QuickSlot|Visual") FLinearColor HighlightColor = FLinearColor::Yellow;
-	UPROPERTY(EditDefaultsOnly, Category = "QuickSlot|Visual") FLinearColor NormalColor = FLinearColor::White;
-	UPROPERTY(EditDefaultsOnly, Category = "QuickSlot|Visual") float EmptySlotOpacity = 0.3f;
 
 private:
 	FGameplayMessageListenerHandle QuickSlotListener;

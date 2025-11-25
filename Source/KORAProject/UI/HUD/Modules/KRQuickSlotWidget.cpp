@@ -1,10 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/HUD/Modules/KRQuickSlotWidget.h"
+#include "UI/HUD/Modules/KRQuickSlotButtonBase.h"
 
-#include "Components/Image.h"
-#include "Components/TextBlock.h"
-#include "Components/Border.h"
 #include "Engine/World.h"
 
 void UKRQuickSlotWidget::NativeConstruct()
@@ -87,143 +85,52 @@ void UKRQuickSlotWidget::OnQuickSlotMessageReceived(FGameplayTag Channel, const 
 	}
 }
 
+UKRQuickSlotButtonBase* UKRQuickSlotWidget::GetSlotButton(EQuickSlotDirection Direction) const
+{
+	switch (Direction)
+	{
+	case EQuickSlotDirection::North: return NorthQuickSlot;
+	case EQuickSlotDirection::East:  return EastQuickSlot;
+	case EQuickSlotDirection::South: return SouthQuickSlot;
+	case EQuickSlotDirection::West:  return WestQuickSlot;
+	default:                         return nullptr;
+	}
+}
+
 void UKRQuickSlotWidget::UpdateSlot(EQuickSlotDirection Direction, int32 Quantity, const FSoftObjectPath& IconPath)
 {
-	UImage* Icon = nullptr;
-	UTextBlock* QuantityText = nullptr;
-	UBorder* Border = nullptr;
-	GetSlotWidgets(Direction, Icon, QuantityText, Border);
-
-	if (Icon)
+	if (UKRQuickSlotButtonBase* QuickSlot = GetSlotButton(Direction))
 	{
-		if (IconPath.IsValid())
-		{
-			Icon->SetOpacity(1.0f);
-		}
-		else
-		{
-			Icon->SetOpacity(EmptySlotOpacity);
-		}
-	}
-
-	if (QuantityText)
-	{
-		if (Quantity > 0)
-		{
-			QuantityText->SetText(FText::AsNumber(Quantity));
-		}
-		else
-		{
-			QuantityText->SetText(FText::GetEmpty());
-		}
-	}
-
-	if (Border)
-	{
-		Border->SetBrushColor(NormalColor);
+		QuickSlot->BP_SetSlotData(Quantity, IconPath);
 	}
 }
 
 void UKRQuickSlotWidget::ClearSlot(EQuickSlotDirection Direction)
 {
-	UImage* Icon = nullptr;
-	UTextBlock* QuantityText = nullptr;
-	UBorder* Border = nullptr;
-	GetSlotWidgets(Direction, Icon, QuantityText, Border);
-
-	if (Icon)
+	if (UKRQuickSlotButtonBase* QuickSlot = GetSlotButton(Direction))
 	{
-		Icon->SetOpacity(EmptySlotOpacity);
-	}
-
-	if (QuantityText)
-	{
-		QuantityText->SetText(FText::GetEmpty());
-	}
-
-	if (Border)
-	{
-		Border->SetBrushColor(NormalColor);
+		QuickSlot->BP_ClearSlot();
 	}
 }
 
 void UKRQuickSlotWidget::HighlightSlot(EQuickSlotDirection Direction)
 {
-	auto ResetBorder = [this](EQuickSlotDirection Dir)
-		{
-			UImage* DummyIcon = nullptr;
-			UTextBlock* DummyText = nullptr;
-			UBorder* Border = nullptr;
-			GetSlotWidgets(Dir, DummyIcon, DummyText, Border);
-			if (Border)
-			{
-				Border->SetBrushColor(NormalColor);
-			}
-		};
+	if (UKRQuickSlotButtonBase* N = GetSlotButton(EQuickSlotDirection::North)) N->BP_SetHighlight(false);
+	if (UKRQuickSlotButtonBase* E = GetSlotButton(EQuickSlotDirection::East))  E->BP_SetHighlight(false);
+	if (UKRQuickSlotButtonBase* S = GetSlotButton(EQuickSlotDirection::South)) S->BP_SetHighlight(false);
+	if (UKRQuickSlotButtonBase* W = GetSlotButton(EQuickSlotDirection::West))  W->BP_SetHighlight(false);
 
-	ResetBorder(EQuickSlotDirection::North);
-	ResetBorder(EQuickSlotDirection::East);
-	ResetBorder(EQuickSlotDirection::South);
-	ResetBorder(EQuickSlotDirection::West);
-
-	UImage* Icon = nullptr;
-	UTextBlock* Text = nullptr;
-	UBorder* Border = nullptr;
-	GetSlotWidgets(Direction, Icon, Text, Border);
-
-	if (Border)
+	if (UKRQuickSlotButtonBase* Selected = GetSlotButton(Direction))
 	{
-		Border->SetBrushColor(HighlightColor);
+		Selected->BP_SetHighlight(true);
 	}
 }
 
 void UKRQuickSlotWidget::UpdateSlotQuantity(EQuickSlotDirection Direction, int32 NewQuantity)
 {
-	UImage* Icon = nullptr;
-	UTextBlock* QuantityText = nullptr;
-	UBorder* Border = nullptr;
-	GetSlotWidgets(Direction, Icon, QuantityText, Border);
-
-	if (QuantityText)
+	if (UKRQuickSlotButtonBase* QuickSlot = GetSlotButton(Direction))
 	{
-		if (NewQuantity > 0)
-		{
-			QuantityText->SetText(FText::AsNumber(NewQuantity));
-		}
-		else
-		{
-			QuantityText->SetText(FText::GetEmpty());
-		}
-	}
-}
-
-void UKRQuickSlotWidget::GetSlotWidgets(EQuickSlotDirection Direction, UImage*& OutIcon, UTextBlock*& OutQuantity, UBorder*& OutBorder)
-{
-	OutIcon = nullptr;
-	OutQuantity = nullptr;
-	OutBorder = nullptr;
-
-	switch (Direction)
-	{
-	case EQuickSlotDirection::North:
-		OutIcon = NorthSlotIcon;
-		OutQuantity = NorthSlotQuantity;
-		break;
-
-	case EQuickSlotDirection::East:
-		OutIcon = EastSlotIcon;
-		OutQuantity = EastSlotQuantity;
-		break;
-
-	case EQuickSlotDirection::South:
-		OutIcon = SouthSlotIcon;
-		OutQuantity = SouthSlotQuantity;
-		break;
-
-	case EQuickSlotDirection::West:
-		OutIcon = WestSlotIcon;
-		OutQuantity = WestSlotQuantity;
-		break;
+		QuickSlot->BP_UpdateQuantity(NewQuantity);
 	}
 }
 
