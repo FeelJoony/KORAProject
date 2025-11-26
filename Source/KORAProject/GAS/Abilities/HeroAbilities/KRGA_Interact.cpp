@@ -41,3 +41,11 @@ void UKRGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const
 	}
 	EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
 }
+
+void UKRGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+	
+	EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
+}
