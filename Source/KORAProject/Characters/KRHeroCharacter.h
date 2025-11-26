@@ -2,16 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Characters/KRBaseCharacter.h"
-#include "GameplayTagContainer.h"
 #include "KRHeroCharacter.generated.h"
 
 
-class UHeroCombatComponent;
-class UDataAsset_InputConfig;
-class USpringArmComponent;
+class UKRHeroComponent;
 class UCameraComponent;
-struct FInputActionValue;
-
+class USpringArmComponent;
 
 UCLASS()
 class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter
@@ -19,16 +15,9 @@ class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter
 	GENERATED_BODY()
 	
 public:
-	AKRHeroCharacter();
+	AKRHeroCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	virtual void PostInitializeComponents() override;
-	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_PlayerState() override;
-	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArm;
 	
@@ -36,21 +25,12 @@ protected:
 	TObjectPtr<UCameraComponent> Camera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	TObjectPtr<UHeroCombatComponent> HeroCombatComponent;
-
+	TObjectPtr<UKRHeroComponent> HeroComponent;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UActorComponent> CachedOutlinerComponent;
-	
-private:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UDataAsset_InputConfig> InputConfigDataAsset;
 
-	void Input_Move(const FInputActionValue& Value);
-	void Input_Look(const FInputActionValue& Value);
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	void Input_AbilityInputPressed(FGameplayTag InInputTag);
-	void Input_AbilityInputReleased(FGameplayTag InInputTag);
-	
-public:
-	FORCEINLINE UHeroCombatComponent* GetHeroCombatComponent() const { return HeroCombatComponent; }
 };
+
