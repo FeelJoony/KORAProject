@@ -7,6 +7,7 @@
 #include "Data/SampleDataStruct.h"
 #include "Data/WeaponDataStruct.h"
 #include "Data/ItemDataStruct.h"
+#include "Data/TutorialDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
@@ -166,10 +167,10 @@ void UTableRowConvertFunctionContainer::CreateWeaponData(class UDataTable* OutDa
         }));
 }
 
-void UTableRowConvertFunctionContainer::CreateWeaponEnhancedData(class UDataTable* OutDataTable,
+void UTableRowConvertFunctionContainer::CreateWeaponEnhanceData(class UDataTable* OutDataTable,
     const FString& InCSVString)
 {
-    CreateData(InCSVString, FString(TEXT("WeaponEnhancedData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+    CreateData(InCSVString, FString(TEXT("WeaponEnhanceData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
         {
             auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
             auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
@@ -180,7 +181,6 @@ void UTableRowConvertFunctionContainer::CreateWeaponEnhancedData(class UDataTabl
 
                 int32 GroupID_Index = GetHeaderIndex(Headers, TEXT("GroupID"));
                 int32 Lv_Index = GetHeaderIndex(Headers, TEXT("Lv"));
-                int32 Atk_Index = GetHeaderIndex(Headers, TEXT("Atk"));
                 int32 AddAtk_Index = GetHeaderIndex(Headers, TEXT("AddAtk"));
                 int32 AddCritChance_Index = GetHeaderIndex(Headers, TEXT("AddCritChance"));
                 int32 AddRange_Index = GetHeaderIndex(Headers, TEXT("AddRange"));
@@ -191,14 +191,13 @@ void UTableRowConvertFunctionContainer::CreateWeaponEnhancedData(class UDataTabl
 
                 WeaponEnhanceData.GroupID = ParseIntValue(RowValue[GroupID_Index]);
                 WeaponEnhanceData.Lv = ParseIntValue(RowValue[Lv_Index]);
-                WeaponEnhanceData.Atk = ParseIntValue(RowValue[Atk_Index]);
                 WeaponEnhanceData.AddAtk = ParseIntValue(RowValue[AddAtk_Index]);
                 WeaponEnhanceData.AddCritChance = ParseFloatValue(RowValue[AddCritChance_Index]);
                 WeaponEnhanceData.AddRange = ParseIntValue(RowValue[AddRange_Index]);
                 WeaponEnhanceData.Success = ParseIntValue(RowValue[Success_Index]);
                 WeaponEnhanceData.Cost = ParseIntValue(RowValue[Cost_Index]);
                 
-                FName RowName = *FString::Printf(TEXT("WeaponEnhanced_%d"), i);
+                FName RowName = *FString::Printf(TEXT("WeaponEnhance_%d"), i);
                 if (FWeaponEnhanceDataStruct* FindRow = OutDataTable->FindRow<FWeaponEnhanceDataStruct>(RowName, TEXT("")))
                 {
                     *FindRow = WeaponEnhanceData;
@@ -206,6 +205,50 @@ void UTableRowConvertFunctionContainer::CreateWeaponEnhancedData(class UDataTabl
                 else
                 {
                     OutDataTable->AddRow(RowName, WeaponEnhanceData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateTutorialData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("TutorialData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num()-1; i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 RowName_Index = GetHeaderIndex(Headers, TEXT("RowName"));
+                int32 PopupType_Index = GetHeaderIndex(Headers, TEXT("PopupType"));
+                int32 Duration_Index = GetHeaderIndex(Headers, TEXT("Duration"));
+                int32 PauseGame_Index = GetHeaderIndex(Headers, TEXT("PauseGame"));
+                int32 StringKey_Index = GetHeaderIndex(Headers, TEXT("StringKey"));
+                int32 OffsetX_Index = GetHeaderIndex(Headers, TEXT("OffsetX"));
+                int32 OffsetY_Index = GetHeaderIndex(Headers, TEXT("OffsetY"));
+                int32 CompletionTrigger_Index = GetHeaderIndex(Headers, TEXT("CompletionTrigger"));
+                
+                FTutorialDataStruct TutorialData;
+                
+                TutorialData.PopupType = RowValue[PopupType_Index];
+                TutorialData.Duration = ParseFloatValue(RowValue[Duration_Index]);
+                TutorialData.PauseGame = ParseBoolValue(RowValue[PauseGame_Index]);
+                TutorialData.StringKey = ParseNameValue(RowValue[StringKey_Index]);
+                TutorialData.OffsetX = ParseFloatValue(RowValue[OffsetX_Index]);
+                TutorialData.OffsetY = ParseFloatValue(RowValue[OffsetY_Index]);
+                TutorialData.CompletionTrigger = ParseNameValue(RowValue[CompletionTrigger_Index]);
+
+                
+                FName RowName = ParseNameValue(RowValue[RowName_Index]);
+                if (FTutorialDataStruct* FindRow = OutDataTable->FindRow<FTutorialDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = TutorialData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, TutorialData);
                 }
             }
         }));

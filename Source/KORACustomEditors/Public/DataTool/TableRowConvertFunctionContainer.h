@@ -31,7 +31,9 @@ public:
 	UFUNCTION()
 	void CreateWeaponData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
-	void CreateWeaponEnhancedData(class UDataTable* OutDataTable, const FString& InCSVString);
+	void CreateWeaponEnhanceData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateTutorialData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);
@@ -50,6 +52,20 @@ private:
 	float ParseFloatValue(const FString& ValueString) const
 	{
 		return FCString::Atof(*ValueString);
+	}
+
+	bool ParseBoolValue(const FString& ValueString) const
+	{
+		if (ValueString == TEXT("True"))
+		{
+			return true;
+		}
+		if (ValueString == TEXT("False"))
+		{
+			return false;
+		}
+
+		return false;
 	}
 
 	int64 ParseLongValue(const FString& ValueString) const

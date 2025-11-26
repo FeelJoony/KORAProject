@@ -28,7 +28,13 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 			}
 		break;
 
-		case EGameDataType::WeaponEnhancedData:
+		case EGameDataType::WeaponEnhanceData:
+		{
+			InitKeyList<FWeaponEnhanceDataStruct>(NewDataTable);
+		}
+		break;
+
+		case EGameDataType::TutorialData:
 		{
 			InitKeyList<FWeaponEnhanceDataStruct>(NewDataTable);
 		}

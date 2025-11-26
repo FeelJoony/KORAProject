@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Interface/TableKey.h"
 #include "WeaponDataStruct.generated.h"
 
 USTRUCT(BlueprintType)
-struct KORAPROJECT_API FWeaponDataStruct : public FTableRowBase
+struct KORAPROJECT_API FWeaponDataStruct : public FTableRowBase, public ITableKey
 {
 	GENERATED_BODY()
 	
@@ -43,4 +44,9 @@ struct KORAPROJECT_API FWeaponDataStruct : public FTableRowBase
 	float ReloadTime;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	float AttackSpeed;
+
+	virtual uint32 GetKey() const override
+	{
+		return GetTypeHash(GroupID);
+	}
 };

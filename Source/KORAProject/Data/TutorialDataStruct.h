@@ -3,41 +3,40 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Interface/TableKey.h"
-#include "WeaponEnhanceDataStruct.generated.h"
+#include "TutorialDataStruct.generated.h"
 
 USTRUCT(BlueprintType)
-struct KORAPROJECT_API FWeaponEnhanceDataStruct : public FTableRowBase, public ITableKey
+struct KORAPROJECT_API FTutorialDataStruct : public FTableRowBase, public ITableKey
 {
 	GENERATED_BODY()
-
-	FWeaponEnhanceDataStruct()
-			: GroupID(-1)
-			, Lv(0)
-			, AddAtk(0)
-			, AddCritChance(0.f)
-			, AddRange(0)
-			, Success(0)
-			, Cost(0)
+	
+	FTutorialDataStruct()
+		: Duration(0.f)
+		, PauseGame(false)
+		, OffsetX(0)
+		, OffsetY(0)
 	{
 	}
 
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	// FName RowName;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	int32 GroupID;
+	FString PopupType;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	int32 Lv;
+	float Duration;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	int32 AddAtk;
+	bool PauseGame;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	float AddCritChance;
+	FName StringKey;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	int32 AddRange;
+	float OffsetX;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	int32 Success;
+	float OffsetY;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	int32 Cost;
+	FName CompletionTrigger;
 
 	virtual uint32 GetKey() const override
 	{
-		return GetTypeHash(GroupID);
+		return GetTypeHash(StringKey);
 	}
 };
