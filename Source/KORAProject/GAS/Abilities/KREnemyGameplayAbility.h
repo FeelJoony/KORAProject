@@ -12,7 +12,7 @@ class KORAPROJECT_API UKREnemyGameplayAbility : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 
-public:
+/*public:
 	UFUNCTION(BlueprintPure, Category = "KR|Ability")
 	AKREnemyCharacter* GetEnemyCharacterFromActorInfo();
 
@@ -20,5 +20,5 @@ public:
 	UEnemyCombatComponent* GetEnemyCombatComponentFromActorInfo();
 
 private:
-	TWeakObjectPtr<AKREnemyCharacter> CachedKREnemyCharacter;
+	TWeakObjectPtr<AKREnemyCharacter> CachedKREnemyCharacter;*/
 };
