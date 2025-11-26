@@ -19,8 +19,7 @@ void UKRGA_Scanning::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 {
 	for (TPair<AActor*, bool>& Pair : AllOverlapActors)
 	{
-		UE_LOG(LogTemp, Log, TEXT("[AndAbility] Actor Name : %s"), *Pair.Key->GetName());
-		ClearOutliner(Pair.Key); //ClearOverlap() 호출하기
+		ClearOutliner(Pair.Key);
 	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -94,7 +93,6 @@ void UKRGA_Scanning::SpawnOverlapSphere()
 			{
 				CurrentOverlapActors.Add(Act);
 				AllOverlapActors.Add(Act, true);
-				UE_LOG(LogTemp, Log, TEXT("[AndAbility] Actor Name : %s"), *Act->GetName());
 			}
 		}
 	}
