@@ -10,7 +10,6 @@
 #include "Data/DataAssets/StartUpData/DataAsset_StartUpDataBase.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GameplayTag/KRInputTag.h"
-#include "GAS/KRPlayerAbilitySystemComponent.h"
 #include "Player/KRPlayerState.h"
 
 AKRHeroCharacter::AKRHeroCharacter()
@@ -83,7 +82,7 @@ void AKRHeroCharacter::PossessedBy(AController* NewController)
 	{
 		if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.LoadSynchronous())
 		{
-			if (UKRPlayerAbilitySystemComponent* KRASC = Cast<UKRPlayerAbilitySystemComponent>(GetAbilitySystemComponent()))
+			if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(GetAbilitySystemComponent()))
 			{
 				LoadedData->GiveToAbilitySystemComponent(KRASC);
 			}
@@ -142,17 +141,17 @@ void AKRHeroCharacter::Input_Look(const FInputActionValue& Value)
 
 void AKRHeroCharacter::Input_AbilityInputPressed(FGameplayTag InInputTag)
 {
-	if (UKRPlayerAbilitySystemComponent* KRASC = Cast<UKRPlayerAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		KRASC->OnAbilityInputPressed(InInputTag);
+		//KRASC->OnAbilityInputPressed(InInputTag);
 	}
 
 }
 
 void AKRHeroCharacter::Input_AbilityInputReleased(FGameplayTag InInputTag)
 {
-	if (UKRPlayerAbilitySystemComponent* KRASC = Cast<UKRPlayerAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		KRASC->OnAbilityInputReleased(InInputTag);
+		//KRASC->OnAbilityInputReleased(InInputTag);
 	}
 }
