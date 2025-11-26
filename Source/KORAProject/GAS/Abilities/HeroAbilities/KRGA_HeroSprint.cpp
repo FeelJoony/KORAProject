@@ -8,7 +8,7 @@
 UKRGA_HeroSprint::UKRGA_HeroSprint()
 {
 	bSprintStarted=false;
-	SprintChargeTime = 0.5f;
+	SprintChargeTime = 0.25f;
 	SprintSpeed = 800.f;
 	WalkSpeed = 400.f;
 }
@@ -96,7 +96,7 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 		}
 	}
 
-	EndDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, 0.5f);
+	EndDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, 0.2f);
 	if (EndDelayTask)
 	{
 		EndDelayTask->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnAbilityEnd);
