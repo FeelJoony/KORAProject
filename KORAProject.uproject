@@ -13,7 +13,9 @@
 				"Engine",
 				"GameplayAbilities",
 				"EnhancedInput",
-				"GameplayTasks"
+				"GameplayTasks",
+				"CommonGame",
+				"ModularGameplay"
 			]
 		},
 		{
@@ -93,6 +95,27 @@
 		},
 		{
 			"Name": "GameplayMessageRouter",
+			"Enabled": true
+		},
+		{
+			"Name": "ModularGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "GameFeatures",
+			"Enabled": true
+		},
+		{
+			"Name": "SphereReveal",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product/7de042c7-0232-4561-a02f-1896193ebb20"
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "StateTree",
 			"Enabled": true
 		}
 	]
