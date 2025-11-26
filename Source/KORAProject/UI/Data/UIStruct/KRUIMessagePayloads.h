@@ -204,5 +204,5 @@ struct FKRUIMessage_Tutorial
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly) FName TutorialDTRowName;
+	UPROPERTY(BlueprintReadWrite) FName TutorialDTRowName;
 };

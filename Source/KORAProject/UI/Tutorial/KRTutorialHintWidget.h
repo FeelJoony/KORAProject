@@ -23,7 +23,6 @@ public:
 
 protected:
     UPROPERTY(meta = (BindWidget)) class UCommonTextBlock* TutorialText;
-    UPROPERTY(meta = (BindWidgetOptional)) UWidget* TutorialContainer;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial") UDataTable* TutorialPopupTable;
 
     FTutorialDataStruct CurrentRow;
