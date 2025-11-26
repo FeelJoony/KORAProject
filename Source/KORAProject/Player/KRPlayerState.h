@@ -1,45 +1,52 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerState.h"
+#include "ModularPlayerState.h"
 #include "AbilitySystemInterface.h"
 #include "KRPlayerState.generated.h"
 
 class UKRCombatCommonSet;
 class UKRPlayerAttributeSet;
-class APawn;
-class UKRPlayerAbilitySystemComponent;
+class UKRAbilitySystemComponent;
+class UKRPawnData;
 
 UCLASS()
-class KORAPROJECT_API AKRPlayerState : public APlayerState, public IAbilitySystemInterface
+class KORAPROJECT_API AKRPlayerState : public AModularPlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	AKRPlayerState();
-	virtual void BeginPlay() override;
+	AKRPlayerState(const FObjectInitializer& ObjectInitializer);
 	
+	UFUNCTION(BlueprintCallable, Category = "KR|PlayerState")
+	UKRAbilitySystemComponent* GetKRAbilitySystemComponent() const {return KRASC;}
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	void InitASCForAvatar(AActor* NewAvatar);
+	template<class T>
+	const T* GetPawnData() const {return Cast<T>(PawnData); }
+	
+	virtual void PreInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
 
-	UFUNCTION(BlueprintPure, Category = "GAS")
-	UKRPlayerAbilitySystemComponent* GetKRPlayerASC() const {return PlayerASC;}
-
+	void SetPawnData(const UKRPawnData* InPawnData);
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UKRPlayerAbilitySystemComponent> PlayerASC;
+	TObjectPtr<UKRAbilitySystemComponent> KRASC;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UKRCombatCommonSet> CombatCommonSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UKRPlayerAttributeSet> PlayerAttributeSet;
-	
-	bool bStartupGiven = false;
+
+	UPROPERTY(ReplicatedUsing = OnRep_PawnData)
+	TObjectPtr<const UKRPawnData> PawnData;
+
+	UFUNCTION()
+	void OnRep_PawnData();
 
 public:
-	FORCEINLINE UKRPlayerAbilitySystemComponent* GetPlayerAbilitySystemComponent() const {return PlayerASC;}
 	FORCEINLINE UKRCombatCommonSet* GetCombatCommonSet() const {return CombatCommonSet;}
 	FORCEINLINE UKRPlayerAttributeSet* GetPlayerAttributeSet() const {return PlayerAttributeSet;}
 	
