@@ -61,7 +61,7 @@ bool UKRHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manage
 	{
 		AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
 		
-		return KRPS && Manager->HasFeatureReachedInitState(Pawn, UKRPawnExtensionComponent::Name_ActorFeatureName, KRTAG_STATE_INIT_DATAINITIALIZED);
+		return KRPS && Manager->HasFeatureReachedInitState(Pawn, UKRPawnExtensionComponent::NAME_ActorFeatureName, KRTAG_STATE_INIT_DATAINITIALIZED);
 	}
 	else if (CurrentState == KRTAG_STATE_INIT_DATAINITIALIZED && DesiredState == KRTAG_STATE_INIT_GAMEPLAYREADY)
 	{
@@ -87,7 +87,7 @@ void UKRHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Man
 		if (UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 		{
 			PawnData = PawnExtComp->GetPawnData<UKRPawnData>();
-			//PawnExtComp->InitializeAbilitySystem(KRPS->GetKR)
+			PawnExtComp->InitializeAbilitySystem(KRPS->GetKRAbilitySystemComponent(), KRPS);
 		}
 		
 		if(AKRPlayerController* KRPC = GetController<AKRPlayerController>())
@@ -102,7 +102,7 @@ void UKRHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Man
 
 void UKRHeroComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
 {
-	if (Params.FeatureName == UKRPawnExtensionComponent::Name_ActorFeatureName)
+	if (Params.FeatureName == UKRPawnExtensionComponent::NAME_ActorFeatureName)
 	{
 		if (Params.FeatureState == KRTAG_STATE_INIT_DATAINITIALIZED)
 		{
@@ -132,7 +132,7 @@ void UKRHeroComponent::OnRegister()
 void UKRHeroComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	BindOnActorInitStateChanged(UKRPawnExtensionComponent::Name_ActorFeatureName, FGameplayTag(), false);
+	BindOnActorInitStateChanged(UKRPawnExtensionComponent::NAME_ActorFeatureName, FGameplayTag(), false);
 
 	ensure(TryToChangeInitState(KRTAG_STATE_INIT_SPAWNED));
 	CheckDefaultInitialization();
@@ -189,22 +189,71 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 	APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn) return;
 
-	AKRPlayerController* KRPC = Pawn->GetController<AKRPlayerController>();
+	AController* PC = Pawn->GetController();
 
-	if (KRPC)
+	if (PC)
 	{
-		const FVector2D Value = InputActionValue.Get<FVector2D>();
+		const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
+		const FRotator MovementRotation(0.f, PC->GetControlRotation().Yaw, 0.f);
+
+		if (MovementVector.Y != 0.f)
+		{
+			const FVector ForwardDirection = MovementRotation.RotateVector(FVector::ForwardVector);
+			Pawn->AddMovementInput(ForwardDirection, MovementVector.Y);
+		}
+
+		if (MovementVector.X != 0.f)
+		{
+			const FVector RightDirection = MovementRotation.RotateVector(FVector::RightVector);
+			Pawn->AddMovementInput(RightDirection, MovementVector.X);
+		}
 	}
 }
 
 void UKRHeroComponent::Input_Look(const FInputActionValue& InputActionValue)
 {
+	APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn) return;
+
+	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
+
+	if (LookAxisVector.X != 0.f)
+	{
+		Pawn->AddControllerYawInput(LookAxisVector.X);
+	}
+
+	if (LookAxisVector.Y != 0.f)
+	{
+		Pawn->AddControllerPitchInput(LookAxisVector.Y);
+	}
 }
 
-void UKRHeroComponent::Input_AbilityInputPressed(FGameplayTag InInputTag)
+void UKRHeroComponent::Input_AbilityInputPressed(FGameplayTag InputTag)
 {
+	APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn) return;
+
+	const AKRPlayerState* KRPS = Pawn->GetPlayerState<AKRPlayerState>();
+	if (KRPS)
+	{
+		if (UKRAbilitySystemComponent* KRASC = KRPS->GetKRAbilitySystemComponent())
+		{
+			KRASC->AbilityInputTagPressed(InputTag);
+		}
+	}
 }
 
-void UKRHeroComponent::Input_AbilityInputReleased(FGameplayTag InInputTag)
+void UKRHeroComponent::Input_AbilityInputReleased(FGameplayTag InputTag)
 {
+	APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn) return;
+
+	const AKRPlayerState* KRPS = Pawn->GetPlayerState<AKRPlayerState>();
+	if (KRPS)
+	{
+		if (UKRAbilitySystemComponent* KRASC = KRPS->GetKRAbilitySystemComponent())
+		{
+			KRASC->AbilityInputTagReleased(InputTag);
+		}
+	}
 }
