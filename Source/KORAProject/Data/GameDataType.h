@@ -6,10 +6,9 @@ UENUM(BlueprintType)
 enum class EGameDataType : uint8
 {
 	SampleData,
-	WeaponItemData,
-	ConsumeItemData,
-	MaterialItemData,
 	ItemData,
 	EquipData,
 	ShopStockList,
+	WeaponData,
+	WeaponEnhancedData,
 };
