@@ -18,16 +18,19 @@ class KORAPROJECT_API UKRPawnExtensionComponent : public UPawnComponent, public 
 public:
 	UKRPawnExtensionComponent(const FObjectInitializer& ObjectInitializer);
 
-	static const FName Name_ActorFeatureName;
+	static const FName NAME_ActorFeatureName;
 
 	//~ Begin IGameFrameworkInitStateInterface
-	virtual FName GetFeatureName() const override { return Name_ActorFeatureName; }
+	virtual FName GetFeatureName() const override { return NAME_ActorFeatureName; }
 	virtual bool CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const override;
 	virtual void HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) override;
 	virtual void OnActorInitStateChanged(const FActorInitStateChangedParams& Params) override;
 	virtual void CheckDefaultInitialization() override;
 	//~ End IGameFrameworkInitStateInterface
 
+	UFUNCTION(BlueprintCallable, Category = "KR|Pawn")
+	UKRAbilitySystemComponent* GetKRAbilitySystemComponent() const { return AbilitySystemComponent; }
+	
 	UFUNCTION(BlueprintPure, Category = "KR|Pawn")
 	static UKRPawnExtensionComponent* FindPawnExtensionComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UKRPawnExtensionComponent>() : nullptr); }
 

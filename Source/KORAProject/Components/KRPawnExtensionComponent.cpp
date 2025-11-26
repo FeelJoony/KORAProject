@@ -9,7 +9,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRPawnExtensionComponent)
 
-const FName UKRPawnExtensionComponent::Name_ActorFeatureName("PawnExtension");
+const FName UKRPawnExtensionComponent::NAME_ActorFeatureName("PawnExtension");
 
 UKRPawnExtensionComponent::UKRPawnExtensionComponent(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -76,7 +76,7 @@ void UKRPawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentMan
 
 void UKRPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
 {
-	if (Params.FeatureName != Name_ActorFeatureName)
+	if (Params.FeatureName != NAME_ActorFeatureName)
 	{
 		if (Params.FeatureState == KRTAG_STATE_INIT_DATAAVAILABLE)
 		{
