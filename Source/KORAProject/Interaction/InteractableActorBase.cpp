@@ -80,12 +80,20 @@ void AInteractableActorBase::OnActorExitRange(AActor* TargetActor)
 
 void AInteractableActorBase::ShowInteractionUI()
 {
-
+	UKRUIRouterSubsystem* Router = GetWorld()->GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>();
+	if (IsValid(Router))
+	{
+		Router->ToggleRoute("ScreenInteract");
+	}
 }
 
 void AInteractableActorBase::HideInteractionUI()
 {
-
+	UKRUIRouterSubsystem* Router = GetWorld()->GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>();
+	if (IsValid(Router))
+	{
+		Router->ToggleRoute("ScreenInteract");
+	}
 }
 
 void AInteractableActorBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
