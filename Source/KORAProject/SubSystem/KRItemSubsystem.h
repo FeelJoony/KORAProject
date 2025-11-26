@@ -1,33 +1,58 @@
-//#pragma once
+// #pragma once
 //
-//#include "CoreMinimal.h"
-//#include "Subsystems/GameInstanceSubsystem.h"
-//#include "Engine/DataTable.h"
-//#include "Data/GameDataType.h"
-//#include "Data/BaseItemData.h"
-//#include "Item/Object/KRBaseItem.h"
-//#include "KRItemSubsystem.generated.h"
+// #include "CoreMinimal.h"
+// #include "Subsystems/GameInstanceSubsystem.h"
+// #include "GameplayTagContainer.h"
+// #include "KRItemSubsystem.generated.h"
 //
-//UCLASS()
-//class KORAPROJECT_API UKRItemSubsystem : public UGameInstanceSubsystem
-//{
-//	GENERATED_BODY()
+// class UKRInventoryItemDefinition;
+// class UKRInventoryItemInstance;
+// class UKRInventorySubsystem;
 //
-//public:
-//	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-//	virtual void Deinitialize() override;
+// UCLASS()
+// class KORAPROJECT_API UKRItemSubsystem : public UGameInstanceSubsystem
+// {
+// 	GENERATED_BODY()
 //
-//	const FBaseItemData* GetItemData(EGameDataType ItemType, int32 ItemKey) const;
-//	
-//	UFUNCTION(BlueprintCallable, Category = "ItemSubsystem")
-//	UKRBaseItem* CreateItemInstance(EGameDataType ItemType, int32 ItemKey, int32 Amount = 1);
+// public:
+// 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+// 	virtual void Deinitialize() override;
 //
-//protected:
-//	UPROPERTY(Transient)
-//	TMap<EGameDataType, TObjectPtr<UDataTable>> ItemDataTables;
+// public:
+// 	/*-------------------------------------
+// 		Item 생성 공통 API
+// 	-------------------------------------*/
 //
-//private:
-//	const FString TablePath = TEXT("/Game/Data/DataTables");
-//	
-//	void LoadDataTable(EGameDataType ItemType, const FString& TableName);
-//};
+// 	// 아이템 태그로 생성 (Generic)
+// 	UFUNCTION(BlueprintCallable, Category="ItemSubsystem")
+// 	UKRInventoryItemInstance* CreateItemByTag(FGameplayTag ItemTag);
+//
+// 	// 아이템 정의 + 인스턴스 생성 후 인벤토리에 등록
+// 	UFUNCTION(BlueprintCallable, Category="ItemSubsystem")
+// 	UKRInventoryItemInstance* CreateAndAddToInventory(FGameplayTag ItemTag, int32 StackCount = 1);
+//
+// public:
+// 	/*-------------------------------------
+// 		무기 생성을 위한 API
+// 	-------------------------------------*/
+// 	UFUNCTION(BlueprintCallable, Category="ItemSubsystem|Weapon")
+// 	UKRInventoryItemInstance* CreateWeaponAndAddToInventory(FName WeaponID);
+//
+// 	// 무기 정의 생성
+// 	UKRInventoryItemDefinition* CreateWeaponDefinition(struct FKRWeaponItemData& WeaponData);
+//
+// private:
+// 	/*-------------------------------------
+// 		내부 유틸 함수
+// 	-------------------------------------*/
+// 	UKRInventoryItemDefinition* CreateDefinitionInternal(FGameplayTag ItemTag);
+// 	UKRInventoryItemInstance* CreateInstanceInternal(UKRInventoryItemDefinition* Definition);
+//
+// 	// DT Helper
+// 	template<typename T>
+// 	T* GetRowFromDT(const FString& Path, const FName& RowName) const;
+//
+// private:
+// 	UPROPERTY()
+// 	TObjectPtr<UKRInventorySubsystem> InventorySubsystem;
+// };
