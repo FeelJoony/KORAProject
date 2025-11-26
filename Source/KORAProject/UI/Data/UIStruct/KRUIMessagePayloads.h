@@ -18,6 +18,7 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag Quest() { return KRTAG_UI_MESSAGE_QUEST; }
 	static const FGameplayTag Currency() { return KRTAG_UI_MESSAGE_CURRENCY; }
 	static const FGameplayTag Confirm() { return KRTAG_UI_MESSAGE_CONFIRM; }
+	static const FGameplayTag Tutorial() { return KRTAG_UI_MESSAGE_TUTORIAL; }
 };
 
  // -----  ProgressBar -----
@@ -195,4 +196,13 @@ struct KORAPROJECT_API FKRUIMessage_Confirm
 	UPROPERTY(BlueprintReadOnly) EConfirmResult Result = EConfirmResult::None;
 	UPROPERTY(BlueprintReadOnly) FGameplayTag ItemTag; // ItemTag, WeaponTag, etc.
 	UPROPERTY(BlueprintReadOnly) int32 Quantity = 0; // Item Quantity
+};
+
+// ----- Tutorial -----
+USTRUCT(BlueprintType)
+struct FKRUIMessage_Tutorial
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly) FName TutorialDTRowName;
 };
