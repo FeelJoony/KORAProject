@@ -15,23 +15,22 @@ class KORAPROJECT_API UInventoryFragment_EquippableItem : public UKRInventoryIte
 public:
 	// 이 아이템을 장착했을 때 사용할 장비 정의(Equipment Definition)입니다.
 	// 여기에 외형, 능력치 등 모든 장비 관련 정보가 연결됩니다.
-	// UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-	// TSubclassOf<UKREquipmentDefinition> EquipmentDefinition;
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+	TSubclassOf<UKREquipmentDefinition> EquipmentDefinition;
 
-	// FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
-	// {
-	// 	return EquipInstance;
-	// }
+	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
+	{
+		return EquipInstance;
+	}
 
-	// FORCEINLINE void SetEquipInstance(class UKREquipmentInstance* NewInstance)
-	// {
-	// 	this->EquipInstance = NewInstance;
-	// }
+	FORCEINLINE void SetEquipInstance(class UKREquipmentInstance* NewInstance)
+	{
+		this->EquipInstance = NewInstance;
+	}
 
 	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.Equippable"); }
 	
 private:
-	// UPROPERTY()
-	// TObjectPtr<class UKREquipmentInstance> EquipInstance;
-	
+	UPROPERTY()
+	TObjectPtr<class UKREquipmentInstance> EquipInstance;
 };

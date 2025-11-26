@@ -1,48 +1,52 @@
-// #pragma once
-//
-// #include "Templates/SubclassOf.h"
-// #include "GameplayTagContainer.h"
-// #include "KREquipmentDefinition.generated.h"
-//
-// class AActor;
-// class UKREquipmentInstance;
-// class UGameplayAbility;
-//
-// USTRUCT()
-// struct FKREquipmentActorToSpawn
-// {
-// 	GENERATED_BODY()
-//
-// 	FKREquipmentActorToSpawn()
-// 	{}
-//
-// 	UPROPERTY(EditAnywhere, Category=Equipment)
-// 	TSubclassOf<AActor> ActorToSpawn;
-//
-// 	UPROPERTY(EditAnywhere, Category=Equipment)
-// 	FName AttachSocket;
-//
-// 	UPROPERTY(EditAnywhere, Category=Equipment)
-// 	FTransform AttachTransform;
-// };
-//
-// UCLASS()
-// class KORAPROJECT_API UKREquipmentDefinition : public UObject
-// {
-// 	GENERATED_BODY()
-// 	
-// public:
-// 	UKREquipmentDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-// 	
-// 	UPROPERTY(EditDefaultsOnly, Category=Equipment)
-// 	TSubclassOf<UKREquipmentInstance> InstanceType;
-// 	
-// 	UPROPERTY(EditDefaultsOnly, Category=Equipment)
-// 	TArray<TSubclassOf<UGameplayAbility>> AbilitiesToGrant;
-//
-// 	UPROPERTY(EditDefaultsOnly, Category = Equipment)
-// 	TArray<FGameplayTag> EquipmentSlotTags;
-// 	
-// 	UPROPERTY(EditDefaultsOnly, Category=Equipment)
-// 	TArray<FKREquipmentActorToSpawn> ActorsToSpawn;
-// };
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "GameplayTagContainer.h"
+#include "KREquipmentDefinition.generated.h"
+
+class AActor;
+class UKREquipmentInstance;
+class UGameplayAbility;
+
+USTRUCT(BlueprintType)
+struct FKREquipmentActorToSpawn
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Equipment)
+	TSubclassOf<AActor> ActorToSpawn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Equipment)
+	FName AttachSocket;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Equipment)
+	FTransform AttachTransform;
+};
+
+/**
+ * Equipment Definition
+ * 장착 시 생성될 Instance, 부여할 Ability, 스폰할 Actor 정의
+ */
+UCLASS(Blueprintable, BlueprintType)
+class KORAPROJECT_API UKREquipmentDefinition : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	// Equipment Instance 타입
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Equipment)
+	TSubclassOf<UKREquipmentInstance> InstanceType;
+
+	// 부여할 Abilities
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Equipment)
+	TArray<TSubclassOf<UGameplayAbility>> AbilitiesToGrant;
+
+	// 장착 슬롯 태그
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Equipment)
+	FGameplayTag EquipmentSlotTag; // ex) Equipment.Slot.MainWeapon
+
+	// 스폰할 Actors
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Equipment)
+	TArray<FKREquipmentActorToSpawn> ActorsToSpawn;
+};

@@ -8,9 +8,6 @@ UCLASS()
 class KORAPROJECT_API UInventoryFragment_EnhanceableItem : public UKRInventoryItemFragment
 {
 	GENERATED_BODY()
-
-	// UPROPERTY(EditDefaultsOnly)
-	// TArray<FWeaponReforgeData> ReforgeData;
 	
 public:
 	UPROPERTY(EditDefaultsOnly)
