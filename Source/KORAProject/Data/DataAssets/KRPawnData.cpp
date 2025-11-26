@@ -1,4 +1,5 @@
 #include "Data/DataAssets/KRPawnData.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRPawnData)
 
