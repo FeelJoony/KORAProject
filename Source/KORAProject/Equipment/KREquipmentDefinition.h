@@ -34,6 +34,8 @@ class KORAPROJECT_API UKREquipmentDefinition : public UObject
 	GENERATED_BODY()
 
 public:
+	UKREquipmentDefinition(const FObjectInitializer& ObjectInitializer);
+	
 	// Equipment Instance 타입
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Equipment)
 	TSubclassOf<UKREquipmentInstance> InstanceType;

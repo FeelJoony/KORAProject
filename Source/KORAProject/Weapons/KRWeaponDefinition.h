@@ -5,8 +5,10 @@
 #include "GameplayTagContainer.h"
 #include "KRWeaponDefinition.generated.h"
 
+class UGameplayAbility;
 class UKRInventoryItemDefinition;
 class UKREquipmentDefinition;
+class UKRWeaponInstance;
 struct FWeaponDataStruct;
 struct FWeaponEnhanceDataStruct;
 
@@ -20,6 +22,8 @@ class KORAPROJECT_API UKRWeaponDefinition : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	UKRWeaponDefinition();
+	
 	// DataTable Row Name (무기 식별자)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponID;

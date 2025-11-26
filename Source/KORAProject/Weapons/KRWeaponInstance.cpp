@@ -1,7 +1,6 @@
 #include "Weapons/KRWeaponInstance.h"
 
 #include "Equipment/KREquipmentDefinition.h"
-#include "Inventory/Fragment/InventoryFragment_SetStats.h"
 #include "Item/Weapons/KRWeaponBase.h"
 #include "Kismet/KismetMathLibrary.h"
 

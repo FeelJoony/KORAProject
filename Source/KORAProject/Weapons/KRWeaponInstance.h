@@ -3,10 +3,12 @@
 #include "CoreMinimal.h"
 #include "Equipment/KREquipmentInstance.h"
 #include "GameplayTagContainer.h"
+#include "Inventory/Fragment/InventoryFragment_SetStats.h"
 #include "KRWeaponInstance.generated.h"
 
+class AKRWeaponBase;
 struct FKRWeaponItemData;
-class UInventoryFragment_SetStats;
+//class UInventoryFragment_SetStats;
 
 /**
  * Weapon Instance
@@ -25,7 +27,6 @@ public:
     virtual void OnUnequipped() override;
 
     // 무기 스펙 초기화 (Fragment의 SetStats에서 가져옴)
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
     virtual void InitializeStats(const UInventoryFragment_SetStats* StatsFragment) override;
     
     // 무기 타입
@@ -57,11 +58,10 @@ public:
 
     UPROPERTY(BlueprintReadOnly, Category = "Weapon|Gun")
     float ReloadTime;
-
-    UPROPERTY()
+    
     AKRWeaponBase* SpawnedWeaponActor;
 
-    AKRWeaponBase* UKRWeaponInstance::GetSpawnedWeaponActor() const
+    AKRWeaponBase* GetSpawnedWeaponActor() const
     {
         return SpawnedWeaponActor;
     }
@@ -73,7 +73,6 @@ public:
     float CalculateDamage(bool& bOutIsCritical);
 
     // 강화 레벨 적용
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Enhance")
     virtual void ApplyEnhanceLevel(int32 EnhanceLevel) override;
 
 protected:

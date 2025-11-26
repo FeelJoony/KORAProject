@@ -93,12 +93,10 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipItem(TSubclassOf<UKREqu
 	if (!SlotTagToOccupy.IsValid())
 	{
 		TArray<UKREquipmentInstance*> OldInstancesToUnequip;
-		for (const FGameplayTag& SlotTag : SlotTagToOccupy)
+
+		if (UKREquipmentInstance* OldInstance = EquippedSlotsMap.FindRef(SlotTagToOccupy))
 		{
-			if (UKREquipmentInstance* OldInstance = EquippedSlotsMap.FindRef(SlotTag))
-			{
-				OldInstancesToUnequip.AddUnique(OldInstance);
-			}
+			OldInstancesToUnequip.AddUnique(OldInstance);
 		}
 
 		for (UKREquipmentInstance* OldInstance : OldInstancesToUnequip)
@@ -128,11 +126,8 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipItem(TSubclassOf<UKREqu
 				}
 			}
 		}
-
-		for (const FGameplayTag& SlotTag : SlotTagToOccupy)
-		{
-			EquippedSlotsMap.Add(SlotTag, NewInstance);
-		}
+		
+		EquippedSlotsMap.Add(SlotTagToOccupy, NewInstance);
 	}
 	
 	return NewInstance;
@@ -244,13 +239,11 @@ void UKREquipmentManagerComponent::UnequipItem(UKREquipmentInstance* InItemInsta
 
 	if (EquipmentCDO)
 	{
-		const FGameplayTag& SlotTags = EquipmentCDO->EquipmentSlotTag;
-		for (const FGameplayTag& SlotTag : SlotTags)
+		const FGameplayTag& SlotTag = EquipmentCDO->EquipmentSlotTag;
+		
+		if (EquippedSlotsMap.FindRef(SlotTag) == InItemInstance)
 		{
-			if (EquippedSlotsMap.FindRef(SlotTag) == InItemInstance)
-			{
-				EquippedSlotsMap.Remove(SlotTag);
-			}
+			EquippedSlotsMap.Remove(SlotTag);
 		}
 	}
 

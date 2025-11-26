@@ -21,7 +21,7 @@ class KORAPROJECT_API UKRWeaponAttributeSet : public UAttributeSet
 	GENERATED_BODY()
 
 public:
-	UKRWeaponAttributeSet();
+	//UKRWeaponAttributeSet();
 
 	// 무기 공격력
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")

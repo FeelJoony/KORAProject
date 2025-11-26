@@ -7,6 +7,11 @@
 #include "Data/WeaponDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
 
+UKRWeaponDefinition::UKRWeaponDefinition()
+{
+    
+}
+
 UKRInventoryItemDefinition* UKRWeaponDefinition::CreateInventoryItemDefinition(const FWeaponDataStruct& WeaponData, const FWeaponEnhanceDataStruct& WeaponEnhanceData)
 {
     UKRInventoryItemDefinition* ItemDef = NewObject<UKRInventoryItemDefinition>(this);
