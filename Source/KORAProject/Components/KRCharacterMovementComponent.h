@@ -5,6 +5,8 @@
 #include "KRCharacterMovementComponent.generated.h"
 
 
+class UKRAbilitySystemComponent;
+
 UCLASS()
 class KORAPROJECT_API UKRCharacterMovementComponent : public UCharacterMovementComponent
 {
@@ -12,4 +14,10 @@ class KORAPROJECT_API UKRCharacterMovementComponent : public UCharacterMovementC
 
 public:
 	virtual float GetMaxSpeed() const override;
+
+protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(Transient)
+	mutable TWeakObjectPtr<UKRAbilitySystemComponent> CachedASC;
 };
