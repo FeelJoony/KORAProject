@@ -1,20 +1,6 @@
 #include "KRGA_Interact.h"
 
 #include "AbilitySystemComponent.h"
-#include "GAS/Tasks/AbilityTask_WaitForInteractableTargets_SingleLineTrace.h"
-#include "GAS/Tasks/AbilityTask_GrantNearbyInteraction.h"
-#include "GameplayTag/KRStateTag.h"
-#include "Controllers/KRHeroController.h"
-#include "Interaction/InteractionStatics.h"
-#include "Interaction/InteractableTarget.h"
-
-UKRGA_Interact::UKRGA_Interact()
-{
-	InteractionRange = 500.f;
-	InteractionScanRate = 0.1f;
-	bShowLineTraceDebug = false;
-	bShowSphereTraceDebug = false;
-}
 
 void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -25,66 +11,33 @@ void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		return;
 	}
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
-	if (!AvatarActor)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	UAbilityTask_WaitForInteractableTargets_SingleLineTrace* WaitTask =
-		UAbilityTask_WaitForInteractableTargets_SingleLineTrace::WaitForInteractableTargets_SingleLineTrace(
-			this,
-			InteractionRange,
-			InteractionScanRate,
-			bShowLineTraceDebug
-		);
-	WaitTask->ReadyForActivation();
-
-	UAbilityTask_GrantNearbyInteraction* GrantTask =
-		UAbilityTask_GrantNearbyInteraction::GrantAbilitiesForNearbyInteractors(
-			this,
-			bShowSphereTraceDebug,
-			InteractionRange,
-			InteractionScanRate
-		);
-	GrantTask->ReadyForActivation();
 }
 
-void UKRGA_Interact::UpdateInteractions(const TArray<FInteractionOption>& InteractiveOptions)
+void UKRGA_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	CurrentOptions = InteractiveOptions;
-	//UE_LOG(LogTemp, Warning, TEXT("[Update] CurrentOptions updated: %d options"), CurrentOptions.Num());
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UKRGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-	if (CurrentOptions.Num() == 0)
+	// ASC 가져오기
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC) return;
+	
+	// GameplayAbilityMap에서 Has Tag 찾아서 GA 있으면 발동하기
+	for (FGameplayTag& Tag : GameplayAbilityTags)
 	{
-		return;
+		if (ASC->HasMatchingGameplayTag(Tag))
+		{
+			FGameplayTagContainer TagContainer(Tag);
+			if (ASC->TryActivateAbilitiesByTag(TagContainer))
+			{
+				EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
+			}
+		}
 	}
-	//if (UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo())
-	{
-		const FInteractionOption& InteractionOption = CurrentOptions[0];
-		
-		AActor* Instigator = GetAvatarActorFromActorInfo();
-		AActor* InteractableTargetActor = UInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
-
-		FGameplayEventData Payload;
-		Payload.EventTag = KRTAG_STATE_ACTING_INTERACTING;
-		Payload.Instigator = Instigator;
-		Payload.Target = InteractableTargetActor;
-
-		InteractionOption.InteractableTarget->CustomizeInteractionEventData(KRTAG_STATE_ACTING_INTERACTING, Payload);
-
-		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));// GA 실행 주체
-		
-		FGameplayAbilityActorInfo ActorInfomation;
-		ActorInfomation.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetASC);
-
-		const bool bSuccess = InteractionOption.TargetASC->TriggerAbilityFromGameplayEvent( InteractionOption.TargetInteractionAbilityHandle, &ActorInfomation, KRTAG_STATE_ACTING_INTERACTING, &Payload, *InteractionOption.TargetASC );
-	}
+	EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
 }
