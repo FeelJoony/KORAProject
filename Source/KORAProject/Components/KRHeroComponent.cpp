@@ -32,45 +32,51 @@ bool UKRHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manage
 	FGameplayTag DesiredState) const
 {
 	check(Manager);
-
-	APawn* Pawn = GetPawn<APawn>();
 	
-	if (!CurrentState.IsValid() && DesiredState == KRTAG_STATE_INIT_SPAWNED)
-	{
-		if (Pawn)
-		{
-			return true;
-		}
-	}
-	else if (CurrentState == KRTAG_STATE_INIT_SPAWNED && DesiredState == KRTAG_STATE_INIT_DATAAVAILABLE)
-	{
-		if (!GetPlayerState<AKRPlayerState>())
-		{
-			return false;
-		}
-		
-		if (Pawn->IsLocallyControlled() && !Pawn->IsBotControlled())
-		{
-			AKRPlayerController* KRPC = GetController<AKRPlayerController>();
-			if (!Pawn->InputComponent || !KRPC || !KRPC->GetLocalPlayer())
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	else if (CurrentState == KRTAG_STATE_INIT_DATAAVAILABLE && DesiredState == KRTAG_STATE_INIT_DATAINITIALIZED)
-	{
-		AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
-		
-		return KRPS && Manager->HasFeatureReachedInitState(Pawn, UKRPawnExtensionComponent::NAME_ActorFeatureName, KRTAG_STATE_INIT_DATAINITIALIZED);
-	}
-	else if (CurrentState == KRTAG_STATE_INIT_DATAINITIALIZED && DesiredState == KRTAG_STATE_INIT_GAMEPLAYREADY)
-	{
-		return true;
-	}
+    APawn* Pawn = GetPawn<APawn>();
+	
+    if (!CurrentState.IsValid() && DesiredState == KRTAG_STATE_INIT_SPAWNED)
+    {
+        if (Pawn)
+        {
+            return true;
+        }
+    }
+    else if (CurrentState == KRTAG_STATE_INIT_SPAWNED && DesiredState == KRTAG_STATE_INIT_DATAAVAILABLE)
+    {
+        if (!GetPlayerState<AKRPlayerState>())
+        {
+            return false;
+        }
+    	
+        if (Pawn->IsLocallyControlled() && !Pawn->IsBotControlled())
+        {
+            AKRPlayerController* KRPC = GetController<AKRPlayerController>();
+            if (!Pawn->InputComponent)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    else if (CurrentState == KRTAG_STATE_INIT_DATAAVAILABLE && DesiredState == KRTAG_STATE_INIT_DATAINITIALIZED)
+    {
+    	AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
+    	
+    	bool bPawnExtInitialized = Manager->HasFeatureReachedInitState(Pawn, UKRPawnExtensionComponent::NAME_ActorFeatureName, KRTAG_STATE_INIT_DATAINITIALIZED);
+    	bool bPawnExtReady = Manager->HasFeatureReachedInitState(Pawn, UKRPawnExtensionComponent::NAME_ActorFeatureName, KRTAG_STATE_INIT_GAMEPLAYREADY);
+    
+    	// 둘 중 하나라도 참이면 통과
+    	bool bPawnExtPass = bPawnExtInitialized || bPawnExtReady;
+    	
+    	return KRPS && bPawnExtPass;
+    }
+    else if (CurrentState == KRTAG_STATE_INIT_DATAINITIALIZED && DesiredState == KRTAG_STATE_INIT_GAMEPLAYREADY)
+    {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 void UKRHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
@@ -114,7 +120,7 @@ void UKRHeroComponent::OnActorInitStateChanged(const FActorInitStateChangedParam
 {
 	if (Params.FeatureName == UKRPawnExtensionComponent::NAME_ActorFeatureName)
 	{
-		if (Params.FeatureState == KRTAG_STATE_INIT_DATAINITIALIZED)
+		if (Params.FeatureState == KRTAG_STATE_INIT_DATAINITIALIZED || Params.FeatureState == KRTAG_STATE_INIT_GAMEPLAYREADY)
 		{
 			CheckDefaultInitialization();
 		}
@@ -170,8 +176,8 @@ void UKRHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompone
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = KRLP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	check(Subsystem)
 
-	Subsystem->ClearAllMappings();
-
+	//Subsystem->ClearAllMappings();
+	
 	if (const UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 	{
 		if (const UKRPawnData* PawnData = PawnExtComp->GetPawnData<UKRPawnData>())
@@ -282,6 +288,7 @@ TSubclassOf<UKRCameraMode> UKRHeroComponent::DetermineCameraMode() const
 	{
 		if (const UKRPawnData* PawnData = PawnExtComp->GetPawnData<UKRPawnData>())
 		{
+			UE_LOG(LogTemp, Warning, TEXT("DetermineCameraMode Returning: %s"), *GetNameSafe(PawnData->DefaultCameraMode));
 			return PawnData->DefaultCameraMode;
 		}
 	}
