@@ -24,18 +24,15 @@ public:
 	virtual void Deinitialize() override;
 
 	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
-	void GenerateShopStock(FGameplayTag InPoolTag);
-
-	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
 	TArray<UKRInventoryItemInstance*> GetShopStock();
 
-	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
-	bool TryBuyItem(APlayerController* InPlayer, UKRInventoryItemInstance* InShopItemInstance, int32 InCount = 1);
-
-	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
-	bool TrySellItem(APlayerController* InPlayer, FGameplayTag InItemTag, int32 InCount = 1);
-
 private:
+	void GenerateShopStock();
+
+	bool TryBuyItem(UKRInventoryItemInstance* InShopItemInstance, int32 InCount = 1);
+
+	bool TrySellItem(FGameplayTag InItemTag, int32 InCount = 1);
+
 	bool CanAfford(UKRInventorySubsystem* InInventory, int32 InTotalCost) const;
 	
 	int32 Round5(float InValue) const;
@@ -44,15 +41,13 @@ private:
 	
 	bool PrepareShopGeneration();
 	
-	void GatherShopCandidates(FGameplayTag InPoolTag, TArray<FShopItemData*>& OutAlwaysOn, TArray<FShopItemData*>& OutRotation);
+	void GatherShopCandidates(TArray<FShopItemData*>& OutAlwaysOn, TArray<FShopItemData*>& OutRotation);
 
 	void AddAlwaysOnItemsToStock(const TArray<FShopItemData*>& Candidates);
 
 	void AddRotationItemsToStock(TArray<FShopItemData*>& Candidates, int32 SlotsToFill);
 	
-	void BroadcastCurrencyUpdate(int32 InDeltaGearing);
-	
-	UKRInventoryItemInstance* FindShopItemInstanceByTag(FGameplayTag ItemTag);
+	UKRInventoryItemInstance* FindShopItemInstanceByTag(FGameplayTag ItemTag) const;
 	
 	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
 	
