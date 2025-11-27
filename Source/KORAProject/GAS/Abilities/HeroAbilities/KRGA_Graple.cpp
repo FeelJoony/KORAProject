@@ -1,5 +1,6 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_Graple.h"
 
+#include "VectorTypes.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
@@ -22,18 +23,20 @@ void UKRGA_Graple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	AController* Controller = CachedPlayerCharacter->GetController();
 	if (!Controller) return;
 	
-	OnLoopMontage();
+	//OnLoopMontage();
 
 	TargetRotation = Controller->GetControlRotation();
+
+	CachedPlayerCharacter->SetActorRotation(FRotator(CachedPlayerCharacter->GetActorRotation().Pitch, TargetRotation.Yaw, CachedPlayerCharacter->GetActorRotation().Roll));
+	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	
-	//Timer로 SetRotation함수 실행
-	GetWorld()->GetTimerManager().SetTimer(
-		RotatorTimer,
-		this,
-		&UKRGA_Graple::OnSetRotation,
-		0.01f, // 자동으로 deltaTime 간격으로 실행
-		true		
-	);
+	// GetWorld()->GetTimerManager().SetTimer(
+	// 	RotatorTimer,
+	// 	this,
+	// 	&UKRGA_Graple::OnSetRotation,
+	// 	0.01f, // 자동으로 deltaTime 간격으로 실행
+	// 	true		
+	// );
 	
 	LineTrace();
 }
@@ -41,6 +44,12 @@ void UKRGA_Graple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 void UKRGA_Graple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (EndMontageTask)
+	{
+		EndMontageTask->EndTask();
+	}
+	CachedPlayerCharacter->bUseControllerRotationYaw = false;
+	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -49,7 +58,11 @@ void UKRGA_Graple::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 	//케이블 Hidden
-	StopGraple();
+	if (EndMontageTask==nullptr)
+	{
+		
+		StopGraple();
+	}
 }
 
 void UKRGA_Graple::LineTrace()
@@ -121,10 +134,6 @@ void UKRGA_Graple::ApplyPhysics(const FHitResult& OutHitResult, APawn* OwnerPawn
 
 		TargetLocation = OutHitResult.Location;
 
-		FVector GrapleDirection = (TargetLocation - CachedPlayerCharacter->GetActorLocation()).GetSafeNormal();
-
-		CachedPlayerCharacter->LaunchCharacter(GrapleDirection * StartLaunchSpeed, true, true);
-
 		StartMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, TEXT("StartMontageTask"), StartMontage
 		);
@@ -133,7 +142,6 @@ void UKRGA_Graple::ApplyPhysics(const FHitResult& OutHitResult, APawn* OwnerPawn
 		StartMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Graple::OnMoveToLocation);
 		StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Graple::OnMoveToLocation);
 		StartMontageTask->ReadyForActivation();
-		
 	}
 }
 
@@ -158,16 +166,32 @@ void UKRGA_Graple::OnLoopMontage()
 void UKRGA_Graple::StopGraple()
 {
 	if (!CachedPlayerCharacter) return;
+
+	if (IsValid(LoopMontageTask))
+	{
+		LoopMontageTask->EndTask();
+	}
+	if (IsValid(StartMontageTask))
+	{
+		StartMontageTask->EndTask();
+	}
+	if (IsValid(MoveToTask))
+	{
+		MoveToTask->EndTask();
+	}
 	
 	const AController* PlayerController = CachedPlayerCharacter->GetController();
 	if (!PlayerController) return;
 
 	FVector Direction = PlayerController->GetControlRotation().Vector();
-	Direction.Z += 1.f;
 	Direction = Direction.GetSafeNormal();
+	Direction.Z = 1.f;
+
+	//구르기 몽타주 하는 동안에는 Rotation 동기화
+	CachedPlayerCharacter->bUseControllerRotationYaw = true;
 	
-	TargetRotation=Direction.Rotation();
-	CachedPlayerCharacter->LaunchCharacter(Direction * EndLaunchSpeed, true, true);
+	TargetRotation = FRotator(0.f, Direction.Rotation().Yaw, 0.f);
+	CachedPlayerCharacter->LaunchCharacter(FVector(0.f,0.f,1.f) * EndLaunchSpeed, true, true);
 	
 	EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, TEXT("EndMontageTask"), EndMontage
@@ -182,17 +206,16 @@ void UKRGA_Graple::StopGraple()
 
 void UKRGA_Graple::OnMoveToLocation()
 {
+	float Distance = FVector::Dist(CachedPlayerCharacter->GetActorLocation(), TargetLocation);
 
-	//Distance 구한 뒤에 Duration 변경하기
+	float Duration = Distance*MoveToSpeed;
 	
-	//float Distance = DistSequence(CurrentPlayerCharacter.GetLocation() , TargetLocation.GetLocation()); 
-	
-	UAbilityTask_ApplyRootMotionMoveToForce* Task =
+	MoveToTask =
 	UAbilityTask_ApplyRootMotionMoveToForce::ApplyRootMotionMoveToForce(
 		this,
 		FName("GrappleToTarget"),
 		TargetLocation,
-		4.f,
+		Duration,
 		true,
 		EMovementMode::MOVE_Flying,
 		true,
@@ -201,13 +224,12 @@ void UKRGA_Graple::OnMoveToLocation()
 		CachedPlayerCharacter->GetActorLocation(),
 		true
 	);
-	if (Task)
+	if (MoveToTask)
 	{
-		Task->OnTimedOut.AddDynamic(this, &UKRGA_Graple::StopGraple);
-		Task->ReadyForActivation();
+		MoveToTask->OnTimedOut.AddDynamic(this, &UKRGA_Graple::StopGraple);
+		MoveToTask->OnTimedOutAndDestinationReached.AddDynamic(this, &UKRGA_Graple::StopGraple);
+		MoveToTask->ReadyForActivation();
 	}
-	
-	//도착 못 하고 종료되는 경우에 Task초기화 필요
 
 	OnLoopMontage();
 }
@@ -218,7 +240,7 @@ void UKRGA_Graple::OnSetRotation()
 
 	FRotator CurrentRot = CachedPlayerCharacter->GetActorRotation();
 	
-	FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetRotation, GetWorld()->GetDeltaSeconds(), RotationSpeed);
+	FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetRotation, 0.01f, RotationSpeed);
 
-	CachedPlayerCharacter->SetActorRotation(NewRot);
+	CachedPlayerCharacter->SetActorRotation(FRotator(CurrentRot.Pitch, NewRot.Yaw, CurrentRot.Roll));
 }

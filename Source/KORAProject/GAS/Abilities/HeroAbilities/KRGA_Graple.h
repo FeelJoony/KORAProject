@@ -4,6 +4,8 @@
 #include "GAS/Abilities/KRHeroGameplayAbility.h"
 #include "KRGA_Graple.generated.h"
 
+class UAbilityTask_ApplyRootMotionMoveToForce;
+class UAbilityTask_PlayMontageAndWait;
 class UCharacterMovementComponent;
 
 UCLASS()
@@ -14,6 +16,7 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+
 private:
 	void LineTrace();
 	void ApplyPhysics(const FHitResult& OutHitResult, APawn* OwnerPawn);
@@ -21,24 +24,52 @@ private:
 	UFUNCTION()
 	void OnAbilityEnd();
 
-	void GoToLocation();
+	UFUNCTION()
+	void OnLoopMontage();
 
+	UFUNCTION()
 	void StopGraple();
 	
+	UFUNCTION()
+	void OnMoveToLocation();
+
+	void OnSetRotation();
+	
 	UPROPERTY(EditDefaultsOnly)
-	UAnimMontage* SelectedMontage = nullptr;
+	TObjectPtr<UAnimMontage> StartMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	UAnimMontage* EndJumpMontage = nullptr;
+	TObjectPtr<UAnimMontage> LoopMontage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UAnimMontage> EndMontage = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> StartMontageTask=nullptr;
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> LoopMontageTask=nullptr;
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> EndMontageTask=nullptr;
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_ApplyRootMotionMoveToForce> MoveToTask=nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UMaterial> DecalMaterial = nullptr;
 	
-	FTimerHandle GrapleTimer;
+	FTimerHandle RotatorTimer;
+	
 	//케이블 생성
 
+	
+	UPROPERTY()
+	TObjectPtr<AKRHeroCharacter> CachedPlayerCharacter;
 
+	
+	
+	// 에디터 설정
 	UPROPERTY(EditDefaultsOnly)
 	float StartLaunchSpeed = 1000.f;
-	
-	// 이동 속도
+
 	UPROPERTY(EditDefaultsOnly)
 	float GrapleSpeed = 30000.f;
 
@@ -50,12 +81,18 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly)
 	float EndLaunchSpeed = 500.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float RotationSpeed = 180.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float TraceRange = 5000.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float MoveToSpeed = 0.1f;
 	
 	// 목적지 (타겟 위치)
 	FVector TargetLocation;
 
-	// 현재 그라플 중인지 체크
-	bool bIsGrapling = false;
-
-	float OriginalGravity = 0.f;
+	FRotator TargetRotation = FRotator();
 };
