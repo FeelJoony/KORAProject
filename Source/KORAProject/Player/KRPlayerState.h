@@ -17,6 +17,7 @@ class KORAPROJECT_API AKRPlayerState : public APlayerState, public IAbilitySyste
 
 public:
 	AKRPlayerState();
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -25,6 +26,14 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "GAS")
 	UKRPlayerAbilitySystemComponent* GetKRPlayerASC() const {return PlayerASC;}
+
+
+// Experience Section
+public:
+	template<typename T>
+	const T* GetPawnData() const { return Cast<T>(PawnData); }
+	void OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience);
+	void SetPawnData(const class UKRPawnData* NewPawnData);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
@@ -35,6 +44,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UKRPlayerAttributeSet> PlayerAttributeSet;
+
+	UPROPERTY()
+	TObjectPtr<const class UKRPawnData> PawnData;
 	
 	bool bStartupGiven = false;
 

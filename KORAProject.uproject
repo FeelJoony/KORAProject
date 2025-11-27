@@ -13,7 +13,8 @@
 				"Engine",
 				"GameplayAbilities",
 				"EnhancedInput",
-				"GameplayTasks"
+				"GameplayTasks",
+				"ModularGameplay"
 			]
 		},
 		{
@@ -93,6 +94,14 @@
 		},
 		{
 			"Name": "GameplayMessageRouter",
+			"Enabled": true
+		},
+		{
+			"Name": "GameFeatures",
+			"Enabled": true
+		},
+		{
+			"Name": "ModularGameplay",
 			"Enabled": true
 		}
 	]

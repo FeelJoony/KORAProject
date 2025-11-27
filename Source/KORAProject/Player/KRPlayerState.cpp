@@ -1,4 +1,5 @@
 #include "Player/KRPlayerState.h"
+#include "GameModes/KRBaseGameMode.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/KRPlayerAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
@@ -20,6 +21,11 @@ AKRPlayerState::AKRPlayerState()
 	PlayerASC->AddAttributeSetSubobject(PlayerAttributeSet.Get());
 }
 
+void AKRPlayerState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
+
 void AKRPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
@@ -39,4 +45,20 @@ void AKRPlayerState::InitASCForAvatar(AActor* NewAvatar)
 	}
 
 	
+}
+
+void AKRPlayerState::OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience)
+{
+	if (AKRBaseGameMode* GameMode = GetWorld()->GetAuthGameMode<AKRBaseGameMode>())
+	{
+		//const UKRPawnData* NewPawnData = GameMode->GetPawnData
+	}
+}
+
+void AKRPlayerState::SetPawnData(const class UKRPawnData* NewPawnData)
+{
+	check(NewPawnData);
+	check(!PawnData);
+
+	PawnData = NewPawnData;
 }
