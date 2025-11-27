@@ -4,6 +4,7 @@
 #include "Engine/DataAsset.h"
 #include "KRPawnData.generated.h"
 
+class UKRCameraMode;
 class UKRAbilitySet;
 class UDataAsset_InputConfig;
 class UKRAbilityTagRelationshipMapping;
@@ -27,4 +28,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Input")
 	TObjectPtr<UDataAsset_InputConfig> InputConfig;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Camera")
+	TSubclassOf<UKRCameraMode> DefaultCameraMode;
 };
