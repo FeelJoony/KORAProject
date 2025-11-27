@@ -20,11 +20,12 @@ public:
 	virtual void InputPressed(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	
+	UFUNCTION()
+	void OnAbilityEnd();
+	
 protected:
 	UFUNCTION()
 	void OnSprint();
-	UFUNCTION()
-	void OnAbilityEnd();
 
 	UPROPERTY(EditDefaultsOnly, Category = KRAbility)
 	float SprintChargeTime;

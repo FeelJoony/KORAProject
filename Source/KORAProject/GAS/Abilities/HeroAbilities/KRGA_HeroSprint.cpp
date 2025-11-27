@@ -69,7 +69,7 @@ void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 		}
 	}
 	
-	if (EndDelayTask)
+	if (IsValid(EndDelayTask))
 	{
 		EndDelayTask->EndTask();
 		EndDelayTask = nullptr;
@@ -97,7 +97,7 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	EndDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, 0.2f);
-	if (EndDelayTask)
+	if (IsValid(EndDelayTask))
 	{
 		EndDelayTask->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnAbilityEnd);
 		EndDelayTask->ReadyForActivation();
