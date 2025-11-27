@@ -52,8 +52,6 @@ void UKRHUD::InitializeChildrenHUD(const FKRHUDInitArgs& Args)
 	InitChild(PlayerStatusBar);
 	InitChild(BossHPBar);
 	InitChild(QuestPanel);
-	InitChild(CurrencyPanel);
-
 }
 
 void UKRHUD::TearDownChildrenHUD()
@@ -69,7 +67,6 @@ void UKRHUD::TearDownChildrenHUD()
 	TearDownChild(PlayerStatusBar);
 	TearDownChild(BossHPBar);
 	TearDownChild(QuestPanel);
-	TearDownChild(CurrencyPanel);
 }
 
 

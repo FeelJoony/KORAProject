@@ -1,5 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/Data/UIStruct/KRProgressBarMessages.h"
+#include "UI/HUD/Modules/KRQuickSlotButtonBase.h"
 

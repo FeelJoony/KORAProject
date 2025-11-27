@@ -4,11 +4,11 @@
 
 #include "UI/HUD/KRHUDWidgetBase.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRBossHealthWidget.generated.h"
 
 class UProgressBar;
 class UAbilitySystemComponent;
-struct FKRProgressBarMessages;
 
 UCLASS()
 class KORAPROJECT_API UKRBossHealthWidget : public UKRHUDWidgetBase
@@ -16,14 +16,14 @@ class KORAPROJECT_API UKRBossHealthWidget : public UKRHUDWidgetBase
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void SetBossASC(UAbilitySystemComponent* InASC);
+	UFUNCTION(BlueprintCallable) void SetBossASC(UAbilitySystemComponent* InASC);
+
+	virtual void OnHUDInitialized() override;
+	virtual void NativeDestruct() override;
 
 protected:
 	UPROPERTY(meta = (BindWidget)) UProgressBar* BossHP = nullptr;
 
-	virtual void OnHUDInitialized() override;
-	virtual void NativeDestruct() override;
 	virtual void UnbindAll() override;
 
 private:
@@ -36,8 +36,8 @@ private:
 	float BossAnimElapsed = 0.f;
 	FTimerHandle BossAnimTimerHandle;
 
-	void OnBossMessage(FGameplayTag ChannelTag, const FKRProgressBarMessages& Message);
-	bool IsMessageFromBoss(const FKRProgressBarMessages& Message) const;
+	void OnBossMessage(FGameplayTag ChannelTag, const FKRUIMessage_Progress& Message);
+	bool IsMessageFromBoss(const TWeakObjectPtr<AActor>& TargetActor) const;
 
 	void StartBossAnim();
 	void TickBossAnim();

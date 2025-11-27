@@ -3,59 +3,79 @@
 #pragma once
 
 #include "UI/HUD/KRHUDWidgetBase.h"
-#include "UI/Data/UIStruct/KRProgressBarMessages.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "KRPlayerStatusWidget.generated.h"
 
-class UProgressBar; 
+class UProgressBar;
 class UKRAttributeSet;
+class UImage;
+class UTextBlock;
 
 UCLASS()
 class KORAPROJECT_API UKRPlayerStatusWidget : public UKRHUDWidgetBase
 {
 	GENERATED_BODY()
-	
-protected:
-	UPROPERTY(meta = (BindWidget)) UProgressBar* MainHPBar = nullptr;
-	UPROPERTY(meta = (BindWidget)) UProgressBar* GreyHPBar = nullptr;
-	UPROPERTY(meta = (BindWidget)) UProgressBar* StaminaBar = nullptr;
 
-	// UUswerWidget 기반으로 코어 드라이브 에너지를 Percentage를 받아서 하나씩 채우는 게 있는데,
-	// 이 경우 총 3개의 Energy 바가 있고, 1번 부터 차곡차곡 채워짐
-
-	// 현재 들고 있는 무기가 검인지 총인지를 받아서 BP에서 애니메이션 처리 할 예정 
-
+public:
 	virtual void OnHUDInitialized() override;
 	virtual void NativeDestruct() override;
+
+protected:
 	virtual void UnbindAll() override;
+
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UProgressBar> MainHPBar = nullptr;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UProgressBar> GreyHPBar = nullptr;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UProgressBar> StaminaBar = nullptr;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "ProgressBar")
 	void BP_OnCoreDriveChanged(int32 FullSegments, float PartialSegmentPercent);
+	UFUNCTION(BlueprintImplementableEvent, Category = "PlayerStatus", meta = (DisplayName = "On Weapon Changed"))
+	void BP_OnWeaponChanged(const FKRUIMessage_Weapon& WeaponData);
+
+	void OnProgressMessageReceived(FGameplayTag Channel, const FKRUIMessage_Progress& Message);
+	void OnGreyHPMessageReceived(FGameplayTag Channel, const FKRUIMessage_GreyHP& Message);
+	void OnWeaponMessageReceived(FGameplayTag Channel, const FKRUIMessage_Weapon& Message);
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerStatus|GreyHP") float GreyHPDecayDuration = 1.0f;
 
 private:
-	FGameplayMessageListenerHandle PBMessageListener;
+	FGameplayMessageListenerHandle ProgressMessageHandle;
+	FGameplayMessageListenerHandle GreyHPMessageHandle;
+	FGameplayMessageListenerHandle WeaponMessageHandle;
 
 	float HealthDisplayPercent = 1.f;
 	float HealthTargetPercent = 1.f;
 	float HealthAnimTime = 0.3f;
 	float HealthAnimElapsed = 0.f;
-	FTimerHandle* HealthAnimTimerHandle = nullptr;
+	FTimerHandle HealthAnimTimerHandle;
 
 	float StaminaDisplayPercent = 1.f;
 	float StaminaTargetPercent = 1.f;
 	float StaminaAnimTime = 0.3f;
 	float StaminaAnimElapsed = 0.f;
-	FTimerHandle* StaminaAnimTimerHandle = nullptr;
+	FTimerHandle StaminaAnimTimerHandle;
 
 	float CoreDriveValue = 0.f;
 	float CoreDriveMax = 60.f;
 
-	void ProcessMessage(FGameplayTag InTag, const FKRProgressBarMessages& Message);
-	bool IsMessageFromMyActor(const FKRProgressBarMessages& Message) const;
+	float CurrentGreyHP = 0.f;
+	float GreyHPDecayStartValue = 0.f;
+	float GreyHPDecayElapsed = 0.f;
+	FTimerHandle GreyHPDecayTimerHandle;
+
+
+	bool IsMessageFromMyActor(const TWeakObjectPtr<AActor>& TargetActor) const;
 
 	void StartHealthAnim();
 	void TickHealthAnim();
 
 	void StartStaminaAnim();
 	void TickStaminaAnim();
+
+	void RecoverGreyHP(float RecoveredAmount);
+	void DecayGreyHP();
+	void TickGreyHPDecayAnimation();
+
+	void UpdateGreyHPBar(float NewValueNormalized);
 };

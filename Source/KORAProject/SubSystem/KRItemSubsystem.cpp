@@ -1,80 +1,131 @@
-//#include "SubSystem/KRItemSubsystem.h"
-//#include "Item/Object/KRBaseItem.h"
-//#include "Data/BaseItemData.h"
-//#include "GAS/KRGameplayTags.h"
-//#include "Item/Object/KRConsumeItem.h"
-//#include "Item/Object/KRWeaponItem.h"
+// #include "KRItemSubsystem.h"
+// #include "KRInventorySubsystem.h"
+// #include "KRInventoryItemDefinition.h"
+// #include "KRInventoryItemInstance.h"
+// #include "Engine/DataTable.h"
+// #include "Kismet/GameplayStatics.h"
+// #include "GameFramework/GameInstance.h"
 //
-//void UKRItemSubsystem::Initialize(FSubsystemCollectionBase& Collection)
-//{
-//	Super::Initialize(Collection);
-//	
-//	LoadDataTable(EGameDataType::WeaponItemData, TEXT("WeaponItemData"));
-//	LoadDataTable(EGameDataType::ConsumeItemData, TEXT("ConsumeItemData"));
-//	LoadDataTable(EGameDataType::MaterialItemData, TEXT("MaterialItemData"));
-//}
+// #include "Data/Weapon/KRWeaponItemData.h"
+// #include "Data/ItemDataStruct.h"
 //
-//void UKRItemSubsystem::Deinitialize()
-//{
-//	ItemDataTables.Empty();
-//	Super::Deinitialize();
-//}
+// #include UE_INLINE_GENERATED_CPP_BY_NAME(KRItemSubsystem)
 //
-//void UKRItemSubsystem::LoadDataTable(EGameDataType ItemType, const FString& TableName)
-//{
-//	const FString FullPath = FPaths::Combine(*TablePath, *FString::Printf(TEXT("%s.%s"), *TableName, *TableName));
-//	UDataTable* LoadedTable = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *FullPath));
+// void UKRItemSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+// {
+// 	Super::Initialize(Collection);
 //
-//	if (IsValid(LoadedTable))
-//	{
-//		ItemDataTables.Add(ItemType, LoadedTable);
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Error, TEXT("UKRItemSubsystem: Failed to load DataTable %s"), *FullPath);
-//	}
-//}
+// 	// 인벤토리 참조 저장
+// 	InventorySubsystem = GetGameInstance()->GetSubsystem<UKRInventorySubsystem>();
+// }
 //
-//const FBaseItemData* UKRItemSubsystem::GetItemData(EGameDataType ItemType, int32 ItemKey) const
-//{
-//	if (const TObjectPtr<UDataTable>* FoundTablePtr = ItemDataTables.Find(ItemType))
-//	{
-//		if (UDataTable* Table = FoundTablePtr->Get())
-//		{
-//			return Table->FindRow<FBaseItemData>(*FString::FromInt(ItemKey), TEXT("GetItemData"));
-//		}
-//	}
-//	return nullptr;
-//}
+// void UKRItemSubsystem::Deinitialize()
+// {
+// 	Super::Deinitialize();
+// }
 //
-//UKRBaseItem* UKRItemSubsystem::CreateItemInstance(EGameDataType ItemType, int32 ItemKey, int32 Amount)
-//{
-//	const FBaseItemData* ItemData = GetItemData(ItemType, ItemKey);
-//	if (ItemData == nullptr)
-//	{
-//		UE_LOG(LogTemp, Warning, TEXT("CreateItemInstance: ItemKey %d not found in table type %d"), ItemKey, static_cast<int>(ItemType));
-//		return nullptr;
-//	}
-//	
-//	UDataTable* Table = ItemDataTables.FindChecked(ItemType);
-//	
-//	UClass* ItemObjectClass = UKRBaseItem::StaticClass();
-//	if(ItemData->TypeTag.MatchesTag(KRGameplayTags::TAG_ItemType_Equip_Sword) || ItemData->TypeTag.MatchesTag(KRGameplayTags::TAG_ItemType_Equip_Gun))
-//	{
-//		ItemObjectClass = UKRWeaponItem::StaticClass();
-//	}
-//	else if (ItemData->TypeTag.MatchesTag(KRGameplayTags::TAG_ItemType_Consume))
-//	{
-//		ItemObjectClass = UKRConsumeItem::StaticClass(); 
-//	}
-//	
-//	UKRBaseItem* NewItemObject = NewObject<UKRBaseItem>(this, ItemObjectClass);
-//	
-//	if (NewItemObject)
-//	{
-//		NewItemObject->Initialize(ItemKey, Table);
-//		NewItemObject->AddStack(Amount - 1);
-//	}
+// /*===========================================================
+// 	Generic Item Create
+// ===========================================================*/
+// UKRInventoryItemInstance* UKRItemSubsystem::CreateItemByTag(FGameplayTag ItemTag)
+// {
+// 	if (!ItemTag.IsValid())
+// 	{
+// 		UE_LOG(LogTemp, Error, TEXT("[ItemSubsystem] Invalid ItemTag"));
+// 		return nullptr;
+// 	}
 //
-//	return NewItemObject;
-//}
+// 	// 1. ItemDefinition 생성
+// 	UKRInventoryItemDefinition* NewDef = CreateDefinitionInternal(ItemTag);
+// 	if (!NewDef)
+// 	{
+// 		UE_LOG(LogTemp, Error, TEXT("[ItemSubsystem] CreateDefinition failed: %s"), *ItemTag.ToString());
+// 		return nullptr;
+// 	}
+//
+// 	// 2. ItemInstance 생성
+// 	return CreateInstanceInternal(NewDef);
+// }
+//
+// UKRInventoryItemInstance* UKRItemSubsystem::CreateAndAddToInventory(FGameplayTag ItemTag, int32 StackCount)
+// {
+// 	if (!InventorySubsystem)
+// 	{
+// 		UE_LOG(LogTemp, Error, TEXT("[ItemSubsystem] InventorySubsystem invalid!"));
+// 		return nullptr;
+// 	}
+// 	
+// 	return InventorySubsystem->AddItem(ItemTag, StackCount);
+// }
+//
+// /*===========================================================
+// 	Weapon Create
+// ===========================================================*/
+// UKRInventoryItemInstance* UKRItemSubsystem::CreateWeaponAndAddToInventory(FName WeaponID)
+// {
+// 	// 1. Weapon DT 로드
+// 	FKRWeaponItemData* WeaponData = GetRowFromDT<FKRWeaponItemData>(
+// 		TEXT("/Game/Data/DT_Weapons.DT_Weapons"),
+// 		WeaponID
+// 	);
+// 	if (!WeaponData)
+// 	{
+// 		UE_LOG(LogTemp, Error, TEXT("[ItemSubsystem] WeaponData not found: %s"), *WeaponID.ToString());
+// 		return nullptr;
+// 	}
+//
+// 	// 2. WeaponDefinition 로드
+// 	FString DefPath = FString::Printf(TEXT("/Game/Data/Weapons/WDA_%s.WDA_%s"), 
+// 		*WeaponID.ToString(), *WeaponID.ToString());
+//
+// 	UDA_WeaponDefinition* WeaponDef = LoadObject<UDA_WeaponDefinition>(nullptr, *DefPath);
+// 	if (!WeaponDef)
+// 	{
+// 		UE_LOG(LogTemp, Error, TEXT("[ItemSubsystem] WeaponDefinition Not Found: %s"), *DefPath);
+// 		return nullptr;
+// 	}
+//
+// 	// 3. InventoryItemDefinition 생성
+// 	UKRInventoryItemDefinition* ItemDef = WeaponDef->CreateInventoryItemDefinition(*WeaponData);
+// 	if (!ItemDef)
+// 	{
+// 		return nullptr;
+// 	}
+//
+// 	// 4. 인스턴스 생성
+// 	UKRInventoryItemInstance* ItemInst = CreateInstanceInternal(ItemDef);
+//
+// 	// 5. 인벤토리에 추가
+// 	return InventorySubsystem->AddItem(ItemDef->GetItemTag(), 1);
+// }
+//
+// /*===========================================================
+// 	Internal Create Functions
+// ===========================================================*/
+// UKRInventoryItemDefinition* UKRItemSubsystem::CreateDefinitionInternal(FGameplayTag ItemTag)
+// {
+// 	// DataTablesSubsystem에서 ItemData 가져오는 방식과 연결 가능
+// 	// 여기서는 최소 기능만 구현
+// 	UKRInventoryItemDefinition* NewDef = UKRInventoryItemDefinition::CreateItemDefinition();
+// 	if (!NewDef)
+// 	{
+// 		return nullptr;
+// 	}
+//
+// 	// ItemTag 적용
+// 	NewDef->SetItemTag(ItemTag);
+// 	return NewDef;
+// }
+//
+// UKRInventoryItemInstance* UKRItemSubsystem::CreateInstanceInternal(UKRInventoryItemDefinition* Definition)
+// {
+// 	UKRInventoryItemInstance* Inst = NewObject<UKRInventoryItemInstance>(this);
+// 	Inst->SetItemDef(Definition);
+// 	return Inst;
+// }
+//
+// /*===========================================================
+// 	DataTable Utility
+// ===========================================================*/
+// template<typename T>
+// T* UKRItemSu*

@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CommonActivatableWidget.h"
-//#include "GameplayTagContainer.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRShopSell.generated.h"
 
 class UKRSlotGridBase;
@@ -26,7 +27,7 @@ public:
 	UPROPERTY(meta = (BindWidgetOptional), BlueprintReadOnly) TObjectPtr<UCommonUserWidget> PlayerCurrencyPanel = nullptr;
 
 
-	UFUNCTION(BlueprintCallable, Category = "Shop") void RefreshPlayerInventory();
+	UFUNCTION(BlueprintCallable, Category = "Shop") void RefreshShopInventory();
 	UFUNCTION(BlueprintCallable, Category = "Shop") void UpdatePlayerCurrency();
 
 protected:
@@ -50,4 +51,7 @@ protected:
 
 private:
 	UPROPERTY() TArray<FKRItemUIData> CachedShopItems;
+	FGameplayMessageListenerHandle CurrencyListener;
+
+	void OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message);
 };

@@ -11,7 +11,7 @@ class UCommonActivatableWidgetStack;
 UENUM(BlueprintType)
 enum class EKRUILayer : uint8 // Priority
 {
-	Game = 0, GameMenu = 1, Menu = 2, Modal = 3
+	Game = 0, GamePopup = 1, GameMenu = 2, Menu = 3, Modal = 4
 };
 
 UENUM(BlueprintType)
