@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRHeroGameplayAbility.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_HeroSprint.generated.h"
 
 class UAbilityTask_WaitDelay;
 
 UCLASS()
-class KORAPROJECT_API UKRGA_HeroSprint : public UKRHeroGameplayAbility
+class KORAPROJECT_API UKRGA_HeroSprint : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 	

@@ -4,7 +4,6 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
-#include "Characters/KRHeroCharacter.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -19,7 +18,7 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 	SetCableVisibility(true);
 
-	CachedPlayerCharacter = Cast<AKRHeroCharacter>(CurrentActorInfo->AvatarActor);
+	CachedPlayerCharacter = Cast<ACharacter>(CurrentActorInfo->AvatarActor);
 	if (!CachedPlayerCharacter)
 	{
 		OnAbilityEnd();

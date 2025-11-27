@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRHeroGameplayAbility.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_Scanning.generated.h"
 
 class AScannerController;
 
 UCLASS()
-class KORAPROJECT_API UKRGA_Scanning : public UKRHeroGameplayAbility
+class KORAPROJECT_API UKRGA_Scanning : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 public:

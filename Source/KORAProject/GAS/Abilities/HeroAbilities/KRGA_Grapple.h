@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRHeroGameplayAbility.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_Grapple.generated.h"
 
 class UAbilityTask_ApplyRootMotionMoveToForce;
@@ -9,7 +9,7 @@ class UAbilityTask_PlayMontageAndWait;
 class UCharacterMovementComponent;
 
 UCLASS()
-class KORAPROJECT_API UKRGA_Grapple : public UKRHeroGameplayAbility
+class KORAPROJECT_API UKRGA_Grapple : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 public:
@@ -68,7 +68,7 @@ private:
 
 	
 	UPROPERTY()
-	TObjectPtr<AKRHeroCharacter> CachedPlayerCharacter;
+	TObjectPtr<ACharacter> CachedPlayerCharacter;
 
 	UPROPERTY()
 	TObjectPtr<AActor> CachedTargetActor;
