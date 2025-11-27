@@ -27,7 +27,7 @@ void UInventoryFragment_DisplayUI::OnInstanceCreated(UKRInventoryItemInstance* I
 	DisplayNameKey  = Row->DisplayNameKey;
 	DescriptionKey  = Row->DescriptionKey;
 	ItemIcon        = Row->Icon;
-	Price           = Row->BasePrice;
+	Price			= FMath::RoundToInt(Row->BasePrice);
 
 	WeaponLevel = 5;
 }

@@ -1,6 +1,7 @@
 #include "GAS/Abilities/KREnemyGameplayAbility.h"
 #include "Characters/KREnemyCharacter.h"
 
+/*
 AKREnemyCharacter* UKREnemyGameplayAbility::GetEnemyCharacterFromActorInfo()
 {
 	if (!CachedKREnemyCharacter.IsValid())
@@ -15,3 +16,4 @@ UEnemyCombatComponent* UKREnemyGameplayAbility::GetEnemyCombatComponentFromActor
 {
 	return GetEnemyCharacterFromActorInfo()->GetEnemyCombatComponent();
 }
+*/

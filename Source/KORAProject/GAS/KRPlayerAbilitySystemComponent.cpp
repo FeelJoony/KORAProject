@@ -2,7 +2,7 @@
 #include "Abilities/KRHeroGameplayAbility.h"
 #include "AI/NavigationModifier.h"
 
-void UKRPlayerAbilitySystemComponent::ApplyInitialEffects()
+/*void UKRPlayerAbilitySystemComponent::ApplyInitialEffects()
 {
 	Super::ApplyInitialEffects();
 }
@@ -94,4 +94,4 @@ void UKRPlayerAbilitySystemComponent::RemovedGrantedHeroWeaponAbilities(
 		}
 	}
 	InSpecHandlesToRemove.Empty();
-}
+}*/

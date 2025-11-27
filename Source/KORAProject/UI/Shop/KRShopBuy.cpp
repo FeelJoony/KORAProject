@@ -5,6 +5,9 @@
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRItemUIData.h"
 #include "SubSystem/KRUIInputSubsystem.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
+#include "UI/Modal/KRConfirmModal.h"
+
 #include "CommonTextBlock.h"
 #include "CommonButtonBase.h"
 #include "CommonNumericTextBlock.h"
@@ -62,11 +65,28 @@ void UKRShopBuy::NativeConstruct()
 	Super::NativeConstruct();
 
 	RefreshShopInventory();
-	//UpdatePlayerCurrency();
+	UpdatePlayerCurrency();
+
+	if (UWorld* World = GetWorld())
+	{
+		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+
+		CurrencyListener = Subsys.RegisterListener(
+			FKRUIMessageTags::Currency(),
+			this,
+			&ThisClass::OnCurrencyMessageReceived
+		);
+	}
 }
 
 void UKRShopBuy::NativeDestruct()
 {
+	if (UWorld* World = GetWorld())
+	{
+		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+		Subsys.UnregisterListener(CurrencyListener);
+	}
+
 	Super::NativeDestruct();
 
 }
@@ -95,6 +115,38 @@ void UKRShopBuy::UpdateItemDescription(int32 CellIndex)
 
 void UKRShopBuy::HandleSelect()
 {
+	if (!ShoppingSlot) return;
+
+	const int32 Index = ShoppingSlot->GetSelectedIndex();
+	if (!CachedShopItems.IsValidIndex(Index)) return;
+
+	const FKRItemUIData& ItemData = CachedShopItems[Index];
+	FGameplayTag ItemTag = ItemData.ItemTag;
+
+	FText Msg = FText::FromStringTable(
+		TEXT("/Game/UI/StringTable/ST_UIBaseTexts"),
+		TEXT("Modal_BuyConfirm")
+	);
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+		{
+			if (auto* Widget = Router->ToggleRoute(TEXT("Confirm")))
+			{
+				if (auto* Confirm = Cast<UKRConfirmModal>(Widget))
+				{
+					Confirm->SetupConfirmWithQuantity(
+						Msg,
+						EConfirmContext::ShopBuy,
+						ItemTag,
+						1,
+						99,
+						1
+					);
+				}
+			}
+		}
+	}
 }
 
 void UKRShopBuy::HandleMoveLeft()
@@ -201,4 +253,10 @@ int32 UKRShopBuy::StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int3
 
 
 	return FMath::Clamp(Next, 0, NumTotal - 1);
+}
+
+void UKRShopBuy::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)
+{
+	UpdatePlayerCurrency();
+	RefreshShopInventory(); // Needs Shop Inventory Updates
 }

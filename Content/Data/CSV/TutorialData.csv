@@ -1,0 +1,12 @@
+RowName,PopupType,Duration,PauseGame,StringKey,OffsetX,OffsetY,CompletionTrigger
+Scene1_Shot1c,WaitInput,0,TRUE,Tut_PressCtrl,150,0,Step_PressCtrl
+Scene2_Shot2a,Timed,2,FALSE,Tut_SwitchSword,150,0,None
+Scene2_Shot2b_Middle,Timed,2,FALSE,Tut_LockOn,150,0,None
+Scene2_Shot2b_Scroll,Timed,2,FALSE,Tut_SwitchLockTarget,150,30,None
+Scene2_Shot2c,TimedOrInput,10,FALSE,Tut_BasicAttack,150,0,Step_BasicAttack
+Scene2_Shot2d,Timed,3,FALSE,Tut_DodgeOrGuard,150,0,None
+Scene2_Shot2e,Timed,5,FALSE,Tut_ChargedAttack,150,0,None
+Scene3_Shot3a,WaitInput,0,TRUE,Tut_Explore,150,0,Step_Explore
+Scene3_Shot3b,Timed,2,FALSE,Tut_StealthKO,150,0,None
+Scene4_Shot4b,Timed,2,FALSE,Tut_Run,150,0,None
+SceneX_SpecialGauge,Timed,3,FALSE,Tut_SpecialGauge,150,0,None

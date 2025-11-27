@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "GAS/KRAbilitySystemComponent.h"
-#include "KORATypes/KRStructTypes.h"
 #include "KRPlayerAbilitySystemComponent.generated.h"
 
 
@@ -13,6 +12,7 @@ class KORAPROJECT_API UKRPlayerAbilitySystemComponent : public UKRAbilitySystemC
 	GENERATED_BODY()
 	
 public:
+	/*
 	virtual void ApplyInitialEffects() override;
 	virtual void GiveInitialAbilities() override;
 
@@ -30,5 +30,6 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TMap<int32, TSubclassOf<class UGameplayAbility>> InitialInputAbilities;
+	*/
 
 };

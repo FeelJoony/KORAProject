@@ -1,35 +1,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ModularCharacter.h"
 #include "AbilitySystemInterface.h"
-#include "GameFramework/Character.h"
-#include "Interface/PawnCombatInterface.h"
 #include "KRBaseCharacter.generated.h"
 
+class UKRCombatComponent;
 class UAbilitySystemComponent;
-class UKRAttributeSet;
-class UDataAsset_StartUpDataBase;
+class UKRPawnExtensionComponent;
 
 UCLASS()
-class KORAPROJECT_API AKRBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IPawnCombatInterface
+class KORAPROJECT_API AKRBaseCharacter : public AModularCharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	AKRBaseCharacter();
+	AKRBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
-	
+
 protected:
-	virtual void PossessedBy(AController* NewController) override;
-	
-	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UAbilitySystemComponent> CachedASC = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Character")
+	TObjectPtr<UKRPawnExtensionComponent> PawnExtensionComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData")
-	TSoftObjectPtr<UDataAsset_StartUpDataBase> CharacterStartUpData;
-
-public:
-	FORCEINLINE void SetCachedASC(UAbilitySystemComponent* InASC) { CachedASC = InASC; }
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Combat")
+	TObjectPtr<UKRCombatComponent> CombatComponent;
 };

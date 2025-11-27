@@ -24,7 +24,12 @@ public class KORAProject : ModuleRules
 			"SlateCore",
 			"CommonUI",
 			"CommonInput",
-			"StateTreeModule"
+			"StateTreeModule",
+			"GameplayStateTreeModule",
+			"ModularGameplay",
+			"CommonGame",
+			"GameFeatures",
+			"ModularGameplayActors"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

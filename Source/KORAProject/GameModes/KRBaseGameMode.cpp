@@ -3,3 +3,160 @@
 
 #include "GameModes/KRBaseGameMode.h"
 
+#include "KRBaseGameState.h"
+#include "KRExperienceDefinition.h"
+#include "KRExperienceManagerComponent.h"
+#include "Characters/KRHeroCharacter.h"
+#include "Data/DataAssets/KRPawnData.h"
+#include "Components/KRPawnExtensionComponent.h"
+#include "Player/KRPlayerState.h"
+
+AKRBaseGameMode::AKRBaseGameMode()
+{
+	GameStateClass = AKRBaseGameState::StaticClass();
+	//PlayerControllerClass = AKRPlayerController
+	PlayerStateClass = AKRPlayerState::StaticClass();
+	DefaultPawnClass = AKRHeroCharacter::StaticClass();
+}
+
+void AKRBaseGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::HandleMatchAssignmentIfNotExpectionOne);
+}
+
+void AKRBaseGameMode::InitGameState()
+{
+	Super::InitGameState();
+
+	UKRExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UKRExperienceManagerComponent>();
+	check(ExperienceManagerComponent);
+
+	ExperienceManagerComponent->CallOrRegister_OnExperienceLoaded(FOnKRExperienceLoaded::FDelegate::CreateUObject(this, &ThisClass::OnExperienceLoaded));
+}
+
+UClass* AKRBaseGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
+{
+	if (const UKRPawnData* PawnData = GetPawnDataForController(InController))
+	{
+		if (PawnData->PawnClass)
+		{
+			return PawnData->PawnClass;
+		}
+	}
+	
+	return Super::GetDefaultPawnClassForController_Implementation(InController);
+}
+
+void AKRBaseGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	if (IsExperienceLoaded())
+	{
+		Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+	}
+}
+
+APawn* AKRBaseGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
+{
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Instigator = GetInstigator();
+	SpawnInfo.ObjectFlags |= RF_Transient;
+	SpawnInfo.bDeferConstruction = true;
+
+	if (UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer))
+	{
+		if (APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo))
+		{
+			if (UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn))
+			{
+				if (const UKRPawnData* PawnData = GetPawnDataForController(NewPlayer))
+				{
+					PawnExtComp->SetPawnData(PawnData);
+				}
+			}
+
+			SpawnedPawn->FinishSpawning(SpawnTransform);
+			return SpawnedPawn;
+		}
+	}
+	
+	return nullptr;
+}
+
+void AKRBaseGameMode::HandleMatchAssignmentIfNotExpectionOne()
+{
+	FPrimaryAssetId ExperienceId;
+
+	UWorld* World = GetWorld();
+
+	if (!ExperienceId.IsValid())
+	{
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("BP_KRDefaultExperience")));
+	}
+
+	OnMatchAssignmentGiven(ExperienceId);
+}
+
+void AKRBaseGameMode::OnMatchAssignmentGiven(FPrimaryAssetId ExperienceId)
+{
+	check(ExperienceId.IsValid());
+
+	UKRExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UKRExperienceManagerComponent>();
+	check(ExperienceManagerComponent);
+	ExperienceManagerComponent->SetCurrentExperience(ExperienceId);
+}
+
+bool AKRBaseGameMode::IsExperienceLoaded() const
+{
+	check(GameState);
+	UKRExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UKRExperienceManagerComponent>();
+	check(ExperienceManagerComponent);
+
+	return ExperienceManagerComponent->IsExperienceLoaded();
+}
+
+void AKRBaseGameMode::OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience)
+{
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		APlayerController* PC = Cast<APlayerController>(*Iterator);
+
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			if (PlayerCanRestart(PC))
+			{
+				RestartPlayer(PC);
+			}
+		}
+	}
+}
+
+const UKRPawnData* AKRBaseGameMode::GetPawnDataForController(const AController* Controller) const
+{
+	if (Controller)
+	{
+		if (const AKRPlayerState* KRPS = Controller->GetPlayerState<AKRPlayerState>())
+		{
+			if (const UKRPawnData* PawnData = KRPS->GetPawnData<UKRPawnData>())
+			{
+				return PawnData;
+			}
+		}
+	}
+
+	check(GameState);
+	UKRExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UKRExperienceManagerComponent>();
+	check(ExperienceManagerComponent);
+
+	if (ExperienceManagerComponent->IsExperienceLoaded())
+	{
+		const UKRExperienceDefinition* Experience = ExperienceManagerComponent->GetCurrentExperienceChecked();
+		if (Experience->DefaultPawnData)
+		{
+			return Experience->DefaultPawnData;
+		}
+	}
+
+	return nullptr;
+}

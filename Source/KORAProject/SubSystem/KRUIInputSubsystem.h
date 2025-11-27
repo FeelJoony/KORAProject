@@ -64,7 +64,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UIInput") void UnbindAll(UCommonActivatableWidget* Widget);
 
 	UFUNCTION(BlueprintCallable, Category = "UIMode")
-	void EnterUIMode(EMouseCaptureMode Capture = EMouseCaptureMode::NoCapture, bool bShowCursor = true);
+	void EnterUIMode(bool bShowCursor = true);
 	UFUNCTION(BlueprintCallable, Category = "UIMode")
 	void ReleaseUIMode();
 
@@ -76,16 +76,14 @@ private:
 	int32 UIModeRefCount = 0;
 	TMap<TWeakObjectPtr<UCommonActivatableWidget>, TArray<FUIActionBindingHandle>> Handles;
 	 
-	EMouseCaptureMode LastCapture = EMouseCaptureMode::NoCapture; // -> UE 5.6 기준으로 어떻게 사용하는지 봐야할듯
 	bool bUIModeApplied = false;
 	bool bDesiredShowCursor = true;
 
 	FDataTableRowHandle MakeRow(FName RowName) const;
 	void EnsureLifecycleHook(UCommonActivatableWidget* Widget);
-	void ApplyEnable(EMouseCaptureMode Capture, bool bShowCursor);
+	void ApplyEnable(bool bShowCursor);
 	void ApplyDisable();
 
-	bool IsAnyNonGameLayerOpen() const;
 	void UpdateUIMode();
 
 	static FSimpleDelegate MakeSimpleDelegateFromDynamic(const FKRUISimpleDynDelegate& Dyn);
