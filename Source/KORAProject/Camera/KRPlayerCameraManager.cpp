@@ -21,11 +21,7 @@ void AKRPlayerCameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTi
 		OutVT.POV.FOV = CameraComponent->FieldOfView;
 		OutVT.POV.AspectRatio = CameraComponent->AspectRatio;
 	}
-	else
-	{
-		Super::UpdateViewTarget(OutVT, DeltaTime);
-	}
-
+	Super::UpdateViewTarget(OutVT, DeltaTime);
 }
 
 void AKRPlayerCameraManager::DisplayDebug(class UCanvas* Canvas, const class FDebugDisplayInfo& DebugDisplay, float& YL,
