@@ -7,8 +7,8 @@
 #include "KRExperienceDefinition.h"
 #include "KRExperienceManagerComponent.h"
 #include "Characters/KRHeroCharacter.h"
-#include "Characters/KRPawnData.h"
-#include "Characters/KRPawnExtensionComponent.h"
+#include "Data/DataAssets/KRPawnData.h"
+#include "Components/KRPawnExtensionComponent.h"
 #include "Player/KRPlayerState.h"
 
 AKRBaseGameMode::AKRBaseGameMode()
