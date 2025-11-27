@@ -36,6 +36,8 @@ void UKRShopSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 			&UKRShopSubsystem::OnConfirmMessage
 		);
 	}
+	
+	GenerateShopStock();
 }
 
 void UKRShopSubsystem::Deinitialize()
@@ -49,20 +51,25 @@ void UKRShopSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UKRShopSubsystem::GenerateShopStock(FGameplayTag InPoolTag)
+TArray<UKRInventoryItemInstance*> UKRShopSubsystem::GetShopStock()
 {
-	if (!PrepareShopGeneration() || !InPoolTag.IsValid())
+	return CurrentShopInventory;
+}
+
+void UKRShopSubsystem::GenerateShopStock()
+{
+	if (!PrepareShopGeneration())
 	{
 		return;
 	}
-	
+    
 	TArray<FShopItemData*> AlwaysOnCandidates;
 	TArray<FShopItemData*> RotationCandidates;
 	
-	GatherShopCandidates(InPoolTag, AlwaysOnCandidates, RotationCandidates);
+	GatherShopCandidates(AlwaysOnCandidates, RotationCandidates);
 	
 	AddAlwaysOnItemsToStock(AlwaysOnCandidates);
-	
+    
 	const int32 SlotsToFill = MaxShopSlots - CurrentShopInventory.Num();
 	if (SlotsToFill > 0 && !RotationCandidates.IsEmpty())
 	{
@@ -70,14 +77,9 @@ void UKRShopSubsystem::GenerateShopStock(FGameplayTag InPoolTag)
 	}
 }
 
-TArray<UKRInventoryItemInstance*> UKRShopSubsystem::GetShopStock()
+bool UKRShopSubsystem::TryBuyItem(UKRInventoryItemInstance* InShopItemInstance, int32 InCount)
 {
-	return CurrentShopInventory;
-}
-
-bool UKRShopSubsystem::TryBuyItem(APlayerController* InPlayer, UKRInventoryItemInstance* InShopItemInstance, int32 InCount)
-{
-	if (!InPlayer || !InShopItemInstance || InCount <= 0) return false;
+	if (!InShopItemInstance || InCount <= 0) return false;
 
 	if (!ShopStockCountMap.Contains(InShopItemInstance)) return false;
 	
@@ -115,15 +117,13 @@ bool UKRShopSubsystem::TryBuyItem(APlayerController* InPlayer, UKRInventoryItemI
 		CurrentShopInventory.Remove(InShopItemInstance);
 		UE_LOG(LogShopSubSystem, Log, TEXT("Item Sold Out!"));
 	}
-
-	BroadcastCurrencyUpdate(-TotalCost);
 	
 	return true;
 }
 
-bool UKRShopSubsystem::TrySellItem(APlayerController* InPlayer, FGameplayTag InItemTag, int32 InCount)
+bool UKRShopSubsystem::TrySellItem(FGameplayTag InItemTag, int32 InCount)
 {
-	if (!InPlayer || !InItemTag.IsValid() || InCount <= 0) return false;
+	if (!InItemTag.IsValid() || InCount <= 0) return false;
 
 	UKRInventorySubsystem* InventorySubsystem = GetGameInstance()->GetSubsystem<UKRInventorySubsystem>();
 	if (!InventorySubsystem) return false;
@@ -145,8 +145,6 @@ bool UKRShopSubsystem::TrySellItem(APlayerController* InPlayer, FGameplayTag InI
 
 	InventorySubsystem->SubtractItem(InItemTag, InCount);
 	InventorySubsystem->AddItem(KRTAG_CURRENCY_PURCHASE_GEARING, TotalPayout);
-
-	BroadcastCurrencyUpdate(TotalPayout);
 	
 	return true;
 }
@@ -203,7 +201,7 @@ bool UKRShopSubsystem::PrepareShopGeneration()
 	return true;
 }
 
-void UKRShopSubsystem::GatherShopCandidates(FGameplayTag InPoolTag, TArray<FShopItemData*>& OutAlwaysOn, TArray<FShopItemData*>& OutRotation)
+void UKRShopSubsystem::GatherShopCandidates(TArray<FShopItemData*>& OutAlwaysOn, TArray<FShopItemData*>& OutRotation)
 {
 	UKRDataTablesSubsystem* DataSubsystem = GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
 
@@ -215,19 +213,18 @@ void UKRShopSubsystem::GatherShopCandidates(FGameplayTag InPoolTag, TArray<FShop
 
 	TArray<FShopItemData*> AllShopItems;
 	ShopDataTable->GetAllRows<FShopItemData>(ContextString, AllShopItems);
-
+	
 	for (FShopItemData* ShopItemData : AllShopItems)
 	{
 		if (!ShopItemData) continue;
-		
+
 		if (ShopItemData->PoolTag.MatchesTag(KRTAG_POOL_ALWAYSON))
 		{
 			OutAlwaysOn.Add(ShopItemData);
+			continue; 
 		}
-		else if (ShopItemData->PoolTag.MatchesTag(InPoolTag))
-		{
-			OutRotation.Add(ShopItemData);
-		}
+
+		OutRotation.Add(ShopItemData);
 	}
 }
 
@@ -313,42 +310,24 @@ void UKRShopSubsystem::AddRotationItemsToStock(TArray<FShopItemData*>& Candidate
     }
 }
 
-void UKRShopSubsystem::BroadcastCurrencyUpdate(int32 InDeltaGearing)
+UKRInventoryItemInstance* UKRShopSubsystem::FindShopItemInstanceByTag(FGameplayTag ItemTag) const
 {
-	UWorld* World = GetGameInstance()->GetWorld();
-	if (!World) return;
-	
-	UKRInventorySubsystem* InvSubsystem = GetGameInstance()->GetSubsystem<UKRInventorySubsystem>();
-	if (!InvSubsystem) return;
-
-	FKRUIMessage_Currency Msg;
-	Msg.CurrentGearing = InvSubsystem->GetItemCountByTag(KRTAG_CURRENCY_PURCHASE_GEARING);
-	Msg.DeltaGearing = InDeltaGearing; 
-
-	UGameplayMessageSubsystem::Get(World).BroadcastMessage(
-		FKRUIMessageTags::Currency(), 
-		Msg
-	);
-}
-
-UKRInventoryItemInstance* UKRShopSubsystem::FindShopItemInstanceByTag(FGameplayTag ItemTag)
-{
-    for (UKRInventoryItemInstance* ItemInstance : CurrentShopInventory)
-    {
-        if (ItemInstance && ItemInstance->GetItemTag() == ItemTag)
-        {
-            return ItemInstance;
-        }
-    }
-    return nullptr;
+	for (UKRInventoryItemInstance* ItemInstance : CurrentShopInventory)
+	{
+		if (ItemInstance && ItemInstance->GetItemTag() == ItemTag)
+		{
+			return ItemInstance;
+		}
+	}
+	return nullptr;
 }
 
 void UKRShopSubsystem::OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload)
 {
-    if (Payload.Result != EConfirmResult::Yes)
-    {
-        return;
-    }
+	if (Payload.Result != EConfirmResult::Yes)
+	{
+		return;
+	}
 
     UWorld* World = GetWorld();
     if (!World) return;
@@ -356,16 +335,16 @@ void UKRShopSubsystem::OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMess
     APlayerController* PC = World->GetFirstPlayerController();
     if (!PC) return;
 
-    if (Payload.Context == EConfirmContext::ShopBuy)
-    {
-        UKRInventoryItemInstance* ItemToBuy = FindShopItemInstanceByTag(Payload.ItemTag);
-        if (ItemToBuy)
-        {
-            TryBuyItem(PC, ItemToBuy, Payload.Quantity);
-        }
-    }
-    else if (Payload.Context == EConfirmContext::ShopSell)
-    {
-        TrySellItem(PC, Payload.ItemTag, Payload.Quantity);
-    }
+	if (Payload.Context == EConfirmContext::ShopBuy)
+	{
+		UKRInventoryItemInstance* ItemToBuy = FindShopItemInstanceByTag(Payload.ItemTag);
+		if (ItemToBuy)
+		{
+			TryBuyItem(ItemToBuy, Payload.Quantity);
+		}
+	}
+	else if (Payload.Context == EConfirmContext::ShopSell)
+	{
+		TrySellItem(Payload.ItemTag, Payload.Quantity);
+	}
 }
