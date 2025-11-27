@@ -1,6 +1,6 @@
-#include "GAS/Abilities/HeroAbilities/KRGA_Graple.h"
+#include "GAS/Abilities/HeroAbilities/KRGA_Grapple.h"
 
-#include "VectorTypes.h"
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
@@ -9,10 +9,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UKRGA_Graple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+
+//CharacterMovement->AirControl = 0.35f;
+
+void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                    const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	SetCableVisibility(true);
 
 	CachedPlayerCharacter = Cast<AKRHeroCharacter>(CurrentActorInfo->AvatarActor);
 	if (!CachedPlayerCharacter)
@@ -37,11 +42,18 @@ void UKRGA_Graple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// 	0.01f, // 자동으로 deltaTime 간격으로 실행
 	// 	true		
 	// );
+	StartMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+	this, TEXT("StartMontageTask"), StartMontage
+);
+	StartMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	StartMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	StartMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	StartMontageTask->ReadyForActivation();
 	
-	LineTrace();
 }
 
-void UKRGA_Graple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	if (EndMontageTask)
@@ -53,19 +65,18 @@ void UKRGA_Graple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UKRGA_Graple::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UKRGA_Grapple::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 	//케이블 Hidden
 	if (EndMontageTask==nullptr)
 	{
-		
 		StopGraple();
 	}
 }
 
-void UKRGA_Graple::LineTrace()
+void UKRGA_Grapple::LineTrace()
 {
 	FHitResult OutHitResult;
 	
@@ -97,8 +108,8 @@ void UKRGA_Graple::LineTrace()
 		);
 
 		//Cable 가져와서 캐싱하기
-		
-		ApplyPhysics(OutHitResult, CachedPlayerCharacter);
+		ApplyPhysics(OutHitResult);
+
 	}
 	else
 	{
@@ -108,103 +119,47 @@ void UKRGA_Graple::LineTrace()
 	DrawDebugLine(GetWorld(),StartLocation,EndLocation,FColor::Red,false,1);
 }
 
-void UKRGA_Graple::ApplyPhysics(const FHitResult& OutHitResult, APawn* OwnerPawn)
+void UKRGA_Grapple::ApplyPhysics(const FHitResult& OutHitResult)
 {
 	AActor* HitActor = Cast<AActor>(OutHitResult.GetActor());
 	if (!HitActor) return;
 
-	// if (APawn* HitPawn = Cast<APawn>(HitActor)) //생물일 때
+	if (APawn* HitPawn = Cast<APawn>(HitActor)) //생물일 때
+	{
+		// UAbilitySystemComponent* TargetASC = HitPawn->GetASC();
+		// if (!TargetASC) return;
+				
+	// if (TargetASC->HasMatchingGameplayTag(EnemyImmuneGrapple))
 	// {
-	// 	if (true /* EnemyBase로 Cast되면? Actor Tag가 CanGraple이면? */)
-	// 	{
-	// 		//적 끌어오는 함수 발동 or 그냥 끌어오기
-	// 		//일단 그냥 끌어오기
-	// 		
-	// 	}
+	// 	UE_LOG(LogTemp,Warning,TEXT("[UKRGA_Grapple] Enemy Hit !!!"));
+	// 	//Enemy Stun
+	// 	//Enemy SetLocation To Player
+	// }
+		
 	// 	else
 	// 	{
-	// 		//못 끌어오기 > Sound 재생 후 End
-	// 		
+	// 		//Boss or OtherPawn : Sound & EndAbility
+	// 		//NPC는 충돌 채널에서 제외 필요
 	// 	}
-	// }
-	// else
+		
+	}
+	else	//Pawn이 아닐 때
 	{
-		//HitActor로 내가 가기
+		//Hit 위치로 이동
 		if (!CachedPlayerCharacter) return;
 
 		TargetLocation = OutHitResult.Location;
 
-		StartMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-			this, TEXT("StartMontageTask"), StartMontage
-		);
-		StartMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Graple::OnMoveToLocation);
-		StartMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Graple::OnMoveToLocation);
-		StartMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Graple::OnMoveToLocation);
-		StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Graple::OnMoveToLocation);
-		StartMontageTask->ReadyForActivation();
+		OnMoveToLocation();
 	}
 }
 
-void UKRGA_Graple::OnAbilityEnd()
+void UKRGA_Grapple::OnAbilityEnd()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UKRGA_Graple::OnLoopMontage()
-{
-	LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, TEXT("LoopMontageTask"), LoopMontage
-	);
-	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Graple::OnLoopMontage);
-	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Graple::OnLoopMontage);
-	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Graple::OnLoopMontage);
-	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Graple::OnLoopMontage);
-	LoopMontageTask->ReadyForActivation();
-	//StopGraple 시 Task 종료 필요
-}
-
-void UKRGA_Graple::StopGraple()
-{
-	if (!CachedPlayerCharacter) return;
-
-	if (IsValid(LoopMontageTask))
-	{
-		LoopMontageTask->EndTask();
-	}
-	if (IsValid(StartMontageTask))
-	{
-		StartMontageTask->EndTask();
-	}
-	if (IsValid(MoveToTask))
-	{
-		MoveToTask->EndTask();
-	}
-	
-	const AController* PlayerController = CachedPlayerCharacter->GetController();
-	if (!PlayerController) return;
-
-	FVector Direction = PlayerController->GetControlRotation().Vector();
-	Direction = Direction.GetSafeNormal();
-	Direction.Z = 1.f;
-
-	//구르기 몽타주 하는 동안에는 Rotation 동기화
-	CachedPlayerCharacter->bUseControllerRotationYaw = true;
-	
-	TargetRotation = FRotator(0.f, Direction.Rotation().Yaw, 0.f);
-	CachedPlayerCharacter->LaunchCharacter(FVector(0.f,0.f,1.f) * EndLaunchSpeed, true, true);
-	
-	EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, TEXT("EndMontageTask"), EndMontage
-	);
-	
-	EndMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Graple::OnAbilityEnd);
-	EndMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Graple::OnAbilityEnd);
-	EndMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Graple::OnAbilityEnd);
-	EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Graple::OnAbilityEnd);
-	EndMontageTask->ReadyForActivation();
-}
-
-void UKRGA_Graple::OnMoveToLocation()
+void UKRGA_Grapple::OnMoveToLocation()
 {
 	float Distance = FVector::Dist(CachedPlayerCharacter->GetActorLocation(), TargetLocation);
 
@@ -226,21 +181,65 @@ void UKRGA_Graple::OnMoveToLocation()
 	);
 	if (MoveToTask)
 	{
-		MoveToTask->OnTimedOut.AddDynamic(this, &UKRGA_Graple::StopGraple);
-		MoveToTask->OnTimedOutAndDestinationReached.AddDynamic(this, &UKRGA_Graple::StopGraple);
+		MoveToTask->OnTimedOut.AddDynamic(this, &UKRGA_Grapple::StopGraple);
+		MoveToTask->OnTimedOutAndDestinationReached.AddDynamic(this, &UKRGA_Grapple::StopGraple);
 		MoveToTask->ReadyForActivation();
 	}
 
 	OnLoopMontage();
 }
 
-void UKRGA_Graple::OnSetRotation()
+void UKRGA_Grapple::StopGraple()
 {
 	if (!CachedPlayerCharacter) return;
 
-	FRotator CurrentRot = CachedPlayerCharacter->GetActorRotation();
-	
-	FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetRotation, 0.01f, RotationSpeed);
+	if (IsValid(StartMontageTask))
+	{
+		StartMontageTask->EndTask();
+	}
+	if (IsValid(LoopMontageTask))
+	{
+		LoopMontageTask->EndTask();
+	}
+	if (IsValid(MoveToTask))
+	{
+		MoveToTask->EndTask();
+	}
 
-	CachedPlayerCharacter->SetActorRotation(FRotator(CurrentRot.Pitch, NewRot.Yaw, CurrentRot.Roll));
+	SetCableVisibility(false);
+	
+	const AController* PlayerController = CachedPlayerCharacter->GetController();
+	if (!PlayerController) return;
+
+	FVector Direction = PlayerController->GetControlRotation().Vector();
+	Direction = Direction.GetSafeNormal();
+	Direction.Z = 1.f;
+
+	//구르기 몽타주 하는 동안에는 Rotation 동기화
+	CachedPlayerCharacter->bUseControllerRotationYaw = true;
+	
+	TargetRotation = FRotator(0.f, Direction.Rotation().Yaw, 0.f);
+	CachedPlayerCharacter->LaunchCharacter(FVector(0.f,0.f,1.f) * EndLaunchSpeed, true, true);
+	
+	EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, TEXT("EndMontageTask"), EndMontage
+	);
+	
+	EndMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+	EndMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+	EndMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+	EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+	EndMontageTask->ReadyForActivation();
+}
+
+void UKRGA_Grapple::OnLoopMontage()
+{
+	LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, TEXT("LoopMontageTask"), LoopMontage
+	);
+	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->ReadyForActivation();
 }

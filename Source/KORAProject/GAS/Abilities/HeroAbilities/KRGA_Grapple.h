@@ -2,14 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "GAS/Abilities/KRHeroGameplayAbility.h"
-#include "KRGA_Graple.generated.h"
+#include "KRGA_Grapple.generated.h"
 
 class UAbilityTask_ApplyRootMotionMoveToForce;
 class UAbilityTask_PlayMontageAndWait;
 class UCharacterMovementComponent;
 
 UCLASS()
-class KORAPROJECT_API UKRGA_Graple : public UKRHeroGameplayAbility
+class KORAPROJECT_API UKRGA_Grapple : public UKRHeroGameplayAbility
 {
 	GENERATED_BODY()
 public:
@@ -18,8 +18,10 @@ public:
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 private:
+	UFUNCTION()
 	void LineTrace();
-	void ApplyPhysics(const FHitResult& OutHitResult, APawn* OwnerPawn);
+
+	void ApplyPhysics(const FHitResult& OutHitResult);
 
 	UFUNCTION()
 	void OnAbilityEnd();
@@ -32,8 +34,9 @@ private:
 	
 	UFUNCTION()
 	void OnMoveToLocation();
-
-	void OnSetRotation();
+	
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
+	void SetCableVisibility(bool Visible);
 	
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> StartMontage = nullptr;
@@ -55,6 +58,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UMaterial> DecalMaterial = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	FGameplayTag EnemyImmuneGrapple;
 	
 	FTimerHandle RotatorTimer;
 	
@@ -64,7 +70,8 @@ private:
 	UPROPERTY()
 	TObjectPtr<AKRHeroCharacter> CachedPlayerCharacter;
 
-	
+	UPROPERTY()
+	TObjectPtr<AActor> CachedTargetActor;
 	
 	// 에디터 설정
 	UPROPERTY(EditDefaultsOnly)
@@ -95,4 +102,6 @@ private:
 	FVector TargetLocation;
 
 	FRotator TargetRotation = FRotator();
+
+	
 };
