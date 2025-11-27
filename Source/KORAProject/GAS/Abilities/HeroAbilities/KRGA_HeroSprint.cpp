@@ -5,14 +5,6 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-UKRGA_HeroSprint::UKRGA_HeroSprint()
-{
-	bSprintStarted=false;
-	SprintChargeTime = 0.25f;
-	SprintSpeed = 800.f;
-	WalkSpeed = 400.f;
-}
-
 void UKRGA_HeroSprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                        const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                        const FGameplayEventData* TriggerEventData)

@@ -11,9 +11,7 @@ class KORAPROJECT_API UKRGA_HeroSprint : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 	
-public:
-	UKRGA_HeroSprint();
-	
+public:	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility,	bool bWasCancelled) override;
 
@@ -28,11 +26,11 @@ protected:
 	void OnSprint();
 
 	UPROPERTY(EditDefaultsOnly, Category = KRAbility)
-	float SprintChargeTime;
+	float SprintChargeTime = 0.25f;
 	UPROPERTY(EditDefaultsOnly, Category = KRAbility)
-	float SprintSpeed;
+	float SprintSpeed = 800.f;
 	UPROPERTY(EditDefaultsOnly, Category = KRAbility)
-	float WalkSpeed;
+	float WalkSpeed = 400.f;
 
 	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag StepAbilityTag;
@@ -44,7 +42,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitDelay> StartSprintTask;
 	
-	bool bSprintStarted;
+	bool bSprintStarted = false;
 	
 	FTimerHandle TimerHandle;
 };
