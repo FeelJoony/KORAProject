@@ -25,9 +25,10 @@ public class KORAProject : ModuleRules
 			"CommonUI",
 			"CommonInput",
 			"StateTreeModule",
+			"GameplayStateTreeModule",
 			"ModularGameplay",
-			"GameFeatures",
 			"CommonGame",
+			"GameFeatures",
 			"ModularGameplayActors"
 		});
 
@@ -41,7 +42,8 @@ public class KORAProject : ModuleRules
 			"AnimGraphRuntime",
 			"GameplayMessageRuntime",
             "SphereReveal",
-            "PropertyPath"
+            "PropertyPath",
+			"ModularGameplay"
 		});
 
 		// Uncomment if you are using Slate UI

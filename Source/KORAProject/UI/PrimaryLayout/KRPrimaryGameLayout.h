@@ -27,6 +27,9 @@ public:
     UPROPERTY(meta = (BindWidget), BlueprintReadOnly)
     UCommonActivatableWidgetStack* ModalLayerStack = nullptr;
 
+    UPROPERTY(meta = (BindWidget), BlueprintReadOnly)
+    UCommonActivatableWidgetStack* GamePopupLayerStack = nullptr;
+
     UFUNCTION(BlueprintCallable, Category = "Layout")
     UCommonActivatableWidgetStack* GetStack(EKRUILayer Layer) const
     {
@@ -36,6 +39,7 @@ public:
         case EKRUILayer::GameMenu: return GameMenuLayerStack;
         case EKRUILayer::Menu:     return MenuLayerStack;
         case EKRUILayer::Modal:    return ModalLayerStack;
+		case EKRUILayer::GamePopup:return GamePopupLayerStack;
         default: return nullptr;
         }
     }

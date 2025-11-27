@@ -81,10 +81,9 @@ void UKRUIInputSubsystem::UnbindAll(UCommonActivatableWidget* Widget)
     }
 }
 
-void UKRUIInputSubsystem::EnterUIMode(EMouseCaptureMode Capture, bool bShowCursor)
+void UKRUIInputSubsystem::EnterUIMode(bool bShowCursor)
 {
     ++UIModeRefCount;
-    LastCapture = Capture;
     bDesiredShowCursor = bShowCursor;
     UpdateUIMode();
 }
@@ -159,7 +158,7 @@ void UKRUIInputSubsystem::EnsureLifecycleHook(UCommonActivatableWidget* Widget)
     }
 }
 
-void UKRUIInputSubsystem::ApplyEnable(EMouseCaptureMode Capture, bool bShowCursor)
+void UKRUIInputSubsystem::ApplyEnable(bool bShowCursor)
 {
     if (APlayerController* PC = GetLocalPlayer()->GetPlayerController(GetWorld()))
     {
@@ -167,7 +166,6 @@ void UKRUIInputSubsystem::ApplyEnable(EMouseCaptureMode Capture, bool bShowCurso
         
         FInputModeGameAndUI Mode;
         Mode.SetHideCursorDuringCapture(false);
-        //Mode.SetMouseCaptureMode(EMouseCaptureMode::NoCapture);
         Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
         PC->SetInputMode(Mode);
 
@@ -212,7 +210,7 @@ void UKRUIInputSubsystem::UpdateUIMode()
 
     if (bShouldBeActive && !bUIModeApplied)
     {
-        ApplyEnable(LastCapture, bDesiredShowCursor);
+        ApplyEnable(bDesiredShowCursor);
         bUIModeApplied = true;
     }
     else if (!bShouldBeActive && bUIModeApplied)
@@ -237,11 +235,35 @@ FSimpleDelegate UKRUIInputSubsystem::MakeSimpleDelegateFromDynamic(const FKRUISi
 void UKRUIInputSubsystem::OnRouterRouteOpened(ULocalPlayer* LP, FName Route, EKRUILayer Layer)
 {
     if (LP != GetLocalPlayer()) return;
-    UpdateUIMode();
+    switch (Layer)
+    {
+    case EKRUILayer::GameMenu:
+    case EKRUILayer::Menu:
+    case EKRUILayer::Modal:
+        EnterUIMode(true);
+        break;
+
+    case EKRUILayer::Game:
+    case EKRUILayer::GamePopup:
+    default:
+        break;
+    }
 }
 
 void UKRUIInputSubsystem::OnRouterRouteClosed(ULocalPlayer* LP, FName Route, EKRUILayer Layer)
 {
     if (LP != GetLocalPlayer()) return;
-    UpdateUIMode();
+    switch (Layer)
+    {
+    case EKRUILayer::GameMenu:
+    case EKRUILayer::Menu:
+    case EKRUILayer::Modal:
+        ReleaseUIMode();
+        break;
+
+    case EKRUILayer::Game:
+    case EKRUILayer::GamePopup:
+    default:
+        break;
+    }
 }

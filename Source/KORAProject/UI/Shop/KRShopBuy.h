@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CommonActivatableWidget.h"
-//#include "GameplayTagContainer.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRShopBuy.generated.h"
 
 class UKRSlotGridBase;
@@ -44,4 +45,7 @@ protected:
 
 private:
 	UPROPERTY() TArray<FKRItemUIData> CachedShopItems;
+	FGameplayMessageListenerHandle CurrencyListener;
+
+	void OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message);
 };

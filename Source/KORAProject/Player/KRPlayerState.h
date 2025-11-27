@@ -21,15 +21,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KR|PlayerState")
 	UKRAbilitySystemComponent* GetKRAbilitySystemComponent() const {return KRASC;}
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-	template<class T>
-	const T* GetPawnData() const {return Cast<T>(PawnData); }
 	
 	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
-
-	void SetPawnData(const UKRPawnData* InPawnData);
+	virtual void BeginPlay() override;
 	
+	// Experience Section
+public:
+	template<class T>
+	const T* GetPawnData() const {return Cast<T>(PawnData); }
+	void OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience);
+	void SetPawnData(const UKRPawnData* InPawnData);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UKRAbilitySystemComponent> KRASC;
@@ -45,6 +48,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_PawnData();
+
+	bool bStartupGiven = false;
 
 public:
 	FORCEINLINE UKRCombatCommonSet* GetCombatCommonSet() const {return CombatCommonSet;}

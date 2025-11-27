@@ -1,6 +1,6 @@
 #include "Player/KRPlayerState.h"
-
-#include "AITypes.h"
+#include "GameModes/KRBaseGameMode.h"
+#include "AbilitySystemComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KRPlayerAttributeSet.h"
@@ -19,6 +19,12 @@ AKRPlayerState::AKRPlayerState(const FObjectInitializer& ObjectInitializer)
 
 	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
 	PlayerAttributeSet = CreateDefaultSubobject<UKRPlayerAttributeSet>(TEXT("PlayerAttributeSet"));
+	
+}
+
+void AKRPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 UAbilitySystemComponent* AKRPlayerState::GetAbilitySystemComponent() const
@@ -44,6 +50,14 @@ void AKRPlayerState::PostInitializeComponents()
 
 	check(KRASC);
 	KRASC->InitAbilityActorInfo(this, GetPawn());
+}
+
+void AKRPlayerState::OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience)
+{
+	if (AKRBaseGameMode* GameMode = GetWorld()->GetAuthGameMode<AKRBaseGameMode>())
+	{
+		//const UKRPawnData* NewPawnData = GameMode->GetPawnData
+	}
 }
 
 void AKRPlayerState::SetPawnData(const UKRPawnData* InPawnData)
