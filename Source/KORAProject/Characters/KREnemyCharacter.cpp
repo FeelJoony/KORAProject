@@ -1,40 +1,35 @@
 #include "Characters/KREnemyCharacter.h"
-#include "Components/Combat/EnemyCombatComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/KRPawnExtensionComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
-#include "Engine/AssetManager.h"
-#include "Data/DataAssets/StartUpData/DataAsset_EnemyStartUpData.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include "KORADebugHelper.h"
 
-AKREnemyCharacter::AKREnemyCharacter()
+AKREnemyCharacter::AKREnemyCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
-
+	
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 180.f, 0.f);
 	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 1000.f;
-
-	EnemyCombatComponent = CreateDefaultSubobject<UEnemyCombatComponent>(TEXT("EnemyCombatComponent"));
-
+	
 	EnemyASC = CreateDefaultSubobject<UKRAbilitySystemComponent>(TEXT("EnemyASC"));
 	EnemyASC->SetIsReplicated(true);
-	EnemyASC->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+	EnemyASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
 	EnemyAttributeSet = CreateDefaultSubobject<UKREnemyAttributeSet>(TEXT("EnemyAttributeSet"));
 
-	EnemyASC->AddAttributeSetSubobject(CombatCommonSet.Get());
-	EnemyASC->AddAttributeSetSubobject(EnemyAttributeSet.Get());
-
+	SetNetUpdateFrequency(100.0f);
 }
 
 UAbilitySystemComponent* AKREnemyCharacter::GetAbilitySystemComponent() const
@@ -42,52 +37,26 @@ UAbilitySystemComponent* AKREnemyCharacter::GetAbilitySystemComponent() const
 	return EnemyASC;
 }
 
-UPawnCombatComponent* AKREnemyCharacter::GetPawnCombatComponent() const
+void AKREnemyCharacter::BeginPlay()
 {
-	return EnemyCombatComponent;
+	Super::BeginPlay();
+	if (PawnExtensionComponent && EnemyASC)
+	{
+		if (PawnData)
+		{
+			PawnExtensionComponent->SetPawnData(PawnData);
+		}
+
+		PawnExtensionComponent->InitializeAbilitySystem(EnemyASC, this);
+	}
 }
 
 void AKREnemyCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	
-	InitEnemyASC();
-	InitEnemyStartUpData();
-}
 
-void AKREnemyCharacter::OnRep_Controller()
-{
-	Super::OnRep_Controller();
-
-	InitEnemyASC();
-	InitEnemyStartUpData();
-}
-
-void AKREnemyCharacter::InitEnemyASC()
-{
-	if (!EnemyASC) return;
-
-	if (!EnemyASC->AbilityActorInfo.IsValid())
+	if (PawnExtensionComponent)
 	{
-		EnemyASC->InitAbilityActorInfo(this, this);
-		SetCachedASC(EnemyASC);
+		PawnExtensionComponent->HandleControllerChanged();
 	}
-}
-
-void AKREnemyCharacter::InitEnemyStartUpData()
-{
-	if (CharacterStartUpData.IsNull()) return;
-
-	UAssetManager::GetStreamableManager().RequestAsyncLoad(
-		CharacterStartUpData.ToSoftObjectPath(),
-		FStreamableDelegate::CreateLambda(
-		[this]()
-		{
-			if (UDataAsset_StartUpDataBase* LoadedData = CharacterStartUpData.Get())
-			{
-				LoadedData->GiveToAbilitySystemComponent(EnemyASC);
-				Debug::Print(TEXT("Enemy Start Up Data Loaded"), FColor::Green);
-			}
-		}
-		));
 }

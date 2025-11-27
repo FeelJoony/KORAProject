@@ -14,7 +14,7 @@ class KORAPROJECT_API UKRHeroGameplayAbility : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 
-public:
+/*public:
 	UFUNCTION(BlueprintPure, Category = "KR|Ability")
 	AKRHeroCharacter* GetHeroCharacterFromActorInfo();
 
@@ -29,5 +29,5 @@ public:
 	
 private:
 	TWeakObjectPtr<AKRHeroCharacter> CachedKRHeroCharacter;
-	TWeakObjectPtr<AKRHeroController> CachedKRHeroController;
+	TWeakObjectPtr<AKRHeroController> CachedKRHeroController;*/
 };

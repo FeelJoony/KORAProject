@@ -2,54 +2,34 @@
 
 #include "CoreMinimal.h"
 #include "Characters/KRBaseCharacter.h"
-#include "GameplayTagContainer.h"
+#include "Camera/KRCameraAssistInterface.h"
 #include "KRHeroCharacter.generated.h"
 
 
-class UHeroCombatComponent;
-class UDataAsset_InputConfig;
-class USpringArmComponent;
-class UCameraComponent;
-struct FInputActionValue;
-
+class UKRHeroComponent;
+class UKRCameraComponent;
 
 UCLASS()
-class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter
+class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter, public IKRCameraAssistInterface
 {
 	GENERATED_BODY()
 	
 public:
-	AKRHeroCharacter();
+	AKRHeroCharacter(const FObjectInitializer& ObjectInitializer);
 
-protected:
-	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_PlayerState() override;
-	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Camera")
+	TObjectPtr<UKRCameraComponent> CameraComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	TObjectPtr<USpringArmComponent> SpringArm;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Component")
+	TObjectPtr<UKRHeroComponent> HeroComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	TObjectPtr<UCameraComponent> Camera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	TObjectPtr<UHeroCombatComponent> HeroCombatComponent;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UActorComponent> CachedOutlinerComponent;
-	
-private:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterData", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UDataAsset_InputConfig> InputConfigDataAsset;
 
-	void Input_Move(const FInputActionValue& Value);
-	void Input_Look(const FInputActionValue& Value);
-
-	void Input_AbilityInputPressed(FGameplayTag InInputTag);
-	void Input_AbilityInputReleased(FGameplayTag InInputTag);
-	
-public:
-	FORCEINLINE UHeroCombatComponent* GetHeroCombatComponent() const { return HeroCombatComponent; }
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void GetIgnoredActorsForCameraPenetration(TArray<const AActor*>& OutActorsAllowPenetration) const override;
+	virtual TOptional<AActor*> GetCameraPreventPenetrationTarget() const override;
 };
+

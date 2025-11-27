@@ -1,23 +1,25 @@
 #include "Player/KRPlayerState.h"
+#include "GameModes/KRBaseGameMode.h"
 #include "AbilitySystemComponent.h"
-#include "GAS/KRPlayerAbilitySystemComponent.h"
+#include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KRPlayerAttributeSet.h"
-#include "GameFramework/Pawn.h"
+#include "Data/DataAssets/KRPawnData.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
+#include "Net/UnrealNetwork.h"
 
-AKRPlayerState::AKRPlayerState()
+AKRPlayerState::AKRPlayerState(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	SetNetUpdateFrequency(100.f);
-	
-	PlayerASC = CreateDefaultSubobject<UKRPlayerAbilitySystemComponent>(TEXT("ASC"));
-	PlayerASC->SetIsReplicated(true);
-	PlayerASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	KRASC = CreateDefaultSubobject<UKRAbilitySystemComponent>(TEXT("ASC"));
+	KRASC->SetIsReplicated(true);
+	KRASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
 	PlayerAttributeSet = CreateDefaultSubobject<UKRPlayerAttributeSet>(TEXT("PlayerAttributeSet"));
-
-	PlayerASC->AddAttributeSetSubobject(CombatCommonSet.Get());
-	PlayerASC->AddAttributeSetSubobject(PlayerAttributeSet.Get());
+	
 }
 
 void AKRPlayerState::BeginPlay()
@@ -27,16 +29,63 @@ void AKRPlayerState::BeginPlay()
 
 UAbilitySystemComponent* AKRPlayerState::GetAbilitySystemComponent() const
 {
-	return GetPlayerAbilitySystemComponent();
+	return KRASC;
 }
 
-
-void AKRPlayerState::InitASCForAvatar(AActor* NewAvatar)
+void AKRPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	if (IsValid(PlayerASC))
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKRPlayerState, PawnData);
+}
+
+void AKRPlayerState::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+}
+
+void AKRPlayerState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	check(KRASC);
+	KRASC->InitAbilityActorInfo(this, GetPawn());
+}
+
+void AKRPlayerState::OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience)
+{
+	if (AKRBaseGameMode* GameMode = GetWorld()->GetAuthGameMode<AKRBaseGameMode>())
 	{
-		PlayerASC->InitAbilityActorInfo(this, NewAvatar);
+		//const UKRPawnData* NewPawnData = GameMode->GetPawnData
+	}
+}
+
+void AKRPlayerState::SetPawnData(const UKRPawnData* InPawnData)
+{
+	check(InPawnData);
+
+	if (GetLocalRole() != ROLE_Authority) return;
+
+	if (PawnData)
+	{
+		return;
 	}
 
-	
+	PawnData = InPawnData;
+
+	for (const UKRAbilitySet* AbilitySet : PawnData->AbilitySets)
+	{
+		if (AbilitySet)
+		{
+			AbilitySet->GiveToAbilitySystem(KRASC, nullptr);
+		}
+	}
+
+	ForceNetUpdate();
+}
+
+void AKRPlayerState::OnRep_PawnData()
+{
+	// 클라이언트에서 PawnData 도착 시 처리할 로직
+	// 네트워크 기능 추가시 필요, 현재는 비워둠
 }

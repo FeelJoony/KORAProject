@@ -12,6 +12,7 @@ bool UKRUIRouterSubsystem::TryParseLayer(FName Name, EKRUILayer& OutLayer) const
 	if (Name == "GameMenu" || Name == "Layer.GameMenu" || Name == "Inventory" || Name == "Equipment" || Name == "Shop") { OutLayer = EKRUILayer::GameMenu; return true; }
 	if (Name == "Menu" || Name == "Layer.Menu" || Name == "MainMenu") { OutLayer = EKRUILayer::Menu;     return true; }
 	if (Name == "Modal" || Name == "Layer.Modal" || Name == "Popup" || Name == "Dialog") { OutLayer = EKRUILayer::Modal;    return true; }
+	if (Name == "GamePopup" || Name == "Layer.GamePopup" || Name == "ItemGain" || Name == "InteractUI") { OutLayer = EKRUILayer::GamePopup; return true; }
 	return false;
 }
 

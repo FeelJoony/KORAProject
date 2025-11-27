@@ -25,6 +25,7 @@ bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInsta
     Out.ItemIcon = UI->ItemIcon;
     Out.Price = UI->Price;
     Out.UpgradeLevel = UI->WeaponLevel;
+	Out.ItemTag = Instance->GetItemTag();
 
     if (UGameInstance* GI = UGameplayStatics::GetGameInstance(Instance))
     {

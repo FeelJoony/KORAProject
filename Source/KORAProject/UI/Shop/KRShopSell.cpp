@@ -5,12 +5,15 @@
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRItemUIData.h"
 #include "SubSystem/KRUIInputSubsystem.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
+#include "UI/Modal/KRConfirmModal.h"
+
 #include "CommonTextBlock.h"
 #include "CommonButtonBase.h"
 #include "CommonNumericTextBlock.h"
 #include "Engine/Texture2D.h"
 
-void UKRShopSell::RefreshPlayerInventory()
+void UKRShopSell::RefreshShopInventory()
 {
 	if (ShoppingSlot)
 	{
@@ -61,14 +64,30 @@ void UKRShopSell::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	RefreshPlayerInventory();
-	//UpdatePlayerCurrency();
+	RefreshShopInventory();
+	UpdatePlayerCurrency();
+
+	if (UWorld* World = GetWorld())
+	{
+		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+
+		CurrencyListener = Subsys.RegisterListener(
+			FKRUIMessageTags::Currency(),
+			this,
+			&ThisClass::OnCurrencyMessageReceived
+		);
+	}
 }
 
 void UKRShopSell::NativeDestruct()
 {
-	Super::NativeDestruct();
+	if (UWorld* World = GetWorld())
+	{
+		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+		Subsys.UnregisterListener(CurrencyListener);
+	}
 
+	Super::NativeDestruct();
 }
 
 void UKRShopSell::FilterSellableItems()
@@ -100,7 +119,38 @@ void UKRShopSell::UpdateItemDescription(int32 CellIndex)
 
 void UKRShopSell::HandleSelect()
 {
+	if (!ShoppingSlot) return;
 
+	const int32 Index = ShoppingSlot->GetSelectedIndex();
+	if (!CachedShopItems.IsValidIndex(Index)) return;
+
+	const FKRItemUIData& ItemData = CachedShopItems[Index];
+	FGameplayTag ItemTag = ItemData.ItemTag;
+
+	FText Msg = FText::FromStringTable(
+		TEXT("/Game/UI/StringTable/ST_UIBaseTexts"),
+		TEXT("Modal_SellConfirm")
+	);
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+		{
+			if (auto* Widget = Router->ToggleRoute(TEXT("Confirm")))
+			{
+				if (auto* Confirm = Cast<UKRConfirmModal>(Widget))
+				{
+					Confirm->SetupConfirmWithQuantity(
+						Msg,
+						EConfirmContext::ShopSell,
+						ItemTag,
+						1,
+						99,
+						1
+					);
+				}
+			}
+		}
+	}
 }
 
 void UKRShopSell::HandleMoveLeft()
@@ -206,4 +256,10 @@ int32 UKRShopSell::StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int
 	if (Next >= NumTotal) Next = NumTotal - 1;
 
 	return FMath::Clamp(Next, 0, NumTotal - 1);
+}
+
+void UKRShopSell::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)
+{
+	UpdatePlayerCurrency();
+	RefreshShopInventory(); // Needs Shop Inventory Updates
 }

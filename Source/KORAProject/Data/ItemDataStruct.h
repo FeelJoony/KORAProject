@@ -13,7 +13,7 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 
 	FItemDataStruct()
 			: Index(0)
-			, BasePrice(0)
+			, BasePrice(0.f)
 			, EquipID(-1)
 			, AbilityID(-1)
 			, ConsumeID(-1)
@@ -35,7 +35,7 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	TArray<FGameplayTag> AbilityTags;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	int32 BasePrice;
+	float BasePrice;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	FName DisplayNameKey;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)

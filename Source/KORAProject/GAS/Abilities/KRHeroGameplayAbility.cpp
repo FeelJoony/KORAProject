@@ -3,6 +3,7 @@
 #include "Controllers/KRHeroController.h"
 #include "GAS/KRPlayerAbilitySystemComponent.h"
 
+/*
 AKRHeroCharacter* UKRHeroGameplayAbility::GetHeroCharacterFromActorInfo()
 {
 	if (!CachedKRHeroCharacter.IsValid())
@@ -32,3 +33,4 @@ UKRPlayerAbilitySystemComponent* UKRHeroGameplayAbility::GetKRPlayerAbilitySyste
 {
 	return Cast<UKRPlayerAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent);
 }
+*/

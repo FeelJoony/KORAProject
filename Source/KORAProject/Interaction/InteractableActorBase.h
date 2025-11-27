@@ -6,6 +6,9 @@
 #include "InteractableActorBase.generated.h"
 
 class USphereComponent;
+class UAbilitySystemComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityActivatedBP, UGameplayAbility*, Ability);
 
 UCLASS()
 class KORAPROJECT_API AInteractableActorBase : public AActor
@@ -26,12 +29,32 @@ public:
 	void ShowInteractionUI();
 	void HideInteractionUI();
 
+	void EndInteractActor();
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsInteractable() const { return bIsInteract; }
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = KRAbility)
 	FGameplayTag InteractAbilityTag;
 
 protected:
+
+	UFUNCTION(BlueprintCallable)
+	void OnAbilityActivated(UGameplayAbility* Ability);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interact", meta = (AllowPrivateAccess = "true"))
+	bool bIsInteract;
+
+	UPROPERTY(BlueprintAssignable, Category = "Interaction")
+	FOnAbilityActivatedBP OnAbilityActivateBP;
+
 	UPROPERTY(VisibleAnywhere)
 	USphereComponent* InteractCollision;
+
+	UPROPERTY()
+	UAbilitySystemComponent* ObservedASC;
+
+	FDelegateHandle AbilityActivatedHandle;
 
 private:
 	UFUNCTION()
