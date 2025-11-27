@@ -7,6 +7,7 @@
 #include "InputMappingContext.h"
 #include "KRHeroComponent.generated.h"
 
+class UKRCameraMode;
 class UInputComponent;
 class UDataAsset_InputConfig;
 struct FInputActionValue;
@@ -44,6 +45,11 @@ protected:
 
 	void Input_AbilityInputPressed(FGameplayTag InputTag);
 	void Input_AbilityInputReleased(FGameplayTag InputTag);
+
+	TSubclassOf<UKRCameraMode> DetermineCameraMode() const;
+
+	UPROPERTY()
+	TSubclassOf<UKRCameraMode> AbilityCameraMode;
 
 private:
 	bool bReadyToBindInputs;

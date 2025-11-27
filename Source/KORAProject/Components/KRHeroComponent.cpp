@@ -13,6 +13,8 @@
 #include "Components//GameFrameworkComponentManager.h"
 #include "EnhancedInputSubsystems.h"
 #include "UserSettings/EnhancedInputUserSettings.h"
+#include "Components/KRCameraComponent.h"
+#include "Camera/KRCameraMode.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRHeroComponent)
 
@@ -95,6 +97,14 @@ void UKRHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Man
 			if (Pawn->InputComponent != nullptr)
 			{
 				InitializePlayerInput(Pawn->InputComponent);
+			}
+		}
+
+		if (PawnData)
+		{
+			if (UKRCameraComponent* CameraComponent = UKRCameraComponent::FindCameraComponent(Pawn))
+			{
+				CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
 			}
 		}
 	}
@@ -256,4 +266,25 @@ void UKRHeroComponent::Input_AbilityInputReleased(FGameplayTag InputTag)
 			KRASC->AbilityInputTagReleased(InputTag);
 		}
 	}
+}
+
+TSubclassOf<UKRCameraMode> UKRHeroComponent::DetermineCameraMode() const
+{
+	if (AbilityCameraMode)
+	{
+		return AbilityCameraMode;
+	}
+
+	const APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn) return nullptr;
+
+	if (UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+	{
+		if (const UKRPawnData* PawnData = PawnExtComp->GetPawnData<UKRPawnData>())
+		{
+			return PawnData->DefaultCameraMode;
+		}
+	}
+
+	return nullptr;
 }
