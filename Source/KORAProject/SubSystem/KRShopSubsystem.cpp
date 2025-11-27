@@ -13,7 +13,10 @@
 #include "GameplayTag/KRShopTag.h"
 #include "GameplayTag/KRItemTypeTag.h"
 #include "GameplayTag/KRAbilityTag.h"
+#include "GameplayTag/KRUITag.h"
 #include "Math/UnrealMathUtility.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
 DEFINE_LOG_CATEGORY(LogShopSubSystem);
 
@@ -22,6 +25,28 @@ void UKRShopSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	Collection.InitializeDependency<UKRInventorySubsystem>();
 	Collection.InitializeDependency<UKRDataTablesSubsystem>();
+
+	UGameInstance* GameInstance = GetGameInstance();
+	if (ensure(GameInstance))
+	{
+		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GameInstance);
+		ConfirmMessageHandle = MessageSubsystem.RegisterListener(
+			KRTAG_UI_MESSAGE_CONFIRM, 
+			this, 
+			&UKRShopSubsystem::OnConfirmMessage
+		);
+	}
+}
+
+void UKRShopSubsystem::Deinitialize()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	if (ensure(GameInstance))
+	{
+		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GameInstance);
+		MessageSubsystem.UnregisterListener(ConfirmMessageHandle);
+	}
+	Super::Deinitialize();
 }
 
 void UKRShopSubsystem::GenerateShopStock(FGameplayTag InPoolTag)
@@ -72,7 +97,13 @@ bool UKRShopSubsystem::TryBuyItem(APlayerController* InPlayer, UKRInventoryItemI
 	const int32 TotalCost = DisplayUI->Price * InCount;
 
 	UKRInventorySubsystem* InventorySubsystem = GetGameInstance()->GetSubsystem<UKRInventorySubsystem>();
-	if (!InventorySubsystem || !CanAfford(InventorySubsystem, TotalCost)) return false;
+	if (!InventorySubsystem) return false;
+
+	if (!CanAfford(InventorySubsystem, TotalCost))
+	{
+		UE_LOG(LogShopSubSystem, Warning, TEXT("TryBuyItem Failed: Not enough currency."));
+		return false;
+	}
 
 	InventorySubsystem->SubtractItem(KRTAG_CURRENCY_PURCHASE_GEARING, TotalCost);
 	InventorySubsystem->AddItem(InShopItemInstance->GetItemTag(), InCount);
@@ -85,6 +116,8 @@ bool UKRShopSubsystem::TryBuyItem(APlayerController* InPlayer, UKRInventoryItemI
 		UE_LOG(LogShopSubSystem, Log, TEXT("Item Sold Out!"));
 	}
 
+	BroadcastCurrencyUpdate(-TotalCost);
+	
 	return true;
 }
 
@@ -113,6 +146,8 @@ bool UKRShopSubsystem::TrySellItem(APlayerController* InPlayer, FGameplayTag InI
 	InventorySubsystem->SubtractItem(InItemTag, InCount);
 	InventorySubsystem->AddItem(KRTAG_CURRENCY_PURCHASE_GEARING, TotalPayout);
 
+	BroadcastCurrencyUpdate(TotalPayout);
+	
 	return true;
 }
 
@@ -275,5 +310,62 @@ void UKRShopSubsystem::AddRotationItemsToStock(TArray<FShopItemData*>& Candidate
         {
             break;
         }
+    }
+}
+
+void UKRShopSubsystem::BroadcastCurrencyUpdate(int32 InDeltaGearing)
+{
+	UWorld* World = GetGameInstance()->GetWorld();
+	if (!World) return;
+	
+	UKRInventorySubsystem* InvSubsystem = GetGameInstance()->GetSubsystem<UKRInventorySubsystem>();
+	if (!InvSubsystem) return;
+
+	FKRUIMessage_Currency Msg;
+	Msg.CurrentGearing = InvSubsystem->GetItemCountByTag(KRTAG_CURRENCY_PURCHASE_GEARING);
+	Msg.DeltaGearing = InDeltaGearing; 
+
+	UGameplayMessageSubsystem::Get(World).BroadcastMessage(
+		FKRUIMessageTags::Currency(), 
+		Msg
+	);
+}
+
+UKRInventoryItemInstance* UKRShopSubsystem::FindShopItemInstanceByTag(FGameplayTag ItemTag)
+{
+    for (UKRInventoryItemInstance* ItemInstance : CurrentShopInventory)
+    {
+        if (ItemInstance && ItemInstance->GetItemTag() == ItemTag)
+        {
+            return ItemInstance;
+        }
+    }
+    return nullptr;
+}
+
+void UKRShopSubsystem::OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload)
+{
+    if (Payload.Result != EConfirmResult::Yes)
+    {
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+    APlayerController* PC = World->GetFirstPlayerController();
+    if (!PC) return;
+
+    if (Payload.Context == EConfirmContext::ShopBuy)
+    {
+        UKRInventoryItemInstance* ItemToBuy = FindShopItemInstanceByTag(Payload.ItemTag);
+        if (ItemToBuy)
+        {
+            TryBuyItem(PC, ItemToBuy, Payload.Quantity);
+        }
+    }
+    else if (Payload.Context == EConfirmContext::ShopSell)
+    {
+        TrySellItem(PC, Payload.ItemTag, Payload.Quantity);
     }
 }
