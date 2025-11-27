@@ -17,6 +17,7 @@ class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter, public IKRCame
 public:
 	AKRHeroCharacter(const FObjectInitializer& ObjectInitializer);
 
+	virtual void PossessedBy(AController* NewController) override;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Camera")
 	TObjectPtr<UKRCameraComponent> CameraComponent;

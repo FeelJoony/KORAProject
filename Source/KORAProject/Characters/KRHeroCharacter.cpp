@@ -27,11 +27,31 @@ AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 }
 
+void AKRHeroCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (PawnExtensionComponent)
+	{
+		PawnExtensionComponent->HandleControllerChanged();
+	}
+
+	if (HeroComponent)
+	{
+		HeroComponent->CheckDefaultInitialization();
+	}
+}
+
 void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PawnExtensionComponent->SetupPlayerInputComponent();
+
+	if (HeroComponent)
+	{
+		HeroComponent->CheckDefaultInitialization();
+	}
 	
 }
 
