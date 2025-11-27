@@ -1,10 +1,12 @@
 #include "Player/KRPlayerController.h"
+#include "Camera/KRPlayerCameraManager.h"
 #include "Player/KRPlayerState.h"
 #include "GAS/KRAbilitySystemComponent.h"
 
 AKRPlayerController::AKRPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	PlayerCameraManagerClass = AKRPlayerCameraManager::StaticClass();
 }
 
 void AKRPlayerController::OnUnPossess()
