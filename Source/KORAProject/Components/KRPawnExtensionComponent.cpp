@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameplayTag/KRStateTag.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/KRPlayerState.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRPawnExtensionComponent)
 
@@ -89,6 +90,20 @@ void UKRPawnExtensionComponent::CheckDefaultInitialization()
 {
 	CheckDefaultInitializationForImplementers();
 
+	if (!PawnData)
+	{
+		if (APawn* Pawn = GetPawn<APawn>())
+		{
+			if (AKRPlayerState* KRPS = Pawn->GetPlayerState<AKRPlayerState>())
+			{
+				if (const UKRPawnData* PlayerPawnData = KRPS->GetPawnData<UKRPawnData>())
+				{
+					SetPawnData(PlayerPawnData);
+				}
+			}
+		}
+	}
+	
 	static const TArray<FGameplayTag> StateChain = {
 		KRTAG_STATE_INIT_SPAWNED,
 		KRTAG_STATE_INIT_DATAAVAILABLE,
