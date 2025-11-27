@@ -2,7 +2,8 @@
 
 #include "Components/SphereComponent.h"
 #include "AbilitySystemInterface.h"
-#include "AbilitySystemComponent.h"
+#include "GAS/KRAbilitySystemComponent.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 #include "Subsystem/KRUIRouterSubsystem.h"
 #include "Characters/KRHeroCharacter.h"
 
@@ -29,7 +30,10 @@ void AInteractableActorBase::GiveTagToActor(AActor* TargetActor, FGameplayTag Ta
 		return;
 	}
 
-	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(TargetActor))
+	AKRHeroCharacter* Player = Cast<AKRHeroCharacter>(TargetActor);
+	if (!IsValid(Player)) return;
+
+	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Player))
 	{
 		UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
 		if (ASC && InteractAbilityTag.IsValid())
@@ -60,9 +64,31 @@ void AInteractableActorBase::RemoveTagFromActor(AActor* TargetActor, FGameplayTa
 
 void AInteractableActorBase::OnActorEnterRange(AActor* TargetActor)
 {
-	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(TargetActor))
+	if (AKRBaseCharacter* Character = Cast<AKRBaseCharacter>(TargetActor))
 	{
 		if (!IsValid(Character)) return;
+
+		if (ObservedASC && AbilityActivatedHandle.IsValid())
+		{
+			ObservedASC->AbilityActivatedCallbacks.Remove(AbilityActivatedHandle);
+			AbilityActivatedHandle.Reset();
+			ObservedASC = nullptr;
+		}
+
+		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Character))
+		{
+			UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+			if (ASC)
+			{
+				ObservedASC = ASC;
+
+				AbilityActivatedHandle =
+					ObservedASC->AbilityActivatedCallbacks.AddUObject(
+						this,
+						&AInteractableActorBase::OnAbilityActivated
+					);
+			}
+		}
 
 		GiveTagToActor(Character, InteractAbilityTag);
 	}
@@ -83,7 +109,7 @@ void AInteractableActorBase::ShowInteractionUI()
 	UKRUIRouterSubsystem* Router = GetWorld()->GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>();
 	if (IsValid(Router))
 	{
-		Router->ToggleRoute("ScreenInteract");
+		//Router->ToggleRoute("ScreenInteract");
 	}
 }
 
@@ -92,7 +118,25 @@ void AInteractableActorBase::HideInteractionUI()
 	UKRUIRouterSubsystem* Router = GetWorld()->GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>();
 	if (IsValid(Router))
 	{
-		Router->ToggleRoute("ScreenInteract");
+		//Router->ToggleRoute("ScreenInteract");
+	}
+}
+
+void AInteractableActorBase::EndInteractActor()
+{
+}
+
+void AInteractableActorBase::OnAbilityActivated(UGameplayAbility* Ability)
+{
+	if (!Ability || !InteractAbilityTag.IsValid()) return;
+	
+	const FGameplayTagContainer& AbilityTags = Ability->AbilityTags;
+
+	if (AbilityTags.HasTagExact(InteractAbilityTag))
+	{
+		bIsInteract = true;
+
+		OnAbilityActivateBP.Broadcast(Ability);
 	}
 }
 
@@ -119,3 +163,4 @@ void AInteractableActorBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
 	//loose tag
 	OnActorExitRange(OtherActor);
 }
+ 
