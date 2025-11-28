@@ -78,27 +78,7 @@ void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
 
 void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
 {
-	CachedUIData.Reset();
-	UWorld* World = GetWorld();
-	if (!World) return;
-
-	if (UGameInstance* GI = World->GetGameInstance())
-	{
-		if (auto* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
-		{
-			TArray<UKRInventoryItemInstance*> FoundItems;
-			if (!FilterTag.IsValid())
-			{
-				FoundItems = Inv->GetAllItems();
-			}
-			else
-			{
-				FoundItems = Inv->FindItemsByTag(FilterTag);
-			}
-
-			UKRUIAdapterLibrary::ConvertItemInstancesToUIData(FoundItems, CachedUIData);
-		}
-	}
+	UKRUIAdapterLibrary::GetInventoryUIDataFiltered(this, FilterTag, CachedUIData);
 }
 
 void UKRInventoryMain::RebuildInventoryUI(const FGameplayTag& FilterTag)
