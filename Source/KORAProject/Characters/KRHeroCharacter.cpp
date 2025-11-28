@@ -12,6 +12,7 @@ AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	CameraComponent = CreateDefaultSubobject<UKRCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.f, 0.f, 75.f));
+	CameraComponent->SetupAttachment(GetCapsuleComponent());
 	
 	HeroComponent = CreateDefaultSubobject<UKRHeroComponent>(TEXT("HeroComponent"));
 	
@@ -30,11 +31,8 @@ AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 void AKRHeroCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-	if (PawnExtensionComponent)
-	{
-		PawnExtensionComponent->HandleControllerChanged();
-	}
+	
+	PawnExtensionComponent->HandleControllerChanged();
 
 	if (HeroComponent)
 	{
@@ -52,7 +50,6 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	{
 		HeroComponent->CheckDefaultInitialization();
 	}
-	
 }
 
 void AKRHeroCharacter::GetIgnoredActorsForCameraPenetration(TArray<const AActor*>& OutActorsAllowPenetration) const
