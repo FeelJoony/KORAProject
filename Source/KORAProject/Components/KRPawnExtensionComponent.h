@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/PawnComponent.h"
 #include "Components/GameFrameworkInitStateInterface.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
 #include "KRPawnExtensionComponent.generated.h"
 
 class UKRAbilitySystemComponent;
@@ -58,6 +59,9 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UKRAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(Transient)
+	FKRAbilitySet_GrantedHandles GrantedHandles;
 	
 	UFUNCTION()
 	void OnRep_PawnData();

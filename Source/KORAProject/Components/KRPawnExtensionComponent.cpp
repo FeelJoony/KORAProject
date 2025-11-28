@@ -175,6 +175,16 @@ void UKRPawnExtensionComponent::InitializeAbilitySystem(UKRAbilitySystemComponen
 	if (PawnData)
 	{
 		InASC->SetTagRelationshipMapping(PawnData->TagRelationshipMapping);
+
+		GrantedHandles.TakeFromAbilitySystem(AbilitySystemComponent);
+
+		for (const UKRAbilitySet* AbilitySet : PawnData->AbilitySets)
+		{
+			if (AbilitySet)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, &GrantedHandles);
+			}
+		}
 	}
 	OnAbilitySystemInitialized.Broadcast();
 }
@@ -185,6 +195,8 @@ void UKRPawnExtensionComponent::UninitializeAbilitySystem()
 	{
 		return;
 	}
+
+	GrantedHandles.TakeFromAbilitySystem(AbilitySystemComponent);
 
 	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
 	{
