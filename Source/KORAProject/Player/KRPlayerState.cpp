@@ -1,6 +1,7 @@
 #include "Player/KRPlayerState.h"
 #include "GameModes/KRBaseGameMode.h"
 #include "AbilitySystemComponent.h"
+#include "Components/KRPawnExtensionComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KRPlayerAttributeSet.h"
@@ -48,7 +49,7 @@ void AKRPlayerState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	check(KRASC);
+	check(KRASC)
 	KRASC->InitAbilityActorInfo(this, GetPawn());
 }
 
@@ -56,7 +57,10 @@ void AKRPlayerState::OnExperienceLoaded(const class UKRExperienceDefinition* Cur
 {
 	if (AKRBaseGameMode* GameMode = GetWorld()->GetAuthGameMode<AKRBaseGameMode>())
 	{
-		//const UKRPawnData* NewPawnData = GameMode->GetPawnData
+		if (const UKRPawnData* NewPawnData = GameMode->GetPawnDataForController(GetOwningController()))
+		{
+			SetPawnData(NewPawnData);
+		}
 	}
 }
 
@@ -81,11 +85,27 @@ void AKRPlayerState::SetPawnData(const UKRPawnData* InPawnData)
 		}
 	}
 
+	if (APawn* Pawn = GetPawn())
+    {
+    	if (UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+    	{
+    		PawnExtComp->SetPawnData(PawnData);
+    	}
+    }
+
 	ForceNetUpdate();
 }
 
 void AKRPlayerState::OnRep_PawnData()
 {
-	// 클라이언트에서 PawnData 도착 시 처리할 로직
-	// 네트워크 기능 추가시 필요, 현재는 비워둠
+	if (PawnData)
+	{
+		if (APawn* Pawn = GetPawn())
+		{
+			if (UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+			{
+				PawnExtComp->SetPawnData(PawnData);
+			}
+		}
+	}
 }
