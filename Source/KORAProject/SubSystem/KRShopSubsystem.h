@@ -3,13 +3,12 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameplayTagContainer.h"
+#include "Data/ShopItemDataStruct.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "KRShopSubsystem.generated.h"
 
 class UKRInventoryItemInstance;
 class UKRInventorySubsystem;
-struct FKRConsumeItemData;
-struct FShopItemData;
 struct FKRUIMessage_Confirm;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShopSubSystem, Log, All);
@@ -24,39 +23,41 @@ public:
 	virtual void Deinitialize() override;
 
 	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
-	TArray<UKRInventoryItemInstance*> GetShopStock();
+	const TArray<UKRInventoryItemInstance*>& GetShopStock() const { return CurrentShopInventory; }
 
 private:
 	void GenerateShopStock();
+	void LoadShopDataCache();
 
-	bool TryBuyItem(UKRInventoryItemInstance* InShopItemInstance, int32 InCount = 1);
+	bool TryBuyItem(FGameplayTag ItemTag, int32 InCount = 1);
+	bool TrySellItem(FGameplayTag ItemTag, int32 InCount = 1);
 
-	bool TrySellItem(FGameplayTag InItemTag, int32 InCount = 1);
-
-	bool CanAfford(UKRInventorySubsystem* InInventory, int32 InTotalCost) const;
+	bool CanAfford(UKRInventorySubsystem* Inventory, int32 TotalCost) const;
+	int32 Round5(float Value) const;
 	
-	int32 Round5(float InValue) const;
-	
-	UKRInventoryItemInstance* CreateShopItemInstance(const FKRConsumeItemData* InData);
+	UKRInventoryItemInstance* CreateShopItemInstance(FGameplayTag ItemTag);
+	void InitializeShopItemFragments(UKRInventoryItemInstance* Instance);
 	
 	bool PrepareShopGeneration();
-	
-	void GatherShopCandidates(TArray<FShopItemData*>& OutAlwaysOn, TArray<FShopItemData*>& OutRotation);
 
-	void AddAlwaysOnItemsToStock(const TArray<FShopItemData*>& Candidates);
-
-	void AddRotationItemsToStock(TArray<FShopItemData*>& Candidates, int32 SlotsToFill);
+	void GatherShopCandidates(TArray<FShopItemDataStruct*>& OutAlwaysOn, TArray<FShopItemDataStruct*>& OutRotation);
+	void AddAlwaysOnItemsToStock(const TArray<FShopItemDataStruct*>& Candidates);
+	void AddRotationItemsToStock(TArray<FShopItemDataStruct*>& Candidates, int32 SlotsToFill);
 	
 	UKRInventoryItemInstance* FindShopItemInstanceByTag(FGameplayTag ItemTag) const;
-	
+
 	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
 	
 private:
+	// Convert to map if item >= 50
 	UPROPERTY()
 	TArray<TObjectPtr<UKRInventoryItemInstance>> CurrentShopInventory;
 
 	UPROPERTY()
-	TMap<TObjectPtr<UKRInventoryItemInstance>, int32> ShopStockCountMap;
+	TMap<FGameplayTag, int32> ShopStockCountMap;
+
+	UPROPERTY()
+	TArray<FShopItemDataStruct> CachedShopData;
 
 	UPROPERTY(EditDefaultsOnly, Category = "KR|Shop")
 	float SellBackMultiplier = 0.8f;

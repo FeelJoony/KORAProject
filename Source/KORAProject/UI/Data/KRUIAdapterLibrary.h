@@ -20,6 +20,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "KR|UI")
     static void ConvertItemInstancesToUIData(const TArray<UKRInventoryItemInstance*>& In, TArray<FKRItemUIData>& Out);
 
-    UFUNCTION(BlueprintCallable, Category = "KR|UI", meta = (WorldContext = "WorldContextObject"))
+    UFUNCTION(BlueprintCallable, Category = "KR|UI|Inventory", meta = (WorldContext = "WorldContextObject"))
     static void GetOwnerInventoryUIData(UObject* WorldContextObject, TArray<FKRItemUIData>& Out);
+
+	UFUNCTION(BlueprintCallable, Category = "KR|UI|Inventory", meta = (WorldContext = "WorldContextObject"))
+	static void GetInventoryUIDataFiltered(UObject* WorldContextObject, const FGameplayTag& FilterTag, TArray<FKRItemUIData>& Out);
+
+	UFUNCTION(BlueprintCallable, Category = "KR|UI|Shop", meta = (WorldContext = "WorldContextObject"))
+	static void GetShopUIData(UObject* WorldContextObject, TArray<FKRItemUIData>& Out);
 };
