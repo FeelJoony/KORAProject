@@ -1,11 +1,15 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_Grapple.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameplayTag/KREnemyTag.h"
+#include "GameplayTag/KRStateTag.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -27,29 +31,21 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	AController* Controller = CachedPlayerCharacter->GetController();
 	if (!Controller) return;
 	
-	//OnLoopMontage();
-
-	TargetRotation = Controller->GetControlRotation();
-
-	CachedPlayerCharacter->SetActorRotation(FRotator(CachedPlayerCharacter->GetActorRotation().Pitch, TargetRotation.Yaw, CachedPlayerCharacter->GetActorRotation().Roll));
+	CachedPlayerCharacter->SetActorRotation(FRotator(CachedPlayerCharacter->GetActorRotation().Pitch, Controller->GetControlRotation().Yaw, CachedPlayerCharacter->GetActorRotation().Roll));
 	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	
-	// GetWorld()->GetTimerManager().SetTimer(
-	// 	RotatorTimer,
-	// 	this,
-	// 	&UKRGA_Graple::OnSetRotation,
-	// 	0.01f, // 자동으로 deltaTime 간격으로 실행
-	// 	true		
-	// );
 	StartMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-	this, TEXT("StartMontageTask"), StartMontage
-);
-	StartMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::LineTrace);
-	StartMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::LineTrace);
-	StartMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::LineTrace);
-	StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+		this, TEXT("StartMontageTask"), StartMontage
+	);
+	// StartMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	// StartMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	// StartMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	// StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::LineTrace);
 	StartMontageTask->ReadyForActivation();
 	
+	UAbilityTask_WaitDelay* LineTraceDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, 0.25f);
+	LineTraceDelayTask->OnFinish.AddDynamic(this, &UKRGA_Grapple::LineTrace);
+	LineTraceDelayTask->ReadyForActivation();
 }
 
 void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -59,8 +55,11 @@ void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FG
 	{
 		EndMontageTask->EndTask();
 	}
-	CachedPlayerCharacter->bUseControllerRotationYaw = false;
-	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+	if (CachedPlayerCharacter)
+	{
+		CachedPlayerCharacter->bUseControllerRotationYaw = false;
+		CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -126,16 +125,20 @@ void UKRGA_Grapple::ApplyPhysics(const FHitResult& OutHitResult)
 
 	if (APawn* HitPawn = Cast<APawn>(HitActor)) //생물일 때
 	{
-		// UAbilitySystemComponent* TargetASC = HitPawn->GetASC();
-		// if (!TargetASC) return;
-				
-	// if (TargetASC->HasMatchingGameplayTag(EnemyImmuneGrapple))
-	// {
-	// 	UE_LOG(LogTemp,Warning,TEXT("[UKRGA_Grapple] Enemy Hit !!!"));
-	// 	//Enemy Stun
-	// 	//Enemy SetLocation To Player
-	// }
+		CachedTargetPawn=HitPawn;
 		
+		IAbilitySystemInterface* TargetASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
+		if (!TargetASI) return;
+		
+		UAbilitySystemComponent* TargetASC = TargetASI->GetAbilitySystemComponent();
+		if (!TargetASC) return;
+		
+		// 추후 변경 고려 : Stun태그를 GE에서 부여 > 지속시간 끝나면 알아서 제거
+		if (TargetASC->HasMatchingGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE))
+		{
+			TargetASC->AddLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
+			TargetToPlayerLocation(CachedTargetPawn);
+		}
 	// 	else
 	// 	{
 	// 		//Boss or OtherPawn : Sound & EndAbility
@@ -148,10 +151,61 @@ void UKRGA_Grapple::ApplyPhysics(const FHitResult& OutHitResult)
 		//Hit 위치로 이동
 		if (!CachedPlayerCharacter) return;
 
-		TargetLocation = OutHitResult.Location;
+		GrapPoint = OutHitResult.Location;
 
 		OnMoveToLocation();
 	}
+}
+
+void UKRGA_Grapple::TargetToPlayerLocation(APawn* TargetPawn)
+{
+	if (!CachedPlayerCharacter) return;
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		PullTimerHandle,
+		this,
+		&UKRGA_Grapple::PullTick,
+		0.1f,
+		true
+	);
+}
+
+void UKRGA_Grapple::PullTick()
+{
+	if (!CachedTargetPawn || !CachedPlayerCharacter)
+	{
+		StopPull();
+		return;
+	}
+
+	FVector Dir = (CachedPlayerCharacter->GetActorLocation() - CachedTargetPawn->GetActorLocation()).GetSafeNormal();
+	
+
+	CachedTargetPawn->AddActorWorldOffset(Dir * PullSpeed);
+    
+	// 너무 가까워지면 종료
+	if (FVector::DistSquared(CachedTargetPawn->GetActorLocation(), CachedPlayerCharacter->GetActorLocation()) < 200.f)
+	{
+		StopPull();
+	}
+}
+
+void UKRGA_Grapple::StopPull()
+{
+	if (!CachedTargetPawn) return;
+	
+	IAbilitySystemInterface* TargetASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
+	if (!TargetASI) return;
+		
+	UAbilitySystemComponent* TargetASC = TargetASI->GetAbilitySystemComponent();
+	if (!TargetASC) return;
+		
+	// 추후 변경 고려 : Stun태그를 GE에서 부여 > 지속시간 끝나면 알아서 제거
+	if (TargetASC->HasMatchingGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE))
+	{
+		TargetASC->RemoveLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
+	}
+	GetWorld()->GetTimerManager().ClearTimer(PullTimerHandle);
 }
 
 void UKRGA_Grapple::OnAbilityEnd()
@@ -161,7 +215,7 @@ void UKRGA_Grapple::OnAbilityEnd()
 
 void UKRGA_Grapple::OnMoveToLocation()
 {
-	float Distance = FVector::Dist(CachedPlayerCharacter->GetActorLocation(), TargetLocation);
+	float Distance = FVector::Dist(CachedPlayerCharacter->GetActorLocation(), GrapPoint);
 
 	float Duration = Distance*MoveToSpeed;
 	
@@ -169,7 +223,7 @@ void UKRGA_Grapple::OnMoveToLocation()
 	UAbilityTask_ApplyRootMotionMoveToForce::ApplyRootMotionMoveToForce(
 		this,
 		FName("GrappleToTarget"),
-		TargetLocation,
+		GrapPoint,
 		Duration,
 		true,
 		EMovementMode::MOVE_Flying,
@@ -218,7 +272,6 @@ void UKRGA_Grapple::StopGraple()
 	//구르기 몽타주 하는 동안에는 Rotation 동기화
 	CachedPlayerCharacter->bUseControllerRotationYaw = true;
 	
-	TargetRotation = FRotator(0.f, Direction.Rotation().Yaw, 0.f);
 	CachedPlayerCharacter->LaunchCharacter(FVector(0.f,0.f,1.f) * EndLaunchSpeed, true, true);
 	
 	EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(

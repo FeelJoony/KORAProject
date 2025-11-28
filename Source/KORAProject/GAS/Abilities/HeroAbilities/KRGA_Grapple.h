@@ -30,6 +30,11 @@ private:
 	void ApplyPhysics(const FHitResult& OutHitResult);
 
 	UFUNCTION()
+	void TargetToPlayerLocation(APawn* TargetPawn);
+	void PullTick();
+	void StopPull();
+
+	UFUNCTION()
 	void OnAbilityEnd();
 
 	UFUNCTION()
@@ -69,6 +74,8 @@ private:
 	FGameplayTag EnemyImmuneGrapple;
 	
 	FTimerHandle RotatorTimer;
+
+	FTimerHandle PullTimerHandle;
 	
 	//케이블 생성
 
@@ -77,7 +84,7 @@ private:
 	TObjectPtr<ACharacter> CachedPlayerCharacter;
 
 	UPROPERTY()
-	TObjectPtr<AActor> CachedTargetActor;
+	TObjectPtr<APawn> CachedTargetPawn;
 	
 	// 에디터 설정
 	UPROPERTY(EditDefaultsOnly)
@@ -96,18 +103,16 @@ private:
 	float EndLaunchSpeed = 500.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float RotationSpeed = 180.f;
+	float TraceRange = 5000.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float TraceRange = 5000.f;
+	float PullSpeed = 200.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float MoveToSpeed = 0.1f;
 	
 	// 목적지 (타겟 위치)
-	FVector TargetLocation;
-
-	FRotator TargetRotation = FRotator();
+	FVector GrapPoint;
 
 	
 };
