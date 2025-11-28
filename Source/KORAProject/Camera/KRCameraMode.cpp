@@ -134,7 +134,10 @@ FRotator UKRCameraMode::GetPivotRotation() const
 
 	if (const APawn* TargetPawn = Cast<APawn>(TargetActor))
 	{
-		return TargetPawn->GetActorRotation();
+		if (const AController* TargetController = TargetPawn->GetController())
+		{
+			return TargetController->GetControlRotation();
+		}
 	}
 
 	return TargetActor->GetActorRotation();
