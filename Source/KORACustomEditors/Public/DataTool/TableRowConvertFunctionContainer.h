@@ -34,6 +34,8 @@ public:
 	void CreateWeaponEnhanceData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateTutorialData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateShopItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);
