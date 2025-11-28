@@ -59,6 +59,11 @@ bool UKRPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManage
 	}
 	else if (CurrentState == KRTAG_STATE_INIT_DATAAVAILABLE && DesiredState == KRTAG_STATE_INIT_DATAINITIALIZED)
 	{
+		if (!PawnData)
+		{
+			return false;
+		}
+		
 		return Manager->HaveAllFeaturesReachedInitState(Pawn, KRTAG_STATE_INIT_DATAAVAILABLE);
 	}
 	else if (CurrentState == KRTAG_STATE_INIT_DATAINITIALIZED && DesiredState == KRTAG_STATE_INIT_GAMEPLAYREADY)
