@@ -16,7 +16,7 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	SetCableVisibility(true);
+	ApplyCableVisibility(true);
 
 	CachedPlayerCharacter = Cast<ACharacter>(CurrentActorInfo->AvatarActor);
 	if (!CachedPlayerCharacter)
@@ -106,12 +106,13 @@ void UKRGA_Grapple::LineTrace()
 			1.f
 		);
 
-		//Cable 가져와서 캐싱하기
+		ApplyCableLocation(OutHitResult.ImpactPoint);
 		ApplyPhysics(OutHitResult);
 
 	}
 	else
 	{
+		ApplyCableLocation(EndLocation);
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 	
@@ -205,7 +206,7 @@ void UKRGA_Grapple::StopGraple()
 		MoveToTask->EndTask();
 	}
 
-	SetCableVisibility(false);
+	ApplyCableVisibility(false);
 	
 	const AController* PlayerController = CachedPlayerCharacter->GetController();
 	if (!PlayerController) return;

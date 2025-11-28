@@ -12,13 +12,16 @@ UCLASS()
 class KORAPROJECT_API UKRGA_Grapple : public UKRGameplayAbility
 {
 	GENERATED_BODY()
+
 public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
-	void SetCableVisibility(bool Visible);
+	void ApplyCableVisibility(bool Visible);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
+	void ApplyCableLocation(FVector CableToLocation);
 
 private:
 	UFUNCTION()
@@ -34,6 +37,9 @@ private:
 
 	UFUNCTION()
 	void StopGraple();
+
+	//UFUNCTION()
+	//void GrappleEnded();
 	
 	UFUNCTION()
 	void OnMoveToLocation();
