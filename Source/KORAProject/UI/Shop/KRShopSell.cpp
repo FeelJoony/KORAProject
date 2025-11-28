@@ -3,7 +3,9 @@
 #include "UI/Shop/KRShopSell.h"
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
+#include "GameplayTag/KRItemTypeTag.h"
 #include "UI/Data/KRItemUIData.h"
+#include "UI/Data/KRUIAdapterLibrary.h"
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
 #include "UI/Modal/KRConfirmModal.h"
@@ -12,27 +14,6 @@
 #include "CommonButtonBase.h"
 #include "CommonNumericTextBlock.h"
 #include "Engine/Texture2D.h"
-
-void UKRShopSell::RefreshShopInventory()
-{
-	if (ShoppingSlot)
-	{
-		ShoppingSlot->InitializeItemGrid(CachedShopItems);
-		if (CachedShopItems.Num() > 0)
-		{
-			UpdateItemDescription(0);
-		}
-		else
-		{
-			UpdateItemDescription(INDEX_NONE);
-		}
-	}
-}
-
-void UKRShopSell::UpdatePlayerCurrency()
-{
-
-}
 
 void UKRShopSell::NativeOnActivated()
 {
@@ -64,7 +45,10 @@ void UKRShopSell::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	RefreshShopInventory();
+	if (ConsumablesButton) ConsumablesButton->OnClicked().AddUObject(this, &UKRShopSell::OnClickConsumables);
+	if (MaterialButton) MaterialButton->OnClicked().AddUObject(this, &UKRShopSell::OnClickMaterial);
+
+	OnClickConsumables();
 	UpdatePlayerCurrency();
 
 	if (UWorld* World = GetWorld())
@@ -90,9 +74,12 @@ void UKRShopSell::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-void UKRShopSell::FilterSellableItems()
+void UKRShopSell::FilterSellableItems(const FGameplayTag& FilterTag)
 {
+	CurrentFilterTag = FilterTag;
 
+	UKRUIAdapterLibrary::GetInventoryUIDataFiltered(this, FilterTag, CachedShopItems);
+	RefreshShopInventory();
 }
 
 void UKRShopSell::OnPlayerItemSelected(int32 SelectedIndex)
@@ -258,8 +245,41 @@ int32 UKRShopSell::StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int
 	return FMath::Clamp(Next, 0, NumTotal - 1);
 }
 
+void UKRShopSell::RefreshShopInventory()
+{
+	if (ShoppingSlot)
+	{
+		ShoppingSlot->InitializeItemGrid(CachedShopItems);
+		if (CachedShopItems.Num() > 0)
+		{
+			UpdateItemDescription(0);
+		}
+		else
+		{
+			UpdateItemDescription(INDEX_NONE);
+		}
+	}
+}
+
+void UKRShopSell::UpdatePlayerCurrency()
+{
+
+}
+
 void UKRShopSell::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)
 {
 	UpdatePlayerCurrency();
-	RefreshShopInventory(); // Needs Shop Inventory Updates
+
+	if (CurrentFilterTag.IsValid()) FilterSellableItems(CurrentFilterTag);
+	else FilterSellableItems(KRTAG_ITEMTYPE_CONSUME);
+}
+
+void UKRShopSell::OnClickConsumables()
+{
+	FilterSellableItems(KRTAG_ITEMTYPE_CONSUME);
+}
+
+void UKRShopSell::OnClickMaterial()
+{
+	FilterSellableItems(KRTAG_ITEMTYPE_MATERIAL);
 }
