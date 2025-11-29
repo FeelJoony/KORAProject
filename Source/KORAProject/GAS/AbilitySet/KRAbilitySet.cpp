@@ -78,6 +78,8 @@ void UKRAbilitySet::GiveToAbilitySystem(UKRAbilitySystemComponent* KRASC,
 		}
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("[AbilitySet] GA 부여 시작. 개수: %d"), GrantedGameplayAbilities.Num());
+	
 	for (const FKRAbilitySet_GameplayAbility& AbilityToGrant : GrantedGameplayAbilities)
 	{
 		if (!IsValid(AbilityToGrant.Ability)) continue;
@@ -89,20 +91,21 @@ void UKRAbilitySet::GiveToAbilitySystem(UKRAbilitySystemComponent* KRASC,
 		AbilitySpec.GetDynamicSpecSourceTags().AddTag(AbilityToGrant.InputTag);
 
 		const FGameplayAbilitySpecHandle AbilitySpecHandle = KRASC->GiveAbility(AbilitySpec);
-
+		UE_LOG(LogTemp, Warning, TEXT("[AbilitySet] GA 부여됨: %s"), *AbilityToGrant.Ability->GetName());
 		if (OutGrantedHandles)
 		{
 			OutGrantedHandles->AddAbilitySpecHandle(AbilitySpecHandle);
 		}
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("[AbilitySet] GE 부여 시작. 개수: %d"), GrantedGameplayEffects.Num());
 	for (const FKRAbilitySet_GameplayEffect& EffectToGrant : GrantedGameplayEffects)
 	{
 		if (!IsValid(EffectToGrant.GameplayEffect)) continue;
 
 		const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
 		const FActiveGameplayEffectHandle GameplayEffectHandle = KRASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, KRASC->MakeEffectContext());
-
+		UE_LOG(LogTemp, Warning, TEXT("[AbilitySet] GE 적용됨: %s"), *EffectToGrant.GameplayEffect->GetName());
 		if (OutGrantedHandles)
 		{
 			OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);

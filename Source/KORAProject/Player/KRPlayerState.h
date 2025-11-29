@@ -43,7 +43,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UKRPlayerAttributeSet> PlayerAttributeSet;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|PawnData", ReplicatedUsing = OnRep_PawnData)
+	UPROPERTY(ReplicatedUsing = OnRep_PawnData)
 	TObjectPtr<const UKRPawnData> PawnData;
 
 	UFUNCTION()

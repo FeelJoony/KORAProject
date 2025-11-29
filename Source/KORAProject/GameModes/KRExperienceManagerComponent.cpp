@@ -18,15 +18,32 @@ void UKRExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FOnKRExper
 void UKRExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId ExperienceId)
 {
 	UKRAssetManager& AssetManager = UKRAssetManager::Get();
+	FSoftObjectPath AssetPath = AssetManager.GetPrimaryAssetPath(ExperienceId);
 
-	TSubclassOf<UKRExperienceDefinition> AssetClass;
+	UObject* LoadedAsset = AssetPath.TryLoad();
+	if (!LoadedAsset)
 	{
-		FSoftObjectPath AssetPath = AssetManager.GetPrimaryAssetPath(ExperienceId);
-		AssetClass = Cast<UClass>(AssetPath.TryLoad());
+		UE_LOG(LogTemp, Error, TEXT("Failed to load asset for ExperienceId: %s"), *ExperienceId.ToString());
+		return;
 	}
 
-	const UKRExperienceDefinition* Experience = GetDefault<UKRExperienceDefinition>(AssetClass);
-	check(Experience != nullptr);
+	const UKRExperienceDefinition* Experience = nullptr;
+	
+	if (UClass* LoadedClass = Cast<UClass>(LoadedAsset))
+	{
+		Experience = GetDefault<UKRExperienceDefinition>(LoadedClass);
+	}
+	else
+	{
+		Experience = Cast<UKRExperienceDefinition>(LoadedAsset);
+	}
+	
+	if (!Experience)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to resolve Experience! LoadedAsset is not a valid Definition. Id: %s"), *ExperienceId.ToString());
+		return;
+	}
+
 	check(CurrentExperience == nullptr);
 	{
 		CurrentExperience = Experience;

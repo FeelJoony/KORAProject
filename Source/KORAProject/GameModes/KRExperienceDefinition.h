@@ -12,6 +12,8 @@ class KORAPROJECT_API UKRExperienceDefinition : public UPrimaryDataAsset
 public:
 	UKRExperienceDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
+	
 	UPROPERTY(EditDefaultsOnly, Category = Experience)
 	TObjectPtr<class UKRPawnData> DefaultPawnData;
 

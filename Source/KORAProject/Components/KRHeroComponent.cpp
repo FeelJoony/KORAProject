@@ -48,11 +48,14 @@ bool UKRHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manage
         {
             return false;
         }
+
+		const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
+    	const bool bIsBot = Pawn->IsBotControlled();
     	
-        if (Pawn->IsLocallyControlled() && !Pawn->IsBotControlled())
+        if (bIsLocallyControlled && !bIsBot)
         {
             AKRPlayerController* KRPC = GetController<AKRPlayerController>();
-            if (!Pawn->InputComponent)
+            if (!Pawn->InputComponent || !KRPC || !KRPC->GetLocalPlayer())
             {
                 return false;
             }
@@ -288,7 +291,6 @@ TSubclassOf<UKRCameraMode> UKRHeroComponent::DetermineCameraMode() const
 	{
 		if (const UKRPawnData* PawnData = PawnExtComp->GetPawnData<UKRPawnData>())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("DetermineCameraMode Returning: %s"), *GetNameSafe(PawnData->DefaultCameraMode));
 			return PawnData->DefaultCameraMode;
 		}
 	}
