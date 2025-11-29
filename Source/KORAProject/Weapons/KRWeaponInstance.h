@@ -9,10 +9,6 @@ class UInventoryFragment_SetStats;
 class UInventoryFragment_EnhanceableItem;
 class UKRInventoryItemInstance;
 
-/**
- * Weapon Instance
- * 런타임에 생성되어 무기의 상태와 스펙을 관리
- */
 UCLASS(Blueprintable, BlueprintType)
 class KORAPROJECT_API UKRWeaponInstance : public UKREquipmentInstance
 {
@@ -65,16 +61,7 @@ public:
 
     UPROPERTY(BlueprintReadOnly)
     int32 CurrentEnhanceLevel;
-    //AKRWeaponBase* SpawnedWeaponActor;
 
-    // AKRWeaponBase* GetSpawnedWeaponActor() const
-    // {
-    //     return SpawnedWeaponActor;
-    // }
-
-    //virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
-    
-    // 데미지 계산 (GAS GameplayEffect에서 호출)
     UFUNCTION(BlueprintCallable, Category = "Weapon|Combat")
     float CalculateDamage(bool& bOutIsCritical);
 
