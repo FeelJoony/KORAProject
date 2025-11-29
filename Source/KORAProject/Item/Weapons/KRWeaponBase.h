@@ -2,14 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "GameplayAbilitySpecHandle.h"
 #include "KRWeaponBase.generated.h"
 
-struct FKRHeroWeaponData;
-struct FKRWeaponCommonData;
-class UDataAsset_Weapon;
-
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnTargetInteractedDelegate, AActor*, const FHitResult&);
+class USkeletalMeshComponent;
+class UKRWeaponInstance;
 
 UCLASS()
 class KORAPROJECT_API AKRWeaponBase : public AActor
@@ -18,33 +14,16 @@ class KORAPROJECT_API AKRWeaponBase : public AActor
 
 public:	
 	AKRWeaponBase();
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Config")
-	TObjectPtr<const UDataAsset_Weapon> WeaponData;
 
-	UFUNCTION(BlueprintCallable)
-	void AssignGrantAbilitySpecHandles(const TArray<FGameplayAbilitySpecHandle>& InSpecHandles);
+	void SetOwningWeaponInstance(UKRWeaponInstance* InInstance) { OwningWeaponInstance = InInstance; }
 
-	UFUNCTION(BlueprintPure)
-	TArray<FGameplayAbilitySpecHandle> GetGrantedAbilitySpecHandles() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Config")
-	FKRWeaponCommonData GetCommonData() const;
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Config")
-	bool GetHeroData(FKRHeroWeaponData& OutHeroData) const;
-
-
-	FOnTargetInteractedDelegate OnWeaponHitTarget;
-	FOnTargetInteractedDelegate OnWeaponPulledFromTarget;
-	
-	void ReportHit(AActor* HitActor, const FHitResult& HitResult);
-	void ReportPulled(AActor* HitActor, const FHitResult& HitResult);
-	
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
+	USkeletalMeshComponent* WeaponMesh;
 
-private:
-	TArray<FGameplayAbilitySpecHandle> GrantedAbilitySpecHandles;
+	/** 이 무기를 소유한 WeaponInstance Melee Instance ? Ranged Instance?  */
+	UPROPERTY()
+	TObjectPtr<UKRWeaponInstance> OwningWeaponInstance;
 };
