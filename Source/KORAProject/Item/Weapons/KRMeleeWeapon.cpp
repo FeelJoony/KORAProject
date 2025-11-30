@@ -1,6 +1,6 @@
 #include "Item/Weapons/KRMeleeWeapon.h"
 #include "Components/BoxComponent.h"
-#include "Components/Combat/PawnCombatComponent.h"
+#include "Components/KRCombatComponent.h"
 
 AKRMeleeWeapon::AKRMeleeWeapon()
 {
@@ -26,9 +26,9 @@ void AKRMeleeWeapon::OnCollisionBoxBeginOverlap(UPrimitiveComponent* OverlappedC
 	AActor* WeaponOwner = GetOwner();
 	if (!WeaponOwner || !OtherActor || OtherActor == WeaponOwner) return;
 
-	if (UActorComponent* Comp = WeaponOwner->GetComponentByClass(UPawnCombatComponent::StaticClass()))
+	if (UActorComponent* Comp = WeaponOwner->GetComponentByClass(UKRCombatComponent::StaticClass()))
 	{
-		if (UPawnCombatComponent* CombatComp = Cast<UPawnCombatComponent>(Comp))
+		if (UKRCombatComponent* CombatComp = Cast<UKRCombatComponent>(Comp))
 		{
 			CombatComp->HandleMeleeHit(OtherActor, SweepResult);
 		}
