@@ -1,0 +1,11 @@
+Index,ItemTag,PoolTag,StockBase,Weight
+0,ItemType.Consume.Potion.FirstAid,Pool.AlwaysOn,10,0
+1,ItemType.Consume.Potion.Stamina,Pool.AlwaysOn,10,0
+2,ItemType.Consume.Potion.ViolicAll,Pool.AlwaysOn,6,0
+3,ItemType.Consume.Potion.AtkBoost,Pool.Rotation.R2,8,0.6
+4,ItemType.Consume.Potion.Suppress,Pool.Rotation.R1,4,0.8
+5,ItemType.Consume.Potion.CoreBattery,Pool.Rotation.R1,4,0.8
+6,ItemType.Consume.Tool.Light,Pool.Rotation.R1,4,0.8
+7,ItemType.Consume.Insurance.Coin,Pool.Rotation.R2,2,0.6
+8,ItemType.Consume.Insurance.Wallet,Pool.Rotation.R2,1,0.6
+9,ItemType.Consume.Key,Pool.Rotation.R3,1,0.3

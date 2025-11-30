@@ -14,6 +14,8 @@ class KORAPROJECT_API AKRMeleeWeapon : public AKRWeaponBase
 public:
 	AKRMeleeWeapon();
 
+	virtual void BeginPlay() override;
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
 	TObjectPtr<UBoxComponent> WeaponCollisionBox;
@@ -27,4 +29,5 @@ protected:
 	
 public:
 	FORCEINLINE UBoxComponent* GetWeaponCollisionBox() const {return WeaponCollisionBox;}
+	void SetHitCollisionEnabled(bool bEnabled);
 };

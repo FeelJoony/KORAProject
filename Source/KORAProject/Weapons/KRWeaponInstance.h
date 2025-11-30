@@ -3,17 +3,12 @@
 #include "CoreMinimal.h"
 #include "Equipment/KREquipmentInstance.h"
 #include "GameplayTagContainer.h"
-#include "Inventory/Fragment/InventoryFragment_SetStats.h"
 #include "KRWeaponInstance.generated.h"
 
-class AKRWeaponBase;
-struct FKRWeaponItemData;
-//class UInventoryFragment_SetStats;
+class UInventoryFragment_SetStats;
+class UInventoryFragment_EnhanceableItem;
+class UKRInventoryItemInstance;
 
-/**
- * Weapon Instance
- * 런타임에 생성되어 무기의 상태와 스펙을 관리
- */
 UCLASS(Blueprintable, BlueprintType)
 class KORAPROJECT_API UKRWeaponInstance : public UKREquipmentInstance
 {
@@ -26,6 +21,7 @@ public:
     virtual void OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
     virtual void OnUnequipped() override;
 
+    void InitializeFromItem(UKRInventoryItemInstance* ItemInstance);
     // 무기 스펙 초기화 (Fragment의 SetStats에서 가져옴)
     virtual void InitializeStats(const UInventoryFragment_SetStats* StatsFragment) override;
     
@@ -37,19 +33,23 @@ public:
     UPROPERTY(BlueprintReadOnly, Category = "Weapon|Stats")
     float AttackPower;
 
+    float BaseAttackPower;
+
     UPROPERTY(BlueprintReadOnly, Category = "Weapon|Stats")
     float CritChance;
+
+    float BaseCritChance;
 
     UPROPERTY(BlueprintReadOnly, Category = "Weapon|Stats")
     float CritMultiplier;
 
     UPROPERTY(BlueprintReadOnly, Category = "Weapon|Stats")
-    float Range;
-
-    UPROPERTY(BlueprintReadOnly, Category = "Weapon|Stats")
     float AttackSpeed;
 
     // 총 전용 스펙
+    UPROPERTY(BlueprintReadOnly, Category = "Weapon|Stats")
+    float Range;
+    
     UPROPERTY(BlueprintReadOnly, Category = "Weapon|Gun")
     int32 CurrentAmmo;
 
@@ -58,27 +58,13 @@ public:
 
     UPROPERTY(BlueprintReadOnly, Category = "Weapon|Gun")
     float ReloadTime;
-    
-    AKRWeaponBase* SpawnedWeaponActor;
 
-    AKRWeaponBase* GetSpawnedWeaponActor() const
-    {
-        return SpawnedWeaponActor;
-    }
+    UPROPERTY(BlueprintReadOnly)
+    int32 CurrentEnhanceLevel;
 
-    virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
-    
-    // 데미지 계산 (GAS GameplayEffect에서 호출)
     UFUNCTION(BlueprintCallable, Category = "Weapon|Combat")
     float CalculateDamage(bool& bOutIsCritical);
 
     // 강화 레벨 적용
     virtual void ApplyEnhanceLevel(int32 EnhanceLevel) override;
-
-protected:
-    // 강화 레벨에 따른 스텟 배율
-    UPROPERTY(EditDefaultsOnly, Category = "Weapon|Enhance")
-    float EnhanceDamageMultiplierPerLevel = 0.1f; // 레벨당 10% 증가
-
-    float EnhanceMultiplier = 1.0f;
 };

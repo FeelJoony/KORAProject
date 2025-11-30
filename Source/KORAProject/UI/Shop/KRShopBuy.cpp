@@ -4,6 +4,7 @@
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRItemUIData.h"
+#include "UI/Data/KRUIAdapterLibrary.h"
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
 #include "UI/Modal/KRConfirmModal.h"
@@ -13,26 +14,7 @@
 #include "CommonNumericTextBlock.h"
 #include "Engine/Texture2D.h"
 
-void UKRShopBuy::RefreshShopInventory()
-{
-	if (ShoppingSlot)
-	{
-		ShoppingSlot->InitializeItemGrid(CachedShopItems);
-		if (CachedShopItems.Num() > 0)
-		{
-			UpdateItemDescription(0);
-		}
-		else
-		{
-			UpdateItemDescription(INDEX_NONE);
-		}
-	}
-}
-
-void UKRShopBuy::UpdatePlayerCurrency()
-{
-
-}
+DEFINE_LOG_CATEGORY_STATIC(LogShopBuy, Log, All);
 
 void UKRShopBuy::NativeOnActivated()
 {
@@ -115,26 +97,50 @@ void UKRShopBuy::UpdateItemDescription(int32 CellIndex)
 
 void UKRShopBuy::HandleSelect()
 {
-	if (!ShoppingSlot) return;
+	UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] HandleSelect called"));
+
+	if (!ShoppingSlot)
+	{
+		UE_LOG(LogShopBuy, Warning, TEXT("[ShopBuy] ShoppingSlot is nullptr"));
+		return;
+	}
 
 	const int32 Index = ShoppingSlot->GetSelectedIndex();
-	if (!CachedShopItems.IsValidIndex(Index)) return;
+	UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] SelectedIndex = %d, CachedShopItems.Num = %d"), Index, CachedShopItems.Num());
+
+	if (!CachedShopItems.IsValidIndex(Index))
+	{
+		UE_LOG(LogShopBuy, Warning, TEXT("[ShopBuy] Invalid index for CachedShopItems"));
+		return;
+	}
 
 	const FKRItemUIData& ItemData = CachedShopItems[Index];
 	FGameplayTag ItemTag = ItemData.ItemTag;
 
-	FText Msg = FText::FromStringTable(
+	UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] Selected item: %s"), *ItemTag.ToString());
+
+	const FText Msg = FText::FromStringTable(
 		TEXT("/Game/UI/StringTable/ST_UIBaseTexts"),
 		TEXT("Modal_BuyConfirm")
 	);
+
 	if (UGameInstance* GI = GetGameInstance())
 	{
+		UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] GameInstance valid"));
+
 		if (auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
 		{
+			UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] Router Subsystem valid, trying ToggleRoute(Confirm)"));
+
 			if (auto* Widget = Router->ToggleRoute(TEXT("Confirm")))
 			{
+				UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] ToggleRoute returned widget: %s"),
+					*Widget->GetName());
+
 				if (auto* Confirm = Cast<UKRConfirmModal>(Widget))
 				{
+					UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] Cast to UKRConfirmModal success. Calling SetupConfirmWithQuantity"));
+
 					Confirm->SetupConfirmWithQuantity(
 						Msg,
 						EConfirmContext::ShopBuy,
@@ -143,9 +149,28 @@ void UKRShopBuy::HandleSelect()
 						99,
 						1
 					);
+
+					UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] SetupConfirmWithQuantity finished"));
+				}
+				else
+				{
+					UE_LOG(LogShopBuy, Error, TEXT("[ShopBuy] Widget is not UKRConfirmModal! Class = %s"),
+						*Widget->GetClass()->GetName());
 				}
 			}
+			else
+			{
+				UE_LOG(LogShopBuy, Warning, TEXT("[ShopBuy] Router->ToggleRoute(\"Confirm\") returned nullptr"));
+			}
 		}
+		else
+		{
+			UE_LOG(LogShopBuy, Error, TEXT("[ShopBuy] UKRUIRouterSubsystem not found on GameInstance"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogShopBuy, Error, TEXT("[ShopBuy] GameInstance is nullptr"));
 	}
 }
 
@@ -255,8 +280,32 @@ int32 UKRShopBuy::StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int3
 	return FMath::Clamp(Next, 0, NumTotal - 1);
 }
 
+void UKRShopBuy::RefreshShopInventory()
+{
+	UKRUIAdapterLibrary::GetShopUIData(this, CachedShopItems);
+
+	if (ShoppingSlot)
+	{
+		ShoppingSlot->InitializeItemGrid(CachedShopItems);
+		if (CachedShopItems.Num() > 0)
+		{
+			UpdateItemDescription(0);
+		}
+		else
+		{
+			UpdateItemDescription(INDEX_NONE);
+		}
+	}
+}
+
+void UKRShopBuy::UpdatePlayerCurrency()
+{
+
+}
+
+
 void UKRShopBuy::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)
 {
 	UpdatePlayerCurrency();
-	RefreshShopInventory(); // Needs Shop Inventory Updates
+	RefreshShopInventory();
 }
