@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRHeroGameplayAbility.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_HeroDash.generated.h"
 
 UENUM(BlueprintType)
@@ -18,7 +18,7 @@ enum class EDashDirection : uint8
 };
 
 UCLASS()
-class KORAPROJECT_API UKRGA_HeroDash : public UKRHeroGameplayAbility
+class KORAPROJECT_API UKRGA_HeroDash : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 

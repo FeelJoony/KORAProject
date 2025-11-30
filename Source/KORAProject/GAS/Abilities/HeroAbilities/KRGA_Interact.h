@@ -1,11 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRHeroGameplayAbility.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_Interact.generated.h"
 
 UCLASS()
-class KORAPROJECT_API UKRGA_Interact : public UKRHeroGameplayAbility
+class KORAPROJECT_API UKRGA_Interact : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 

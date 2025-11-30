@@ -5,14 +5,6 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-UKRGA_HeroSprint::UKRGA_HeroSprint()
-{
-	bSprintStarted=false;
-	SprintChargeTime = 0.25f;
-	SprintSpeed = 800.f;
-	WalkSpeed = 400.f;
-}
-
 void UKRGA_HeroSprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                        const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                        const FGameplayEventData* TriggerEventData)
@@ -69,7 +61,7 @@ void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 		}
 	}
 	
-	if (EndDelayTask)
+	if (IsValid(EndDelayTask))
 	{
 		EndDelayTask->EndTask();
 		EndDelayTask = nullptr;
@@ -97,7 +89,7 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	EndDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, 0.2f);
-	if (EndDelayTask)
+	if (IsValid(EndDelayTask))
 	{
 		EndDelayTask->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnAbilityEnd);
 		EndDelayTask->ReadyForActivation();
