@@ -4,7 +4,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "KRGameplayAbility.generated.h"
 
-class UPawnCombatComponent;
+class UKRCombatComponent;
 class UKRAbilitySystemComponent;
 class UKRCharacterMovementComponent;
 class AKRBaseCharacter;
@@ -41,7 +41,7 @@ public:
 	AKRBaseCharacter* GetKRCharacterFromActorInfo() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "KR|Ability")
-	UPawnCombatComponent* GetPawnCombatComponentFromActorInfo() const;
+	UKRCombatComponent* GetCombatComponentFromActorInfo() const;
 
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
 	
