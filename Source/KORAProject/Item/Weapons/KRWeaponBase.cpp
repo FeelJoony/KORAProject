@@ -1,4 +1,5 @@
 #include "Item/Weapons/KRWeaponBase.h"
+#include "Weapons/KRWeaponInstance.h"
 #include "Components/StaticMeshComponent.h"
 #include "Weapons/KRWeaponInstance.h"
 
