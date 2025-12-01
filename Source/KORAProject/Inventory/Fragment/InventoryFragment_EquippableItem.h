@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "InventoryFragment_EquippableItem.generated.h"
 
+class UInputMappingContext;
 class UKREquipmentDefinition;
 
 UCLASS()
@@ -20,6 +21,21 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	TSubclassOf<UAnimInstance> EquippableAnimLayer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	TSubclassOf<AActor> WeaponActorToSpawn;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	FName AttachSocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	FTransform AttachTransform;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> WeaponIMC;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	int32 InputPriority;
 	
 	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
 	{
