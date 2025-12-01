@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "KRWeaponInstance.generated.h"
 
+class UInputMappingContext;
 class UInventoryFragment_SetStats;
 class UInventoryFragment_EnhanceableItem;
 class UKRInventoryItemInstance;
@@ -67,4 +68,30 @@ public:
 
     // 강화 레벨 적용
     virtual void ApplyEnhanceLevel(int32 EnhanceLevel) override;
+
+protected:
+    UPROPERTY()
+    TSubclassOf<AActor> CachedWeaponActorClass;
+
+    UPROPERTY()
+    FName CachedAttachSocket;
+
+    UPROPERTY()
+    FTransform CachedAttachTransform;
+
+    UPROPERTY()
+    TObjectPtr<AActor> SpawnedWeaponActor;
+
+    UPROPERTY()
+    TObjectPtr<UInputMappingContext> CachedIMC;
+
+    UPROPERTY()
+    int32 CachedIMCPriority;
+
+public:
+    virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
+    virtual void DestroyEquipmentActors() override;
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void SetWeaponActiveState(bool bIsActive);
 };
