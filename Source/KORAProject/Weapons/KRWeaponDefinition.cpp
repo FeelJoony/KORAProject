@@ -34,6 +34,11 @@ UKRInventoryItemDefinition* UKRWeaponDefinition::CreateInventoryItemDefinition(c
     UInventoryFragment_EquippableItem* EquipFragment = NewObject<UInventoryFragment_EquippableItem>(ItemDef);
     EquipFragment->EquipmentDefinition = EquipmentDefinition;
     EquipFragment->EquippableAnimLayer = EquippableAnimLayer;
+    EquipFragment->WeaponActorToSpawn = WeaponActorClass;
+    EquipFragment->AttachSocketName = AttachSocketName;
+    EquipFragment->AttachTransform = AttachTransform;
+    EquipFragment->WeaponIMC = WeaponIMC;
+    EquipFragment->InputPriority = InputPriority;
     ItemDef->AddFragment(EquipFragment->GetFragmentTag(), EquipFragment);
 
     // 2. 스탯 Fragment 설정

@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "KRWeaponDefinition.generated.h"
 
+class UInputMappingContext;
 class UGameplayAbility;
 class UKRInventoryItemDefinition;
 class UKREquipmentDefinition;
@@ -53,6 +54,13 @@ public:
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
     TSubclassOf<UAnimInstance> EquippableAnimLayer;
+
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+    TObjectPtr<UInputMappingContext> WeaponIMC;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+    int32 InputPriority = 1;
     
     /** 부여할 능력들 (GAS) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
