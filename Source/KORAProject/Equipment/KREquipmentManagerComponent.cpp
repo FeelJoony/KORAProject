@@ -8,6 +8,7 @@
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
+#include "Inventory/Fragment/InventoryFragment_SetStats.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 

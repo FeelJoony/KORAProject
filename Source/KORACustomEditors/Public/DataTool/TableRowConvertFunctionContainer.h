@@ -28,6 +28,7 @@ public:
 	void CreateSampleData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
 	void CreateWeaponData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateWeaponEnhanceData(class UDataTable* OutDataTable, const FString& InCSVString);

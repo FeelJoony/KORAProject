@@ -5,7 +5,6 @@
 #include "GameplayTagContainer.h"
 #include "GameplayTagsManager.h"
 #include "Data/SampleDataStruct.h"
-#include "Data/WeaponItemDataStruct.h"
 #include "Data/ConsumeItemDataStruct.h"
 #include "Data/MaterialItemDataStruct.h"
 #include "Data/QuestDataStruct.h"
@@ -302,8 +301,13 @@ void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDat
 {
     CreateData(InCSVString, FString(TEXT("QuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
     {
-        {
+        auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+        auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
 
+        for (int32 i = 0; i < Values.Num(); i++)
+        {
+            TArray<FString>& RowValue = Values[i];
+            
             int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
             int32 QuestName_Index = GetHeaderIndex(Headers, TEXT("QuestName"));
             int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
