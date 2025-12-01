@@ -17,8 +17,14 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag QuickSlot() { return KRTAG_UI_MESSAGE_QUICKSLOT; }
 	static const FGameplayTag Quest() { return KRTAG_UI_MESSAGE_QUEST; }
 	static const FGameplayTag Currency() { return KRTAG_UI_MESSAGE_CURRENCY; }
+	static const FGameplayTag ShopStockUpdated() { return KRTAG_UI_MESSAGE_SHOPSTOCKUPDATED; }
 	static const FGameplayTag Confirm() { return KRTAG_UI_MESSAGE_CONFIRM; }
 	static const FGameplayTag Tutorial() { return KRTAG_UI_MESSAGE_TUTORIAL; }
+
+	static const FGameplayTag QuickSlot_North() { return KRTAG_UI_QUICKSLOT_NORTH; }
+	static const FGameplayTag QuickSlot_East() { return KRTAG_UI_QUICKSLOT_EAST; }
+	static const FGameplayTag QuickSlot_South() { return KRTAG_UI_QUICKSLOT_SOUTH; }
+	static const FGameplayTag QuickSlot_West() { return KRTAG_UI_QUICKSLOT_WEST; }
 };
 
  // -----  ProgressBar -----
@@ -86,37 +92,29 @@ struct KORAPROJECT_API FKRUIMessage_Weapon
 	UPROPERTY(BlueprintReadOnly) int32 MaxAmmo = 0;
 };
 
-// -----  Item Acquisition -----
+// -----  Item Log -----
 
 UENUM(BlueprintType)
-enum class EItemAcquisitionType : uint8
+enum class EItemLogEvent : uint8
 {
-	NormalItem			UMETA(DisplayName = "New Item Acquired"), // Item, Currency
-	QuestItem		UMETA(DisplayName = "Quest Item Acquired") // Quest Item
+	AcquiredNormal   UMETA(DisplayName = "New Item Acquired"),
+	AcquiredQuest    UMETA(DisplayName = "Quest Item Acquired"),
+	Consumed         UMETA(DisplayName = "Item Consumed"),
+	Sold             UMETA(DisplayName = "Item Sold")
 };
 
 USTRUCT(BlueprintType)
-struct KORAPROJECT_API FKRUIMessage_ItemAcquisition
+struct KORAPROJECT_API FKRUIMessage_ItemLog
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly) EItemAcquisitionType AcquisitionType = EItemAcquisitionType::NormalItem;
-
+	UPROPERTY(BlueprintReadOnly) EItemLogEvent EventType = EItemLogEvent::AcquiredNormal;
+	UPROPERTY(BlueprintReadOnly) FGameplayTag ItemTag;
+	UPROPERTY(BlueprintReadOnly) int32 NewTotalQuantity = 0;
 	UPROPERTY(BlueprintReadOnly) FName ItemNameKey;
-	UPROPERTY(BlueprintReadOnly) int32 Quantity = 1;
-	UPROPERTY(BlueprintReadOnly) FGameplayTag ItemRarityTag;
 };
 
 // -----  Quickslot -----
-
-UENUM(BlueprintType)
-enum class EQuickSlotDirection : uint8
-{
-	North			UMETA(DisplayName = "North (Up)"),
-	East			UMETA(DisplayName = "East (Right)"),
-	South			UMETA(DisplayName = "South (Down)"),
-	West			UMETA(DisplayName = "West (Left)")
-};
 
 UENUM(BlueprintType)
 enum class EQuickSlotAction : uint8
@@ -137,7 +135,7 @@ struct KORAPROJECT_API FKRUIMessage_QuickSlot
 	UPROPERTY(BlueprintReadOnly) int32 ItemQuantity = 0;
 	UPROPERTY(BlueprintReadOnly) float Duration = 3.f; // Only When ItemUsed
 
-	UPROPERTY(BlueprintReadOnly) EQuickSlotDirection CurrentlySelectedSlot = EQuickSlotDirection::North;
+	UPROPERTY(BlueprintReadOnly) FGameplayTag CurrentlySelectedSlot = FKRUIMessageTags::QuickSlot_North;
 	UPROPERTY(BlueprintReadOnly) FSoftObjectPath ItemIconPath;
 };
 
@@ -153,7 +151,7 @@ struct KORAPROJECT_API FKRUIMessage_Quest
 
 // ----- Currency ----- 
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType) 
 struct KORAPROJECT_API FKRUIMessage_Currency
 {
 	GENERATED_BODY()
@@ -163,6 +161,15 @@ struct KORAPROJECT_API FKRUIMessage_Currency
 	UPROPERTY(BlueprintReadOnly) int32 DeltaGearing = 0; // + Acq - Lost
 
 	UPROPERTY(BlueprintReadOnly) int32 CurrentCorbyte = 0;
+};
+
+// ----- Shop Stock Updated-----
+USTRUCT(BlueprintType)
+struct KORAPROJECT_API FKRUIMessage_ShopStockUpdated
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly) int32 ShopRevision = 0;
 };
 
 //----- Confirm Modal -----
@@ -200,9 +207,10 @@ struct KORAPROJECT_API FKRUIMessage_Confirm
 
 // ----- Tutorial -----
 USTRUCT(BlueprintType)
-struct FKRUIMessage_Tutorial
+struct KORAPROJECT_API FKRUIMessage_Tutorial
 {
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite) FName TutorialDTRowName;
 };
+
