@@ -18,6 +18,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 	TSubclassOf<UKREquipmentDefinition> EquipmentDefinition;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	TSubclassOf<UAnimInstance> EquippableAnimLayer;
+	
 	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
 	{
 		return EquipInstance;
@@ -29,8 +32,12 @@ public:
 	}
 
 	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"); }
+
+	
 	
 private:
 	UPROPERTY()
 	TObjectPtr<class UKREquipmentInstance> EquipInstance;
+
+	
 };
