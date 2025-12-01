@@ -65,4 +65,8 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_PawnData();
+
+	void InitializeInventory();
+
+	bool bInventoryInitialized;
 };
