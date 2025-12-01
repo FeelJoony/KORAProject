@@ -22,7 +22,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Range")
 	virtual void FireProjectile();
 
-	virtual FTransform GetMuzzleTransform() const override;
+	virtual FTransform GetMuzzleTransform() const;
 	
 protected:
 	/** 발사체 스폰 위치 */
