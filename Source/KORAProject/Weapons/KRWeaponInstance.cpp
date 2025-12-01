@@ -26,7 +26,7 @@ UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer
 
 void UKRWeaponInstance::OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
 {
-    SpawnEquipmentActors(ActorsToSpawn);
+    //SpawnEquipmentActors(ActorsToSpawn);
 
     // 장착 시 로직 (예: HUD 업데이트, 애니메이션 변경)
     UE_LOG(LogTemp, Log, TEXT("Weapon Equipped: %s"), *WeaponType.ToString());
