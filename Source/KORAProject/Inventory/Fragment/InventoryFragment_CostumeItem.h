@@ -17,6 +17,6 @@ public:
 	
 	virtual FGameplayTag GetFragmentTag() const override
 	{
-		return FGameplayTag::RequestGameplayTag("Fragment.Item.Material");
+		return FGameplayTag::RequestGameplayTag("Fragment.Item.Costume");
 	}
 };
