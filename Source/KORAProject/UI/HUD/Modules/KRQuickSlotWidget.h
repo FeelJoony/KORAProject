@@ -20,6 +20,8 @@ public:
 
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);
+
+	UFUNCTION(BlueprintPure, Category = "QuickSlot", meta = (BlueprintProtected))
 	UKRQuickSlotButtonBase* GetSlotButton(FGameplayTag Direction) const;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> NorthQuickSlot;
@@ -37,11 +39,14 @@ protected:
 	void BP_OnItemUsedFromSlot(FGameplayTag Direction, int32 Duration);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot Registered"))
 	void BP_OnSlotRegistered(FGameplayTag Direction);
+	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot UnRegistered"))
+	void BP_OnSlotUnregistered(FGameplayTag Direction);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot Selection Changed"))
 	void BP_OnSlotSelectionChanged(FGameplayTag NewSelectedSlot);
+	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "Reset All Slots"))
+	void BP_ResetAllSlotFrames();
 
 private:
 	FGameplayMessageListenerHandle QuickSlotListener;
 	FGameplayTag CurrentSelectedSlot = FKRUIMessageTags::QuickSlot_North();
-	TMap<FGameplayTag, FName> SlotItemMap;
 };

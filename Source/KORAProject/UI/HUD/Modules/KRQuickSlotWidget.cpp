@@ -52,14 +52,13 @@ void UKRQuickSlotWidget::OnQuickSlotMessageReceived(FGameplayTag Channel, const 
 		UpdateSlot(SlotDir, Message.ItemQuantity, Message.ItemIcon);
 		CurrentSelectedSlot = SlotDir;
 		HighlightSlot(CurrentSelectedSlot);
-		BP_OnSlotRegistered(SlotDir);
-		BP_OnSlotSelectionChanged(CurrentSelectedSlot);
 		break;
 	}
 
 	case EQuickSlotAction::ItemUnregistered:
 	{
 		ClearSlot(SlotDir);
+		BP_OnSlotUnregistered(SlotDir);
 		break;
 	}
 
@@ -73,6 +72,7 @@ void UKRQuickSlotWidget::OnQuickSlotMessageReceived(FGameplayTag Channel, const 
 	{
 		CurrentSelectedSlot = SlotDir;
 		HighlightSlot(CurrentSelectedSlot);
+		BP_ResetAllSlotFrames();
 		BP_OnSlotSelectionChanged(CurrentSelectedSlot);
 		break;
 	}
