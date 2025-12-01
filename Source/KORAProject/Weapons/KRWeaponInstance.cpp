@@ -2,13 +2,14 @@
 #include "Equipment/KREquipmentDefinition.h"
 #include "Item/Weapons/KRWeaponBase.h"
 #include "Kismet/KismetMathLibrary.h"
-
+#include "GameFramework/Character.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
 #include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/CacheDataTable.h"
+#include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 
 UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -69,6 +70,20 @@ void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstanc
     }
 
     ApplyEnhanceLevel(EnhanceLevel);
+
+    if (const UInventoryFragment_EquippableItem* EquipFragment = Cast<UInventoryFragment_EquippableItem>(ItemDef->FindFragmentByTag(FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"))))
+    {
+        if (EquipFragment->EquippableAnimLayer)
+        {
+            if (APawn* MyPawn = GetPawn())
+            {
+                if (ACharacter* MyChar = Cast<ACharacter>(MyPawn))
+                {
+                    MyChar->GetMesh()->LinkAnimClassLayers(EquipFragment->EquippableAnimLayer);
+                }
+            }
+        }
+    }
 }
 
 void UKRWeaponInstance::InitializeStats(const UInventoryFragment_SetStats* StatsFragment)
