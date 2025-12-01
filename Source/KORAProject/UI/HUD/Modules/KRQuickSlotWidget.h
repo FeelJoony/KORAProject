@@ -27,7 +27,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> SouthQuickSlot;
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> WestQuickSlot;
 
-	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlot(FGameplayTag Direction, int32 Quantity, const FSoftObjectPath& IconPath);
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlot(FGameplayTag Direction, int32 Quantity, const TSoftObjectPtr<UTexture2D>& Icon);
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void ClearSlot(FGameplayTag Direction);
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void HighlightSlot(FGameplayTag Direction);
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlotQuantity(FGameplayTag Direction, int32 NewQuantity);

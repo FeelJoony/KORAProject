@@ -13,7 +13,7 @@ class KORAPROJECT_API UKRQuickSlotButtonBase : public UCommonButtonBase
 
 public:
     UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot")
-    void BP_SetSlotData(int32 Quantity, const FSoftObjectPath& IconPath);
+    void BP_SetSlotData(int32 Quantity, const TSoftObjectPtr<UTexture2D>& Icon);
 
     UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot")
     void BP_UpdateQuantity(int32 InQuantity);

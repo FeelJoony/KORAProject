@@ -107,11 +107,11 @@ UKRQuickSlotButtonBase* UKRQuickSlotWidget::GetSlotButton(FGameplayTag Direction
 	return nullptr;
 }
 
-void UKRQuickSlotWidget::UpdateSlot(FGameplayTag Direction, int32 Quantity, const FSoftObjectPath& IconPath)
+void UKRQuickSlotWidget::UpdateSlot(FGameplayTag Direction, int32 Quantity, const TSoftObjectPtr<UTexture2D>& Icon)
 {
 	if (UKRQuickSlotButtonBase* QuickSlot = GetSlotButton(Direction))
 	{
-		QuickSlot->BP_SetSlotData(Quantity, IconPath);
+		QuickSlot->BP_SetSlotData(Quantity, Icon);
 	}
 }
 
