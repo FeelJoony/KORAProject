@@ -164,12 +164,13 @@ bool UKRCombatComponent::FireRangedWeapon()
     if (!RangeInstance->ConsumeAmmo(1))
         return false;
 
-    if (AKRRangeWeapon* RangeWeaponActor = Cast<AKRRangeWeapon>(CurrentWeaponActor))
+    AKRRangeWeapon* RangeWeaponActor = Cast<AKRRangeWeapon>(CurrentWeaponActor);
+    if (RangeWeaponActor)
     {
         RangeWeaponActor->FireProjectile();
     }
 
-    const FTransform MuzzleTM = CurrentWeaponActor->GetMuzzleTransform();
+    const FTransform MuzzleTM = RangeWeaponActor->GetMuzzleTransform();
     const FVector Start = MuzzleTM.GetLocation();
 
     const float Range  = CurrentWeaponInstance->Range;
