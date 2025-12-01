@@ -124,14 +124,14 @@ void UKRQuickSlotWidget::ClearSlot(FGameplayTag Direction)
 
 void UKRQuickSlotWidget::HighlightSlot(FGameplayTag Direction)
 {
-	if (UKRQuickSlotButtonBase* N = GetSlotButton(FKRUIMessageTags::QuickSlot_North())) N->BP_SetHighlight(false);
-	if (UKRQuickSlotButtonBase* E = GetSlotButton(FKRUIMessageTags::QuickSlot_East()))  E->BP_SetHighlight(false);
-	if (UKRQuickSlotButtonBase* S = GetSlotButton(FKRUIMessageTags::QuickSlot_South())) S->BP_SetHighlight(false);
-	if (UKRQuickSlotButtonBase* W = GetSlotButton(FKRUIMessageTags::QuickSlot_West()))  W->BP_SetHighlight(false);
+	if (UKRQuickSlotButtonBase* N = GetSlotButton(FKRUIMessageTags::QuickSlot_North())) N->BP_SetHighlight(UnHightlightedSlotOpacity);
+	if (UKRQuickSlotButtonBase* E = GetSlotButton(FKRUIMessageTags::QuickSlot_East()))  E->BP_SetHighlight(UnHightlightedSlotOpacity);
+	if (UKRQuickSlotButtonBase* S = GetSlotButton(FKRUIMessageTags::QuickSlot_South())) S->BP_SetHighlight(UnHightlightedSlotOpacity);
+	if (UKRQuickSlotButtonBase* W = GetSlotButton(FKRUIMessageTags::QuickSlot_West()))  W->BP_SetHighlight(UnHightlightedSlotOpacity);
 
 	if (UKRQuickSlotButtonBase* Selected = GetSlotButton(Direction))
 	{
-		Selected->BP_SetHighlight(true);
+		Selected->BP_SetHighlight(HighlightedSlotOpacity);
 	}
 }
 
@@ -140,6 +140,14 @@ void UKRQuickSlotWidget::UpdateSlotQuantity(FGameplayTag Direction, int32 NewQua
 	if (UKRQuickSlotButtonBase* QuickSlot = GetSlotButton(Direction))
 	{
 		QuickSlot->BP_UpdateQuantity(NewQuantity);
+	}
+
+	if (NewQuantity <= 0)
+	{
+		if (UKRQuickSlotButtonBase* Selected = GetSlotButton(Direction))
+		{
+			Selected->BP_SetHighlight(QuantityZeroSlotOpacity);
+		}
 	}
 }
 

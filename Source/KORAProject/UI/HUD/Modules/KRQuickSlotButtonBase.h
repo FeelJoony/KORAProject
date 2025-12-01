@@ -22,5 +22,5 @@ public:
     void BP_ClearSlot();
 
     UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot")
-    void BP_SetHighlight(bool bHighlight);
+    void BP_SetHighlight(float InOpacity);
 };

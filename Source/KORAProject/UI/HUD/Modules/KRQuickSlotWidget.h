@@ -49,4 +49,8 @@ protected:
 private:
 	FGameplayMessageListenerHandle QuickSlotListener;
 	FGameplayTag CurrentSelectedSlot = FKRUIMessageTags::QuickSlot_North();
+
+	float UnHightlightedSlotOpacity = 0.6f;
+	float HighlightedSlotOpacity = 1.0f;
+	float QuantityZeroSlotOpacity = 0.3f;
 };
