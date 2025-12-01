@@ -16,6 +16,7 @@
 				"GameplayTasks",
 				"ModularGameplay",
 				"GameplayStateTreeModule"
+				"CommonGame"
 			]
 		},
 		{

@@ -6,9 +6,9 @@
 
 class UKRCombatCommonSet;
 class UKRAbilitySystemComponent;
-class UEnemyCombatComponent;
+class UKRCombatComponent;
 class UKREnemyAttributeSet;
-class UAbilitySystemComponent;
+class UKRPawnData;
 
 UCLASS()
 class KORAPROJECT_API AKREnemyCharacter : public AKRBaseCharacter
@@ -16,35 +16,27 @@ class KORAPROJECT_API AKREnemyCharacter : public AKRBaseCharacter
 	GENERATED_BODY()
 
 public:
-	AKREnemyCharacter();
+	AKREnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	virtual UPawnCombatComponent* GetPawnCombatComponent() const override;
+
 	
 protected:
+	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_Controller() override;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	TObjectPtr<UEnemyCombatComponent> EnemyCombatComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "GAS")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "KR|GAS")
 	TObjectPtr<UKRAbilitySystemComponent> EnemyASC;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|GAS")
 	TObjectPtr<UKRCombatCommonSet> CombatCommonSet;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|GAS")
 	TObjectPtr<UKREnemyAttributeSet> EnemyAttributeSet;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KR|Enemy")
+	TObjectPtr<const UKRPawnData> PawnData;
 
-private:
-	void InitEnemyASC();
-	void InitEnemyStartUpData();
-	
 public:
 	FORCEINLINE UKRAbilitySystemComponent* GetEnemyAbilitySystemCompoent() const { return EnemyASC; }
-	FORCEINLINE UEnemyCombatComponent* GetEnemyCombatComponent() const { return EnemyCombatComponent; }
-	FORCEINLINE UKRCombatCommonSet* GetCombatCommonSet() const { return CombatCommonSet; }
-	FORCEINLINE UKREnemyAttributeSet* GetEnemyAttributeSet() const { return EnemyAttributeSet; }
 };

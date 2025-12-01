@@ -1,44 +1,51 @@
 #include "Data/CacheDataTable.h"
 
 #include "Engine/DataTable.h"
-#include "Interface/TableKey.h"
 #include "Data/SampleDataStruct.h"
 #include "Data/ItemDataStruct.h"
-#include "Data/WeaponItemDataStruct.h"
-#include "Data/ConsumeItemDataStruct.h"
-#include "Data/MaterialItemDataStruct.h"
+#include "Data/WeaponDataStruct.h"
+#include "Data/WeaponEnhanceDataStruct.h"
+#include "Data/TutorialDataStruct.h"
+#include "Data/ShopItemDataStruct.h"
 
 void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 {
 	switch (InDataType)
 	{
-		case EGameDataType::SampleData:
-		{
-			InitKeyList<FSampleDataStruct>(NewDataTable);
-		}
-		break;
+	case EGameDataType::SampleData:
+	{
+		InitKeyList<FSampleDataStruct>(NewDataTable);
+	}
+	break;
 
-		case EGameDataType::WeaponItemData:
-		{
-			InitKeyList<FWeaponItemDataStruct>(NewDataTable);
-		}
-		break;
+	case EGameDataType::ItemData:
+	{
+		InitKeyList<FItemDataStruct>(NewDataTable);
+	}
+	break;
 
-		case EGameDataType::ConsumeItemData:
-		{
-			InitKeyList<FConsumeItemDataStruct>(NewDataTable);
-		}
-		break;
+	case EGameDataType::WeaponData:
+	{
+		InitKeyList<FWeaponDataStruct>(NewDataTable);
+	}
+	break;
 
-		case EGameDataType::MaterialItemData:
-		{
-			InitKeyList<FMaterialItemDataStruct>(NewDataTable);
-		}
-		break;
+	case EGameDataType::WeaponEnhanceData:
+	{
+		InitKeyList<FWeaponEnhanceDataStruct>(NewDataTable);
+	}
+	break;
 
-		case EGameDataType::ItemData:
-			{
-				InitKeyList<FItemDataStruct>(NewDataTable);
-			}
+	case EGameDataType::TutorialData:
+	{
+		InitKeyList<FWeaponEnhanceDataStruct>(NewDataTable);
+	}
+	break;
+
+	case EGameDataType::ShopItemData:
+	{
+		InitKeyList<FShopItemDataStruct>(NewDataTable);
+	}
+	break;
 	}
 }

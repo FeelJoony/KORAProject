@@ -27,7 +27,9 @@ public class KORAProject : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"ModularGameplay",
-			"GameFeatures"
+			"CommonGame",
+			"GameFeatures",
+			"ModularGameplayActors"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

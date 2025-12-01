@@ -1,46 +1,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/Abilities/KRHeroGameplayAbility.h"
-#include "Interaction/InteractionOption.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_Interact.generated.h"
 
-class UAbilityTask_GrantNearbyInteraction;
-class UIndicatorDescriptor;
-class UAbilityTask_WaitForInteractableTargets_SingleLineTrace;
-
 UCLASS()
-class KORAPROJECT_API UKRGA_Interact : public UKRHeroGameplayAbility
+class KORAPROJECT_API UKRGA_Interact : public UKRGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
-	UKRGA_Interact();
-
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	void UpdateInteractions(const TArray<FInteractionOption>& InteractiveOptions);
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
-	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-protected:
-	UPROPERTY()
-	TArray<FInteractionOption> CurrentOptions;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	float InteractionScanRate;
+	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	float InteractionRange;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	bool bShowLineTraceDebug;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	bool bShowSphereTraceDebug;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
-	TSoftClassPtr<UUserWidget> DefaultInteractionWidgetClass;
-	
+private:
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FGameplayTag> GameplayAbilityTags;
 };

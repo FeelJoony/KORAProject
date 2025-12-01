@@ -16,6 +16,7 @@
 #include "Inventory/Fragment/InventoryFragment_SellableItem.h"
 #include "Inventory/Fragment/InventoryFragment_ConsumableItem.h"
 #include "StructUtils/PropertyBag.h"
+#include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventorySubsystem)
 
@@ -301,6 +302,7 @@ void UKRInventorySubsystem::InitializeItemDefinitionFragments()
 	InitialFragmentType(UInventoryFragment_EquippableItem::StaticClass());
 	InitialFragmentType(UInventoryFragment_SetStats::StaticClass());
 	InitialFragmentType(UInventoryFragment_DisplayUI::StaticClass());
+	InitialFragmentType(UInventoryFragment_EnhanceableItem::StaticClass());
 	InitialFragmentType(UKRInventoryFragment_SellableItem::StaticClass());
 	InitialFragmentType(UInventoryFragment_ConsumableItem::StaticClass());
 }

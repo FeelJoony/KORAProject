@@ -3,7 +3,8 @@
 
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "Inventory/KRInventoryItemInstance.h"
-#include "Subsystem/KRInventorySubsystem.h"
+#include "SubSystem/KRInventorySubsystem.h"
+#include "SubSystem/KRShopSubsystem.h"
 #include "Inventory/Fragment/InventoryFragment_DisplayUI.h"
 #include "GameplayTag/KRItemTypeTag.h"
 
@@ -25,6 +26,7 @@ bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInsta
     Out.ItemIcon = UI->ItemIcon;
     Out.Price = UI->Price;
     Out.UpgradeLevel = UI->WeaponLevel;
+	Out.ItemTag = Instance->GetItemTag();
 
     if (UGameInstance* GI = UGameplayStatics::GetGameInstance(Instance))
     {
@@ -65,3 +67,42 @@ void UKRUIAdapterLibrary::GetOwnerInventoryUIData(UObject* WorldContextObject, T
         }
     }
 }
+
+void UKRUIAdapterLibrary::GetInventoryUIDataFiltered(UObject* WorldContextObject, const FGameplayTag& FilterTag, TArray<FKRItemUIData>& Out)
+{
+    Out.Reset();
+    if (!WorldContextObject) return;
+
+	if (UGameInstance* GI = UGameplayStatics::GetGameInstance(WorldContextObject))
+	{
+		if (auto* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
+		{
+			TArray<UKRInventoryItemInstance*> Items;
+			if (!FilterTag.IsValid())
+			{
+				Items = Inv->GetAllItems();
+			}
+			else
+			{
+				Items = Inv->FindItemsByTag(FilterTag);
+			}
+			ConvertItemInstancesToUIData(Items, Out);
+		}
+	}
+}
+
+void UKRUIAdapterLibrary::GetShopUIData(UObject* WorldContextObject, TArray<FKRItemUIData>& Out)
+{
+    Out.Reset();
+    if (!WorldContextObject) return;
+
+    if (UGameInstance* GI = UGameplayStatics::GetGameInstance(WorldContextObject))
+    {
+        if (UKRShopSubsystem* Shop = GI->GetSubsystem<UKRShopSubsystem>())
+        {
+            const TArray<UKRInventoryItemInstance*>& Items = Shop->GetShopStock();
+            ConvertItemInstancesToUIData(Items, Out);
+        }
+    }
+}
+

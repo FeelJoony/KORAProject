@@ -12,10 +12,11 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	AddDataTable(EGameDataType::SampleData, FString(TEXT("SampleData")));
-	//AddDataTable(EGameDataType::WeaponItemData, FString(TEXT("WeaponItemData")));
-	//AddDataTable(EGameDataType::ConsumeItemData, FString(TEXT("ConsumeItemData")));
-	//AddDataTable(EGameDataType::MaterialItemData, FString(TEXT("MaterialItemData")));
 	AddDataTable(EGameDataType::ItemData, FString(TEXT("ItemData")));
+	AddDataTable(EGameDataType::WeaponData, FString(TEXT("WeaponData")));
+	AddDataTable(EGameDataType::WeaponEnhanceData, FString(TEXT("WeaponEnhanceData")));
+	AddDataTable(EGameDataType::TutorialData, FString(TEXT("TutorialData")));
+	AddDataTable(EGameDataType::ShopItemData, FString(TEXT("ShopItemData")));
 	AddDataTable(EGameDataType::QuestData, FString(TEXT("QuestData")));
 	AddDataTable(EGameDataType::SubQuestData, FString(TEXT("SubQuestData")));
 }

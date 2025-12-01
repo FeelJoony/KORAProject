@@ -10,7 +10,11 @@
 #include "Data/MaterialItemDataStruct.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
+#include "Data/WeaponDataStruct.h"
 #include "Data/ItemDataStruct.h"
+#include "Data/TutorialDataStruct.h"
+#include "Data/WeaponEnhanceDataStruct.h"
+#include "Data/ShopItemDataStruct.h"
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 {
@@ -91,7 +95,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.Index = ParseIntValue(RowValue[Index_Index]);
                 ItemData.TypeTag = ParseGameplayTagValue(RowValue[TypeTag_Index]);
                 ItemData.RarityTag = ParseGameplayTagValue(RowValue[RarityTag_Index]);
-                ItemData.BasePrice = ParseIntValue(RowValue[BasePrice_Index]);
+                ItemData.BasePrice = ParseFloatValue(RowValue[BasePrice_Index]);
                 ItemData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
                 ItemData.DescriptionKey = ParseNameValue(RowValue[DescriptionKey_Index]);
                 ItemData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
@@ -121,9 +125,9 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
         }));
 }
 
-void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
+void UTableRowConvertFunctionContainer::CreateWeaponData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
-    CreateData(InCSVString, FString(TEXT("QuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+    CreateData(InCSVString, FString(TEXT("WeaponData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
         {
             auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
             auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
@@ -132,29 +136,197 @@ void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDat
             {
                 TArray<FString>& RowValue = Values[i];
 
-                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
-                int32 QuestName_Index = GetHeaderIndex(Headers, TEXT("QuestName"));
-                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
-                int32 StateTreeDefinitionAssetName_Index = GetHeaderIndex(Headers, TEXT("StateTreeDefinitionAssetName"));
-
-                FQuestDataStruct QuestData;
+                int32 GroupID_Index = GetHeaderIndex(Headers, TEXT("GroupID"));
+                int32 Atk_Index = GetHeaderIndex(Headers, TEXT("Atk"));
+                int32 CritChance_Index = GetHeaderIndex(Headers, TEXT("CritChance"));
+                int32 CritMulti_Index = GetHeaderIndex(Headers, TEXT("CritMulti"));
+                int32 Range_Index = GetHeaderIndex(Headers, TEXT("Range"));
+                int32 Accuracy_Index = GetHeaderIndex(Headers, TEXT("Accuracy"));
+                int32 Recoil_Index = GetHeaderIndex(Headers, TEXT("Recoil"));
+                int32 Capacity_Index = GetHeaderIndex(Headers, TEXT("Capacity"));
+                int32 ReloadTime_Index = GetHeaderIndex(Headers, TEXT("ReloadTime"));
+                int32 AttackSpeed_Index = GetHeaderIndex(Headers, TEXT("AttackSpeed"));
                 
-                QuestData.Index = ParseIntValue(RowValue[Index_Index]);
-                QuestData.QuestName = RowValue[QuestName_Index];
-                QuestData.Description = RowValue[Description_Index];
-                QuestData.StateTreeDefinitionName = ParseNameValue(RowValue[StateTreeDefinitionAssetName_Index]);
+                FWeaponDataStruct WeaponData;
 
-                FName RowName = *FString::Printf(TEXT("Quest_%d"), i);
-                if (FQuestDataStruct* FindRow = OutDataTable->FindRow<FQuestDataStruct>(RowName, TEXT("")))
+                WeaponData.GroupID = ParseIntValue(RowValue[GroupID_Index]);
+                WeaponData.Atk = ParseIntValue(RowValue[Atk_Index]);
+                WeaponData.CritChance = ParseFloatValue(RowValue[CritChance_Index]);
+                WeaponData.CritMulti = ParseFloatValue(RowValue[CritMulti_Index]);
+                WeaponData.Range = ParseIntValue(RowValue[Range_Index]);
+                WeaponData.Accuracy = ParseIntValue(RowValue[Accuracy_Index]);
+                WeaponData.Recoil = ParseIntValue(RowValue[Recoil_Index]);
+                WeaponData.Capacity = ParseIntValue(RowValue[Capacity_Index]);
+                WeaponData.ReloadTime = ParseFloatValue(RowValue[ReloadTime_Index]);
+                WeaponData.AttackSpeed = ParseFloatValue(RowValue[AttackSpeed_Index]);
+                
+                FName RowName = *FString::Printf(TEXT("Weapon_%d"), i);
+                if (FWeaponDataStruct* FindRow = OutDataTable->FindRow<FWeaponDataStruct>(RowName, TEXT("")))
                 {
-                    *FindRow = QuestData;
+                    *FindRow = WeaponData;
                 }
                 else
                 {
-                    OutDataTable->AddRow(RowName, QuestData);
+                    OutDataTable->AddRow(RowName, WeaponData);
                 }
             }
         }));
+}
+
+void UTableRowConvertFunctionContainer::CreateWeaponEnhanceData(class UDataTable* OutDataTable,
+    const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("WeaponEnhanceData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 GroupID_Index = GetHeaderIndex(Headers, TEXT("GroupID"));
+                int32 Lv_Index = GetHeaderIndex(Headers, TEXT("Lv"));
+                int32 AddAtk_Index = GetHeaderIndex(Headers, TEXT("AddAtk"));
+                int32 AddCritChance_Index = GetHeaderIndex(Headers, TEXT("AddCritChance"));
+                int32 AddRange_Index = GetHeaderIndex(Headers, TEXT("AddRange"));
+                int32 Success_Index = GetHeaderIndex(Headers, TEXT("Success"));
+                int32 Cost_Index = GetHeaderIndex(Headers, TEXT("Cost"));
+                
+                FWeaponEnhanceDataStruct WeaponEnhanceData;
+
+                WeaponEnhanceData.GroupID = ParseIntValue(RowValue[GroupID_Index]);
+                WeaponEnhanceData.Lv = ParseIntValue(RowValue[Lv_Index]);
+                WeaponEnhanceData.AddAtk = ParseIntValue(RowValue[AddAtk_Index]);
+                WeaponEnhanceData.AddCritChance = ParseFloatValue(RowValue[AddCritChance_Index]);
+                WeaponEnhanceData.AddRange = ParseIntValue(RowValue[AddRange_Index]);
+                WeaponEnhanceData.Success = ParseIntValue(RowValue[Success_Index]);
+                WeaponEnhanceData.Cost = ParseIntValue(RowValue[Cost_Index]);
+                
+                FName RowName = *FString::Printf(TEXT("WeaponEnhance_%d"), i);
+                if (FWeaponEnhanceDataStruct* FindRow = OutDataTable->FindRow<FWeaponEnhanceDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = WeaponEnhanceData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, WeaponEnhanceData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateTutorialData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("TutorialData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num()-1; i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 RowName_Index = GetHeaderIndex(Headers, TEXT("RowName"));
+                int32 PopupType_Index = GetHeaderIndex(Headers, TEXT("PopupType"));
+                int32 Duration_Index = GetHeaderIndex(Headers, TEXT("Duration"));
+                int32 PauseGame_Index = GetHeaderIndex(Headers, TEXT("PauseGame"));
+                int32 StringKey_Index = GetHeaderIndex(Headers, TEXT("StringKey"));
+                int32 OffsetX_Index = GetHeaderIndex(Headers, TEXT("OffsetX"));
+                int32 OffsetY_Index = GetHeaderIndex(Headers, TEXT("OffsetY"));
+                int32 CompletionTrigger_Index = GetHeaderIndex(Headers, TEXT("CompletionTrigger"));
+                
+                FTutorialDataStruct TutorialData;
+                
+                TutorialData.PopupType = RowValue[PopupType_Index];
+                TutorialData.Duration = ParseFloatValue(RowValue[Duration_Index]);
+                TutorialData.PauseGame = ParseBoolValue(RowValue[PauseGame_Index]);
+                TutorialData.StringKey = ParseNameValue(RowValue[StringKey_Index]);
+                TutorialData.OffsetX = ParseFloatValue(RowValue[OffsetX_Index]);
+                TutorialData.OffsetY = ParseFloatValue(RowValue[OffsetY_Index]);
+                TutorialData.CompletionTrigger = ParseNameValue(RowValue[CompletionTrigger_Index]);
+
+                
+                FName RowName = ParseNameValue(RowValue[RowName_Index]);
+                if (FTutorialDataStruct* FindRow = OutDataTable->FindRow<FTutorialDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = TutorialData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, TutorialData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateShopItemData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("ShopItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num() - 1; i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+				int32 ItemTag_Index = GetHeaderIndex(Headers, TEXT("ItemTag"));
+                int32 PoolTag_Index = GetHeaderIndex(Headers, TEXT("PoolTag"));
+                int32 StockBase_Index = GetHeaderIndex(Headers, TEXT("StockBase"));
+                int32 Weight_Index = GetHeaderIndex(Headers, TEXT("Weight"));
+
+                FShopItemDataStruct ShopItemData;
+
+                ShopItemData.Index = ParseIntValue(RowValue[Index_Index]);
+				ShopItemData.ItemTag = ParseGameplayTagValue(RowValue[ItemTag_Index]);
+                ShopItemData.PoolTag = ParseGameplayTagValue(RowValue[PoolTag_Index]);
+                ShopItemData.StockBase = ParseIntValue(RowValue[StockBase_Index]);
+                ShopItemData.Weight = ParseFloatValue(RowValue[Weight_Index]);
+
+                FName RowName = *FString::Printf(TEXT("ShopItem_%d"), i);
+                if (FShopItemDataStruct* FindRow = OutDataTable->FindRow<FShopItemDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = ShopItemData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, ShopItemData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("QuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+    {
+        {
+
+            int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+            int32 QuestName_Index = GetHeaderIndex(Headers, TEXT("QuestName"));
+            int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+            int32 StateTreeDefinitionAssetName_Index = GetHeaderIndex(Headers, TEXT("StateTreeDefinitionAssetName"));
+
+            FQuestDataStruct QuestData;
+                
+            QuestData.Index = ParseIntValue(RowValue[Index_Index]);
+            QuestData.QuestName = RowValue[QuestName_Index];
+            QuestData.Description = RowValue[Description_Index];
+            QuestData.StateTreeDefinitionName = ParseNameValue(RowValue[StateTreeDefinitionAssetName_Index]);
+
+            FName RowName = *FString::Printf(TEXT("Quest_%d"), i);
+            if (FQuestDataStruct* FindRow = OutDataTable->FindRow<FQuestDataStruct>(RowName, TEXT("")))
+            {
+                *FindRow = QuestData;
+            }
+            else
+            {
+                OutDataTable->AddRow(RowName, QuestData);
+            }
+        }
+    }));
 }
 
 void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString)

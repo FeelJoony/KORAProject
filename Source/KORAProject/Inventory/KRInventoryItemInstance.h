@@ -52,9 +52,8 @@ public:
 
 	TArray<FGameplayTag> GetAllFragmentTags() const;
 
-private:
 	void SetItemDef(class UKRInventoryItemDefinition* InDef);
-
+private:
 	friend struct FKRInventoryList;
 	friend class UKRInventorySubsystem;
 

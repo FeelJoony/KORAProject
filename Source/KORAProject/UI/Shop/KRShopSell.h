@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CommonActivatableWidget.h"
-//#include "GameplayTagContainer.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRShopSell.generated.h"
 
 class UKRSlotGridBase;
@@ -25,18 +26,14 @@ public:
 	UPROPERTY(meta = (BindWidget), BlueprintReadOnly) TObjectPtr<UKRItemDescriptionBase> ShopItemDescription = nullptr;
 	UPROPERTY(meta = (BindWidgetOptional), BlueprintReadOnly) TObjectPtr<UCommonUserWidget> PlayerCurrencyPanel = nullptr;
 
-
-	UFUNCTION(BlueprintCallable, Category = "Shop") void RefreshPlayerInventory();
-	UFUNCTION(BlueprintCallable, Category = "Shop") void UpdatePlayerCurrency();
-
 protected:
 	virtual void NativeOnActivated() override;
 	virtual void NativeOnDeactivated() override;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-
-	void FilterSellableItems();
+private:
+	void FilterSellableItems(const FGameplayTag& FilterTag);
 	void OnPlayerItemSelected(int32 SelectedIndex);
 	void UpdateItemDescription(int32 CellIndex);
 
@@ -48,6 +45,15 @@ protected:
 	void HandleMoveDown();
 	int32 StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int32 NumTotal) const;
 
-private:
+	UFUNCTION(BlueprintCallable, Category = "Shop") void RefreshShopInventory();
+	UFUNCTION(BlueprintCallable, Category = "Shop") void UpdatePlayerCurrency();
+
+	void OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message);
+
+	void OnClickConsumables();
+	void OnClickMaterial();
+
 	UPROPERTY() TArray<FKRItemUIData> CachedShopItems;
+	FGameplayTag CurrentFilterTag;
+	FGameplayMessageListenerHandle CurrencyListener;
 };

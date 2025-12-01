@@ -2,12 +2,11 @@
 
 
 #include "UI/HUD/Modules/KRBossHealthWidget.h"
-#include "UI/Data/UIStruct/KRProgressBarMessages.h"
-#include "GameplayTag/KRUITag.h"
+
 #include "Components/ProgressBar.h"
 #include "AbilitySystemComponent.h"
-#include "TimerManager.h"
 #include "Engine/World.h"
+#include "TimerManager.h"
 
 void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC)
 {
@@ -16,23 +15,18 @@ void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC)
 
 void UKRBossHealthWidget::OnHUDInitialized()
 {
+	Super::OnHUDInitialized();
+
 	if (UWorld* World = GetWorld())
 	{
-		if (BossListenerHandle.IsValid())
-		{
-			UGameplayMessageSubsystem::Get(World).UnregisterListener(BossListenerHandle);
-			BossListenerHandle = FGameplayMessageListenerHandle();
-		}
+		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
 
-		BossListenerHandle = UGameplayMessageSubsystem::Get(World).RegisterListener<FKRProgressBarMessages>(
-				KRTAG_UI_MESSAGE_PROGRESSBAR,
-				this,
-				&UKRBossHealthWidget::OnBossMessage
+		BossListenerHandle = Subsys.RegisterListener(
+			FKRUIMessageTags::ProgressBar(),
+			this,
+			&ThisClass::OnBossMessage
 		);
 	}
-
-	BossDisplayPercent = BossTargetPercent = 1.f;
-	BossAnimElapsed = 0.f;
 }
 
 void UKRBossHealthWidget::NativeDestruct()
@@ -45,66 +39,77 @@ void UKRBossHealthWidget::UnbindAll()
 {
 	if (UWorld* World = GetWorld())
 	{
-		if (BossListenerHandle.IsValid())
-		{
-			UGameplayMessageSubsystem::Get(World).UnregisterListener(BossListenerHandle);
-			BossListenerHandle = FGameplayMessageListenerHandle();
-		}
+		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+		Subsys.UnregisterListener(BossListenerHandle);
 
 		World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
 	}
 }
 
-void UKRBossHealthWidget::OnBossMessage(FGameplayTag ChannelTag, const FKRProgressBarMessages& Message)
+void UKRBossHealthWidget::OnBossMessage(FGameplayTag ChannelTag, const FKRUIMessage_Progress& Message)
 {
-	if (!IsMessageFromBoss(Message))
-		return;
+	if (!IsMessageFromBoss(Message.TargetActor)) return;
+	if (Message.BarType != EProgressBarType::MainHP) return;
 
-	if (Message.ProgressBarTag != KRTAG_UI_PROGRESSBAR_HP || Message.MaxValue <= 0.f)
-		return;
+	const float Percent = (Message.MaxValue > 0.f) ? (Message.NewValue / Message.MaxValue) : 0.f;
 
-	const float NewPercent = Message.NewValue / Message.MaxValue;
-	BossTargetPercent = NewPercent;
-
+	BossTargetPercent = Percent;
 	StartBossAnim();
 }
 
-bool UKRBossHealthWidget::IsMessageFromBoss(const FKRProgressBarMessages& Message) const
+bool UKRBossHealthWidget::IsMessageFromBoss(const TWeakObjectPtr<AActor>& TargetActor) const
 {
-	const UAbilitySystemComponent* BossASC = BossASCWeak.Get();
-	if (!BossASC)
-		return false;
+	if (!TargetActor.IsValid()) return false;
+	if (!BossASCWeak.IsValid()) return false;
 
-	AActor* BossAvatar = BossASC->GetAvatarActor();
-	return BossAvatar && Message.TargetActor.Get() == BossAvatar;
+	const AActor* BossOwner = BossASCWeak->GetOwner();
+	return BossOwner && TargetActor.Get() == BossOwner;
 }
 
 void UKRBossHealthWidget::StartBossAnim()
 {
+	if (!BossHP) return;
+
 	if (UWorld* World = GetWorld())
 	{
-		if (!BossHP) return;
+		World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
 
+		BossDisplayPercent = BossHP->Percent;
 		BossAnimElapsed = 0.f;
-		World->GetTimerManager().SetTimer(BossAnimTimerHandle, this, &UKRBossHealthWidget::TickBossAnim, 0.016f, true);
+
+		World->GetTimerManager().SetTimer(
+			BossAnimTimerHandle,
+			this,
+			&ThisClass::TickBossAnim,
+			0.01f,
+			true
+		);
 	}
 }
 
 void UKRBossHealthWidget::TickBossAnim()
 {
-	if (!BossHP || GetWorld()) return;
-
-	BossAnimElapsed += 0.016f;
-	const float Alpha = (BossAnimTime > 0.f) ? FMath::Clamp(BossAnimElapsed / BossAnimTime, 0.f, 1.f) : 1.f;
-
-	BossDisplayPercent = FMath::Lerp(BossDisplayPercent, BossTargetPercent, Alpha);
-	BossHP->SetPercent(BossDisplayPercent);
-
-	if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
+	if (!BossHP)
 	{
-		BossDisplayPercent = BossTargetPercent;
-		BossHP->SetPercent(BossDisplayPercent);
-		GetWorld()->GetTimerManager().ClearTimer(BossAnimTimerHandle);
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
+		}
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		BossAnimElapsed += World->GetDeltaSeconds();
+
+		const float Alpha = (BossAnimTime > 0.f) ? FMath::Clamp(BossAnimElapsed / BossAnimTime, 0.f, 1.f) : 1.f;
+
+		const float NewPercent = FMath::Lerp(BossDisplayPercent, BossTargetPercent, Alpha);
+		BossHP->SetPercent(NewPercent);
+
+		if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
+		{
+			World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
+		}
 	}
 }
-

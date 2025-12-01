@@ -7,14 +7,15 @@
 #include "KRExperienceDefinition.h"
 #include "KRExperienceManagerComponent.h"
 #include "Characters/KRHeroCharacter.h"
-#include "Characters/KRPawnData.h"
-#include "Characters/KRPawnExtensionComponent.h"
+#include "Data/DataAssets/KRPawnData.h"
+#include "Components/KRPawnExtensionComponent.h"
+#include "Player/KRPlayerController.h"
 #include "Player/KRPlayerState.h"
 
 AKRBaseGameMode::AKRBaseGameMode()
 {
 	GameStateClass = AKRBaseGameState::StaticClass();
-	//PlayerControllerClass = AKRPlayerController
+	PlayerControllerClass = AKRPlayerController::StaticClass();
 	PlayerStateClass = AKRPlayerState::StaticClass();
 	DefaultPawnClass = AKRHeroCharacter::StaticClass();
 }
@@ -92,7 +93,7 @@ void AKRBaseGameMode::HandleMatchAssignmentIfNotExpectionOne()
 
 	if (!ExperienceId.IsValid())
 	{
-		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("BP_KRDefaultExperience")));
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("/Game/GameModes/DA_KRDefaultExperience")));
 	}
 
 	OnMatchAssignmentGiven(ExperienceId);
