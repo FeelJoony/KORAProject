@@ -11,4 +11,6 @@ enum class EGameDataType : uint8
 	MaterialItemData,
 	ItemData,
 	EquipData,
+	QuestData,
+	SubQuestData,
 };

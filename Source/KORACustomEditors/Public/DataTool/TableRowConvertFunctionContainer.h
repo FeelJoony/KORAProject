@@ -28,6 +28,10 @@ public:
 	void CreateSampleData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);

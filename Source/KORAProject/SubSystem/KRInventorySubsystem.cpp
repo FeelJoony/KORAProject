@@ -15,6 +15,7 @@
 #include "Inventory/Fragment/InventoryFragment_DisplayUI.h"
 #include "Inventory/Fragment/InventoryFragment_SellableItem.h"
 #include "Inventory/Fragment/InventoryFragment_ConsumableItem.h"
+#include "StructUtils/PropertyBag.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventorySubsystem)
 
@@ -331,7 +332,7 @@ UKRInventoryItemInstance* UKRInventorySubsystem::AddItem(FGameplayTag ItemTag, i
 	
 	// Gameplay Message Subsystem Listen Sample
 	UAsyncAction_ListenForGameplayMessage::ListenForGameplayMessages(this, AddItemTag, FAddItemMessage::StaticStruct());
-	
+
 	return Entry != nullptr ? Entry->GetItemInstance() : nullptr;
 }
 
