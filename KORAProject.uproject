@@ -14,8 +14,9 @@
 				"GameplayAbilities",
 				"EnhancedInput",
 				"GameplayTasks",
-				"CommonGame",
-				"ModularGameplay"
+				"ModularGameplay",
+				"GameplayStateTreeModule",
+				"CommonGame"
 			]
 		},
 		{

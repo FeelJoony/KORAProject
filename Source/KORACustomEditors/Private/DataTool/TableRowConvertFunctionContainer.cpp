@@ -7,9 +7,6 @@
 #include "Data/ConsumeDataStruct.h"
 #include "Data/SampleDataStruct.h"
 #include "Data/WeaponDataStruct.h"
-#include "Data/WeaponItemDataStruct.h"
-#include "Data/ConsumeItemDataStruct.h"
-#include "Data/MaterialItemDataStruct.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
 #include "Data/ItemDataStruct.h"
@@ -675,7 +672,6 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 			}
 		}));
 }
-
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)
 {
