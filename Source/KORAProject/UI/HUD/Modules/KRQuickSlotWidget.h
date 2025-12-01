@@ -20,28 +20,28 @@ public:
 
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);
-	UKRQuickSlotButtonBase* GetSlotButton(EQuickSlotDirection Direction) const;
+	UKRQuickSlotButtonBase* GetSlotButton(FGameplayTag Direction) const;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> NorthQuickSlot;
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> EastQuickSlot;
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> SouthQuickSlot;
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget), Category = "QuickSlot") TObjectPtr<UKRQuickSlotButtonBase> WestQuickSlot;
 
-	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlot(EQuickSlotDirection Direction, int32 Quantity, const FSoftObjectPath& IconPath);
-	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void ClearSlot(EQuickSlotDirection Direction);
-	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void HighlightSlot(EQuickSlotDirection Direction);
-	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlotQuantity(EQuickSlotDirection Direction, int32 NewQuantity);
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlot(FGameplayTag Direction, int32 Quantity, const FSoftObjectPath& IconPath);
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void ClearSlot(FGameplayTag Direction);
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void HighlightSlot(FGameplayTag Direction);
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlotQuantity(FGameplayTag Direction, int32 NewQuantity);
 
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Item Used From Slot"))
-	void BP_OnItemUsedFromSlot(EQuickSlotDirection Direction, int32 Duration);
+	void BP_OnItemUsedFromSlot(FGameplayTag Direction, int32 Duration);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot Registered"))
-	void BP_OnSlotRegistered(EQuickSlotDirection Direction);
+	void BP_OnSlotRegistered(FGameplayTag Direction);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot Selection Changed"))
-	void BP_OnSlotSelectionChanged(EQuickSlotDirection NewSelectedSlot);
+	void BP_OnSlotSelectionChanged(FGameplayTag NewSelectedSlot);
 
 private:
 	FGameplayMessageListenerHandle QuickSlotListener;
-	EQuickSlotDirection CurrentSelectedSlot = EQuickSlotDirection::North;
-	TMap<EQuickSlotDirection, FName> SlotItemMap;
+	FGameplayTag CurrentSelectedSlot = FKRUIMessageTags::QuickSlot_North();
+	TMap<FGameplayTag, FName> SlotItemMap;
 };

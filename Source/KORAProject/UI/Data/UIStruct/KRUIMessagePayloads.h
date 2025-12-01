@@ -135,7 +135,7 @@ struct KORAPROJECT_API FKRUIMessage_QuickSlot
 	UPROPERTY(BlueprintReadOnly) int32 ItemQuantity = 0;
 	UPROPERTY(BlueprintReadOnly) float Duration = 3.f; // Only When ItemUsed
 
-	UPROPERTY(BlueprintReadOnly) FGameplayTag CurrentlySelectedSlot = FKRUIMessageTags::QuickSlot_North;
+	UPROPERTY(BlueprintReadOnly) FGameplayTag CurrentlySelectedSlot = FKRUIMessageTags::QuickSlot_North();
 	UPROPERTY(BlueprintReadOnly) FSoftObjectPath ItemIconPath;
 };
 
