@@ -49,7 +49,7 @@ void UKRQuickSlotWidget::OnQuickSlotMessageReceived(FGameplayTag Channel, const 
 	{
 	case EQuickSlotAction::ItemRegistered:
 	{
-		UpdateSlot(SlotDir, Message.ItemQuantity, Message.ItemIconPath);
+		UpdateSlot(SlotDir, Message.ItemQuantity, Message.ItemIcon);
 		CurrentSelectedSlot = SlotDir;
 		HighlightSlot(CurrentSelectedSlot);
 		BP_OnSlotRegistered(SlotDir);
