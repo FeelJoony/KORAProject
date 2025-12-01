@@ -16,6 +16,7 @@
 #include "Inventory/Fragment/InventoryFragment_DisplayUI.h"
 #include "Inventory/Fragment/InventoryFragment_SellableItem.h"
 #include "Inventory/Fragment/InventoryFragment_ConsumableItem.h"
+#include "StructUtils/PropertyBag.h"
 #include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "Inventory/Fragment/InventoryFragment_QuickSlot.h"
 
@@ -302,7 +303,7 @@ UKRInventoryItemInstance* UKRInventorySubsystem::AddItem(FGameplayTag ItemTag, i
 	UAsyncAction_ListenForGameplayMessage::ListenForGameplayMessages(this, AddItemTag, FAddItemMessage::StaticStruct());
 	
 	NotifyQuickSlotQuantityChanged(ItemTag);
-	
+
 	return Entry != nullptr ? Entry->GetItemInstance() : nullptr;
 }
 

@@ -29,6 +29,10 @@ public:
 	UFUNCTION()
 	void CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
+	void CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
 	void CreateWeaponData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateWeaponEnhanceData(class UDataTable* OutDataTable, const FString& InCSVString);

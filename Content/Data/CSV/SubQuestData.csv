@@ -1,0 +1,6 @@
+GroupIndex,OrderIndex,ObjectiveTag,SubQuestName,Description,RequiredCount,TimeLimit
+1,1,Quest.Type.1,Name,Description1,5,-1
+1,2,Quest.Type.2,Name,Description2,5,-1
+1,3,Quest.Type.3,Name,Description3,5,-1
+1,4,Quest.Type.4,Name,Description4,5,-1
+1,5,Quest.Type.5,Name,Description5,5,-1

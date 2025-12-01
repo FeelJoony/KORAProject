@@ -7,6 +7,11 @@
 #include "Data/ConsumeDataStruct.h"
 #include "Data/SampleDataStruct.h"
 #include "Data/WeaponDataStruct.h"
+#include "Data/WeaponItemDataStruct.h"
+#include "Data/ConsumeItemDataStruct.h"
+#include "Data/MaterialItemDataStruct.h"
+#include "Data/QuestDataStruct.h"
+#include "Data/SubQuestDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/TutorialDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
@@ -119,6 +124,103 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 else
                 {
                     OutDataTable->AddRow(RowName, ItemData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("QuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+                int32 QuestName_Index = GetHeaderIndex(Headers, TEXT("QuestName"));
+                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+                int32 StateTreeDefinitionAssetName_Index = GetHeaderIndex(Headers, TEXT("StateTreeDefinitionAssetName"));
+
+                FQuestDataStruct QuestData;
+                
+                QuestData.Index = ParseIntValue(RowValue[Index_Index]);
+                QuestData.QuestName = RowValue[QuestName_Index];
+                QuestData.Description = RowValue[Description_Index];
+                QuestData.StateTreeDefinitionName = ParseNameValue(RowValue[StateTreeDefinitionAssetName_Index]);
+
+                FName RowName = *FString::Printf(TEXT("Quest_%d"), i);
+                if (FQuestDataStruct* FindRow = OutDataTable->FindRow<FQuestDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = QuestData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, QuestData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("SubQuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            int TempIndex = 0;
+            FName TempRowName; 
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 GroupIndex_Index = GetHeaderIndex(Headers, TEXT("GroupIndex"));
+                int32 OrderIndex_Index = GetHeaderIndex(Headers, TEXT("OrderIndex"));
+                int32 ObjectiveTag_Index = GetHeaderIndex(Headers, TEXT("ObjectiveTag"));
+                int32 SubQuestName_Index = GetHeaderIndex(Headers, TEXT("SubQuestName"));
+                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+                int32 RequiredCount_Index = GetHeaderIndex(Headers, TEXT("RequiredCount"));
+                int32 TimeLimit_Index = GetHeaderIndex(Headers, TEXT("TimeLimit"));
+
+                FSubQuestEvalDataStruct EvalData;
+
+                EvalData.OrderIndex = ParseIntValue(RowValue[OrderIndex_Index]);
+                //EvalData.ObjectiveTag = ParseGameplayTagValue(RowValue[ObjectiveTag_Index]);
+                EvalData.SubQuestName = ParseTextValue(RowValue[SubQuestName_Index]);
+                EvalData.Description = ParseTextValue(RowValue[Description_Index]);
+                EvalData.RequiredCount = ParseIntValue(RowValue[RequiredCount_Index]);
+                EvalData.TimeLimit = ParseFloatValue(RowValue[TimeLimit_Index]);
+                
+                if (TempIndex < ParseIntValue(RowValue[GroupIndex_Index]))
+                {
+                    FSubQuestDataStruct SubQuestData;
+                    SubQuestData.GroupIndex = ParseIntValue(RowValue[GroupIndex_Index]);
+                    
+                    TempIndex = SubQuestData.GroupIndex;
+                    TempRowName = *FString::Printf(TEXT("SubQuest_%d"), i);
+
+                    FName RowName = *FString::Printf(TEXT("SubQuest_%d"), i);
+                    if (FSubQuestDataStruct* FindRow = OutDataTable->FindRow<FSubQuestDataStruct>(RowName, TEXT("")))
+                    {
+                        *FindRow = SubQuestData;
+                    }
+                    else
+                    {
+                        OutDataTable->AddRow(RowName, SubQuestData);
+                    }
+
+                    SubQuestData.EvalDatas.Add(EvalData);
+                }
+                else if (TempIndex == GroupIndex_Index)
+                {
+                    if (FSubQuestDataStruct* FindRow = OutDataTable->FindRow<FSubQuestDataStruct>(TempRowName, TEXT("")))
+                    {
+                        FindRow->EvalDatas.Add(EvalData);
+                    }
                 }
             }
         }));
