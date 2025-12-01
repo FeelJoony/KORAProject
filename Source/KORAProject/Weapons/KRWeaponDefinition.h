@@ -50,14 +50,18 @@ public:
     /** 액터 스폰 위치/회전 보정값 */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
     FTransform AttachTransform;
-
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+    TSubclassOf<UAnimInstance> EquippableAnimLayer;
+    
     /** 부여할 능력들 (GAS) */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
     TArray<TSubclassOf<UGameplayAbility>> GrantedAbilities;
 
+    
     /** 인벤토리 아이템 정의 생성 */
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     UKRInventoryItemDefinition* CreateInventoryItemDefinition(const FWeaponDataStruct& WeaponData, const FWeaponEnhanceDataStruct& WeaponEnhanceData);
-
+    
     void AutoAssignAllClasses();
 };

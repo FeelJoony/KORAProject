@@ -33,6 +33,7 @@ UKRInventoryItemDefinition* UKRWeaponDefinition::CreateInventoryItemDefinition(c
     // 1. 장착 Fragment 설정
     UInventoryFragment_EquippableItem* EquipFragment = NewObject<UInventoryFragment_EquippableItem>(ItemDef);
     EquipFragment->EquipmentDefinition = EquipmentDefinition;
+    EquipFragment->EquippableAnimLayer = EquippableAnimLayer;
     ItemDef->AddFragment(EquipFragment->GetFragmentTag(), EquipFragment);
 
     // 2. 스탯 Fragment 설정
