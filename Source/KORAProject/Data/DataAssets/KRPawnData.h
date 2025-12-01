@@ -4,6 +4,8 @@
 #include "Engine/DataAsset.h"
 #include "KRPawnData.generated.h"
 
+class UKRInventoryItemDefinition;
+class UKRWeaponDefinition;
 class UKRCameraMode;
 class UKRAbilitySet;
 class UDataAsset_InputConfig;
@@ -31,4 +33,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Camera")
 	TSubclassOf<UKRCameraMode> DefaultCameraMode;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Inventory")
+	TArray<TObjectPtr<UKRWeaponDefinition>> DefaultEquipWeapons;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Inventory")
+	TArray<TSubclassOf<UKRInventoryItemDefinition>> DefaultItems;
 };
