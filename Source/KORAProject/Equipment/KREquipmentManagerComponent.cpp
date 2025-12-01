@@ -94,7 +94,9 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipItem(TSubclassOf<UKREqu
 	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(InEquipmentDefinition);
 
 	const FGameplayTag SlotTagToOccupy = EquipmentCDO->EquipmentSlotTag;
-	if (SlotTagToOccupy.IsValid())
+
+	// 충돌나서 ! 변경
+	if (!SlotTagToOccupy.IsValid())
 	{
 		TArray<UKREquipmentInstance*> OldInstancesToUnequip;
 
