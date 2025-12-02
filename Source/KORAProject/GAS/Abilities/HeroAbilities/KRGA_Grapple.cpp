@@ -1,13 +1,10 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_Grapple.h"
 
-#include <ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/include/dxc/DXIL/DxilConstants.h>
-
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
-#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
@@ -78,8 +75,12 @@ void UKRGA_Grapple::StartMove()
 			if (!HitPawnASI) OnAbilityEnd();
 			UAbilitySystemComponent* HitPawnASC = HitPawnASI->GetAbilitySystemComponent();
 			if (!HitPawnASC) OnAbilityEnd();
-			
 			HitPawnASC->AddLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
+
+			OnPullMontageLoop();
+
+			CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+			
 			GetWorld()->GetTimerManager().SetTimer(
 				MoveToTimer,
 				this,
@@ -194,7 +195,7 @@ void UKRGA_Grapple::LineTrace()
 				UGameplayStatics::SpawnDecalAtLocation(
 					GetWorld(),
 					DecalMaterial,
-					FVector(20,20,20),
+					FVector(DecalSize),
 					OutHitResult.ImpactPoint,
 					OutHitResult.ImpactNormal.Rotation(),
 					1.f
@@ -282,7 +283,7 @@ void UKRGA_Grapple::OnLoopMontage()
 	if (!LoopMontageTask)
 	{
 		LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, TEXT("LoopMontageTask"),LoopMontage
+		this, TEXT("LoopMontageTask"),LoopMoveMontage
 	);
 		LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
 		LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
@@ -292,18 +293,45 @@ void UKRGA_Grapple::OnLoopMontage()
 	}
 }
 
+void UKRGA_Grapple::OnPullMontageLoop()
+{
+	if (!LoopMontageTask)
+	{
+		LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, TEXT("LoopMontageTask"),LoopPullMontage
+	);
+		LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
+		LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
+		LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
+		LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
+		LoopMontageTask->ReadyForActivation();
+	}
+}
+
 void UKRGA_Grapple::CancelGrapple()
 {
 	ApplyCableVisibility(false);
+	
+	if (CachedPlayerCharacter)
+	{
+		CachedPlayerCharacter->StopAnimMontage();
+	}
+
 	switch (HitState)
 	{
 	case EGrappleState::Default:
 		{
 			OnAbilityEnd();
 		}
-		break;
+	break;
 	case EGrappleState::HitEnemy:
 		{
+			IAbilitySystemInterface* HitPawnASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
+			if (!HitPawnASI) OnAbilityEnd();
+			UAbilitySystemComponent* HitPawnASC = HitPawnASI->GetAbilitySystemComponent();
+			if (!HitPawnASC) OnAbilityEnd();
+			HitPawnASC->RemoveLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
+			
 			if (MoveToTimer.IsValid())
             {
             	GetWorld()->GetTimerManager().ClearTimer(MoveToTimer);
