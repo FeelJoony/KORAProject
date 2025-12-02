@@ -4,9 +4,18 @@
 #include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_Grapple.generated.h"
 
+class UCapsuleComponent;
 class UAbilityTask_ApplyRootMotionMoveToForce;
 class UAbilityTask_PlayMontageAndWait;
 class UCharacterMovementComponent;
+
+UENUM()
+enum class EGrappleState : uint8
+{
+	Default		UMETA(DisplayName = "Default"),
+	HitEnemy	UMETA(DisplayName = "Hit Enemy"),
+	HitActor	UMETA(DisplayName = "Hit Actor")
+};
 
 UCLASS()
 class KORAPROJECT_API UKRGA_Grapple : public UKRGameplayAbility
@@ -21,45 +30,47 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
 	void ApplyCableVisibility(bool Visible);
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
-	void ApplyCableLocation(FVector CableToLocation);
+	void ApplyCableLocation();
 
+	UFUNCTION()
+	void StartMove();
+
+	UFUNCTION()
+	void StopPlayerMove();
+
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	FVector GrapPoint;
+	
 private:
 	UFUNCTION()
 	void LineTrace();
 
-	void ApplyPhysics(const FHitResult& OutHitResult);
-
-	UFUNCTION()
-	void TargetToPlayerLocation(APawn* TargetPawn);
-	void PullTick();
-	void StopPull();
-
+	void TargetMoveToPlayer();
+	
+	void CancelGrapple();
+	
 	UFUNCTION()
 	void OnAbilityEnd();
 
 	UFUNCTION()
 	void OnLoopMontage();
-
-	UFUNCTION()
-	void StopGraple();
-
-	//UFUNCTION()
-	//void GrappleEnded();
-	
-	UFUNCTION()
-	void OnMoveToLocation();
-	
+		
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> StartMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> LoopMontage = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UAnimMontage> TargettGrappleMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UAnimMontage> EndMontage = nullptr;
+	TObjectPtr<UAnimMontage> LaunchMontage = nullptr;
 
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> StartMontageTask=nullptr;
+	// UPROPERTY(EditDefaultsOnly)
+	// TObjectPtr<UAnimMontage> CancleMontage = nullptr;
+\
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> LoopMontageTask=nullptr;
 	UPROPERTY()
@@ -72,29 +83,22 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	FGameplayTag EnemyImmuneGrapple;
-	
-	FTimerHandle RotatorTimer;
 
-	FTimerHandle PullTimerHandle;
+	EGrappleState HitState = EGrappleState::Default;
 	
-	//케이블 생성
+	FTimerHandle MoveToTimer;
 
-	
-	UPROPERTY()
-	TObjectPtr<ACharacter> CachedPlayerCharacter;
-
-	UPROPERTY()
-	TObjectPtr<APawn> CachedTargetPawn;
-	
+	FTimerHandle MaxGrappleTimer;
+		
 	// 에디터 설정
 	UPROPERTY(EditDefaultsOnly)
 	float StartLaunchSpeed = 1000.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float GrapleSpeed = 30000.f;
+	float GrappleSpeed = 30000.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float StopGrapleDistance = 25000.f;
+	float StopGrappleDistance = 25000.f;
 	
 	UPROPERTY(EditDefaultsOnly)
 	float EndDirectionZ = 1.f;
@@ -106,13 +110,28 @@ private:
 	float TraceRange = 5000.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float PullSpeed = 200.f;
+	float TargetMoveSpeed = 200.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float MoveToSpeed = 0.1f;
-	
-	// 목적지 (타겟 위치)
-	FVector GrapPoint;
 
+	UPROPERTY(EditDefaultsOnly)
+	float EnemyGrappleDuration = 1.5f;
 	
+	UPROPERTY(EditDefaultsOnly)
+	float StopNealyDistSquared = 200.f;
+
+	//Cached
+	UPROPERTY()
+	TObjectPtr<ACharacter> CachedPlayerCharacter;
+
+	UPROPERTY()
+	TObjectPtr<APawn> CachedTargetPawn;
+
+	UPROPERTY()
+	TObjectPtr<UCapsuleComponent> TargetCapsuleComp=nullptr;
+
+	uint8 bControllerRotationYaw = false;
+	
+	uint8 bRotationToMovement = true;
 };
