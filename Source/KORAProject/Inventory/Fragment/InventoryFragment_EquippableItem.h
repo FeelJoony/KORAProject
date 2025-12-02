@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "InventoryFragment_EquippableItem.generated.h"
 
+class UKRAbilitySet;
 class UInputMappingContext;
 class UKREquipmentDefinition;
 
@@ -36,6 +37,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	int32 InputPriority;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	TArray<TObjectPtr<const UKRAbilitySet>> AbilitySetsToGrant;
 	
 	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
 	{
