@@ -1,6 +1,7 @@
 #include "Weapons/KRWeaponInstance.h"
 
 #include "EnhancedInputSubsystems.h"
+#include "KRWeaponAttributeSet.h"
 #include "Equipment/KREquipmentDefinition.h"
 #include "Item/Weapons/KRWeaponBase.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -125,6 +126,7 @@ void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstanc
         CachedAttachTransform = EquipFragment->AttachTransform;
         CachedIMC = EquipFragment->WeaponIMC;
         CachedIMCPriority = EquipFragment->InputPriority;
+        CachedAbilitySets = EquipFragment->AbilitySetsToGrant;
 
         if (CachedWeaponActorClass)
         {
@@ -289,4 +291,34 @@ void UKRWeaponInstance::SetWeaponActiveState(bool bIsActive)
     {
         WeaponBase->SetWeaponVisibility(bIsActive);
     }
+}
+
+void UKRWeaponInstance::GrantWeaponAbilities(UKRAbilitySystemComponent* ASC)
+{
+    if (!ASC) return;
+
+    RemoveWeaponAbilities(ASC);
+
+    for (const UKRAbilitySet* AbilitySet : CachedAbilitySets)
+    {
+        if (AbilitySet)
+        {
+            AbilitySet->GiveToAbilitySystem(ASC, &GrantedHandles, this);
+        }
+    }
+
+    if (UKRWeaponAttributeSet* WeaponSet = const_cast<UKRWeaponAttributeSet*>(ASC->GetSet<UKRWeaponAttributeSet>()))
+    {
+        WeaponSet->SetWeaponAttackPower(AttackPower);
+        WeaponSet->SetCriticalChance(CritChance);
+        WeaponSet->SetCriticalMultiplier(CritMultiplier);
+        WeaponSet->SetAttackSpeed(AttackSpeed);
+    }
+    
+}
+
+void UKRWeaponInstance::RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC)
+{
+    if (!ASC) return;
+    GrantedHandles.TakeFromAbilitySystem(ASC);
 }

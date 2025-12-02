@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Equipment/KREquipmentInstance.h"
 #include "GameplayTagContainer.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
 #include "KRWeaponInstance.generated.h"
 
 class UInputMappingContext;
@@ -88,10 +89,19 @@ protected:
     UPROPERTY()
     int32 CachedIMCPriority;
 
+    UPROPERTY()
+    TArray<TObjectPtr<const UKRAbilitySet>> CachedAbilitySets;
+    
+    UPROPERTY()
+    FKRAbilitySet_GrantedHandles GrantedHandles;
+
 public:
     virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
     virtual void DestroyEquipmentActors() override;
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SetWeaponActiveState(bool bIsActive);
+
+    void GrantWeaponAbilities(UKRAbilitySystemComponent* ASC);
+    void RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC);
 };
