@@ -192,6 +192,8 @@ enum class EConfirmContext : uint8
 	ShopBuy     UMETA(DisplayName = "Shop|Buy"),
 	ShopSell    UMETA(DisplayName = "Shop|Sell"),
 	WeaponUpgrade   UMETA(DisplayName = "BlackSmith|WeaponUpgrade"),
+	QuickSlotAssign UMETA(DisplayName = "Inventory|QuickSlotAssign"),
+	InventoryItemUse UMETA(DisplayName = "Inventory|ItemUse")
 };
 
 USTRUCT(BlueprintType)
@@ -202,6 +204,7 @@ struct KORAPROJECT_API FKRUIMessage_Confirm
 	UPROPERTY(BlueprintReadOnly) EConfirmContext Context = EConfirmContext::Generic;
 	UPROPERTY(BlueprintReadOnly) EConfirmResult Result = EConfirmResult::None;
 	UPROPERTY(BlueprintReadOnly) FGameplayTag ItemTag; // ItemTag, WeaponTag, etc.
+	UPROPERTY(BlueprintReadOnly) FGameplayTag SlotTag; // Only for QuickSlot Assign
 	UPROPERTY(BlueprintReadOnly) int32 Quantity = 0; // Item Quantity
 };
 
