@@ -55,12 +55,18 @@ private:
 
 	UFUNCTION()
 	void OnLoopMontage();
+
+	UFUNCTION()
+	void OnPullMontageLoop();
 		
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> StartMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UAnimMontage> LoopMontage = nullptr;
+	TObjectPtr<UAnimMontage> LoopMoveMontage = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UAnimMontage> LoopPullMontage = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> TargettGrappleMontage = nullptr;
@@ -68,21 +74,15 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> LaunchMontage = nullptr;
 
-	// UPROPERTY(EditDefaultsOnly)
-	// TObjectPtr<UAnimMontage> CancleMontage = nullptr;
-\
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> LoopMontageTask=nullptr;
 	UPROPERTY()
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> EndMontageTask=nullptr;
-	UPROPERTY()
 	TObjectPtr<UAbilityTask_ApplyRootMotionMoveToForce> MoveToTask=nullptr;
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> EndMontageTask=nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UMaterial> DecalMaterial = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
-	FGameplayTag EnemyImmuneGrapple;
 
 	EGrappleState HitState = EGrappleState::Default;
 	
@@ -91,18 +91,6 @@ private:
 	FTimerHandle MaxGrappleTimer;
 		
 	// 에디터 설정
-	UPROPERTY(EditDefaultsOnly)
-	float StartLaunchSpeed = 1000.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float GrappleSpeed = 30000.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float StopGrappleDistance = 25000.f;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float EndDirectionZ = 1.f;
-	
 	UPROPERTY(EditDefaultsOnly)
 	float EndLaunchSpeed = 500.f;
 
@@ -120,6 +108,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly)
 	float StopNealyDistSquared = 200.f;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float DecalSize = 20.f;
 
 	//Cached
 	UPROPERTY()
