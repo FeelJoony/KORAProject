@@ -39,6 +39,7 @@ UKRInventoryItemDefinition* UKRWeaponDefinition::CreateInventoryItemDefinition(c
     EquipFragment->AttachTransform = AttachTransform;
     EquipFragment->WeaponIMC = WeaponIMC;
     EquipFragment->InputPriority = InputPriority;
+    EquipFragment->AbilitySetsToGrant = AbilitySets;
     ItemDef->AddFragment(EquipFragment->GetFragmentTag(), EquipFragment);
 
     // 2. 스탯 Fragment 설정
