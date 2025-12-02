@@ -36,6 +36,8 @@ private:
 	float BossAnimElapsed = 0.f;
 	FTimerHandle BossAnimTimerHandle;
 
+	bool bBossHPBarVisible = false;
+
 	void OnBossMessage(FGameplayTag ChannelTag, const FKRUIMessage_Progress& Message);
 	bool IsMessageFromBoss(const TWeakObjectPtr<AActor>& TargetActor) const;
 

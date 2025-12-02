@@ -11,11 +11,16 @@
 void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC)
 {
 	BossASCWeak = InASC;
+	// Boss Name will be updated based on Boss Entity data in the future
+	// Boss Name / Boss HPBar Visibility will be handled in Boss Encounter system
 }
 
 void UKRBossHealthWidget::OnHUDInitialized()
 {
 	Super::OnHUDInitialized();
+
+	SetVisibility(ESlateVisibility::Collapsed);
+	bBossHPBarVisible = false;
 
 	if (UWorld* World = GetWorld())
 	{
@@ -44,11 +49,19 @@ void UKRBossHealthWidget::UnbindAll()
 
 		World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
 	}
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UKRBossHealthWidget::OnBossMessage(FGameplayTag ChannelTag, const FKRUIMessage_Progress& Message)
 {
 	if (!IsMessageFromBoss(Message.TargetActor)) return;
+
+	if (!bBossHPBarVisible)
+	{
+		SetVisibility(ESlateVisibility::Visible);
+		bBossHPBarVisible = true;
+	}
+
 	if (Message.BarType != EProgressBarType::MainHP) return;
 
 	const float Percent = (Message.MaxValue > 0.f) ? (Message.NewValue / Message.MaxValue) : 0.f;
