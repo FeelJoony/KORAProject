@@ -9,6 +9,7 @@
 #include "Data/ItemDataStruct.h"
 #include "Data/TutorialDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
+#include "Data/ShopItemDataStruct.h"
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 {
@@ -249,6 +250,44 @@ void UTableRowConvertFunctionContainer::CreateTutorialData(class UDataTable* Out
                 else
                 {
                     OutDataTable->AddRow(RowName, TutorialData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateShopItemData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("ShopItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num() - 1; i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+				int32 ItemTag_Index = GetHeaderIndex(Headers, TEXT("ItemTag"));
+                int32 PoolTag_Index = GetHeaderIndex(Headers, TEXT("PoolTag"));
+                int32 StockBase_Index = GetHeaderIndex(Headers, TEXT("StockBase"));
+                int32 Weight_Index = GetHeaderIndex(Headers, TEXT("Weight"));
+
+                FShopItemDataStruct ShopItemData;
+
+                ShopItemData.Index = ParseIntValue(RowValue[Index_Index]);
+				ShopItemData.ItemTag = ParseGameplayTagValue(RowValue[ItemTag_Index]);
+                ShopItemData.PoolTag = ParseGameplayTagValue(RowValue[PoolTag_Index]);
+                ShopItemData.StockBase = ParseIntValue(RowValue[StockBase_Index]);
+                ShopItemData.Weight = ParseFloatValue(RowValue[Weight_Index]);
+
+                FName RowName = *FString::Printf(TEXT("ShopItem_%d"), i);
+                if (FShopItemDataStruct* FindRow = OutDataTable->FindRow<FShopItemDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = ShopItemData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, ShopItemData);
                 }
             }
         }));

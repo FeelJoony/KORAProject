@@ -1,2 +1,0 @@
-#include "Controllers/KRHeroController.h"
-

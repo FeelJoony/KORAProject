@@ -1,7 +1,7 @@
 #include "GAS/Abilities/KRGameplayAbility.h"
 
 #include "Characters/KRBaseCharacter.h"
-#include "Components/Combat/PawnCombatComponent.h"
+#include "Components/KRCombatComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Player/KRPlayerController.h"
 
@@ -38,9 +38,9 @@ AKRBaseCharacter* UKRGameplayAbility::GetKRCharacterFromActorInfo() const
 	return (CurrentActorInfo ? Cast<AKRBaseCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
-UPawnCombatComponent* UKRGameplayAbility::GetPawnCombatComponentFromActorInfo() const
+UKRCombatComponent* UKRGameplayAbility::GetCombatComponentFromActorInfo() const
 {
-	return GetAvatarActorFromActorInfo()->FindComponentByClass<UPawnCombatComponent>();
+	return GetAvatarActorFromActorInfo()->FindComponentByClass<UKRCombatComponent>();
 }
 
 void UKRGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,

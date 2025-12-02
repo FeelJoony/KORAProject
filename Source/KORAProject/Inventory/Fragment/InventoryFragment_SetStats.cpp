@@ -1,5 +1,14 @@
 #include "InventoryFragment_SetStats.h"
 
+FGameplayTag UInventoryFragment_SetStats::GetStaticFragmentTag()
+{
+	// 프로젝트 태그에 맞게 바꿔줘
+	static FGameplayTag Tag = FGameplayTag::RequestGameplayTag(
+		TEXT("Ability.Item.SetStat")
+	);
+	return Tag;
+}
+
 void UInventoryFragment_SetStats::OnInstanceCreated(class UKRInventoryItemInstance* Instance)
 {
 	
