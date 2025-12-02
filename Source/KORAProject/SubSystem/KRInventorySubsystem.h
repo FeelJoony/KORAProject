@@ -98,6 +98,8 @@ struct FKRInventoryList
 	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
 	TArray<class UKRInventoryItemInstance*> FindAllItemsByTag(FGameplayTag FilterTag) const;
 	void Clear();
+
+	void AddEntryDirect(UKRInventoryItemInstance* NewInstance);
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -222,6 +224,9 @@ public:
 	
 	template<typename T>
 	void ReceivedAddItemMessage(FGameplayTag Channel, const T& Message);
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	void AddItemInstance(UKRInventoryItemInstance* InInstance);
 	
 private:
 	UPROPERTY()
