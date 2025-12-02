@@ -18,6 +18,8 @@ void UKRQuestPanelWidget::OnHUDInitialized()
 			&ThisClass::OnQuestMessageReceived
 		);
 	}
+
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UKRQuestPanelWidget::NativeDestruct()
@@ -37,5 +39,6 @@ void UKRQuestPanelWidget::UnbindAll()
 
 void UKRQuestPanelWidget::OnQuestMessageReceived(FGameplayTag Channel, const FKRUIMessage_Quest& Message)
 {
+	SetVisibility(ESlateVisibility::Visible);
 	BP_OnUpdateQuestPanel(Message.QuestNameKey);
 }
