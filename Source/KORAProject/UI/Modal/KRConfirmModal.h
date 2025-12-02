@@ -27,6 +27,11 @@ public:
 		FGameplayTag InItemTag,
 		int32 InMin, int32 InMax, int32 InDefault);
 
+	UFUNCTION(BlueprintCallable)
+	void SetupConfirmWithQuickSlotTag(const FText& InMessage,
+		EConfirmContext InContext,
+		FGameplayTag InItemTag, FGameplayTag InSlotTag);
+
 protected:
 	UPROPERTY(meta = (BindWidget)) UCommonTextBlock* AlertText;
 	UPROPERTY(meta = (BindWidget)) UCommonButtonBase* YesButton;
@@ -43,6 +48,7 @@ protected:
 private:
 	EConfirmContext Context = EConfirmContext::Generic;
 	FGameplayTag ItemTag;
+	FGameplayTag QuickSlotTag;
 	int32 MinQuantity = 0;
 	int32 MaxQuantity = 0;
 	int32 CurrentQuantity = 0;

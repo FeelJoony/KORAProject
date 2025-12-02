@@ -14,6 +14,7 @@ void UKRConfirmModal::SetupConfirm(const FText& InMessage, EConfirmContext InCon
 
     Context = InContext;
     ItemTag = InItemTag;
+	QuickSlotTag = FGameplayTag();
     bUseQuantity = false;
     CurrentQuantity = 0;
 
@@ -32,6 +33,7 @@ void UKRConfirmModal::SetupConfirmWithQuantity(const FText& InMessage, EConfirmC
 
     Context = InContext;
     ItemTag = InItemTag;
+	QuickSlotTag = FGameplayTag();
     bUseQuantity = true;
 
     MinQuantity = InMin;
@@ -43,6 +45,25 @@ void UKRConfirmModal::SetupConfirmWithQuantity(const FText& InMessage, EConfirmC
         QuantityPanel->SetVisibility(ESlateVisibility::Visible);
     }
     RefreshQuantityUI();
+}
+
+void UKRConfirmModal::SetupConfirmWithQuickSlotTag(const FText& InMessage, EConfirmContext InContext, FGameplayTag InItemTag, FGameplayTag InSlotTag)
+{
+    if (AlertText)
+    {
+        AlertText->SetText(InMessage);
+    }
+
+	Context = InContext;
+	ItemTag = InItemTag;
+	QuickSlotTag = InSlotTag;
+	bUseQuantity = false;
+	CurrentQuantity = 0;
+
+	if (QuantityPanel)
+	{
+		QuantityPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UKRConfirmModal::NativeOnInitialized()
@@ -68,6 +89,7 @@ void UKRConfirmModal::HandleYes()
         Msg.Context = Context;
         Msg.Result = EConfirmResult::Yes;
         Msg.ItemTag = ItemTag;
+		Msg.SlotTag = QuickSlotTag;
         Msg.Quantity = bUseQuantity ? CurrentQuantity : 0;
 
         UGameplayMessageSubsystem::Get(World).BroadcastMessage(

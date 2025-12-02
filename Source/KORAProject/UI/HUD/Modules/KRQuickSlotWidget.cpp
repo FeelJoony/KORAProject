@@ -9,15 +9,18 @@ void UKRQuickSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (UWorld* World = GetWorld())
+	if (bListenGameplayMessages)
 	{
-		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+		if (UWorld* World = GetWorld())
+		{
+			UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
 
-		QuickSlotListener = Subsys.RegisterListener(
-			FKRUIMessageTags::QuickSlot(),
-			this,
-			&ThisClass::OnQuickSlotMessageReceived
-		);
+			QuickSlotListener = Subsys.RegisterListener(
+				FKRUIMessageTags::QuickSlot(),
+				this,
+				&ThisClass::OnQuickSlotMessageReceived
+			);
+		}
 	}
 
 	ClearSlot(FKRUIMessageTags::QuickSlot_North());
@@ -25,20 +28,32 @@ void UKRQuickSlotWidget::NativeConstruct()
 	ClearSlot(FKRUIMessageTags::QuickSlot_South());
 	ClearSlot(FKRUIMessageTags::QuickSlot_West());
 
-	// Initialize Quickslot 
-
-	HighlightSlot(CurrentSelectedSlot);
+	RefreshFromInventory();
+	HighlightSlot(FKRUIMessageTags::QuickSlot_North());
 }
 
 void UKRQuickSlotWidget::NativeDestruct()
 {
-	if (UWorld* World = GetWorld())
+	if (bListenGameplayMessages)
 	{
-		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
-		Subsys.UnregisterListener(QuickSlotListener);
+		if (UWorld* World = GetWorld())
+		{
+			UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+			Subsys.UnregisterListener(QuickSlotListener);
+		}
 	}
 
 	Super::NativeDestruct();
+}
+
+void UKRQuickSlotWidget::RefreshFromInventory()
+{
+	// Initialize QuickSlot 
+}
+
+void UKRQuickSlotWidget::NotifySlotHovered(FGameplayTag SlotDir)
+{
+	OnSlotHovered.Broadcast(SlotDir);
 }
 
 void UKRQuickSlotWidget::OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message)
@@ -150,4 +165,3 @@ void UKRQuickSlotWidget::UpdateSlotQuantity(FGameplayTag Direction, int32 NewQua
 		}
 	}
 }
-

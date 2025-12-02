@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CommonButtonBase.h"
+#include "GameplayTagContainer.h"
 #include "KRQuickSlotButtonBase.generated.h"
 
 
@@ -12,6 +13,9 @@ class KORAPROJECT_API UKRQuickSlotButtonBase : public UCommonButtonBase
 	GENERATED_BODY()
 
 public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuickSlot") FGameplayTag SlotDirection;
+    virtual void NativeOnHovered() override;
+
     UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot")
     void BP_SetSlotData(int32 Quantity, const TSoftObjectPtr<UTexture2D>& Icon);
 

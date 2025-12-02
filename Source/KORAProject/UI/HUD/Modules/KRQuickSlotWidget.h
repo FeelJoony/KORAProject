@@ -18,6 +18,15 @@ public:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
+	void RefreshFromInventory();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuickSlot") // true for HUD, false for Quickslot
+	bool bListenGameplayMessages = true;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKRQuickSlotHovered, FGameplayTag, SlotDirection);
+	UPROPERTY(BlueprintAssignable, Category = "QuickSlot") FKRQuickSlotHovered OnSlotHovered;
+	void NotifySlotHovered(FGameplayTag SlotDir);
+
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);
 
