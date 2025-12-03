@@ -10,6 +10,7 @@
 #include "Data/TutorialDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
 #include "Data/ShopItemDataStruct.h"
+#include "Data/EquipmentDataStruct.h"
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 {
@@ -288,6 +289,65 @@ void UTableRowConvertFunctionContainer::CreateShopItemData(class UDataTable* Out
                 else
                 {
                     OutDataTable->AddRow(RowName, ShopItemData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateEquipmentData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("EquipmentData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 ItemTag_Index = GetHeaderIndex(Headers, TEXT("ItemTag"));
+                int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
+                int32 EquipmentMesh_Index = GetHeaderIndex(Headers, TEXT("EquipmentMesh"));
+                int32 OverrideMaterials_Index = GetHeaderIndex(Headers, TEXT("OverrideMaterials"));
+                int32 Icon_Index = GetHeaderIndex(Headers, TEXT("Icon"));
+                int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("CompatibleModuleSlots"));
+                int32 DefaultModuleTags_Index = GetHeaderIndex(Headers, TEXT("DefaultModuleTags"));
+
+                FEquipmentDataStruct EquipmentData;
+
+                EquipmentData.ItemTag = ParseGameplayTagValue(RowValue[ItemTag_Index]);
+                EquipmentData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
+                EquipmentData.EquipmentMesh = ParseSoftObjectValue<UStreamableRenderAsset>(RowValue[EquipmentMesh_Index]);
+                EquipmentData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
+                
+                TArray<FString> MaterialPaths = ParseArrayValue(RowValue[OverrideMaterials_Index]);
+                for (const FString& PathString : MaterialPaths)
+                {
+                    EquipmentData.OverrideMaterials.Add(ParseSoftObjectValue<UMaterialInterface>(PathString));
+                }
+
+                TArray<FString> CompatibleSlotsStr = ParseArrayValue(RowValue[CompatibleModuleSlots_Index]);
+                for (const FString& SlotTagStr : CompatibleSlotsStr)
+                {
+                    FGameplayTag SlotTag = FGameplayTag::RequestGameplayTag(FName(*SlotTagStr));
+                    EquipmentData.CompatibleModuleSlots.AddTag(SlotTag);
+                }
+                
+                TArray<FString> DefaultModulesStr = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
+                for (const FString& ModuleTagStr : DefaultModulesStr)
+                {
+                    FGameplayTag ModuleTag = FGameplayTag::RequestGameplayTag(FName(*ModuleTagStr));
+                    EquipmentData.DefaultModuleTags.Add(ModuleTag);
+                }
+                
+                FName RowName = *FString::Printf(TEXT("Equipment_%d"), i);
+                if (FEquipmentDataStruct* FindRow = OutDataTable->FindRow<FEquipmentDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = EquipmentData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, EquipmentData);
                 }
             }
         }));

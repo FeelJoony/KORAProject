@@ -2,11 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "GameplayTagContainer.h"
 #include "KREquipmentInstance.generated.h"
 
 class APawn;
 class AActor;
 struct FKREquipmentActorToSpawn;
+struct FEquipmentDataStruct;
 
 /**
  * Equipment Instance Base
@@ -34,6 +36,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = Equipment)
 	APawn* GetTypedPawn(TSubclassOf<APawn> PawnType) const;
 
+	virtual void InitializeFromData(const FEquipmentDataStruct& InData);
+
 	UFUNCTION()
 	virtual void InitializeStats(const UInventoryFragment_SetStats* Stats) {}
 
@@ -58,4 +62,11 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> SpawnedActors;
+
+	//--------Config--------
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config")
+	FGameplayTag ItemTag;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config")
+	FGameplayTagContainer CompatibleModuleSlots;
 };

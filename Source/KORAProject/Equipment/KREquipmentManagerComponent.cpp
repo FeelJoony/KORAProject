@@ -9,6 +9,9 @@
 #include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "Data/EquipmentDataStruct.h"
+#include "Kismet/GameplayStatics.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
@@ -152,7 +155,7 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInvent
     // Equippable Fragment 가져오기
     const UInventoryFragment_EquippableItem* EquipFragment =
         ItemDef->FindFragmentByTag<UInventoryFragment_EquippableItem>(
-            FGameplayTag::RequestGameplayTag("Ability.Item.Equippable"));
+            FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"));
 
     if (!EquipFragment || !EquipFragment->EquipmentDefinition)
     {
@@ -193,6 +196,31 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInvent
         NewInstance->InitializeStats(StatsFragment);
     }
 
+	// DataTablesSubsystem을 통해 DT 데이터 주입
+	if (UGameInstance* GameInst = UGameplayStatics::GetGameInstance(this))
+	{
+		if (UKRDataTablesSubsystem* DataSubsystem = GameInst->GetSubsystem<UKRDataTablesSubsystem>())
+		{
+			FGameplayTag SearchTag = ItemInstance->GetItemTag(); 
+
+			if (SearchTag.IsValid())
+			{
+				if (const FEquipmentDataStruct* EquipData = DataSubsystem->GetData<FEquipmentDataStruct>(EGameDataType::EquipmentData, SearchTag))
+				{
+					NewInstance->InitializeFromData(*EquipData);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[Equipment] Data not found in DT for Tag: %s"), *SearchTag.ToString());
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[Equipment] InventoryItem has No Tag!"));
+			}
+		}
+	}
+	
     // 강화 Fragment 적용
     const UInventoryFragment_EnhanceableItem* EnhanceFragment =
         ItemDef->FindFragmentByTag<UInventoryFragment_EnhanceableItem>(
@@ -244,9 +272,18 @@ void UKREquipmentManagerComponent::UnequipItem(UKREquipmentInstance* InItemInsta
 	{
 		return;
 	}
+	
+	// const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
+	// const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
 
+	// 디버깅을 위해 잠시 Definition이 있을 때만 CDO를 가져오도록 변경
 	const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
-	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
+	const UKREquipmentDefinition* EquipmentCDO = nullptr;
+
+	if (EquipmentDefClass)
+	{
+		EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
+	}
 	
 	InItemInstance->OnUnequipped();
 	
@@ -324,4 +361,39 @@ TArray<UKREquipmentInstance*> UKREquipmentManagerComponent::GetEquipmentInstance
 		}
 	}
 	return Results;
+}
+
+// --------Debug--------
+
+void UKREquipmentManagerComponent::Debug_TestEquip(FGameplayTag InItemTag)
+{
+	if (!InItemTag.IsValid()) return;
+	
+	UKREquipmentInstance* NewInstance = NewObject<UKREquipmentInstance>(GetOwner(), UKREquipmentInstance::StaticClass());
+	
+	UGameInstance* GameInst = UGameplayStatics::GetGameInstance(this);
+	UKRDataTablesSubsystem* DataSubsystem = GameInst ? GameInst->GetSubsystem<UKRDataTablesSubsystem>() : nullptr;
+
+	if (DataSubsystem)
+	{
+		const FEquipmentDataStruct* EquipmentData = DataSubsystem->GetData<FEquipmentDataStruct>(EGameDataType::EquipmentData, InItemTag);
+
+		if (EquipmentData)
+		{
+			NewInstance->InitializeFromData(*EquipmentData);
+			
+			TArray<FKREquipmentActorToSpawn> DummySpawnInfo; 
+			NewInstance->OnEquipped(DummySpawnInfo); 
+			
+			FKRAppliedEquipmentEntry& Entry = EquipmentList.Entries.AddDefaulted_GetRef();
+			Entry.EquipmentDefinition = nullptr;
+			Entry.Instance = NewInstance;
+
+			UE_LOG(LogTemp, Log, TEXT("[Debug] SUCCESS: Data Loaded & Equipped for Tag: %s"), *InItemTag.ToString());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[Debug] FAIL: Data Not Found for Tag: %s"), *InItemTag.ToString());
+		}
+	}
 }

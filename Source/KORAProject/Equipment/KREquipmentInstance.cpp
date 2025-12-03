@@ -5,6 +5,7 @@
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "GameplayTagContainer.h"
+#include "Data/EquipmentDataStruct.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentInstance)
 
@@ -42,6 +43,13 @@ APawn* UKREquipmentInstance::GetTypedPawn(TSubclassOf<APawn> PawnType) const
 	}
 	return Result;
 }
+
+void UKREquipmentInstance::InitializeFromData(const FEquipmentDataStruct& InData)
+{
+	ItemTag = InData.ItemTag;
+	CompatibleModuleSlots = InData.CompatibleModuleSlots;
+}
+
 
 void UKREquipmentInstance::SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
 {
