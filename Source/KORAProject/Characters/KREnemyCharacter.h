@@ -47,6 +47,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
 	TObjectPtr<UAnimMontage> StunMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
+	TObjectPtr<UAnimMontage> HitMontage;
+
 private:
 	UFUNCTION()
 	void ResigsterTagEvent();
