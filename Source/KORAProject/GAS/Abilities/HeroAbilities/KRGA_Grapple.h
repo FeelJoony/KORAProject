@@ -46,19 +46,19 @@ private:
 	UFUNCTION()
 	void LineTrace();
 
-	void TargetMoveToPlayer();
-	
-	void CancelGrapple();
-	
-	UFUNCTION()
-	void OnAbilityEnd();
-
 	UFUNCTION()
 	void OnLoopMontage();
 
 	UFUNCTION()
 	void OnPullMontageLoop();
+	
+	UFUNCTION()
+	void OnAbilityEnd();
 		
+	void TargetMoveToPlayer();
+	
+	void CancelGrapple();
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> StartMontage = nullptr;
 
