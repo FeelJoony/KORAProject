@@ -2,6 +2,7 @@
 
 
 #include "UI/Modal/KRConfirmModal.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
 #include "CommonTextBlock.h"
 #include "CommonButtonBase.h"
 
@@ -98,12 +99,24 @@ void UKRConfirmModal::HandleYes()
         );
     }
 
-    DeactivateWidget();
+    if (UGameInstance* GI = GetGameInstance())
+    {
+        if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+        {
+            Router->ToggleRoute(TEXT("Confirm"));
+        }
+    }
 }
 
 void UKRConfirmModal::HandleNo()
 {
-    DeactivateWidget();
+    if (UGameInstance* GI = GetGameInstance())
+    {
+        if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+        {
+            Router->ToggleRoute(TEXT("Confirm"));
+        }
+    }
 }
 
 void UKRConfirmModal::HandleIncrease()
