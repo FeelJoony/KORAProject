@@ -122,7 +122,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UCapsuleComponent> TargetCapsuleComp=nullptr;
 
-	uint8 bControllerRotationYaw = false;
+	// uint8 bControllerRotationYaw = false;
 	
-	uint8 bRotationToMovement = true;
+	// uint8 bRotationToMovement = true;
 };
