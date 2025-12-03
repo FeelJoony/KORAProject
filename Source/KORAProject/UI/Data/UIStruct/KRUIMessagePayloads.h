@@ -11,7 +11,6 @@
 struct KORAPROJECT_API FKRUIMessageTags
 {
 	static const FGameplayTag ProgressBar() { return KRTAG_UI_MESSAGE_PROGRESSBAR; }
-	static const FGameplayTag GreyHP() { return KRTAG_UI_MESSAGE_GREYHP; }
 	static const FGameplayTag ItemLog() { return KRTAG_UI_MESSAGE_ITEMLOG; }
 	static const FGameplayTag Weapon() { return KRTAG_UI_MESSAGE_WEAPON; }
 	static const FGameplayTag QuickSlot() { return KRTAG_UI_MESSAGE_QUICKSLOT; }
@@ -50,23 +49,14 @@ struct KORAPROJECT_API FKRUIMessage_Progress
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly) EProgressBarType BarType = EProgressBarType::MainHP;
-	UPROPERTY(BlueprintReadOnly) EProgressUpdateMode UpdateMode = EProgressUpdateMode::Animated;
+	UPROPERTY(BlueprintReadWrite) EProgressBarType BarType = EProgressBarType::MainHP;
+	UPROPERTY(BlueprintReadWrite) EProgressUpdateMode UpdateMode = EProgressUpdateMode::Animated;
 
-	UPROPERTY(BlueprintReadOnly) float NewValue = 0.f;
-	UPROPERTY(BlueprintReadOnly) float MaxValue = 100.f;
-	UPROPERTY(BlueprintReadOnly) float Delta = 0.f; // + Recovery, - Damage
+	UPROPERTY(BlueprintReadWrite) float NewValue = 0.f;
+	UPROPERTY(BlueprintReadWrite) float MaxValue = 100.f;
+	UPROPERTY(BlueprintReadWrite) float Delta = 0.f; // + Recovery, - Damage (For GreyHP Only)
 
-	UPROPERTY(BlueprintReadOnly) TWeakObjectPtr<AActor> TargetActor;
-};
-
-USTRUCT(BlueprintType)
-struct KORAPROJECT_API FKRUIMessage_GreyHP
-{
-	GENERATED_BODY()
-	UPROPERTY(BlueprintReadOnly) bool bRecovered = false;
-
-	UPROPERTY(BlueprintReadOnly) float RecoveredAmount = 0.f;
+	UPROPERTY(BlueprintReadWrite) TWeakObjectPtr<AActor> TargetActor;
 };
 
 // -----  Weapon  -----
@@ -85,11 +75,11 @@ struct KORAPROJECT_API FKRUIMessage_Weapon
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly) EWeaponMessageAction Action = EWeaponMessageAction::Equipped;
-	UPROPERTY(BlueprintReadOnly) FGameplayTag WeaponTypeTag;
+	UPROPERTY(BlueprintReadWrite) EWeaponMessageAction Action = EWeaponMessageAction::Equipped;
+	UPROPERTY(BlueprintReadWrite) FGameplayTag WeaponTypeTag;
 
-	UPROPERTY(BlueprintReadOnly) int32 CurrentAmmo = 0;
-	UPROPERTY(BlueprintReadOnly) int32 MaxAmmo = 0;
+	UPROPERTY(BlueprintReadWrite) int32 CurrentAmmo = 0;
+	UPROPERTY(BlueprintReadWrite) int32 MaxAmmo = 0;
 };
 
 // -----  Item Log -----
