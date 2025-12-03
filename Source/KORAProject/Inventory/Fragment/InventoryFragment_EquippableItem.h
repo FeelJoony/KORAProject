@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "GameplayTagContainer.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
 #include "InventoryFragment_EquippableItem.generated.h"
 
 class UInputMappingContext;
@@ -36,6 +37,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	int32 InputPriority;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	TArray<FKRAbilitySet_GameplayAbility> GrantedAbilities;
 	
 	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
 	{
