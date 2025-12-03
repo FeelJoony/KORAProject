@@ -1,11 +1,9 @@
 #include "Weapons/KRWeaponInstance.h"
-
 #include "EnhancedInputSubsystems.h"
 #include "KRWeaponAttributeSet.h"
 #include "Equipment/KREquipmentDefinition.h"
 #include "Item/Weapons/KRWeaponBase.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "GameFramework/Character.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
@@ -14,6 +12,8 @@
 #include "Data/CacheDataTable.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Characters/KRHeroCharacter.h"
+#include "Player/KRPlayerController.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 
 UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -109,38 +109,14 @@ void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstanc
 
     if (const UInventoryFragment_EquippableItem* EquipFragment = Cast<UInventoryFragment_EquippableItem>(ItemDef->FindFragmentByTag(FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"))))
     {
-        if (EquipFragment->EquippableAnimLayer)
-        {
-            if (APawn* MyPawn = GetPawn())
-            {
-                if (ACharacter* MyChar = Cast<ACharacter>(MyPawn))
-                {
-                    MyChar->GetMesh()->LinkAnimClassLayers(EquipFragment->EquippableAnimLayer);
-                }
-            }
-        }
-
+        CachedAnimLayer = EquipFragment->EquippableAnimLayer;
         CachedWeaponActorClass = EquipFragment->WeaponActorToSpawn;
         CachedAttachSocket = EquipFragment->AttachSocketName;
         CachedAttachTransform = EquipFragment->AttachTransform;
         CachedIMC = EquipFragment->WeaponIMC;
         CachedIMCPriority = EquipFragment->InputPriority;
-        CachedAbilitySets = EquipFragment->AbilitySetsToGrant;
-
-        if (CachedWeaponActorClass)
-        {
-            UE_LOG(LogTemp, Warning, TEXT(">> Weapon Instance Initialized! ActorClass: %s"), *GetNameSafe(CachedWeaponActorClass));
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT(">> CachedWeaponActorClass is NULL! Fragment data is empty?"));
-        }
+        CachedAbilities = EquipFragment->GrantedAbilities;
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("[EquipTest] 3. Instance could not find Fragment!"));
-    }
-    
 }
 
 void UKRWeaponInstance::InitializeStats(const UInventoryFragment_SetStats* StatsFragment)
@@ -215,7 +191,7 @@ void UKRWeaponInstance::ApplyEnhanceLevel(int32 EnhanceLevel)
 void UKRWeaponInstance::SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
 {
     Super::SpawnEquipmentActors(ActorsToSpawn);
-    UE_LOG(LogTemp, Warning, TEXT(">> SpawnEquipmentActors Called. CachedClass: %s"), *GetNameSafe(CachedWeaponActorClass));
+    
     if (CachedWeaponActorClass)
     {
         AActor* OwnerActor = GetPawn();
@@ -239,8 +215,6 @@ void UKRWeaponInstance::SpawnEquipmentActors(const TArray<FKREquipmentActorToSpa
 
             if (NewActor)
             {
-                UE_LOG(LogTemp, Warning, TEXT(">> Actor Spawned SUCCESS: %s"), *GetNameSafe(NewActor));
-                
                 NewActor->FinishSpawning(FTransform::Identity, true);
                 
                 if (ACharacter* Char = Cast<ACharacter>(OwnerActor))
@@ -266,10 +240,6 @@ void UKRWeaponInstance::SpawnEquipmentActors(const TArray<FKREquipmentActorToSpa
                 SpawnedWeaponActor = NewActor;
                 SpawnedActors.Add(NewActor);
             }
-            else
-            {
-                UE_LOG(LogTemp, Error, TEXT(">> Actor Spawn FAILED! Check Collision or World context."));
-            }
         }
     }
 }
@@ -292,28 +262,69 @@ void UKRWeaponInstance::SetWeaponActiveState(bool bIsActive)
     }
 }
 
+void UKRWeaponInstance::ApplyWeaponAnimLayer(AKRBaseCharacter* TargetCharacter)
+{
+    if (TargetCharacter && CachedAnimLayer)
+    {
+        TargetCharacter->GetMesh()->LinkAnimClassLayers(CachedAnimLayer);
+    }
+}
+
+void UKRWeaponInstance::RemoveWeaponAnimLayer(AKRBaseCharacter* TargetCharacter)
+{
+    if (TargetCharacter && CachedAnimLayer)
+    {
+        TargetCharacter->GetMesh()->UnlinkAnimClassLayers(CachedAnimLayer);
+    }
+}
+
+void UKRWeaponInstance::AddWeaponInputContext(AKRPlayerController* TargetPC)
+{
+    if (!TargetPC || !CachedIMC) return;
+
+    if (const ULocalPlayer* LocalPlayer = TargetPC->GetLocalPlayer())
+    {
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            Subsystem->RemoveMappingContext(CachedIMC);
+            Subsystem->AddMappingContext(CachedIMC, CachedIMCPriority);
+        }
+    }
+}
+
+void UKRWeaponInstance::RemoveWeaponInputContext(AKRPlayerController* TargetPC)
+{
+    if (!TargetPC || !CachedIMC) return;
+
+    if (const ULocalPlayer* LocalPlayer = TargetPC->GetLocalPlayer())
+    {
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            Subsystem->RemoveMappingContext(CachedIMC);
+        }
+    }
+}
+
 void UKRWeaponInstance::GrantWeaponAbilities(UKRAbilitySystemComponent* ASC)
 {
     if (!ASC) return;
 
     RemoveWeaponAbilities(ASC);
 
-    for (const UKRAbilitySet* AbilitySet : CachedAbilitySets)
+    for (const FKRAbilitySet_GameplayAbility& AbilityInfo : CachedAbilities)
     {
-        if (AbilitySet)
-        {
-            AbilitySet->GiveToAbilitySystem(ASC, &GrantedHandles, this);
-        }
-    }
+        if (!AbilityInfo.Ability) continue;
 
-    if (UKRWeaponAttributeSet* WeaponSet = const_cast<UKRWeaponAttributeSet*>(ASC->GetSet<UKRWeaponAttributeSet>()))
-    {
-        WeaponSet->SetWeaponAttackPower(AttackPower);
-        WeaponSet->SetCriticalChance(CritChance);
-        WeaponSet->SetCriticalMultiplier(CritMultiplier);
-        WeaponSet->SetAttackSpeed(AttackSpeed);
+        FGameplayAbilitySpec Spec(AbilityInfo.Ability, AbilityInfo.AbilityLevel, -1, this);
+
+        if (AbilityInfo.InputTag.IsValid())
+        {
+            Spec.GetDynamicSpecSourceTags().AddTag(AbilityInfo.InputTag);
+        }
+
+        FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
+        GrantedHandles.AddAbilitySpecHandle(Handle);
     }
-    
 }
 
 void UKRWeaponInstance::RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC)

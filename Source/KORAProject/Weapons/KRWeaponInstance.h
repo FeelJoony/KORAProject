@@ -10,6 +10,8 @@ class UInputMappingContext;
 class UInventoryFragment_SetStats;
 class UInventoryFragment_EnhanceableItem;
 class UKRInventoryItemInstance;
+class AKRBaseCharacter;
+class AKRPlayerController;
 
 UCLASS(Blueprintable, BlueprintType)
 class KORAPROJECT_API UKRWeaponInstance : public UKREquipmentInstance
@@ -84,13 +86,16 @@ protected:
     TObjectPtr<AActor> SpawnedWeaponActor;
 
     UPROPERTY()
+    TSubclassOf<UAnimInstance> CachedAnimLayer;
+    
+    UPROPERTY()
     TObjectPtr<UInputMappingContext> CachedIMC;
 
     UPROPERTY()
     int32 CachedIMCPriority;
 
     UPROPERTY()
-    TArray<TObjectPtr<const UKRAbilitySet>> CachedAbilitySets;
+    TArray<FKRAbilitySet_GameplayAbility> CachedAbilities;
     
     UPROPERTY()
     FKRAbilitySet_GrantedHandles GrantedHandles;
@@ -102,6 +107,18 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SetWeaponActiveState(bool bIsActive);
 
+    UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
+    void ApplyWeaponAnimLayer(AKRBaseCharacter* TargetCharacter);
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
+    void RemoveWeaponAnimLayer(AKRBaseCharacter* TargetCharacter);
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
+    void AddWeaponInputContext(AKRPlayerController* TargetPC);
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
+    void RemoveWeaponInputContext(AKRPlayerController* TargetPC);
+    
     void GrantWeaponAbilities(UKRAbilitySystemComponent* ASC);
     void RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC);
 };
