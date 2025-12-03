@@ -11,13 +11,22 @@ void UKRGA_EnemySlash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Error, TEXT("!Commit"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
 
-	AKRHumanEnemyCharacter* Enemy = Cast<AKRHumanEnemyCharacter>(ActorInfo->AvatarActor);
+	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
+	if (!Character)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
+	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Enemy))
 	{
+		UE_LOG(LogTemp, Error, TEXT("Enemy None"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
