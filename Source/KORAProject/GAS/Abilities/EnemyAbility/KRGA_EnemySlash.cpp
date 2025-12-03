@@ -1,5 +1,7 @@
 #include "GAS/Abilities/EnemyAbility/KRGA_EnemySlash.h"
 #include "Enemy/KRHumanEnemyCharacter.h"
+#include "GameplayTag/KREnemyTag.h"
+#include "GAS/KRAbilitySystemComponent.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 
@@ -52,6 +54,15 @@ void UKRGA_EnemySlash::EndAbility(const FGameplayAbilitySpecHandle Handle,
 									bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
+	if (!IsValid(Enemy)) return;
+
+	UKRAbilitySystemComponent* EnemyASC = Enemy->GetEnemyAbilitySystemCompoent();
+	if (EnemyASC && EnemyASC->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_HITREACTION))
+	{
+		EnemyASC->RemoveLooseGameplayTag(KRTAG_ENEMY_ACTION_SLASH);
+	}
 }
 
 void UKRGA_EnemySlash::ActivateSlash()
