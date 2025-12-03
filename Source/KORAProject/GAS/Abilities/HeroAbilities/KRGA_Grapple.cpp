@@ -205,6 +205,7 @@ void UKRGA_Grapple::LineTrace()
 							TargetCapsuleComp = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
 							if (TargetCapsuleComp)
 							{
+								GrapPoint=TargetCapsuleComp->GetComponentLocation();
 								ApplyCableLocation();
 							}
 							
@@ -233,6 +234,8 @@ void UKRGA_Grapple::LineTrace()
 		}
 	}
 	HitState = EGrappleState::Default;
+	
+	GrapPoint=EndLocation;
 	ApplyCableLocation();
 }
 
@@ -276,17 +279,13 @@ void UKRGA_Grapple::OnAbilityEnd()
 
 void UKRGA_Grapple::TargetMoveToPlayer()
 {
-	UCapsuleComponent* TargetCapsule = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
-	if (!TargetCapsule)
+	if (!TargetCapsuleComp)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Target CapsuleComponent Is Null"))
 		return;
 	}
-	FVector TargetLocation = TargetCapsule->GetComponentLocation();
-	
+	GrapPoint = TargetCapsuleComp->GetComponentLocation();
 	ApplyCableLocation();
-	
-	TargetLocation.Z-=TargetCapsule->GetScaledCapsuleHalfHeight();
 	
 	UCapsuleComponent* PlayerCapsule = CachedPlayerCharacter->GetCapsuleComponent();
 	if (!PlayerCapsule)
@@ -297,14 +296,14 @@ void UKRGA_Grapple::TargetMoveToPlayer()
 	FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
 	PlayerLocation.Z-=PlayerCapsule->GetScaledCapsuleHalfHeight();
 
-	FVector MoveDirection = (PlayerLocation - TargetLocation).GetSafeNormal();
+	FVector MoveDirection = (PlayerLocation - GrapPoint).GetSafeNormal();
 	FVector MoveOffset = (GetWorld()->GetDeltaSeconds())*MoveDirection*TargetMoveSpeed;
 	CachedTargetPawn->AddActorWorldOffset(MoveOffset,true);
 
-	FVector LookDirection = (TargetLocation - PlayerLocation).GetSafeNormal();
+	FVector LookDirection = (GrapPoint - PlayerLocation).GetSafeNormal();
 	CachedPlayerCharacter->SetActorRotation(FRotator(0.2f,LookDirection.Rotation().Yaw,0.f));
 
-	if (FVector::DistSquared(PlayerLocation,TargetLocation) < StopNealyDistSquared)
+	if (FVector::DistSquared(PlayerLocation,GrapPoint) < StopNealyDistSquared)
 	{
 		CancelGrapple();
 	}
