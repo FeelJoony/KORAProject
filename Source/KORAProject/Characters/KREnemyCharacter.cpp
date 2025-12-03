@@ -4,7 +4,11 @@
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameplayTag/KREnemyTag.h"
+#include "GameplayTag/KRStateTag.h"
 
+#include "AIController.h"
+#include "Components/StateTreeComponent.h"
 #include "KORADebugHelper.h"
 
 AKREnemyCharacter::AKREnemyCharacter(const FObjectInitializer& ObjectInitializer)
@@ -49,6 +53,10 @@ void AKREnemyCharacter::BeginPlay()
 
 		PawnExtensionComponent->InitializeAbilitySystem(EnemyASC, this);
 	}
+
+	EnemyASC->AddLooseGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE);
+
+	ResigsterTagEvent();
 }
 
 void AKREnemyCharacter::PossessedBy(AController* NewController)
@@ -59,4 +67,44 @@ void AKREnemyCharacter::PossessedBy(AController* NewController)
 	{
 		PawnExtensionComponent->HandleControllerChanged();
 	}
+}
+
+UStateTreeComponent* AKREnemyCharacter::GetStateTreeComponent() const
+{
+	AAIController* AIC = Cast<AAIController>(GetController());
+	if (!IsValid(AIC)) return nullptr;
+
+	return AIC->FindComponentByClass<UStateTreeComponent>();
+}
+
+void AKREnemyCharacter::ResigsterTagEvent()
+{
+	StateTags.Add(KRTAG_STATE_HASCC_STUN);
+
+	for (const FGameplayTag& Tag : StateTags)
+	{
+		EnemyASC->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AKREnemyCharacter::HandleTagEvent);
+	}
+}
+
+void AKREnemyCharacter::HandleTagEvent(FGameplayTag Tag, int32 Count)
+{
+	if (!StateTags.Contains(Tag)) return;
+
+	if (EnemyASC->HasMatchingGameplayTag(Tag) && Count > 0)
+	{
+		SetEnemyState(Tag);
+	}
+}
+
+void AKREnemyCharacter::SetEnemyState(FGameplayTag StateTag)
+{
+	UStateTreeComponent* EnemyST = GetStateTreeComponent();
+	if (!EnemyST) return;
+
+	FStateTreeEvent Event;
+	Event.Tag = StateTag;
+
+	EnemyST->SendStateTreeEvent(Event);
 }
