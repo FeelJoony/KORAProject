@@ -26,9 +26,6 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		OnAbilityEnd();
 	}
 	
-	bControllerRotationYaw = CachedPlayerCharacter->bUseControllerRotationYaw;
-	bRotationToMovement = CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement;
-
 	AController* PlayerController = CachedPlayerCharacter->GetController();
 	if (!PlayerController) return;
 
@@ -173,7 +170,8 @@ void UKRGA_Grapple::LineTrace()
 	UCameraComponent* Cam = CachedPlayerCharacter->GetComponentByClass<UCameraComponent>();
 	if (!Cam) return;
 
-	FVector StartLocation = CachedPlayerCharacter->GetPawnViewLocation();
+	//FVector StartLocation = CachedPlayerCharacter->GetPawnViewLocation();
+	FVector StartLocation=PlayerController->GetTargetLocation();
 	FRotator StartRotation = PlayerController->GetControlRotation();
 	FVector EndLocation = StartLocation+(StartRotation.Vector()*TraceRange);
 
@@ -271,8 +269,8 @@ void UKRGA_Grapple::OnPullMontageLoop()
 
 void UKRGA_Grapple::OnAbilityEnd()
 {
-	CachedPlayerCharacter->bUseControllerRotationYaw = bControllerRotationYaw;
-	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = bRotationToMovement;
+	CachedPlayerCharacter->bUseControllerRotationYaw = false;
+	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
 	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo,CurrentActivationInfo,true,false);
 }
@@ -283,7 +281,7 @@ void UKRGA_Grapple::TargetMoveToPlayer()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Target CapsuleComponent Is Null"))
 		return;
-	}
+	} 
 	GrapPoint = TargetCapsuleComp->GetComponentLocation();
 	ApplyCableLocation();
 	

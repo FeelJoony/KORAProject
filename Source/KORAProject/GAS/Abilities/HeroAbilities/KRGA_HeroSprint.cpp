@@ -21,6 +21,7 @@ void UKRGA_HeroSprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
+	bSprintStarted=false;
 	StartSprintTask = UAbilityTask_WaitDelay::WaitDelay(this, SprintChargeTime);
 	StartSprintTask->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnSprint);
 	StartSprintTask->ReadyForActivation();
