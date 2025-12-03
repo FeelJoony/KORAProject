@@ -13,7 +13,6 @@
 #include "GameplayTag/KRStateTag.h"
 #include "Kismet/GameplayStatics.h"
 
-
 //CharacterMovement->AirControl = 0.35f;
 
 void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -133,6 +132,34 @@ void UKRGA_Grapple::StartMove()
 	}
 }
 
+void UKRGA_Grapple::StopPlayerMove()
+{
+	if (IsValid(MoveToTask))
+	{
+		MoveToTask->EndTask();
+	}
+	if (IsValid(LoopMontageTask))
+	{
+		LoopMontageTask->EndTask();
+	}
+
+	CachedPlayerCharacter->bUseControllerRotationYaw = true;
+	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	if (EndMontageTask==nullptr)
+	{
+		CachedPlayerCharacter->LaunchCharacter(FVector(0.f,0.f,1.f)*EndLaunchSpeed, true,  true);
+		EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+			this,TEXT("EndMontageTask"),LaunchMontage
+		);
+		EndMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+		EndMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+		EndMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+		EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
+		EndMontageTask->ReadyForActivation();
+	}
+}
+
 void UKRGA_Grapple::LineTrace()
 {
 	if (!CachedPlayerCharacter) return;
@@ -209,75 +236,6 @@ void UKRGA_Grapple::LineTrace()
 	ApplyCableLocation();
 }
 
-void UKRGA_Grapple::TargetMoveToPlayer()
-{	
-	UCapsuleComponent* TargetCapsule = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
-	if (!TargetCapsule)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Target CapsuleComponent Is Null"))
-		return;
-	}
-	FVector TargetLocation = TargetCapsule->GetComponentLocation();
-	
-	ApplyCableLocation();
-	
-	TargetLocation.Z-=TargetCapsule->GetScaledCapsuleHalfHeight();
-	
-	UCapsuleComponent* PlayerCapsule = CachedPlayerCharacter->GetCapsuleComponent();
-	if (!PlayerCapsule)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Player CapsuleComponent Is Null"));
-		return;
-	}
-	FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
-	PlayerLocation.Z-=PlayerCapsule->GetScaledCapsuleHalfHeight();
-
-	FVector MoveDirection = (PlayerLocation - TargetLocation).GetSafeNormal();
-	FVector MoveOffset = (GetWorld()->GetDeltaSeconds())*MoveDirection*TargetMoveSpeed;
-	CachedTargetPawn->AddActorWorldOffset(MoveOffset,true);
-
-	if (FVector::DistSquared(PlayerLocation,TargetLocation) < StopNealyDistSquared)
-	{
-		CancelGrapple();
-	}
-}
-
-void UKRGA_Grapple::StopPlayerMove()
-{
-	if (IsValid(MoveToTask))
-	{
-		MoveToTask->EndTask();
-	}
-	if (IsValid(LoopMontageTask))
-	{
-		LoopMontageTask->EndTask();
-	}
-
-	CachedPlayerCharacter->bUseControllerRotationYaw = true;
-	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-
-	if (EndMontageTask==nullptr)
-	{
-		CachedPlayerCharacter->LaunchCharacter(FVector(0.f,0.f,1.f)*EndLaunchSpeed, true,  true);
-		EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-			this,TEXT("EndMontageTask"),LaunchMontage
-		);
-		EndMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->ReadyForActivation();
-	}
-}
-
-void UKRGA_Grapple::OnAbilityEnd()
-{
-	CachedPlayerCharacter->bUseControllerRotationYaw = bControllerRotationYaw;
-	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = bRotationToMovement;
-	
-	EndAbility(CurrentSpecHandle, CurrentActorInfo,CurrentActivationInfo,true,false);
-}
-
 void UKRGA_Grapple::OnLoopMontage()
 {
 	if (!LoopMontageTask)
@@ -305,6 +263,50 @@ void UKRGA_Grapple::OnPullMontageLoop()
 		LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
 		LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
 		LoopMontageTask->ReadyForActivation();
+	}
+}
+
+void UKRGA_Grapple::OnAbilityEnd()
+{
+	CachedPlayerCharacter->bUseControllerRotationYaw = bControllerRotationYaw;
+	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = bRotationToMovement;
+	
+	EndAbility(CurrentSpecHandle, CurrentActorInfo,CurrentActivationInfo,true,false);
+}
+
+void UKRGA_Grapple::TargetMoveToPlayer()
+{
+	UCapsuleComponent* TargetCapsule = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
+	if (!TargetCapsule)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Target CapsuleComponent Is Null"))
+		return;
+	}
+	FVector TargetLocation = TargetCapsule->GetComponentLocation();
+	
+	ApplyCableLocation();
+	
+	TargetLocation.Z-=TargetCapsule->GetScaledCapsuleHalfHeight();
+	
+	UCapsuleComponent* PlayerCapsule = CachedPlayerCharacter->GetCapsuleComponent();
+	if (!PlayerCapsule)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Player CapsuleComponent Is Null"));
+		return;
+	}
+	FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
+	PlayerLocation.Z-=PlayerCapsule->GetScaledCapsuleHalfHeight();
+
+	FVector MoveDirection = (PlayerLocation - TargetLocation).GetSafeNormal();
+	FVector MoveOffset = (GetWorld()->GetDeltaSeconds())*MoveDirection*TargetMoveSpeed;
+	CachedTargetPawn->AddActorWorldOffset(MoveOffset,true);
+
+	FVector LookDirection = (TargetLocation - PlayerLocation).GetSafeNormal();
+	CachedPlayerCharacter->SetActorRotation(FRotator(0.2f,LookDirection.Rotation().Yaw,0.f));
+
+	if (FVector::DistSquared(PlayerLocation,TargetLocation) < StopNealyDistSquared)
+	{
+		CancelGrapple();
 	}
 }
 
