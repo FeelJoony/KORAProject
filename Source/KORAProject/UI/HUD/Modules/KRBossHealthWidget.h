@@ -3,12 +3,13 @@
 #pragma once
 
 #include "UI/HUD/KRHUDWidgetBase.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
-#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRBossHealthWidget.generated.h"
 
 class UProgressBar;
+class UCommonTextBlock;
 class UAbilitySystemComponent;
+struct FOnAttributeChangeData;
+class UKRCombatCommonSet;
 
 UCLASS()
 class KORAPROJECT_API UKRBossHealthWidget : public UKRHUDWidgetBase
@@ -16,19 +17,22 @@ class KORAPROJECT_API UKRBossHealthWidget : public UKRHUDWidgetBase
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable) void SetBossASC(UAbilitySystemComponent* InASC);
+	UFUNCTION(BlueprintCallable) void SetBossASC(UAbilitySystemComponent* InASC, const FName& InBossNameKey);
 
 	virtual void OnHUDInitialized() override;
 	virtual void NativeDestruct() override;
 
 protected:
+	UPROPERTY(meta = (BindWidget)) UCommonTextBlock* BossName = nullptr;
 	UPROPERTY(meta = (BindWidget)) UProgressBar* BossHP = nullptr;
 
 	virtual void UnbindAll() override;
 
 private:
-	TWeakObjectPtr<UAbilitySystemComponent> BossASCWeak;
-	FGameplayMessageListenerHandle BossListenerHandle;
+	TWeakObjectPtr<UAbilitySystemComponent>      BossASCWeak;
+	TWeakObjectPtr<const UKRCombatCommonSet>     BossCombatAttr;
+
+	FDelegateHandle BossHealthChangedHandle;
 
 	float BossDisplayPercent = 1.f;
 	float BossTargetPercent = 1.f;
@@ -38,8 +42,10 @@ private:
 
 	bool bBossHPBarVisible = false;
 
-	void OnBossMessage(FGameplayTag ChannelTag, const FKRUIMessage_Progress& Message);
-	bool IsMessageFromBoss(const TWeakObjectPtr<AActor>& TargetActor) const;
+	void BindToBossASC(UAbilitySystemComponent* InASC);
+	void InitBossBarFromASC();
+
+	void OnBossHealthAttributeChanged(const FOnAttributeChangeData& Data);
 
 	void StartBossAnim();
 	void TickBossAnim();

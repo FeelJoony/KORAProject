@@ -2,36 +2,41 @@
 
 
 #include "UI/HUD/Modules/KRBossHealthWidget.h"
-
+#include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "Components/ProgressBar.h"
+#include "CommonTextBlock.h"
 #include "AbilitySystemComponent.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC)
+void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC, const FName& InBossNameKey)
 {
-	BossASCWeak = InASC;
-	// Boss Name will be updated based on Boss Entity data in the future
-	// Boss Name / Boss HPBar Visibility will be handled in Boss Encounter system
+	UnbindAll();
+
+	if (!InASC) return;
+
+	BindToBossASC(InASC);
+	InitBossBarFromASC();
+
+	static const FName TableId = FName("/Game/UI/StringTable/ST_EnemyNames");
+
+	if (BossName)
+	{
+		FText BossDisplayName = FText::FromStringTable(TableId, InBossNameKey.ToString());
+		BossName->SetText(BossDisplayName);
+	}
 }
 
 void UKRBossHealthWidget::OnHUDInitialized()
 {
 	Super::OnHUDInitialized();
 
-	SetVisibility(ESlateVisibility::Collapsed);
-	bBossHPBarVisible = false;
-
-	if (UWorld* World = GetWorld())
+	if (BossHP)
 	{
-		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
-
-		BossListenerHandle = Subsys.RegisterListener(
-			FKRUIMessageTags::ProgressBar(),
-			this,
-			&ThisClass::OnBossMessage
-		);
+		BossHP->SetPercent(1.f);
+		BossHP->SetVisibility(ESlateVisibility::Hidden);
 	}
+	bBossHPBarVisible = false;
 }
 
 void UKRBossHealthWidget::NativeDestruct()
@@ -44,39 +49,89 @@ void UKRBossHealthWidget::UnbindAll()
 {
 	if (UWorld* World = GetWorld())
 	{
-		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
-		Subsys.UnregisterListener(BossListenerHandle);
-
 		World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
 	}
-	SetVisibility(ESlateVisibility::Collapsed);
+
+	if (BossASCWeak.IsValid() && BossHealthChangedHandle.IsValid())
+	{
+		BossASCWeak->GetGameplayAttributeValueChangeDelegate(
+			UKRCombatCommonSet::GetCurrentHealthAttribute()
+		).Remove(BossHealthChangedHandle);
+
+		BossHealthChangedHandle.Reset();
+	}
+
+	BossASCWeak.Reset();
+	BossCombatAttr.Reset();
 }
 
-void UKRBossHealthWidget::OnBossMessage(FGameplayTag ChannelTag, const FKRUIMessage_Progress& Message)
+
+
+void UKRBossHealthWidget::BindToBossASC(UAbilitySystemComponent* InASC)
 {
-	if (!IsMessageFromBoss(Message.TargetActor)) return;
+	if (!InASC) return;
+
+	BossASCWeak = InASC;
+
+	if (const UKRCombatCommonSet* Combat = InASC->GetSet<UKRCombatCommonSet>())
+	{
+		BossCombatAttr = Combat;
+
+		BossHealthChangedHandle =
+			InASC->GetGameplayAttributeValueChangeDelegate(
+				UKRCombatCommonSet::GetCurrentHealthAttribute()
+			).AddUObject(this, &ThisClass::OnBossHealthAttributeChanged);
+	}
+}
+
+void UKRBossHealthWidget::InitBossBarFromASC()
+{
+	if (!BossCombatAttr.IsValid() || !BossHP) return;
+
+	const float MaxHP = BossCombatAttr->GetMaxHealth();
+	const float CurHP = BossCombatAttr->GetCurrentHealth();
+
+	const float HPPercent = (MaxHP > 0.f)
+		? FMath::Clamp(CurHP / MaxHP, 0.f, 1.f)
+		: 0.f;
+
+	BossHP->SetPercent(HPPercent);
+	BossDisplayPercent = BossTargetPercent = HPPercent;
 
 	if (!bBossHPBarVisible)
 	{
-		SetVisibility(ESlateVisibility::Visible);
+		BossHP->SetVisibility(ESlateVisibility::Visible);
 		bBossHPBarVisible = true;
 	}
-
-	if (Message.BarType != EProgressBarType::MainHP) return;
-
-	const float Percent = (Message.MaxValue > 0.f) ? (Message.NewValue / Message.MaxValue) : 0.f;
-
-	BossTargetPercent = Percent;
-	StartBossAnim();
 }
 
-bool UKRBossHealthWidget::IsMessageFromBoss(const TWeakObjectPtr<AActor>& TargetActor) const
+void UKRBossHealthWidget::OnBossHealthAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	if (!TargetActor.IsValid()) return false;
-	if (!BossASCWeak.IsValid()) return false;
+	if (!BossCombatAttr.IsValid() || !BossHP) return;
 
-	const AActor* BossOwner = BossASCWeak->GetOwner();
-	return BossOwner && TargetActor.Get() == BossOwner;
+	const float MaxHP = BossCombatAttr->GetMaxHealth();
+	if (MaxHP <= 0.f) return;
+
+	const float OldHP = Data.OldValue;
+	const float NewHP = Data.NewValue;
+
+	const float OldPercent = FMath::Clamp(OldHP / MaxHP, 0.f, 1.f);
+	const float NewPercent = FMath::Clamp(NewHP / MaxHP, 0.f, 1.f);
+	const float Delta = NewPercent - OldPercent;
+
+	if (Delta < 0.f)
+	{
+		BossAnimTime = 0.2f;
+	}
+	else
+	{
+		BossAnimTime = 0.3f;
+	}
+
+	BossDisplayPercent = BossHP->GetPercent();
+	BossTargetPercent = NewPercent;
+
+	StartBossAnim();
 }
 
 void UKRBossHealthWidget::StartBossAnim()
@@ -87,7 +142,6 @@ void UKRBossHealthWidget::StartBossAnim()
 	{
 		World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
 
-		BossDisplayPercent = BossHP->Percent;
 		BossAnimElapsed = 0.f;
 
 		World->GetTimerManager().SetTimer(
@@ -102,20 +156,14 @@ void UKRBossHealthWidget::StartBossAnim()
 
 void UKRBossHealthWidget::TickBossAnim()
 {
-	if (!BossHP)
-	{
-		if (UWorld* World = GetWorld())
-		{
-			World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
-		}
-		return;
-	}
+	if (!BossHP) return;
 
 	if (UWorld* World = GetWorld())
 	{
 		BossAnimElapsed += World->GetDeltaSeconds();
-
-		const float Alpha = (BossAnimTime > 0.f) ? FMath::Clamp(BossAnimElapsed / BossAnimTime, 0.f, 1.f) : 1.f;
+		const float Alpha = (BossAnimTime > 0.f)
+			? FMath::Clamp(BossAnimElapsed / BossAnimTime, 0.f, 1.f)
+			: 1.f;
 
 		const float NewPercent = FMath::Lerp(BossDisplayPercent, BossTargetPercent, Alpha);
 		BossHP->SetPercent(NewPercent);
