@@ -2,27 +2,20 @@
 
 #include "CoreMinimal.h"
 #include "StateTreeTaskBase.h"
-#include "GameplayTagContainer.h"
 #include "QuestStateTreeTask_SubQuest.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogQuestStateTreeTask_SubQuest, Log, All);
 
-/**
- * SubQuest Task Instance Data
- * - SubQuestTag로 SubQuest를 식별 (DataTable의 SubQuestTypeTag와 매칭)
- * - Schema의 Context에서 QuestComponent 자동 주입
- */
 USTRUCT(BlueprintType)
 struct KORAPROJECT_API FQuestStateTreeTask_SubQuestInstanceData
 {
 	GENERATED_BODY()
 
-	// SubQuest를 식별하는 GameplayTag (예: Quest.Type.Kill.Enemy)
-	UPROPERTY(EditAnywhere, Category = Parameter, meta = (Categories = "Quest.Type"))
-	FGameplayTag SubQuestTag;
-
-	UPROPERTY(EditAnywhere, Category = Parameter)
-	int32 Order;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Context)
+	TObjectPtr<AActor> Actor;	
+	
+	UPROPERTY(EditAnywhere, Category = Input)
+	int32 Order = 0;
 
 	// 내부 상태
 	UPROPERTY()
@@ -35,7 +28,11 @@ struct KORAPROJECT_API FQuestStateTreeTask_SubQuestInstanceData
  * - Evaluator에 SubQuest 등록 및 활성화
  * - 완료 조건 체크하여 State 전환
  */
-USTRUCT(meta = (DisplayName = "SubQuest Task"))
+USTRUCT(meta = (
+	DisplayName = "SubQuest Task",
+	category = "KRQuest"
+	)
+)
 struct KORAPROJECT_API FQuestStateTreeTask_SubQuest : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -50,19 +47,19 @@ struct KORAPROJECT_API FQuestStateTreeTask_SubQuest : public FStateTreeTaskCommo
 
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, float DeltaTime) const override;
 
-	virtual void StateCompleted(FStateTreeExecutionContext& Context, const EStateTreeRunStatus CompletionStatus, const FStateTreeActiveStates& CompletedActiveStates) const override;
-
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
-	virtual bool Link(FStateTreeLinker& Linker) override;
+#if WITH_EDITOR
 
-protected:
-	// External Data Handles - Link()에서 자동 연결됨
-	TStateTreeExternalDataHandle<struct FQuestStateTreeEvaluator_SubQuestProgressInstanceData> ProgressEvaluatorHandle;
-
-	// Progress Evaluator Instance Data 가져오기
-	struct FQuestStateTreeEvaluator_SubQuestProgressInstanceData* GetEvaluatorInstanceData(FStateTreeExecutionContext& Context) const;
-
+	virtual FName GetIconName() const override { return FName("GenericPlay"); }
+	virtual FColor GetIconColor() const override { return FColor::Green; }
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const override
+	{
+		return NSLOCTEXT("QuestStateTreeTask_SubQuest", "Enter SubQuest", "Enter SubQuest");
+	}
+	
+#endif
+	
 private:
 	UPROPERTY()
 	mutable FString DebugFailReason;

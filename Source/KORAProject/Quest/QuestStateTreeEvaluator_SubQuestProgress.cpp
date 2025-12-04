@@ -1,129 +1,56 @@
 ﻿#include "QuestStateTreeEvaluator_SubQuestProgress.h"
-#include "Subsystem/KRDataTablesSubsystem.h"
-#include "KRQuestComponent.h"
+#include "KRQuestActor.h"
 #include "KRQuestInstance.h"
 #include "StateTreeExecutionContext.h"
-#include "StateTreeLinker.h"
 
-void FQuestStateTreeEvaluator_SubQuestProgressInstanceData::Register(UKRQuestComponent* Component)
+DEFINE_LOG_CATEGORY(LogQuestStateTreeEvaluator_SubQuestProgress);
+
+void UQuestStateTreeEvaluator_SubQuestProgress::TreeStart(FStateTreeExecutionContext& Context)
 {
-	this->QuestComponent = Component;
-
-	UKRQuestInstance* QuestInstance = Component->GetActiveQuest();
-	const FSubQuestDataStruct& SubQuestData = QuestInstance->GetSubQuestData();
-
-	for (const FSubQuestEvalDataStruct& EvalDataStruct : SubQuestData.EvalDatas)
-	{
-		if (!SubQuestProgressMap.Contains(EvalDataStruct.OrderIndex))
-		{
-			FSubQuestEvalData EvalData;
-			EvalData.Init(SubQuestData, EvalDataStruct.OrderIndex);
-			
-			SubQuestProgressMap.Add(EvalDataStruct.OrderIndex, EvalData);
-		}
-	}
-}
-
-void FQuestStateTreeEvaluator_SubQuestProgressInstanceData::NotifyProgress(FGameplayTag TargetTag, int32 Count)
-{
-	if (FSubQuestEvalData* EvalData = SubQuestProgressMap.Find(CurrentOrder))
-	{
-		if (EvalData->EvalData.ObjectiveTag != TargetTag)
-		{
-			return;
-		}
-
-		if (EvalData->IsCompleted())
-		{
-			return;
-		}
-
-		EvalData->AddProgress(Count);
-	}
-}
-
-void FQuestStateTreeEvaluator_SubQuestProgressInstanceData::SetSubQuestActive(int32 SubQuestDataKey, bool bActive)
-{
-	SubQuestProgressMap[SubQuestDataKey].bIsActive = bActive;
-}
-
-bool FQuestStateTreeEvaluator_SubQuestProgressInstanceData::IsAllSubQuestsCompleted() const
-{
-	for (const auto& [Order, EvalData] : SubQuestProgressMap)
-	{
-		if (!EvalData.IsCompleted())
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void FQuestStateTreeEvaluator_SubQuestProgressInstanceData::AddEvalData(const FSubQuestDataStruct& SubQuestData, int32 Order)
-{
-	FSubQuestEvalData EvalData;
-	EvalData.Init(SubQuestData, Order);
-			
-	SubQuestProgressMap.Add(Order, EvalData);
-}
-
-const FSubQuestEvalData* FQuestStateTreeEvaluator_SubQuestProgressInstanceData::GetEvalData(int32 Order) const
-{
-	return SubQuestProgressMap.Find(Order) == nullptr ? nullptr : &SubQuestProgressMap[Order];
-}
-
-void UGameplayMessageFunction::RegisterAll(UKRQuestComponent* QuestComponent)
-{
-	UKRQuestInstance* QuestInstance = QuestComponent->GetActiveQuest();
-	const FSubQuestDataStruct& SubQuestData = QuestInstance->GetSubQuestData();
+	Super::TreeStart(Context);
 	
-	for (const FSubQuestEvalDataStruct& EvalDataStruct : SubQuestData.EvalDatas)
+	UE_LOG(LogQuestStateTreeEvaluator_SubQuestProgress, Warning, TEXT("========================================"));
+	UE_LOG(LogQuestStateTreeEvaluator_SubQuestProgress, Warning, TEXT("[QuestEvaluator] TreeStart called!"));
+	UE_LOG(LogQuestStateTreeEvaluator_SubQuestProgress, Warning, TEXT("========================================"));
+
+	// Context Owner 확인
+	UObject* ContextOwner = Context.GetOwner();
+	UE_LOG(LogQuestStateTreeEvaluator_SubQuestProgress, Log, TEXT("[QuestEvaluator] Context Owner: %s (Class: %s)"),
+		ContextOwner ? *ContextOwner->GetName() : TEXT("NULL"),
+		ContextOwner ? *ContextOwner->GetClass()->GetName() : TEXT("NULL"));
+
+	AKRQuestActor* QuestActor = CastChecked<AKRQuestActor>(Actor);
+	UKRQuestInstance* QuestInstance = QuestActor->GetQuestInstance();
+	if (QuestInstance)
 	{
-		QuestStateMessageDatas.Add(FQuestStateMessageHandleData(UGameplayMessageSubsystem::Get(this).RegisterListener(
-		EvalDataStruct.ObjectiveTag,
-		this,
-		&ThisClass::ReceiveQuestMessageCallback)));
-	}
-}
-
-void UGameplayMessageFunction::UnregisterAll()
-{
-	for (const FQuestStateMessageHandleData& QuestStateMessageHandleData : QuestStateMessageDatas)
-	{
-		UGameplayMessageSubsystem::Get(this).UnregisterListener(QuestStateMessageHandleData.MessageHandle);
-	}
-}
-
-void UGameplayMessageFunction::ReceiveQuestMessageCallback(FGameplayTag ObjectiveTag, const FQuestGameplayMessage& Message)
-{
-	InstanceData->NotifyProgress(ObjectiveTag, Message.QuestCount);
-}
-
-void FQuestStateTreeEvaluator_SubQuestProgress::TreeStart(FStateTreeExecutionContext& Context) const
-{
-	FInstanceData& InstanceData = Context.GetInstanceData<FInstanceData>(*this);
-	
-	UKRQuestComponent* QuestComponent = Cast<AActor>(Context.GetOwner())->GetComponentByClass<UKRQuestComponent>();
-	InstanceData.Register(QuestComponent);
-	MessageFunction->RegisterAll(QuestComponent);
-}
-
-void FQuestStateTreeEvaluator_SubQuestProgress::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
-{
-	FStateTreeEvaluatorCommonBase::Tick(Context, DeltaTime);
-}
-
-void FQuestStateTreeEvaluator_SubQuestProgress::TreeStop(FStateTreeExecutionContext& Context) const
-{
-	FInstanceData& InstanceData = Context.GetInstanceData<FInstanceData>(*this);
-	UKRQuestComponent* QuestComponent = Cast<AActor>(Context.GetOwner())->GetComponentByClass<UKRQuestComponent>();
-	UKRQuestInstance* QuestInstance = QuestComponent->GetActiveQuest();
-
-	if (InstanceData.IsAllSubQuestsCompleted())
-	{
-		QuestInstance->CompleteQuest();
+		QuestInstance->StartQuest();
 	}
 	
-	MessageFunction->UnregisterAll();
+	Reset();	
+}
+
+void UQuestStateTreeEvaluator_SubQuestProgress::Tick(FStateTreeExecutionContext& Context, const float DeltaTime)
+{
+	Super::Tick(Context, DeltaTime);
+
+	AKRQuestActor* QuestActor = CastChecked<AKRQuestActor>(Actor);
+	UKRQuestInstance* QuestInstance = QuestActor->GetQuestInstance();
+	if (QuestInstance)
+	{
+		CurrentOrder = QuestInstance->GetSubQuestEvalData().EvalData.OrderIndex;
+		
+		QuestInstance->TickQuest(DeltaTime);
+	}
+}
+
+void UQuestStateTreeEvaluator_SubQuestProgress::TreeStop(FStateTreeExecutionContext& Context)
+{
+	Reset();
+
+	Super::TreeStop(Context);
+}
+
+void UQuestStateTreeEvaluator_SubQuestProgress::Reset()
+{
+	CurrentOrder = 0;
 }

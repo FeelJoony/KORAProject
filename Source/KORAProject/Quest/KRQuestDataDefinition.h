@@ -13,5 +13,5 @@ public:
 	UKRQuestDataDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	UPROPERTY(EditDefaultsOnly, Category = QuestData)
-	TObjectPtr<class UStateTree> QuestStateTree;
+	TSubclassOf<class AKRQuestActor> QuestActor;
 };

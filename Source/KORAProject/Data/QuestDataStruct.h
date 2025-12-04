@@ -14,7 +14,7 @@ public:
 		: Index(0)
 		, QuestName(TEXT_NULL)
 		, Description(TEXT_NULL)
-		, StateTreeDefinitionName(TEXT_NULL)
+		, StateTreeDefinitionPath(TEXT_NULL)
 	{
 	}
 
@@ -28,7 +28,7 @@ public:
 	FString Description;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Quest)
-	FName StateTreeDefinitionName;
+	FName StateTreeDefinitionPath;
 
 	virtual uint32 GetKey() const override
 	{

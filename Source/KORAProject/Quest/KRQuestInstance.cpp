@@ -1,12 +1,5 @@
 #include "Quest/KRQuestInstance.h"
-
-#include "KRQuestDataDefinition.h"
-#include "StateTreeSchema.h"
-#include "Components/StateTreeComponent.h"
-#include "GameFramework/PlayerState.h"
 #include "Subsystem/KRDataTablesSubsystem.h"
-#include "System/KRAssetManager.h"
-#include "StateTree.h"
 
 DEFINE_LOG_CATEGORY(LogQuestInstance);
 
@@ -15,82 +8,44 @@ UKRQuestInstance::UKRQuestInstance()
 {
 }
 
-void UKRQuestInstance::Initialize(int32 QuestIndex, APlayerState* InOwningPlayer)
+void UKRQuestInstance::Initialize(int32 QuestIndex)
 {
-	if (!StateTreeComponent)
-	{
-		UStateTreeComponent* NewStateTreeComp = InOwningPlayer->GetComponentByClass<UStateTreeComponent>();
-		check(NewStateTreeComp);
-
-		StateTreeComponent = NewStateTreeComp;
-	}
-	
 	UKRDataTablesSubsystem* DataTableSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
-	QuestData = *DataTableSubsystem->GetData<FQuestDataStruct>(EGameDataType::QuestData, QuestIndex);
-	SubQuestData = *DataTableSubsystem->GetData<FSubQuestDataStruct>(EGameDataType::SubQuestData, QuestIndex);
-	CurrentSubOrder = SubQuestData.EvalDatas[0].OrderIndex;
-	OwningPlayer = InOwningPlayer;
+	CurrentQuestData = *DataTableSubsystem->GetData<FQuestDataStruct>(EGameDataType::QuestData, QuestIndex);
+	CurrentSubQuestData = *DataTableSubsystem->GetData<FSubQuestDataStruct>(EGameDataType::SubQuestData, QuestIndex);
+	CurrentSubOrder = CurrentSubQuestData.EvalDatas[0].OrderIndex;
 	CurrentState = EQuestState::NotStarted;
-	
-	FPrimaryAssetId PrimaryAssetId;
-	if (!PrimaryAssetId.IsValid())
+
+	for (const FSubQuestEvalDataStruct& EvalDataStruct : CurrentSubQuestData.EvalDatas)
 	{
-		PrimaryAssetId = FPrimaryAssetId(FPrimaryAssetType("KRQuestStateTreeSchemaData"), QuestData.StateTreeDefinitionName);
-
-		SetStateTreeAsset(PrimaryAssetId);
+		if (SubQuestProgressMap.Contains(EvalDataStruct.OrderIndex))
+		{
+			continue;
+		}
+		
+		FSubQuestEvalData EvalData;
+		EvalData.Init(CurrentSubQuestData, EvalDataStruct.OrderIndex);
+		SubQuestProgressMap.Add(EvalDataStruct.OrderIndex, EvalData);
 	}
-
-	if (StateTreeAsset)
-	{
-		StateTreeComponent->SetStateTree(StateTreeAsset);
-	}
-}
-
-void UKRQuestInstance::SetStateTreeAsset(FPrimaryAssetId PrimaryAssetId)
-{
-	if (!PrimaryAssetId.IsValid())
-	{
-		return;
-	}
-
-	UKRAssetManager& AssetManager = UKRAssetManager::Get();
-
-	TSubclassOf<UKRQuestDataDefinition> AssetClass;
-	{
-		FSoftObjectPath AssetPath = AssetManager.GetPrimaryAssetPath(PrimaryAssetId);
-		AssetClass = Cast<UClass>(AssetPath.TryLoad());
-	}
-
-	UKRQuestDataDefinition* QuestDataDefinition = AssetClass->GetDefaultObject<UKRQuestDataDefinition>();
-	check(QuestDataDefinition);
-	check(QuestDataDefinition->QuestStateTree)
-
-	StateTreeAsset = QuestDataDefinition->QuestStateTree;
-
-	check(StateTreeComponent);
-
-	StateTreeComponent->SetStateTree(StateTreeAsset);
 }
 
 void UKRQuestInstance::StartQuest()
 {
+	UE_LOG(LogQuestInstance, Log, TEXT("StartQuest called - Current State: %d"), (int32)CurrentState);
+
 	if (CurrentState != EQuestState::NotStarted)
 	{
+		UE_LOG(LogQuestInstance, Warning, TEXT("Quest already started or completed. Current State: %d"), (int32)CurrentState);
 		return;
 	}
 
 	CurrentState = EQuestState::InProgress;
 
-	if (StateTreeComponent)
-	{
-		//StateTreeComponent->RegisterComponent();
-		//StateTreeComponent->Activate();
+	FSubQuestEvalData* EvalData = SubQuestProgressMap.Find(CurrentSubOrder);
+	EvalData->Start();
+	
+	UE_LOG(LogQuestInstance, Log, TEXT("Quest state changed to InProgress"));
 
-		StateTreeComponent->Activate();
-		StateTreeComponent->StartLogic();
-	}
-
-	//UE_LOG(LogQuestInstance, Log, TEXT("Quest %s started"), *QuestTag.ToString());
 }
 
 void UKRQuestInstance::TickQuest(float DeltaTime)
@@ -109,14 +64,6 @@ void UKRQuestInstance::CompleteQuest()
 	}
 
 	CurrentState = EQuestState::Completed;
-
-	if (StateTreeComponent)
-	{
-		StateTreeComponent->StopLogic(TEXT("Success Quest"));
-		StateTreeComponent->Deactivate();
-	}
-
-	//UE_LOG(LogQuestInstance, Log, TEXT("Quest %s completed"), *QuestTag.ToString());
 }
 
 void UKRQuestInstance::FailQuest()
@@ -127,12 +74,48 @@ void UKRQuestInstance::FailQuest()
 	}
 
 	CurrentState = EQuestState::Failed;
+}
 
-	if (StateTreeComponent)
+void UKRQuestInstance::AddCount(int32 Amount)
+{
+	if (CurrentState != EQuestState::InProgress)
 	{
-		StateTreeComponent->Deactivate();
+		return;
+	}
+	
+	if (FSubQuestEvalData* EvalData = SubQuestProgressMap.Find(CurrentSubOrder))
+	{
+		if (EvalData->GetState() != EQuestState::InProgress || EvalData->IsCompleted())
+		{
+			return;
+		}
+		
+		EvalData->AddProgress(Amount);
+	}
+}
+
+void UKRQuestInstance::SetNextQuest()
+{
+	if (CurrentState != EQuestState::InProgress)
+	{
+		return;
 	}
 
-	//UE_LOG(LogQuestInstance, Log, TEXT("Quest %s failed"), *QuestTag.ToString())
+	if (FSubQuestEvalData* EvalData = SubQuestProgressMap.Find(CurrentSubOrder))
+	{
+		if (EvalData->IsCompleted())
+		{
+			EvalData->bIsActive = false;
+			
+			FSubQuestEvalData* NextEvalData = SubQuestProgressMap.Find(++CurrentSubOrder);
+			if (CurrentSubOrder >= CurrentSubQuestData.EvalDatas.Num())
+			{
+				CompleteQuest();
+			}
+			
+			NextEvalData->Start();
+			NextEvalData->bIsActive = true;
+		}
+	}
 }
 

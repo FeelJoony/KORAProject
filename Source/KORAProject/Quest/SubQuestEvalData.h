@@ -1,9 +1,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Data/SubQuestDataStruct.h"
 #include "SubQuestEvalData.generated.h"
+
+UENUM(BlueprintType)
+enum class EQuestState : uint8
+{
+	NotStarted			UMETA(DisplayName = "Not Started"),
+	InProgress			UMETA(DisplayName = "In Progress"),
+	Completed			UMETA(DisplayName = "Completed"),
+	Failed				UMETA(DisplayName = "Failed")
+};
 
 USTRUCT(BlueprintType)
 struct KORAPROJECT_API FSubQuestEvalData
@@ -12,6 +20,11 @@ struct KORAPROJECT_API FSubQuestEvalData
 	
 public:
 	FSubQuestEvalData()
+		: CurrentProgress(0)
+		, ElapsedTime(0.f)
+		, bIsActive(false)
+		, bFailQuestOnFailure(false)
+		, CurrentState(EQuestState::NotStarted)
 	{
 	}
 	
@@ -29,15 +42,24 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = SubQuest)
 	bool bFailQuestOnFailure;
-
+	
+	UPROPERTY(BlueprintReadOnly, Category = SubQuest)
+	EQuestState CurrentState;
+	
 	void Init(const FSubQuestDataStruct& SubQuestData, int32 Order);
 	void AddProgress(int32 Amount = 1);
 	void SubtractProgress(int32 Amount = 1);
 	float GetProgressRatio() const;
 	float GetRemainingTime() const;
 
+	void Start();
+	void Complete();
+	void Fail();
+
 	FORCEINLINE bool IsActive() const { return bIsActive; }
-	FORCEINLINE bool IsCompleted() const { return bIsActive && CurrentProgress >= EvalData.RequiredCount; }
+	FORCEINLINE bool IsCompleted() const { return bIsActive && CurrentState == EQuestState::Completed; }
 
 	FORCEINLINE bool IsExistLimitTime() const { return EvalData.TimeLimit > 0.f; }
+
+	FORCEINLINE EQuestState GetState() const { return CurrentState; }
 };

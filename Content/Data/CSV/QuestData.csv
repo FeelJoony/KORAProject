@@ -1,2 +1,2 @@
-Index,QuestName,Description,StateTreeDefinitionAssetName
-1,Name_1,3,DA_TutorialQuestData
+Index,QuestName,Description,StateTreeDefinitionAssetPath
+1,Name_1,3,BP_TutorialQuestDataDefinition
