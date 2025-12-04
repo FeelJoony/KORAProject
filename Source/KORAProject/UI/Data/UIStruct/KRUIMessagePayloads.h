@@ -10,7 +10,7 @@
 
 struct KORAPROJECT_API FKRUIMessageTags
 {
-	static const FGameplayTag ProgressBar() { return KRTAG_UI_MESSAGE_PROGRESSBAR; }
+	static const FGameplayTag Guard() { return KRTAG_UI_MESSAGE_GUARD; }
 	static const FGameplayTag ItemLog() { return KRTAG_UI_MESSAGE_ITEMLOG; }
 	static const FGameplayTag Weapon() { return KRTAG_UI_MESSAGE_WEAPON; }
 	static const FGameplayTag QuickSlot() { return KRTAG_UI_MESSAGE_QUICKSLOT; }
@@ -26,37 +26,16 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag QuickSlot_West() { return KRTAG_UI_QUICKSLOT_WEST; }
 };
 
- // -----  ProgressBar -----
-
-UENUM(BlueprintType)
-enum class EProgressBarType : uint8
-{
-	MainHP			UMETA(DisplayName = "Main HP"),
-	GreyHP			UMETA(DisplayName = "Grey HP"),
-	Stamina			UMETA(DisplayName = "Stamina"),
-	CoreDrive		UMETA(DisplayName = "Core Drive")
-};
-
-UENUM(BlueprintType)
-enum class EProgressUpdateMode : uint8
-{
-	Instant			UMETA(DisplayName = "Instant"),
-	Animated		UMETA(DisplayName = "Animated")
-};
+ // -----  Guard -----
 
 USTRUCT(BlueprintType)
-struct KORAPROJECT_API FKRUIMessage_Progress
+struct KORAPROJECT_API FKRUIMessage_Guard
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite) EProgressBarType BarType = EProgressBarType::MainHP;
-	UPROPERTY(BlueprintReadWrite) EProgressUpdateMode UpdateMode = EProgressUpdateMode::Animated;
-
-	UPROPERTY(BlueprintReadWrite) float NewValue = 0.f;
-	UPROPERTY(BlueprintReadWrite) float MaxValue = 100.f;
-	UPROPERTY(BlueprintReadWrite) float Delta = 0.f; // + Recovery, - Damage (For GreyHP Only)
-
 	UPROPERTY(BlueprintReadWrite) TWeakObjectPtr<AActor> TargetActor;
+	UPROPERTY(BlueprintReadWrite) bool bGuardSuccess;
+	UPROPERTY(BlueprintReadWrite) bool bPerfectGuard;
 };
 
 // -----  Weapon  -----
