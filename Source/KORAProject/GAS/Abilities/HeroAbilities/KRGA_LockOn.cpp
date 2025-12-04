@@ -11,6 +11,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/KRHeroComponent.h"
 #include "GameplayTag/KREnemyTag.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 UKRGA_LockOn::UKRGA_LockOn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -296,11 +298,16 @@ bool UKRGA_LockOn::IsTargetValid(AActor* TargetActor) const
 {
 	if (!TargetActor || !IsValid(TargetActor)) return false;
 
-	IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(TargetActor);
-	if (TagInterface && TagInterface->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_DEAD))
+	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
-		return false;
+		if (TargetASC->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_DEAD))
+		{
+			return false;
+		}
 	}
+	
+	float Distance = GetAvatarActorFromActorInfo()->GetDistanceTo(TargetActor);
+	if (Distance > LockOnBreakDistance) return false;
 	
 	FHitResult Hit;
 	FCollisionQueryParams Params;
