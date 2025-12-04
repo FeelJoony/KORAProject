@@ -3,11 +3,10 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
 #include "KRWeaponDefinition.generated.h"
 
-class UKRAbilitySet;
 class UInputMappingContext;
-class UGameplayAbility;
 class UKRInventoryItemDefinition;
 class UKREquipmentDefinition;
 class UKRWeaponInstance;
@@ -63,7 +62,13 @@ public:
     int32 InputPriority = 1;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
-    TArray<TObjectPtr<const UKRAbilitySet>> AbilitySets;
+    TArray<FKRAbilitySet_GameplayAbility> GrantedAbilities;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+    TArray<TObjectPtr<UAnimMontage>> LightAttackMontages;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+    TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages;
     
     /** 인벤토리 아이템 정의 생성 */
     UFUNCTION(BlueprintCallable, Category = "Weapon")
