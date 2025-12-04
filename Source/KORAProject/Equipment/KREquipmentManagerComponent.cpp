@@ -154,14 +154,13 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInvent
     // --------------------------------------------
     const UInventoryFragment_EquippableItem* EquipFragment =
         ItemDef->FindFragmentByTag<UInventoryFragment_EquippableItem>(
-            FGameplayTag::RequestGameplayTag("Ability.Item.Equippable"));
+            FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"));
 
     if (!EquipFragment || !EquipFragment->EquipmentDefinition)
     {
         UE_LOG(LogTemp, Error, TEXT("[Equipment] Not Equipable Item."));
         return nullptr;
     }
-
     // --------------------------------------------
     // 2. Equipment Definition 기반 장착 진행
     //    (Lyra 기반 EquipItem 사용)
@@ -202,6 +201,7 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInvent
     // --------------------------------------------
     if (UKRWeaponInstance* WeaponInst = Cast<UKRWeaponInstance>(NewEquipInstance))
     {
+    	WeaponInst->InitializeFromItem(ItemInstance);
         // Actor Spawn
         const UKREquipmentDefinition* EquipDefCDO = EquipFragment->EquipmentDefinition->GetDefaultObject<UKREquipmentDefinition>();
         WeaponInst->SpawnEquipmentActors(EquipDefCDO->ActorsToSpawn);

@@ -285,6 +285,17 @@ void UKRCameraModeStack::PushCameraMode(TSubclassOf<UKRCameraMode> CameraModeCla
 	}
 }
 
+void UKRCameraModeStack::RemoveCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass)
+{
+	if (!CameraModeClass) return;
+
+	UKRCameraMode* CameraMode = GetCameraModeInstance(CameraModeClass);
+	if (CameraMode)
+	{
+		CameraModeStack.Remove(CameraMode);
+	}
+}
+
 bool UKRCameraModeStack::EvaluateStack(float DeltaTime, FKRCameraModeView& OutCameraModeView)
 {
 	if (!bIsActive) return false;

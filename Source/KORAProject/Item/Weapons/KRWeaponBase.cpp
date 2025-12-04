@@ -1,20 +1,29 @@
 #include "Item/Weapons/KRWeaponBase.h"
-#include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+
 
 AKRWeaponBase::AKRWeaponBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	RootComponent = WeaponMesh;
+	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	SetRootComponent(WeaponMesh);
+
+	WeaponMesh->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-FTransform AKRWeaponBase::GetMuzzleTransform() const
+void AKRWeaponBase::SetWeaponVisibility(bool bVisible)
 {
-	if (WeaponMesh && WeaponMesh->DoesSocketExist(TEXT("Muzzle")))
+	SetActorHiddenInGame(!bVisible);
+
+	if (WeaponMesh)
 	{
-		return WeaponMesh->GetSocketTransform(TEXT("Muzzle"));
+		WeaponMesh->SetVisibility(bVisible, true);
 	}
-	return GetActorTransform();
+	SetActorEnableCollision(bVisible);
+	SetActorTickEnabled(bVisible);
+	
+	// 이펙트 처리 추가 가능
 }
 

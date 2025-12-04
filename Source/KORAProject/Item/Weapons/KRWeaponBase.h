@@ -4,7 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "KRWeaponBase.generated.h"
 
-class USkeletalMeshComponent;
+class UStaticMeshComponent;
+class UKRWeaponInstance;
+class UNiagaraSystem;
 
 UCLASS()
 class KORAPROJECT_API AKRWeaponBase : public AActor
@@ -13,11 +15,16 @@ class KORAPROJECT_API AKRWeaponBase : public AActor
 
 public:	
 	AKRWeaponBase();
+	
+	void SetOwningInstance(UKRWeaponInstance* InInstance) { OwningInstance = InInstance; }
 
-	UFUNCTION(BlueprintPure, Category="Weapon")
-	virtual FTransform GetMuzzleTransform() const;
-
+	void SetWeaponVisibility(bool bVisible);
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
-	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+
+	UPROPERTY()
+	TObjectPtr<UKRWeaponInstance> OwningInstance;
+	
 };

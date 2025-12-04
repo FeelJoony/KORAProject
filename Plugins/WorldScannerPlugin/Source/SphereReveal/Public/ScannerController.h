@@ -106,7 +106,8 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	UMaterialParameterCollectionInstance* MPCI = nullptr;
+	UPROPERTY()
+	TObjectPtr<UMaterialParameterCollectionInstance> MPCI = nullptr;
 	FVector CachedCenter = FVector::ZeroVector;
 	float Radius = 0.f;
 	float FXMeshRadius = 50.f;

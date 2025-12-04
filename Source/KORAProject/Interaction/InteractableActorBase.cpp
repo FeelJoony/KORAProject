@@ -109,7 +109,7 @@ void AInteractableActorBase::ShowInteractionUI()
 	UKRUIRouterSubsystem* Router = GetWorld()->GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>();
 	if (IsValid(Router))
 	{
-		//Router->ToggleRoute("ScreenInteract");
+		Router->ToggleRoute("ScreenInteract");
 	}
 }
 
@@ -118,7 +118,7 @@ void AInteractableActorBase::HideInteractionUI()
 	UKRUIRouterSubsystem* Router = GetWorld()->GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>();
 	if (IsValid(Router))
 	{
-		//Router->ToggleRoute("ScreenInteract");
+		Router->ToggleRoute("ScreenInteract");
 	}
 }
 

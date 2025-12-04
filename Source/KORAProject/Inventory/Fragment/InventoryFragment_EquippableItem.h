@@ -3,8 +3,10 @@
 #include "CoreMinimal.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "GameplayTagContainer.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
 #include "InventoryFragment_EquippableItem.generated.h"
 
+class UInputMappingContext;
 class UKREquipmentDefinition;
 
 UCLASS()
@@ -20,6 +22,30 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	TSubclassOf<UAnimInstance> EquippableAnimLayer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	TSubclassOf<AActor> WeaponActorToSpawn;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	FName AttachSocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	FTransform AttachTransform;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> WeaponIMC;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	int32 InputPriority;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	TArray<FKRAbilitySet_GameplayAbility> GrantedAbilities;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+	TArray<TObjectPtr<UAnimMontage>> LightAttackMontages;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+	TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages;
 	
 	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
 	{

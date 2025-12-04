@@ -5,6 +5,7 @@
 #include "AbilitySystemInterface.h"
 #include "KRBaseCharacter.generated.h"
 
+class UKREquipmentManagerComponent;
 class UKRCombatComponent;
 class UAbilitySystemComponent;
 class UKRPawnExtensionComponent;
@@ -25,4 +26,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Combat")
 	TObjectPtr<UKRCombatComponent> CombatComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Equipment")
+	TObjectPtr<UKREquipmentManagerComponent> EquipmentManagerComponent;
 };
