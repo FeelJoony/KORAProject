@@ -40,6 +40,24 @@ void AKRHeroCharacter::PossessedBy(AController* NewController)
 	}
 }
 
+void AKRHeroCharacter::SetMovementMode_Strafe(bool bStrafe)
+{
+	if (bStrafe)
+	{
+		bUseControllerRotationYaw = true;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
+	}
+	else
+	{
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
+	}
+}
+
 void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

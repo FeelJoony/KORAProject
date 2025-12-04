@@ -42,10 +42,15 @@ protected:
 public:
 	FORCEINLINE UKRAbilitySystemComponent* GetEnemyAbilitySystemCompoent() const { return EnemyASC; }
 
+	UKRCombatComponent* GetEnemyCombatComponent() const { return CombatComponent; }
+
 	UStateTreeComponent* GetStateTreeComponent() const;
 
 	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
 	TObjectPtr<UAnimMontage> StunMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
+	TObjectPtr<UAnimMontage> HitMontage;
 
 private:
 	UFUNCTION()

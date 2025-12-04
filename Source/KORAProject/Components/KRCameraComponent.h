@@ -22,6 +22,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KR|Camera")
 	static UKRCameraComponent* FindCameraComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UKRCameraComponent>() : nullptr); }
 
+	UFUNCTION(BlueprintCallable, Category = "KR|Camera")
+	void PushCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass);
+	
+	UFUNCTION(BlueprintCallable, Category = "KR|Camera")
+	void RemoveCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass);
+	
 	virtual AActor* GetTargetActor() const { return GetOwner(); }
 
 	void AddFieldOfViewOffset(float FovOffset) { FieldOfViewOffset += FovOffset; }
