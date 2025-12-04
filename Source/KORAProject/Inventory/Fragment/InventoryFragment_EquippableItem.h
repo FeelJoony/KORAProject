@@ -40,6 +40,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TArray<FKRAbilitySet_GameplayAbility> GrantedAbilities;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+	TArray<TObjectPtr<UAnimMontage>> LightAttackMontages;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+	TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages;
 	
 	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
 	{
