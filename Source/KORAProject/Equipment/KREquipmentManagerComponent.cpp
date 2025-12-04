@@ -8,6 +8,10 @@
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
+#include "Inventory/Fragment/InventoryFragment_SetStats.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "Data/EquipmentDataStruct.h"
+#include "Kismet/GameplayStatics.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
@@ -90,7 +94,7 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipItem(TSubclassOf<UKREqu
 	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(InEquipmentDefinition);
 
 	const FGameplayTag SlotTagToOccupy = EquipmentCDO->EquipmentSlotTag;
-	if (!SlotTagToOccupy.IsValid())
+	if (SlotTagToOccupy.IsValid())
 	{
 		TArray<UKREquipmentInstance*> OldInstancesToUnequip;
 
@@ -148,12 +152,10 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInvent
         return nullptr;
     }
 
-    // --------------------------------------------
-    // 1. Equippable Fragment 가져오기
-    // --------------------------------------------
+    // Equippable Fragment 가져오기
     const UInventoryFragment_EquippableItem* EquipFragment =
         ItemDef->FindFragmentByTag<UInventoryFragment_EquippableItem>(
-            FGameplayTag::RequestGameplayTag("Ability.Item.Equippable"));
+            FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"));
 
     if (!EquipFragment || !EquipFragment->EquipmentDefinition)
     {
@@ -161,52 +163,100 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInvent
         return nullptr;
     }
 
-    // --------------------------------------------
-    // 2. Equipment Definition 기반 장착 진행
-    //    (Lyra 기반 EquipItem 사용)
-    // --------------------------------------------
-    UKREquipmentInstance* NewEquipInstance = EquipItem(EquipFragment->EquipmentDefinition);
-    if (!NewEquipInstance)
+    TSubclassOf<UKREquipmentDefinition> EquipmentDefinition = EquipFragment->EquipmentDefinition;
+    const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefinition);
+
+    // 기존 슬롯 정리
+    const FGameplayTag SlotTagToOccupy = EquipmentCDO->EquipmentSlotTag;
+    if (SlotTagToOccupy.IsValid())
     {
-        UE_LOG(LogTemp, Warning, TEXT("[Equipment] Equip failed"));
-        return nullptr;
+        if (UKREquipmentInstance* OldInstance = EquippedSlotsMap.FindRef(SlotTagToOccupy))
+        {
+            UnequipItem(OldInstance);
+        }
     }
 
-    // --------------------------------------------
-    // 3. Stats Fragment 적용
-    // --------------------------------------------
+    // 인스턴스 생성
+    FKRAppliedEquipmentEntry* NewEntry = EquipmentList.AddEntry(EquipmentDefinition);
+    UKREquipmentInstance* NewInstance = NewEntry->Instance;
+
+    if (!NewInstance)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[Equipment] Failed to create instance"));
+        return nullptr;
+    }
+    
+    // Stats Fragment 적용
     const UInventoryFragment_SetStats* StatsFragment =
         ItemDef->FindFragmentByTag<UInventoryFragment_SetStats>(
             FGameplayTag::RequestGameplayTag("Ability.Item.SetStat"));
 
     if (StatsFragment)
     {
-        NewEquipInstance->InitializeStats(StatsFragment);
+        NewInstance->InitializeStats(StatsFragment);
     }
 
-    // --------------------------------------------
-    // 4. 강화 Fragment 적용
-    // --------------------------------------------
+	// DataTablesSubsystem을 통해 DT 데이터 주입
+	if (UGameInstance* GameInst = UGameplayStatics::GetGameInstance(this))
+	{
+		if (UKRDataTablesSubsystem* DataSubsystem = GameInst->GetSubsystem<UKRDataTablesSubsystem>())
+		{
+			FGameplayTag SearchTag = ItemInstance->GetItemTag(); 
+
+			if (SearchTag.IsValid())
+			{
+				if (const FEquipmentDataStruct* EquipData = DataSubsystem->GetData<FEquipmentDataStruct>(EGameDataType::EquipmentData, SearchTag))
+				{
+					NewInstance->InitializeFromData(*EquipData);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[Equipment] Data not found in DT for Tag: %s"), *SearchTag.ToString());
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[Equipment] InventoryItem has No Tag!"));
+			}
+		}
+	}
+	
+    // 강화 Fragment 적용
     const UInventoryFragment_EnhanceableItem* EnhanceFragment =
         ItemDef->FindFragmentByTag<UInventoryFragment_EnhanceableItem>(
             FGameplayTag::RequestGameplayTag("Fragment.Item.Enhanceable"));
 
     if (EnhanceFragment)
     {
-        NewEquipInstance->ApplyEnhanceLevel(EnhanceFragment->EnhanceLevel);
+        NewInstance->ApplyEnhanceLevel(EnhanceFragment->EnhanceLevel);
     }
-
-    // --------------------------------------------
-    // 5. 무기일 경우 WeaponInstance 전용 초기화 실행
-    // --------------------------------------------
-    if (UKRWeaponInstance* WeaponInst = Cast<UKRWeaponInstance>(NewEquipInstance))
+	
+    // 액터 스폰 및 장착
+    NewInstance->OnEquipped(EquipmentCDO->ActorsToSpawn);
+	
+    // GAS 능력 부여
+    if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
     {
-        // Actor Spawn
-        const UKREquipmentDefinition* EquipDefCDO = EquipFragment->EquipmentDefinition->GetDefaultObject<UKREquipmentDefinition>();
-        WeaponInst->SpawnEquipmentActors(EquipDefCDO->ActorsToSpawn);
+        const TArray<TSubclassOf<UGameplayAbility>>& AbilitiesToGrant = EquipmentCDO->AbilitiesToGrant;
+
+        for (const TSubclassOf<UGameplayAbility>& AbilityClass : AbilitiesToGrant)
+        {
+            if (AbilityClass)
+            {
+                FGameplayAbilitySpec AbilitySpec(AbilityClass, 1, -1, NewInstance);
+                FGameplayAbilitySpecHandle AbilityHandle = ASC->GiveAbility(AbilitySpec);
+                NewEntry->GrantedAbilityHandles.Add(AbilityHandle);
+            }
+        }
     }
 
-    return NewEquipInstance;
+    // 슬롯 맵 업데이트
+    if (SlotTagToOccupy.IsValid())
+    {
+        EquippedSlotsMap.Add(SlotTagToOccupy, NewInstance);
+    }
+
+    return NewInstance;
 }
 
 
@@ -222,9 +272,18 @@ void UKREquipmentManagerComponent::UnequipItem(UKREquipmentInstance* InItemInsta
 	{
 		return;
 	}
+	
+	// const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
+	// const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
 
+	// 디버깅을 위해 잠시 Definition이 있을 때만 CDO를 가져오도록 변경
 	const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
-	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
+	const UKREquipmentDefinition* EquipmentCDO = nullptr;
+
+	if (EquipmentDefClass)
+	{
+		EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
+	}
 	
 	InItemInstance->OnUnequipped();
 	
@@ -302,4 +361,39 @@ TArray<UKREquipmentInstance*> UKREquipmentManagerComponent::GetEquipmentInstance
 		}
 	}
 	return Results;
+}
+
+// --------Debug--------
+
+void UKREquipmentManagerComponent::Debug_TestEquip(FGameplayTag InItemTag)
+{
+	if (!InItemTag.IsValid()) return;
+	
+	UKREquipmentInstance* NewInstance = NewObject<UKREquipmentInstance>(GetOwner(), UKREquipmentInstance::StaticClass());
+	
+	UGameInstance* GameInst = UGameplayStatics::GetGameInstance(this);
+	UKRDataTablesSubsystem* DataSubsystem = GameInst ? GameInst->GetSubsystem<UKRDataTablesSubsystem>() : nullptr;
+
+	if (DataSubsystem)
+	{
+		const FEquipmentDataStruct* EquipmentData = DataSubsystem->GetData<FEquipmentDataStruct>(EGameDataType::EquipmentData, InItemTag);
+
+		if (EquipmentData)
+		{
+			NewInstance->InitializeFromData(*EquipmentData);
+			
+			TArray<FKREquipmentActorToSpawn> DummySpawnInfo; 
+			NewInstance->OnEquipped(DummySpawnInfo); 
+			
+			FKRAppliedEquipmentEntry& Entry = EquipmentList.Entries.AddDefaulted_GetRef();
+			Entry.EquipmentDefinition = nullptr;
+			Entry.Instance = NewInstance;
+
+			UE_LOG(LogTemp, Log, TEXT("[Debug] SUCCESS: Data Loaded & Equipped for Tag: %s"), *InItemTag.ToString());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[Debug] FAIL: Data Not Found for Tag: %s"), *InItemTag.ToString());
+		}
+	}
 }

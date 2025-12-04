@@ -14,6 +14,7 @@ class UKREquipmentInstance;
 class UKREquipmentManagerComponent;
 class UObject;
 class UAbilitySystemComponent;
+class UKRInventoryItemInstance; // Debug로 잠시 전방 선언
 struct FGameplayAbilitySpecHandle;
 struct FFrame;
 struct FKREquipmentList;
@@ -72,7 +73,7 @@ private:
 	TObjectPtr<UActorComponent> OwnerComponent;
 };
 
-UCLASS(BlueprintType, Const)
+UCLASS(BlueprintType, meta=(BlueprintSpawnableComponent))
 class KORAPROJECT_API UKREquipmentManagerComponent : public UPawnComponent, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
@@ -105,6 +106,10 @@ public:
 	{
 		return (T*)GetFirstInstanceOfType(T::StaticClass());
 	}
+
+	// --------Debug--------
+	UFUNCTION(BlueprintCallable, Category = "Debug") 
+	void Debug_TestEquip(FGameplayTag InItemTag);
 
 private:
 	UPROPERTY()

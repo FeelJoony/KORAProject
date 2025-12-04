@@ -12,4 +12,5 @@ enum class EGameDataType : uint8
 	WeaponEnhanceData,
 	TutorialData,
 	ShopItemData,
+	EquipmentData
 };
