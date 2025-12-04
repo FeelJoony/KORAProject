@@ -80,6 +80,8 @@ UStateTreeComponent* AKREnemyCharacter::GetStateTreeComponent() const
 void AKREnemyCharacter::ResigsterTagEvent()
 {
 	StateTags.Add(KRTAG_STATE_HASCC_STUN);
+	StateTags.Add(KRTAG_ENEMY_ACTION_SLASH);
+	StateTags.Add(KRTAG_ENEMY_AISTATE_HITREACTION);
 
 	for (const FGameplayTag& Tag : StateTags)
 	{
