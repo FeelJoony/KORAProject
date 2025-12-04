@@ -100,6 +100,13 @@ protected:
     UPROPERTY()
     FKRAbilitySet_GrantedHandles GrantedHandles;
 
+    UPROPERTY(BlueprintReadOnly, Category = "Weapon|Visual")
+    TArray<TObjectPtr<UAnimMontage>> LightAttackMontages;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Weapon|Visual")
+    TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages;
+
+    float ChargeTime = 1.f;
 public:
     virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
     virtual void DestroyEquipmentActors() override;
@@ -118,6 +125,15 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
     void RemoveWeaponInputContext(AKRPlayerController* TargetPC);
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
+    UAnimMontage* GetLightAttackMontage(int32 ComboIndex) const;
+    
+    UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
+    UAnimMontage* GetChargeAttackMontage(int32 ComboIndex) const;
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
+    float GetWeaponChargeTime() const;
     
     void GrantWeaponAbilities(UKRAbilitySystemComponent* ASC);
     void RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC);
