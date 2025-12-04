@@ -34,6 +34,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
 	TSoftObjectPtr<UTexture2D> Icon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
+	FName AttachSocketName;
 	
 	//--------Configuration--------
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")

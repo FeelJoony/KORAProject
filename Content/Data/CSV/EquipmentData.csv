@@ -1,2 +1,2 @@
-ItemTag,DisplayNameKey,EquipmentMesh,OverrideMaterials,Icon,CompatibleModuleSlots,DefaultModuleTags
-ItemType.Equip.Costume,None,/Game/Characters/Mannequins/Meshes/SKM_Manny.SKM_Manny,None,None,None,None
+ItemTag,DisplayNameKey,EquipmentMesh,AttachSocket,OverrideMaterials,Icon,CompatibleModuleSlots,DefaultModuleTags
+ItemType.Equip.Costume,None,/Game/Characters/Player_KORA/Mesh/SK_CosmoBunny_no_bones_in_dress.SK_CosmoBunny_no_bones_in_dress,head_socket,None,None,None,None
