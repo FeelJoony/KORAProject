@@ -57,7 +57,7 @@ void UKRGA_EnemySlash::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	if (!IsValid(Enemy)) return;
 
 	UKRAbilitySystemComponent* EnemyASC = Enemy->GetEnemyAbilitySystemCompoent();
-	if (EnemyASC && EnemyASC->HasMatchingGameplayTag(KRTAG_ENEMY_ACTION_SLASH))
+	if (EnemyASC && EnemyASC->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_HITREACTION))
 	{
 		EnemyASC->RemoveLooseGameplayTag(KRTAG_ENEMY_ACTION_SLASH);
 	}
