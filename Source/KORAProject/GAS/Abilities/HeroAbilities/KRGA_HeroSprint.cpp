@@ -10,21 +10,31 @@ void UKRGA_HeroSprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                        const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	bSprintStarted = false;
+	CurrentChargeTime=0.f;
+	ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!Char)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
+	if (UCharacterMovementComponent* MovementComponent = Char->GetCharacterMovement())
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-		return;
+		InitialWalkSpeed = MovementComponent->MaxWalkSpeed;
 	}
-	bSprintStarted=false;
-	StartSprintTask = UAbilityTask_WaitDelay::WaitDelay(this, SprintChargeTime);
-	StartSprintTask->OnFinish.AddDynamic(this, &UKRGA_HeroSprint::OnSprint);
-	StartSprintTask->ReadyForActivation();
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		SprintChargeTimerHandle,
+		this,
+		&UKRGA_HeroSprint::UpdateSprintSpeed,
+		0.01f,
+		true
+	);
 }
 
 void UKRGA_HeroSprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -33,11 +43,19 @@ void UKRGA_HeroSprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	if (ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
 		if (UCharacterMovementComponent* Move = Char->GetCharacterMovement())
+		{
 			Move->MaxWalkSpeed = WalkSpeed;
+		}
 	}
-
-	if (StartSprintTask) StartSprintTask->EndTask();
-	
+	GetWorld()->GetTimerManager().ClearTimer(SprintChargeTimerHandle);
+	if (ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	{
+		if (UCharacterMovementComponent* Move = Char->GetCharacterMovement())
+		{
+			// 이 부분도 보간
+			Move->MaxWalkSpeed = WalkSpeed;
+		}
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -53,7 +71,6 @@ void UKRGA_HeroSprint::InputPressed(const FGameplayAbilitySpecHandle Handle,
 		for (FGameplayAbilitySpec& JumpSpec : ASC->GetActivatableAbilities())
 		{
 			const FGameplayTagContainer& JumpGATags = JumpSpec.Ability->GetAssetTags();
-			//UE_LOG(LogTemp, Warning, TEXT("Step GA Tags: %s"), *StepGATags.ToString());
 			if (JumpGATags.HasTagExact(JumpAbilityTag))
 			{
 				ASC->TryActivateAbility(JumpSpec.Handle);
@@ -73,9 +90,8 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-	
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
+	
 	if (!bSprintStarted)
 	{
 		for (FGameplayAbilitySpec& StepSpec : ASC->GetActivatableAbilities())
@@ -88,7 +104,7 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 			}
 		}
 	}
-
+	
 	EndDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, 0.2f);
 	if (IsValid(EndDelayTask))
 	{
@@ -97,14 +113,22 @@ void UKRGA_HeroSprint::InputReleased(const FGameplayAbilitySpecHandle Handle,
 	}
 }
 
-void UKRGA_HeroSprint::OnSprint()
+void UKRGA_HeroSprint::UpdateSprintSpeed()
 {
-	bSprintStarted = true;
-
-	if (ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!Char || !Char->GetCharacterMovement())
 	{
-		if (UCharacterMovementComponent* Move = Char->GetCharacterMovement())
-			Move->MaxWalkSpeed = SprintSpeed;
+		GetWorld()->GetTimerManager().ClearTimer(SprintChargeTimerHandle);
+		return;
+	}
+	CurrentChargeTime += 0.01f;
+	float Alpha = FMath::Clamp(CurrentChargeTime / SprintChargeTime, 0.0f, 1.0f);
+	float NewSpeed = FMath::Lerp(InitialWalkSpeed, SprintSpeed, Alpha);
+	Char->GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+	if (Alpha >= 1.0f)
+	{
+  		bSprintStarted = true;
+		GetWorld()->GetTimerManager().ClearTimer(SprintChargeTimerHandle);
 	}
 }
 
