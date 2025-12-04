@@ -38,5 +38,13 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Player")
 	FGameplayAttributeData StaminaRegenDelay;
 	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, StaminaRegenDelay)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Playe")
+	FGameplayAttributeData CoreDrive;
+	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, CoreDrive)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Player")
+	FGameplayAttributeData MaxCoreDrive;
+	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, MaxCoreDrive)
 	
 };

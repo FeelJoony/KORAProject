@@ -4,12 +4,22 @@
 #include "Engine/Texture2D.h"
 #include "GameplayTagContainer.h"
 #include "GameplayTagsManager.h"
+#include "Data/ConsumeDataStruct.h"
 #include "Data/SampleDataStruct.h"
+#include "Data/ConsumeItemDataStruct.h"
+#include "Data/MaterialItemDataStruct.h"
+#include "Data/QuestDataStruct.h"
+#include "Data/SubQuestDataStruct.h"
 #include "Data/WeaponDataStruct.h"
+#include "Data/QuestDataStruct.h"
+#include "Data/SubQuestDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/TutorialDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
 #include "Data/ShopItemDataStruct.h"
+#include "Data/EquipmentDataStruct.h"
+
+struct FConsumeDataStruct;
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 {
@@ -115,6 +125,103 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 else
                 {
                     OutDataTable->AddRow(RowName, ItemData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("QuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+                int32 QuestName_Index = GetHeaderIndex(Headers, TEXT("QuestName"));
+                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+                int32 StateTreeDefinitionAssetPath_Index = GetHeaderIndex(Headers, TEXT("StateTreeDefinitionAssetPath"));
+
+                FQuestDataStruct QuestData;
+                
+                QuestData.Index = ParseIntValue(RowValue[Index_Index]);
+                QuestData.QuestName = RowValue[QuestName_Index];
+                QuestData.Description = RowValue[Description_Index];
+                QuestData.StateTreeDefinitionPath = ParseNameValue(RowValue[StateTreeDefinitionAssetPath_Index]);
+
+                FName RowName = *FString::Printf(TEXT("Quest_%d"), i);
+                if (FQuestDataStruct* FindRow = OutDataTable->FindRow<FQuestDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = QuestData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, QuestData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("SubQuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            int TempIndex = 0;
+            FName TempRowName; 
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 GroupIndex_Index = GetHeaderIndex(Headers, TEXT("GroupIndex"));
+                int32 OrderIndex_Index = GetHeaderIndex(Headers, TEXT("OrderIndex"));
+                int32 ObjectiveTag_Index = GetHeaderIndex(Headers, TEXT("ObjectiveTag"));
+                int32 SubQuestName_Index = GetHeaderIndex(Headers, TEXT("SubQuestName"));
+                int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+                int32 RequiredCount_Index = GetHeaderIndex(Headers, TEXT("RequiredCount"));
+                int32 TimeLimit_Index = GetHeaderIndex(Headers, TEXT("TimeLimit"));
+
+                FSubQuestEvalDataStruct EvalData;
+
+                EvalData.OrderIndex = ParseIntValue(RowValue[OrderIndex_Index]);
+                //EvalData.ObjectiveTag = ParseGameplayTagValue(RowValue[ObjectiveTag_Index]);
+                EvalData.SubQuestName = ParseTextValue(RowValue[SubQuestName_Index]);
+                EvalData.Description = ParseTextValue(RowValue[Description_Index]);
+                EvalData.RequiredCount = ParseIntValue(RowValue[RequiredCount_Index]);
+                EvalData.TimeLimit = ParseFloatValue(RowValue[TimeLimit_Index]);
+                
+                if (TempIndex < ParseIntValue(RowValue[GroupIndex_Index]))
+                {
+                    FSubQuestDataStruct SubQuestData;
+                    SubQuestData.GroupIndex = ParseIntValue(RowValue[GroupIndex_Index]);
+                    
+                    TempIndex = SubQuestData.GroupIndex;
+                    TempRowName = *FString::Printf(TEXT("SubQuest_%d"), i);
+
+                    FName RowName = *FString::Printf(TEXT("SubQuest_%d"), i);
+                    if (FSubQuestDataStruct* FindRow = OutDataTable->FindRow<FSubQuestDataStruct>(RowName, TEXT("")))
+                    {
+                        *FindRow = SubQuestData;
+                    }
+                    else
+                    {
+                        OutDataTable->AddRow(RowName, SubQuestData);
+                    }
+
+                    SubQuestData.EvalDatas.Add(EvalData);
+                }
+                else if (TempIndex == GroupIndex_Index)
+                {
+                    if (FSubQuestDataStruct* FindRow = OutDataTable->FindRow<FSubQuestDataStruct>(TempRowName, TEXT("")))
+                    {
+                        FindRow->EvalDatas.Add(EvalData);
+                    }
                 }
             }
         }));
@@ -291,6 +398,283 @@ void UTableRowConvertFunctionContainer::CreateShopItemData(class UDataTable* Out
                 }
             }
         }));
+}
+
+void UTableRowConvertFunctionContainer::CreateEquipmentData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+    CreateData(InCSVString, FString(TEXT("EquipmentData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+        {
+            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+            for (int32 i = 0; i < Values.Num(); i++)
+            {
+                TArray<FString>& RowValue = Values[i];
+
+                int32 ItemTag_Index = GetHeaderIndex(Headers, TEXT("ItemTag"));
+                int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
+                int32 EquipmentMesh_Index = GetHeaderIndex(Headers, TEXT("EquipmentMesh"));
+                int32 OverrideMaterials_Index = GetHeaderIndex(Headers, TEXT("OverrideMaterials"));
+                int32 Icon_Index = GetHeaderIndex(Headers, TEXT("Icon"));
+                int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("CompatibleModuleSlots"));
+                int32 DefaultModuleTags_Index = GetHeaderIndex(Headers, TEXT("DefaultModuleTags"));
+
+                FEquipmentDataStruct EquipmentData;
+
+                EquipmentData.ItemTag = ParseGameplayTagValue(RowValue[ItemTag_Index]);
+                EquipmentData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
+                EquipmentData.EquipmentMesh = ParseSoftObjectValue<UStreamableRenderAsset>(RowValue[EquipmentMesh_Index]);
+                EquipmentData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
+                
+                TArray<FString> MaterialPaths = ParseArrayValue(RowValue[OverrideMaterials_Index]);
+                for (const FString& PathString : MaterialPaths)
+                {
+                    EquipmentData.OverrideMaterials.Add(ParseSoftObjectValue<UMaterialInterface>(PathString));
+                }
+
+                TArray<FString> CompatibleSlotsStr = ParseArrayValue(RowValue[CompatibleModuleSlots_Index]);
+                for (const FString& SlotTagStr : CompatibleSlotsStr)
+                {
+                    FGameplayTag SlotTag = FGameplayTag::RequestGameplayTag(FName(*SlotTagStr));
+                    EquipmentData.CompatibleModuleSlots.AddTag(SlotTag);
+                }
+                
+                TArray<FString> DefaultModulesStr = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
+                for (const FString& ModuleTagStr : DefaultModulesStr)
+                {
+                    FGameplayTag ModuleTag = FGameplayTag::RequestGameplayTag(FName(*ModuleTagStr));
+                    EquipmentData.DefaultModuleTags.Add(ModuleTag);
+                }
+                
+                FName RowName = *FString::Printf(TEXT("Equipment_%d"), i);
+                if (FEquipmentDataStruct* FindRow = OutDataTable->FindRow<FEquipmentDataStruct>(RowName, TEXT("")))
+                {
+                    *FindRow = EquipmentData;
+                }
+                else
+                {
+                    OutDataTable->AddRow(RowName, EquipmentData);
+                }
+            }
+        }));
+}
+
+void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("ConsumeData")), FParseMethod::CreateLambda(
+		[&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values  = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			// 필수 헤더 인덱스
+			const int32 Index_Idx = GetHeaderIndex(Headers, TEXT("Index"));
+			if (Index_Idx == INDEX_NONE)
+			{
+				UE_LOG(LogTemp, Error, TEXT("CreateConsumeData: 'Index' column is required."));
+				return;
+			}
+
+			// 선택/추가 헤더 인덱스 (없어도 동작)
+			const int32 MainEffectClass_Idx     = GetHeaderIndex(Headers, TEXT("MainEffectClass"));
+			const int32 EffectType_Idx          = GetHeaderIndex(Headers, TEXT("EffectType"));
+			const int32 Power_Idx               = GetHeaderIndex(Headers, TEXT("Power"));
+			const int32 Duration_Idx            = GetHeaderIndex(Headers, TEXT("Duration"));
+			const int32 CooldownEffectClass_Idx = GetHeaderIndex(Headers, TEXT("CooldownEffectClass"));
+			const int32 CooldownDuration_Idx    = GetHeaderIndex(Headers, TEXT("CooldownDuration"));
+			const int32 CooldownTag_Idx         = GetHeaderIndex(Headers, TEXT("CooldownTag"));
+			const int32 IncludeDuration_Idx     = GetHeaderIndex(Headers, TEXT("bIncludeDurationInCooldown"));
+			const int32 InUseTags_Idx           = GetHeaderIndex(Headers, TEXT("InUseTags"));
+
+			// EffectType 문자열 → enum 변환 헬퍼
+			auto ParseEffectType = [](const FString& InStr) -> EConsumableEffectType
+			{
+				const FString Trimmed = InStr.TrimStartAndEnd();
+
+				if (Trimmed.IsEmpty())
+				{
+					return EConsumableEffectType::Instant;
+				}
+
+				// StaticEnum 사용 (에디터에서 문자열로 채워도 대응)
+				if (UEnum* Enum = StaticEnum<EConsumableEffectType>())
+				{
+					int64 Value = Enum->GetValueByNameString(Trimmed);
+					if (Value != INDEX_NONE)
+					{
+						return static_cast<EConsumableEffectType>(Value);
+					}
+				}
+
+				// 혹시 Enum에 표시명과 다르게 들어온 경우 대비
+				if (Trimmed.Equals(TEXT("Instant"), ESearchCase::IgnoreCase))
+				{
+					return EConsumableEffectType::Instant;
+				}
+				if (Trimmed.Equals(TEXT("HasDuration"), ESearchCase::IgnoreCase) ||
+					Trimmed.Equals(TEXT("Has Duration"), ESearchCase::IgnoreCase))
+				{
+					return EConsumableEffectType::HasDuration;
+				}
+				if (Trimmed.Equals(TEXT("Infinite"), ESearchCase::IgnoreCase))
+				{
+					return EConsumableEffectType::Infinite;
+				}
+
+				return EConsumableEffectType::Instant;
+			};
+
+			// SoftClassPtr<UGameplayEffect> 파싱 헬퍼
+			auto ParseGEClass = [](const FString& InStr) -> TSoftClassPtr<UGameplayEffect>
+			{
+				TSoftClassPtr<UGameplayEffect> Result;
+				const FString Trimmed = InStr.TrimStartAndEnd();
+				if (!Trimmed.IsEmpty())
+				{
+					Result = TSoftClassPtr<UGameplayEffect>(FSoftObjectPath(Trimmed));
+				}
+				return Result;
+			};
+
+			for (int32 i = 0; i < Values.Num(); ++i)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				// Index 필수
+				if (!RowValue.IsValidIndex(Index_Idx))
+				{
+					continue;
+				}
+
+				FConsumeDataStruct ConsumeData;
+
+				// Index
+				ConsumeData.Index = ParseIntValue(RowValue[Index_Idx]);
+				if (ConsumeData.Index < 0)
+				{
+					// 유효하지 않은 Index는 스킵
+					continue;
+				}
+
+				// MainEffectClass
+				if (MainEffectClass_Idx != INDEX_NONE && RowValue.IsValidIndex(MainEffectClass_Idx))
+				{
+					ConsumeData.MainEffectClass = ParseGEClass(RowValue[MainEffectClass_Idx]);
+				}
+
+				// EffectType
+				if (EffectType_Idx != INDEX_NONE && RowValue.IsValidIndex(EffectType_Idx))
+				{
+					ConsumeData.EffectType = ParseEffectType(RowValue[EffectType_Idx]);
+				}
+				else
+				{
+					ConsumeData.EffectType = EConsumableEffectType::Instant;
+				}
+
+				// Power
+				if (Power_Idx != INDEX_NONE && RowValue.IsValidIndex(Power_Idx))
+				{
+					ConsumeData.Power = ParseFloatValue(RowValue[Power_Idx]);
+				}
+				else
+				{
+					ConsumeData.Power = 0.f;
+				}
+
+				// Duration
+				if (Duration_Idx != INDEX_NONE && RowValue.IsValidIndex(Duration_Idx))
+				{
+					ConsumeData.Duration = ParseFloatValue(RowValue[Duration_Idx]);
+				}
+				else
+				{
+					ConsumeData.Duration = 0.f;
+				}
+
+				// CooldownEffectClass
+				if (CooldownEffectClass_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownEffectClass_Idx))
+				{
+					ConsumeData.CooldownEffectClass = ParseGEClass(RowValue[CooldownEffectClass_Idx]);
+				}
+
+				// CooldownDuration
+				if (CooldownDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownDuration_Idx))
+				{
+					ConsumeData.CooldownDuration = ParseFloatValue(RowValue[CooldownDuration_Idx]);
+				}
+				else
+				{
+					ConsumeData.CooldownDuration = 0.f;
+				}
+
+				// CooldownTag
+				if (CooldownTag_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownTag_Idx))
+				{
+					const FString TagStr = RowValue[CooldownTag_Idx].TrimStartAndEnd();
+					if (!TagStr.IsEmpty())
+					{
+						ConsumeData.CooldownTag = ParseGameplayTagValue(TagStr);
+					}
+				}
+
+				// bIncludeDurationInCooldown
+				if (IncludeDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(IncludeDuration_Idx))
+				{
+					const FString BoolStr = RowValue[IncludeDuration_Idx].TrimStartAndEnd();
+					ConsumeData.bIncludeDurationInCooldown = BoolStr.ToBool();
+				}
+				else
+				{
+					ConsumeData.bIncludeDurationInCooldown = true;
+				}
+
+				// InUseTags (| 또는 , 구분자)
+				if (InUseTags_Idx != INDEX_NONE && RowValue.IsValidIndex(InUseTags_Idx))
+				{
+					const FString TagsStr = RowValue[InUseTags_Idx].TrimStartAndEnd();
+					if (!TagsStr.IsEmpty())
+					{
+						TArray<FString> TagStrings;
+						// 우선 | 기준으로 자르고, 없으면 , 기준
+						if (TagsStr.Contains(TEXT("|")))
+						{
+							TagsStr.ParseIntoArray(TagStrings, TEXT("|"), true);
+						}
+						else
+						{
+							TagsStr.ParseIntoArray(TagStrings, TEXT(","), true);
+						}
+
+						for (const FString& TagToken : TagStrings)
+						{
+							const FString TrimmedTag = TagToken.TrimStartAndEnd();
+							if (!TrimmedTag.IsEmpty())
+							{
+								const FGameplayTag Tag = ParseGameplayTagValue(TrimmedTag);
+								if (Tag.IsValid())
+								{
+									ConsumeData.InUseTags.AddTag(Tag);
+								}
+							}
+						}
+					}
+				}
+
+				// RowName은 Index 기반으로
+				const FName RowName = *FString::Printf(TEXT("Consume_%d"), ConsumeData.Index);
+
+				if (FConsumeDataStruct* FindRow =
+					OutDataTable->FindRow<FConsumeDataStruct>(RowName, TEXT("CreateConsumeData")))
+				{
+					*FindRow = ConsumeData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, ConsumeData);
+				}
+			}
+		}));
 }
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)

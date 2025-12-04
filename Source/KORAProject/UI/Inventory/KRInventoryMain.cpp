@@ -6,14 +6,27 @@
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Data/KRItemUIData.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "SubSystem/KRInventorySubsystem.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
 
 #include "CommonButtonBase.h"
 #include "GameplayTagsManager.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 
+
+void UKRInventoryMain::BeginQuickSlotAssign(FGameplayTag SlotDir)
+{
+	bQuickSlotAssignMode = true;
+	PendingQuickSlotDir = SlotDir;
+
+	RebuildByTag(TEXT("ItemType.Consume"));
+
+	// Hide Material Quest Filter Buttons
+}
 
 void UKRInventoryMain::NativeOnActivated()
 {
@@ -147,7 +160,37 @@ void UKRInventoryMain::HandleMoveInternal(uint8 DirIdx)
 
 void UKRInventoryMain::HandleSelect()
 {
-	// For QuickSlot
+	if (!InventorySlot) return;
+	const int32 Cur = InventorySlot->GetSelectedIndex();
+	if (Cur < 0 || !CachedUIData.IsValidIndex(Cur)) return;
+
+	const FKRItemUIData& Data = CachedUIData[Cur];
+
+	FKRUIMessage_Confirm Msg;
+	Msg.Result = EConfirmResult::None;
+	Msg.ItemTag = Data.ItemTag;
+	Msg.Quantity = Data.Quantity;
+
+	if (bQuickSlotAssignMode)
+	{
+		Msg.Context = EConfirmContext::QuickSlotAssign;
+		Msg.SlotTag = PendingQuickSlotDir;
+	}
+	else
+	{
+		Msg.Context = EConfirmContext::InventoryItemUse;
+		Msg.SlotTag = FGameplayTag();
+	}
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Confirm(), Msg);
+
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+		{
+			Router->ToggleRoute(TEXT("Confirm"));
+		}
+	}
 }
 
 int32 UKRInventoryMain::StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const

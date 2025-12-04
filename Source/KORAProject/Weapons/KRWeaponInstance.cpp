@@ -31,6 +31,7 @@ UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer
 void UKRWeaponInstance::OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
 {
     Super::OnEquipped(ActorsToSpawn);
+    //SpawnEquipmentActors(ActorsToSpawn);
 
     if (CachedIMC)
     {
@@ -228,7 +229,7 @@ void UKRWeaponInstance::SpawnEquipmentActors(const TArray<FKREquipmentActorToSpa
 
                 if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(NewActor))
                 {
-                    WeaponBase->SetOwningInstance(this);
+                    WeaponBase->SetWeaponInstance(this);
                     if (bShouldHideOnSpawn)
                     {
                         WeaponBase->SetWeaponVisibility(false);

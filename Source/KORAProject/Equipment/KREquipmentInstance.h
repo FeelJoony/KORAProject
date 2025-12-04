@@ -2,11 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "GameplayTagContainer.h"
 #include "KREquipmentInstance.generated.h"
 
 class APawn;
 class AActor;
 struct FKREquipmentActorToSpawn;
+struct FEquipmentDataStruct;
 
 /**
  * Equipment Instance Base
@@ -34,6 +36,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = Equipment)
 	APawn* GetTypedPawn(TSubclassOf<APawn> PawnType) const;
 
+	virtual void InitializeFromData(const FEquipmentDataStruct& InData);
+
 	UFUNCTION()
 	virtual void InitializeStats(const UInventoryFragment_SetStats* Stats) {}
 
@@ -44,13 +48,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = Equipment)
 	TArray<AActor*> GetSpawnedActors() const { return SpawnedActors; }
 
-	// 장착/해제 이벤트
-	virtual void OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn);
-	virtual void OnUnequipped();
-
 	// Actor 스폰/제거
 	virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn);
 	virtual void DestroyEquipmentActors();
+
+	// 장착/해제 이벤트
+	virtual void OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn);
+	virtual void OnUnequipped();
 
 protected:
 	UPROPERTY()
@@ -58,4 +62,25 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> SpawnedActors;
+
+	//--------Config--------
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config")
+	FGameplayTag ItemTag;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config")
+	FGameplayTagContainer CompatibleModuleSlots;
+
+	//--------Visuals--------
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Visuals")
+	TSoftObjectPtr<UStreamableRenderAsset> CachedMeshAsset;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
+	FName AttachSocketName;
+
+private:
+	class UMeshComponent* CreateMeshComponent(AActor* InOwnerActor, UStreamableRenderAsset* InMeshAsset);
+
+	void SpawnFromDefinition(APawn* InPawn, USceneComponent* InAttachTarget, const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn);
+	
+	void SpawnFromDataTable(APawn* InPawn, USceneComponent* InAttachTarget);
 };

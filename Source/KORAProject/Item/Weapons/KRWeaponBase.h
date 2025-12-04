@@ -15,16 +15,20 @@ class KORAPROJECT_API AKRWeaponBase : public AActor
 
 public:	
 	AKRWeaponBase();
-	
-	void SetOwningInstance(UKRWeaponInstance* InInstance) { OwningInstance = InInstance; }
-
 	void SetWeaponVisibility(bool bVisible);
 	
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	void SetWeaponInstance(UKRWeaponInstance* InInstance);
+
+	UFUNCTION(BlueprintPure, Category="Weapon")
+	UKRWeaponInstance* GetWeaponInstance() const { return WeaponInstance; }
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
-	UPROPERTY()
-	TObjectPtr<UKRWeaponInstance> OwningInstance;
-	
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	TObjectPtr<UKRWeaponInstance> WeaponInstance;
+
+	virtual void OnWeaponInstanceAssigned();
 };

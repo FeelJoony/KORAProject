@@ -18,8 +18,8 @@ class KORAPROJECT_API UKRTutorialHintWidget : public UCommonActivatableWidget
 public:
     virtual void NativeOnInitialized() override;
     virtual void NativeDestruct() override;
-
-    void NotifyStepCompleted(FName StepId);
+	virtual void NativeOnActivated() override;
+	virtual void NativeOnDeactivated() override;
 
 protected:
     UPROPERTY(meta = (BindWidget)) class UCommonTextBlock* TutorialText;
@@ -37,7 +37,7 @@ protected:
     void BP_OnTutorialShown();
 
     void HandleTutorialMessage(FGameplayTag Channel, const FKRUIMessage_Tutorial& Msg);
-    void ApplyRow(const FTutorialDataStruct& Row);
+    void ApplyDataTableRow(const FTutorialDataStruct& Row);
     void ClosePopup();
 
     void OnDurationTimeout();
@@ -45,4 +45,6 @@ protected:
     bool IsTimedPopup(const FTutorialDataStruct& Row) const;
     bool IsInputPopup(const FTutorialDataStruct& Row) const;
     void ClearTimerAndUnpause();
+
+    void HandleOk();
 };

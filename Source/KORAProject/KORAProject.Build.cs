@@ -29,7 +29,8 @@ public class KORAProject : ModuleRules
 			"ModularGameplay",
 			"CommonGame",
 			"GameFeatures",
-			"ModularGameplayActors"
+			"ModularGameplayActors",
+			"AIModule",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
