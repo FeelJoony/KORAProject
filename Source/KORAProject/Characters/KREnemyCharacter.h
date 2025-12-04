@@ -42,6 +42,8 @@ protected:
 public:
 	FORCEINLINE UKRAbilitySystemComponent* GetEnemyAbilitySystemCompoent() const { return EnemyASC; }
 
+	UKRCombatComponent* GetEnemyCombatComponent() const { return CombatComponent; }
+
 	UStateTreeComponent* GetStateTreeComponent() const;
 
 	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
