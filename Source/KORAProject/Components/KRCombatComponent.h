@@ -86,4 +86,8 @@ public:
 
 private:
 	void ApplyDamageToTarget(AActor* TargetActor, float BaseDamage, bool bIsCritical, const FHitResult* HitResult);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
+	UKRWeaponInstance* GetCurrentWeaponInstance() const { return CurrentWeaponInstance; }
 };
