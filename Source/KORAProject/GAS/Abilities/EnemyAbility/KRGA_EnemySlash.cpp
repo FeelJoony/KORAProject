@@ -28,14 +28,12 @@ void UKRGA_EnemySlash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Enemy))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Enemy None"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
 
 	if (SlashMontage)
 	{
-		UE_LOG(LogTemp, Error, TEXT("GA Montage"));
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 				this,
 				NAME_None,
