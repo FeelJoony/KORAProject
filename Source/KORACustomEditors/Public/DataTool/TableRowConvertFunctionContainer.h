@@ -29,6 +29,10 @@ public:
 	UFUNCTION()
 	void CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
+	void CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
 	void CreateWeaponData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateWeaponEnhanceData(class UDataTable* OutDataTable, const FString& InCSVString);
@@ -37,9 +41,9 @@ public:
 	UFUNCTION()
 	void CreateShopItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
-	void CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
+	void CreateEquipmentData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
-	void CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
+	void CreateConsumeData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);

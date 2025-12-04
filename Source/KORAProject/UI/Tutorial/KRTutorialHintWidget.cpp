@@ -2,7 +2,7 @@
 
 
 #include "UI/Tutorial/KRTutorialHintWidget.h"
-
+#include "SubSystem/KRUIInputSubsystem.h"
 #include "CommonTextBlock.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/GameplayStatics.h"
@@ -16,6 +16,7 @@ static const TCHAR* ST_Tutorial_Path = TEXT("/Game/UI/StringTable/ST_Tutorial");
 void UKRTutorialHintWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+    SetVisibility(ESlateVisibility::Collapsed);
 
     if (UWorld* World = GetWorld())
     {
@@ -44,17 +45,23 @@ void UKRTutorialHintWidget::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UKRTutorialHintWidget::NotifyStepCompleted(FName StepId)
+void UKRTutorialHintWidget::NativeOnActivated()
 {
-    if (!bHasActiveRow || CurrentRow.CompletionTrigger.IsNone())
-        return;
+    Super::NativeOnActivated();
 
-    if (StepId == CurrentRow.CompletionTrigger && IsInputPopup(CurrentRow))
+    if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
     {
-        ClosePopup();
+		InputSubsys->BindRow(this, TEXT("Back"), FSimpleDelegate::CreateUObject(this, &UKRTutorialHintWidget::HandleOk));
+        InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &UKRTutorialHintWidget::HandleOk));
     }
-
 }
+
+void UKRTutorialHintWidget::NativeOnDeactivated()
+{
+
+    Super::NativeOnDeactivated();
+}
+
 
 void UKRTutorialHintWidget::HandleTutorialMessage(FGameplayTag Channel, const FKRUIMessage_Tutorial& Msg)
 {
@@ -62,10 +69,10 @@ void UKRTutorialHintWidget::HandleTutorialMessage(FGameplayTag Channel, const FK
     const FTutorialDataStruct* Row = TutorialPopupTable->FindRow<FTutorialDataStruct>(Msg.TutorialDTRowName, TEXT("KRTutorialHintWidget::HandleTutorialMessage"));
 
     if (!Row) return;
-    ApplyRow(*Row);
+    ApplyDataTableRow(*Row);
 }
 
-void UKRTutorialHintWidget::ApplyRow(const FTutorialDataStruct& Row)
+void UKRTutorialHintWidget::ApplyDataTableRow(const FTutorialDataStruct& Row)
 {
     ClearTimerAndUnpause();
 
@@ -85,6 +92,8 @@ void UKRTutorialHintWidget::ApplyRow(const FTutorialDataStruct& Row)
         CanvasSlot->SetPosition(FVector2D(Row.OffsetX, Row.OffsetY));
     }
 
+    SetVisibility(ESlateVisibility::HitTestInvisible);
+
     if (Row.PauseGame && GetWorld())
     {
         UGameplayStatics::SetGamePaused(GetWorld(), true);
@@ -102,8 +111,7 @@ void UKRTutorialHintWidget::ApplyRow(const FTutorialDataStruct& Row)
         );
     }
 
-    ActivateWidget();
-    BP_OnTutorialShown();
+    BP_OnTutorialShown(); // For Animation
 }
 
 void UKRTutorialHintWidget::ClosePopup()
@@ -114,7 +122,7 @@ void UKRTutorialHintWidget::ClosePopup()
     ClearTimerAndUnpause();
     bHasActiveRow = false;
 
-    DeactivateWidget();
+    SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UKRTutorialHintWidget::OnDurationTimeout()
@@ -147,5 +155,20 @@ void UKRTutorialHintWidget::ClearTimerAndUnpause()
     {
         UGameplayStatics::SetGamePaused(GetWorld(), false);
         bPausedByMe = false;
+    }
+}
+
+void UKRTutorialHintWidget::HandleOk()
+{
+	if (bHasActiveRow && IsInputPopup(CurrentRow))
+	{
+		ClosePopup();
+	}
+
+    if (APlayerController* PC = GetOwningLocalPlayer()->GetPlayerController(GetWorld()))
+    {
+        FInputModeGameOnly Mode;
+        PC->SetInputMode(Mode);
+        PC->SetShowMouseCursor(false);
     }
 }

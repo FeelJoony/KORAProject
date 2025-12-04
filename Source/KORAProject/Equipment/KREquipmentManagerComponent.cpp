@@ -9,6 +9,9 @@
 #include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "Data/EquipmentDataStruct.h"
+#include "Kismet/GameplayStatics.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
@@ -91,6 +94,8 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipItem(TSubclassOf<UKREqu
 	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(InEquipmentDefinition);
 
 	const FGameplayTag SlotTagToOccupy = EquipmentCDO->EquipmentSlotTag;
+
+	// 충돌나서 ! 변경
 	if (!SlotTagToOccupy.IsValid())
 	{
 		TArray<UKREquipmentInstance*> OldInstancesToUnequip;
@@ -210,7 +215,6 @@ UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInvent
     return NewEquipInstance;
 }
 
-
 void UKREquipmentManagerComponent::UnequipItem(UKREquipmentInstance* InItemInstance)
 {
 	if (InItemInstance == nullptr)
@@ -223,9 +227,18 @@ void UKREquipmentManagerComponent::UnequipItem(UKREquipmentInstance* InItemInsta
 	{
 		return;
 	}
+	
+	// const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
+	// const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
 
+	// 디버깅을 위해 잠시 Definition이 있을 때만 CDO를 가져오도록 변경
 	const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
-	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
+	const UKREquipmentDefinition* EquipmentCDO = nullptr;
+
+	if (EquipmentDefClass)
+	{
+		EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
+	}
 	
 	InItemInstance->OnUnequipped();
 	
@@ -303,4 +316,39 @@ TArray<UKREquipmentInstance*> UKREquipmentManagerComponent::GetEquipmentInstance
 		}
 	}
 	return Results;
+}
+
+// --------Debug--------
+
+void UKREquipmentManagerComponent::Debug_TestEquip(FGameplayTag InItemTag)
+{
+	if (!InItemTag.IsValid()) return;
+	
+	UKREquipmentInstance* NewInstance = NewObject<UKREquipmentInstance>(GetOwner(), UKREquipmentInstance::StaticClass());
+	
+	UGameInstance* GameInst = UGameplayStatics::GetGameInstance(this);
+	UKRDataTablesSubsystem* DataSubsystem = GameInst ? GameInst->GetSubsystem<UKRDataTablesSubsystem>() : nullptr;
+
+	if (DataSubsystem)
+	{
+		const FEquipmentDataStruct* EquipmentData = DataSubsystem->GetData<FEquipmentDataStruct>(EGameDataType::EquipmentData, InItemTag);
+
+		if (EquipmentData)
+		{
+			NewInstance->InitializeFromData(*EquipmentData);
+			
+			TArray<FKREquipmentActorToSpawn> DummySpawnInfo; 
+			NewInstance->OnEquipped(DummySpawnInfo); 
+			
+			FKRAppliedEquipmentEntry& Entry = EquipmentList.Entries.AddDefaulted_GetRef();
+			Entry.EquipmentDefinition = nullptr;
+			Entry.Instance = NewInstance;
+
+			UE_LOG(LogTemp, Log, TEXT("[Debug] SUCCESS: Data Loaded & Equipped for Tag: %s"), *InItemTag.ToString());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[Debug] FAIL: Data Not Found for Tag: %s"), *InItemTag.ToString());
+		}
+	}
 }

@@ -3,6 +3,14 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Engine/DataTable.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
+#include "AbilitySystemComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
+#include "AbilitySystemInterface.h"
+#include "GAS/KRAbilitySystemComponent.h"
+
 #include "KRInventorySubsystem.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogInventorySubSystem, Log, All);
@@ -82,21 +90,13 @@ struct FKRInventoryList
 	void SetOwnerContext(UObject* InOwner) { OwnerContext = InOwner; }
 	
 	FKRInventoryEntry* CreateItem(FGameplayTag InTag);
-	
 	void RemoveItem(FGameplayTag InTag);
-	
 	const FKRInventoryEntry* AddItem(FGameplayTag InTag, int32 StackCount, bool& OutIsNew);
-	
 	void SubtractItem(FGameplayTag InTag, int32 StackCount);
-	
 	FKRInventoryEntry* GetItem(FGameplayTag InTag);
-
 	const FKRInventoryEntry* GetItem(FGameplayTag InTag) const;
-
 	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
-
 	TArray<class UKRInventoryItemInstance*> FindAllItemsByTag(FGameplayTag FilterTag) const;
-
 	void Clear();
 
 	void AddEntryDirect(UKRInventoryItemInstance* NewInstance);
@@ -107,7 +107,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTagContainer ItemTagContainer;
-	
 };
 
 USTRUCT(BlueprintType)
@@ -115,19 +114,15 @@ struct FKRItemTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	// 아이템 정의 클래스
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	TSubclassOf<UKRInventoryItemDefinition> ItemDefinition;
 
-	// 이 아이템이 가질 Fragment들의 GameplayTag 목록
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	FGameplayTagContainer AbilityTags;
 
-	// 설명
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	FText Description;
 
-	// 최대 스택 개수
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	int32 MaxStackCount = 99;
 
@@ -145,7 +140,7 @@ class KORAPROJECT_API UKRInventorySubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
-
+	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	TSubclassOf<class UKRInventoryItemFragment> GetFragmentClass(FGameplayTag Tag) const;
 
@@ -160,7 +155,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	TArray<FGameplayTag> GetAllRegisteredItemTags() const;
-
+	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	class UKRInventoryItemInstance* AddItem(FGameplayTag ItemTag, int32 StackCount = 1);
 
@@ -184,7 +179,46 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void ClearInventory();
+	
+	void InitializeQuickSlots();
+	
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	bool BindItemByQuickSlotTag(FGameplayTag SlotTag, FGameplayTag ItemTag);
+	
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	FGameplayTag GetQuickSlotItemTag(FGameplayTag SlotTag) const;
+	
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	UKRInventoryItemInstance* GetQuickSlotItemInstance(FGameplayTag SlotTag) const;
 
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	bool GetQuickSlotData(FGameplayTag SlotTag, FGameplayTag& OutItemTag, int32& OutQuantity) const;
+
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	UAbilitySystemComponent* GetPlayerASC() const;
+	
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	bool UseQuickSlotItem(FGameplayTag SlotTag);
+	
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	FGameplayTag GetCurrentSelectedQuickSlot() const { return SelectedQuickSlot; }
+	
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	bool SelectQuickSlotClockwise();
+	
+	UFUNCTION(BlueprintCallable, Category="QuickSlot")
+	bool SelectQuickSlotCounterClockwise();
+
+	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
+	bool CanUseConsumableItem(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC, FText& OutReason) const;
+
+	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
+	float GetConsumableCooldownRemaining(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC) const;
+
+	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
+	bool UseConsumableItem(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC);
+
+	
 	UFUNCTION()
 	void OnMessageReceived(const FGameplayTag Channel, const FAddItemMessage& Message);
 	
@@ -197,21 +231,61 @@ public:
 private:
 	UPROPERTY()
 	TMap<FGameplayTag, TSubclassOf<class UKRInventoryItemFragment>> FragmentRegistry;
-
+	
+	UPROPERTY()
+	TMap<FGameplayTag, FGameplayTag> PlayerQuickSlot;
+	
+	UPROPERTY()
+	FGameplayTag SelectedQuickSlot;
+	
 	UPROPERTY()
 	FKRInventoryList PlayerInventory;
 	
 	FKRInventoryList& GetInventory();
-
+	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void InitFragment(FGameplayTag ItemTag);
 	
 	void InitializeItemDefinitionFragments();
 	void InitialFragmentType(TSubclassOf<class UKRInventoryItemFragment> FragmentClass);
+	
+	bool IsPersistentQuickSlotItem(const FGameplayTag& ItemTag) const;
+	bool IsAssignedQuickSlot() const;
+	bool IsAssignedSelectedQuickSlot() const;
+	
+	bool SelectQuickSlotInternal(bool bClockwise);
+	void NotifySlotChanged(const FGameplayTag& NewSelectedSlot);
+	
+	void SendQuickSlotMessage(
+		EQuickSlotAction ActionType,
+		const FGameplayTag& SlotTag,
+		const FGameplayTag& ItemTag,
+		int32 ItemQuantity,
+		float DurationSeconds = 0.f
+	);
+	
+	FGameplayTag MapSlotTagToUISlotTag(const FGameplayTag& SlotTag) const;
+
+	bool SelectNextAvailableQuickSlot();
+	void NotifyQuickSlotQuantityChanged(const FGameplayTag& ItemTag);
+	
+	bool IsValidQuickSlot(const FGameplayTag& SlotTag) const;
+	bool HasQuickSlotItemFragment(FGameplayTag ItemTag, UKRInventoryItemInstance*& OutInstance);
+	
+	const FKRInventoryEntry* FindEntryByItemTag(const FGameplayTag& ItemTag) const;
+	UKRInventoryItemInstance* FindInstanceByItemTag(const FGameplayTag& ItemTag) const;
+	
+	bool HandleQuickSlotUnbind(FGameplayTag SlotTag, FGameplayTag ItemTag);
+	void UnbindExistingItemBySlotTag(FGameplayTag SlotTag, FGameplayTag ItemTag);
+	void HandleAutoSelectSlotFirstRegisteredItem(FGameplayTag SlotTag, bool bHadAssignedBefore);
+	
+	int32 GetItemQuantity_Internal(const FGameplayTag& ItemTag) const;
+
+	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
 };
 
 template <typename T>
 void UKRInventorySubsystem::ReceivedAddItemMessage(FGameplayTag Channel, const T& Message)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AddItemMessage Received! Count: %d"), Message.Count);
+	UE_LOG(LogTemp, Warning, TEXT("AddItemMessage Received! Count: %d"), Message.StackCount);
 }
