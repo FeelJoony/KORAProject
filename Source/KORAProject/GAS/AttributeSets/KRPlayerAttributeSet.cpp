@@ -7,4 +7,6 @@ UKRPlayerAttributeSet::UKRPlayerAttributeSet()
 	InitGreyHP(0.f);
 	InitStaminaRegenRate(1.f);
 	InitStaminaRegenDelay(1.f);
+	InitCoreDrive(0.f);
+	InitMaxCoreDrive(60.f);
 }
