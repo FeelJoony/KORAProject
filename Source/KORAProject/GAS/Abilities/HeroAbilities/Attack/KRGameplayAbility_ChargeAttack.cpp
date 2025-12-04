@@ -23,7 +23,7 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, ture);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
