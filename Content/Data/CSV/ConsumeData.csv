@@ -1,0 +1,4 @@
+Index,MainEffectClass,EffectType,Power,Duration,CooldownEffectClass,CooldownDuration,CooldownTag,bIncludeDurationInCooldown,InUseTags
+1,/Game/GameplayEffects/GE_HealthPotion.GE_HealthPotion_C,Instant,50,0,/Game/GameplayEffects/GE_Cooldown_Base.GE_Cooldown_Base_C,3,Cooldown.Item.HealthPotion,FALSE,-1
+2,/Game/GameplayEffects/GE_StrengthBuff.GE_StrengthBuff_C,HasDuration,20,30,/Game/GameplayEffects/GE_Cooldown_Base.GE_Cooldown_Base_C,5,Cooldown.Item.StrengthBuff,TRUE,Status.Item.InUse.StrengthBuff
+3,/Game/GameplayEffects/GE_Light.GE_Light_C,HasDuration,0,60,/Game/GameplayEffects/GE_Cooldown_Base.GE_Cooldown_Base_C,10,Cooldown.Item.Light,TRUE,Status.Item.InUse.Light

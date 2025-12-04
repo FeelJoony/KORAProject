@@ -8,6 +8,9 @@
 #include "Data/TutorialDataStruct.h"
 #include "Data/ShopItemDataStruct.h"
 #include "Data/EquipmentDataStruct.h"
+#include "Data/ConsumeDataStruct.h"
+
+struct FConsumeDataStruct;
 
 void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 {
@@ -54,6 +57,13 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 			InitKeyList<FEquipmentDataStruct>(NewDataTable);
 		}
 		break;
+	
+
+	case EGameDataType::ConsumeData:
+		{
+			InitKeyList<FConsumeDataStruct>(NewDataTable);
+		}
+	break;
 	}
 }
 
