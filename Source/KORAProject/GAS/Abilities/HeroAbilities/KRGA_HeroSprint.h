@@ -23,7 +23,7 @@ public:
 	
 protected:
 	UFUNCTION()
-	void OnSprint();
+	void UpdateSprintSpeed();
 
 	UPROPERTY(EditDefaultsOnly, Category = KRAbility)
 	float SprintChargeTime = 0.25f;
@@ -39,10 +39,11 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitDelay> EndDelayTask;
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitDelay> StartSprintTask;
 	
 	bool bSprintStarted = false;
 	
-	FTimerHandle TimerHandle;
+	float CurrentChargeTime=0.f;
+	float InitialWalkSpeed=400.f;
+	
+	FTimerHandle SprintChargeTimerHandle;
 };
