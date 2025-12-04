@@ -117,6 +117,8 @@ void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstanc
         CachedIMC = EquipFragment->WeaponIMC;
         CachedIMCPriority = EquipFragment->InputPriority;
         CachedAbilities = EquipFragment->GrantedAbilities;
+        LightAttackMontages = EquipFragment->LightAttackMontages;
+        ChargeAttackMontages = EquipFragment->ChargeAttackMontages;
     }
 }
 
@@ -304,6 +306,29 @@ void UKRWeaponInstance::RemoveWeaponInputContext(AKRPlayerController* TargetPC)
             Subsystem->RemoveMappingContext(CachedIMC);
         }
     }
+}
+
+UAnimMontage* UKRWeaponInstance::GetLightAttackMontage(int32 ComboIndex) const
+{
+    if (LightAttackMontages.IsValidIndex(ComboIndex))
+    {
+        return LightAttackMontages[ComboIndex];
+    }
+    return nullptr;
+}
+
+UAnimMontage* UKRWeaponInstance::GetChargeAttackMontage(int32 ComboIndex) const
+{
+    if (ChargeAttackMontages.IsValidIndex(ComboIndex))
+    {
+        return ChargeAttackMontages[ComboIndex];
+    }
+    return nullptr;
+}
+
+float UKRWeaponInstance::GetWeaponChargeTime() const
+{
+    return ChargeTime;
 }
 
 void UKRWeaponInstance::GrantWeaponAbilities(UKRAbilitySystemComponent* ASC)
