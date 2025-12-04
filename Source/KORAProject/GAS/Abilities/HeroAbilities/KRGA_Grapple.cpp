@@ -5,6 +5,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
@@ -26,6 +27,8 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		OnAbilityEnd();
 	}
 	
+	EndMontageTask=nullptr;
+	
 	AController* PlayerController = CachedPlayerCharacter->GetController();
 	if (!PlayerController) return;
 
@@ -45,7 +48,7 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	
+	ApplyCableVisibility(false);
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -123,7 +126,9 @@ void UKRGA_Grapple::StartMove()
 				0.01f,
 				true
 			);
-			
+			UAbilityTask_WaitDelay* EndDurationTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
+			EndDurationTask->OnFinish.AddDynamic(this, &UKRGA_Grapple::StopPlayerMove);
+			EndDurationTask->ReadyForActivation();
 		}
 		break;
 	}
@@ -155,6 +160,10 @@ void UKRGA_Grapple::StopPlayerMove()
 		EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
 		EndMontageTask->ReadyForActivation();
 	}
+	else
+	{
+		OnAbilityEnd();
+	}
 }
 
 void UKRGA_Grapple::LineTrace()
@@ -170,9 +179,8 @@ void UKRGA_Grapple::LineTrace()
 	UCameraComponent* Cam = CachedPlayerCharacter->GetComponentByClass<UCameraComponent>();
 	if (!Cam) return;
 
-	//FVector StartLocation = CachedPlayerCharacter->GetPawnViewLocation();
-	FVector StartLocation=PlayerController->GetTargetLocation();
-	FRotator StartRotation = PlayerController->GetControlRotation();
+	FVector StartLocation = Cam->GetComponentLocation();
+	FRotator StartRotation = Cam->GetComponentRotation();
 	FVector EndLocation = StartLocation+(StartRotation.Vector()*TraceRange);
 
 	FHitResult OutHitResult;
@@ -239,17 +247,14 @@ void UKRGA_Grapple::LineTrace()
 
 void UKRGA_Grapple::OnLoopMontage()
 {
-	if (!LoopMontageTask)
-	{
-		LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, TEXT("LoopMontageTask"),LoopMoveMontage
-	);
-		LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-		LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-		LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-		LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-		LoopMontageTask->ReadyForActivation();
-	}
+	LoopMontageTask = nullptr;
+	LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		       this, TEXT("LoopMontageTask"),LoopMoveMontage);
+	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
+	LoopMontageTask->ReadyForActivation();
 }
 
 void UKRGA_Grapple::OnPullMontageLoop()
