@@ -33,6 +33,9 @@ public:
 	virtual void CheckDefaultInitialization() override;
 	//~ End IGameFrameworkInitStateInterface
 
+	UFUNCTION(BlueprintCallable, Category = "KR|Input")
+	FVector2D GetLastLookInput() const { return LastLookInput; }
+	
 protected:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
@@ -50,6 +53,8 @@ protected:
 
 	UPROPERTY()
 	TSubclassOf<UKRCameraMode> AbilityCameraMode;
+
+	FVector2D LastLookInput = FVector2D::ZeroVector;
 
 private:
 	bool bReadyToBindInputs;

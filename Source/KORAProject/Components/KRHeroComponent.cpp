@@ -231,10 +231,12 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 
 void UKRHeroComponent::Input_Look(const FInputActionValue& InputActionValue)
 {
+	LastLookInput = InputActionValue.Get<FVector2D>();
+	
 	APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn) return;
 
-	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
+	const FVector2D LookAxisVector = LastLookInput;
 
 	if (LookAxisVector.X != 0.f)
 	{
