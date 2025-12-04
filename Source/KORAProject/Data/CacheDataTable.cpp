@@ -1,5 +1,7 @@
 #include "Data/CacheDataTable.h"
 
+#include "QuestDataStruct.h"
+#include "SubQuestDataStruct.h"
 #include "Engine/DataTable.h"
 #include "Data/SampleDataStruct.h"
 #include "Data/ItemDataStruct.h"
@@ -9,6 +11,8 @@
 #include "Data/ShopItemDataStruct.h"
 #include "Data/EquipmentDataStruct.h"
 #include "Data/ConsumeDataStruct.h"
+#include "Data/QuestDataStruct.h"
+#include "Data/SubQuestDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -64,6 +68,18 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 			InitKeyList<FConsumeDataStruct>(NewDataTable);
 		}
 	break;
+		
+
+		case EGameDataType::QuestData:
+		{
+			InitKeyList<FQuestDataStruct>(NewDataTable);
+		}
+		break;
+	
+		case EGameDataType::SubQuestData:
+		{
+			InitKeyList<FSubQuestDataStruct>(NewDataTable);
+		}
+		break;
 	}
 }
-

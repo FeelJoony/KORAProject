@@ -1,22 +1,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
-#include "GameplayTagContainer.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
+#include "SubQuestEvalData.h"
 #include "KRQuestInstance.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogQuestInstance, Log, All);
 
-UENUM(BlueprintType)
-enum class EQuestState : uint8
-{
-	NotStarted			UMETA(DisplayName = "Not Started"),
-	InProgress			UMETA(DisplayName = "In Progress"),
-	Completed			UMETA(DisplayName = "Completed"),
-	Failed				UMETA(DisplayName = "Failed")
-};
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestAccepted, int32, QuestIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestCompleted, int32, QuestIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestFailed, int32, QuestIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSubQuestProgress, int32, QuestIndex, int32, SubQuestDataKey, const struct FSubQuestEvalData&, EvalData);
 
 UCLASS(BlueprintType)
 class KORAPROJECT_API UKRQuestInstance : public UObject
@@ -26,9 +21,19 @@ class KORAPROJECT_API UKRQuestInstance : public UObject
 public:
 	UKRQuestInstance();
 
-	void Initialize(int32 QuestIndex, class APlayerState* InOwningPlayer);
+	UPROPERTY(BlueprintAssignable, Category = "Quest")
+	FOnQuestAccepted OnQuestAccepted;
 
-	void SetStateTreeAsset(FPrimaryAssetId PrimaryAssetId);
+	UPROPERTY(BlueprintAssignable, Category = "Quest")
+	FOnQuestCompleted OnQuestCompleted;
+
+	UPROPERTY(BlueprintAssignable, Category = "Quest")
+	FOnQuestFailed OnQuestFailed;
+
+	UPROPERTY(BlueprintAssignable, Category = "Quest")
+	FOnSubQuestProgress OnSubQuestProgress;
+
+	void Initialize(int32 QuestIndex);
 
 	UFUNCTION(BlueprintCallable, Category = Quest)
 	void StartQuest();
@@ -45,37 +50,48 @@ public:
 	EQuestState GetQuestState() const { return CurrentState; }
 
 	UFUNCTION(BlueprintPure, Category = Quest)
-	int32 GetQuestIndex() const { return QuestData.GetKey(); }
+	int32 GetQuestIndex() const { return CurrentQuestData.GetKey(); }
 
 	UFUNCTION(BlueprintPure, Category = Quest)
-	const FQuestDataStruct& GetQuestData() const { return QuestData; }
+	const FQuestDataStruct& GetQuestData() const { return CurrentQuestData; }
 
 	UFUNCTION(BlueprintPure, Category = Quest)
-	const FSubQuestDataStruct& GetSubQuestData() const { return SubQuestData; }
+	const FSubQuestDataStruct& GetSubQuestData() const { return CurrentSubQuestData; }
 
 	UFUNCTION(BlueprintPure, Category = Quest)
 	bool IsQuestCompleted() const { return CurrentState == EQuestState::Completed; }
 
-	UFUNCTION(BlueprintPure, Category = Quest)
-	FSubQuestEvalDataStruct GetSubQuestEvalData() const { return SubQuestData.EvalDatas[CurrentSubOrder - 1]; }
+	UFUNCTION(BlueprintPure, Category = Qeust)
+	bool IsSubQuestCompleted(int32 Order) { return SubQuestProgressMap.Find(Order)->IsCompleted(); }
 
 	UFUNCTION(BlueprintPure, Category = Quest)
-	class UStateTreeComponent* GetStateTreeComponent() const { return StateTreeComponent; }
+	const FSubQuestEvalDataStruct& GetSubQuestEvalDataStruct() const { return CurrentSubQuestData.EvalDatas[CurrentSubOrder - 1]; }
+
+	UFUNCTION(BlueprintPure, Category = Quest)
+	const FSubQuestEvalData& GetSubQuestEvalData() const { return *SubQuestProgressMap.Find(CurrentSubOrder); }
+	
+	void AddCount(int32 Amount);
+	void SetNextQuest();
+	
 
 protected:
-
 	UPROPERTY(BlueprintReadOnly, Category = Quest)
-	FQuestDataStruct QuestData;
+	FQuestDataStruct CurrentQuestData;
+	
 	UPROPERTY(BlueprintReadOnly, Category = Quest)
-	FSubQuestDataStruct SubQuestData;
+	FSubQuestDataStruct CurrentSubQuestData;
+	
 	UPROPERTY(BlueprintReadOnly, Category = Quest)
-	TObjectPtr<class UStateTree> StateTreeAsset;
-	UPROPERTY()
-	TObjectPtr<class UStateTreeComponent> StateTreeComponent;
-	UPROPERTY(BlueprintReadOnly, Category = Quest)
-	TObjectPtr<class APlayerState> OwningPlayer;
+	TObjectPtr<class AKRQuestActor> OwningActor;
+	
 	UPROPERTY(BlueprintReadOnly, Category = Quest)
 	int32 CurrentSubOrder;
+	
 	UPROPERTY(BlueprintReadOnly, Category = Quest)
 	EQuestState CurrentState;
+
+
+private:
+	UPROPERTY()
+	TMap<int32, FSubQuestEvalData> SubQuestProgressMap;
 };
