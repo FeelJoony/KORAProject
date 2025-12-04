@@ -13,12 +13,14 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	AddDataTable(EGameDataType::SampleData, FString(TEXT("SampleData")));
 	AddDataTable(EGameDataType::ItemData, FString(TEXT("ItemData")));
+	AddDataTable(EGameDataType::QuestData, FString(TEXT("QuestData")));
+	AddDataTable(EGameDataType::SubQuestData, FString(TEXT("SubQuestData")));
 	AddDataTable(EGameDataType::WeaponData, FString(TEXT("WeaponData")));
 	AddDataTable(EGameDataType::WeaponEnhanceData, FString(TEXT("WeaponEnhanceData")));
 	AddDataTable(EGameDataType::TutorialData, FString(TEXT("TutorialData")));
 	AddDataTable(EGameDataType::ShopItemData, FString(TEXT("ShopItemData")));
-	AddDataTable(EGameDataType::QuestData, FString(TEXT("QuestData")));
-	AddDataTable(EGameDataType::SubQuestData, FString(TEXT("SubQuestData")));
+	AddDataTable(EGameDataType::EquipmentData, FString(TEXT("EquipmentData")));
+	AddDataTable(EGameDataType::ConsumeData, FString(TEXT("ConsumeData")));
 }
 
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
