@@ -16,7 +16,7 @@ void UKRAnimNotifyState_EnemySlash::NotifyBegin(USkeletalMeshComponent* MeshComp
 	UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
 	if (EnemyCombatComp)
 	{
-		EnemyCombatComp->ToggleWeaponCollision(true, EToggleDamageType::CurrentEquippedWeapon);
+		EnemyCombatComp->ToggleWeaponCollision(true, EToggleDamageType::CurrentEquippedWeapon, EWeaponSlot::RightHand);
 	}
 }
 
@@ -30,6 +30,6 @@ void UKRAnimNotifyState_EnemySlash::NotifyEnd(USkeletalMeshComponent* MeshComp,
 	UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
 	if (EnemyCombatComp)
 	{
-		EnemyCombatComp->ToggleWeaponCollision(false, EToggleDamageType::CurrentEquippedWeapon);
+		EnemyCombatComp->ToggleWeaponCollision(false, EToggleDamageType::CurrentEquippedWeapon, EWeaponSlot::RightHand);
 	}
 }
