@@ -16,345 +16,488 @@
 
 //CharacterMovement->AirControl = 0.35f;
 
-void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                   const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
+                                     const FGameplayAbilityActorInfo* ActorInfo,
+                                     const FGameplayAbilityActivationInfo ActivationInfo, 
+                                     const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	CachedPlayerCharacter = Cast<ACharacter>(CurrentActorInfo->AvatarActor);
-	if (!CachedPlayerCharacter)
-	{
-		OnAbilityEnd();
-	}
-	
-	EndMontageTask=nullptr;
-	
-	AController* PlayerController = CachedPlayerCharacter->GetController();
-	if (!PlayerController) return;
+    CachedPlayerCharacter = Cast<ACharacter>(CurrentActorInfo->AvatarActor);
+    if (!CachedPlayerCharacter)
+    {
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+        return;
+    }
 
-	CachedPlayerCharacter->SetActorRotation(FRotator(CachedPlayerCharacter->GetActorRotation().Pitch, PlayerController->GetControlRotation().Yaw, CachedPlayerCharacter->GetActorRotation().Roll));
-	
-	UAbilityTask_PlayMontageAndWait* StartMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, TEXT("StartMontageTask"), StartMontage
-	);
-	StartMontageTask->OnBlendedIn.AddDynamic(this, &UKRGA_Grapple::LineTrace);
-	StartMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::StartMove);
-	StartMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::StartMove);
-	StartMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::StartMove);
-	StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::StartMove);
-	StartMontageTask->ReadyForActivation();
+    if (AController* PlayerController = CachedPlayerCharacter->GetController())
+    {
+        FRotator NewRotation = CachedPlayerCharacter->GetActorRotation();
+        NewRotation.Yaw = PlayerController->GetControlRotation().Yaw;
+        CachedPlayerCharacter->SetActorRotation(NewRotation);
+    }
+    BeginStartMontage();
 }
 
-void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle, 
+                                const FGameplayAbilityActorInfo* ActorInfo,
+                                const FGameplayAbilityActivationInfo ActivationInfo, 
+                                bool bReplicateEndAbility, 
+                                bool bWasCancelled)
 {
-	ApplyCableVisibility(false);
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+    ApplyCableVisibility(false);
+
+	CachedPlayerCharacter->bUseControllerRotationYaw = false;
+	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+	
+    Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UKRGA_Grapple::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo)
+void UKRGA_Grapple::InputReleased(const FGameplayAbilitySpecHandle Handle, 
+                                   const FGameplayAbilityActorInfo* ActorInfo,
+                                   const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-	CancelGrapple();
+    Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+    CancelAbility();
 }
 
-void UKRGA_Grapple::StartMove()
+void UKRGA_Grapple::PerformLineTrace()
+{
+    if (!CachedPlayerCharacter) return;
+
+    ApplyCableVisibility(true);
+
+    UCameraComponent* Camera = CachedPlayerCharacter->GetComponentByClass<UCameraComponent>();
+    if (!Camera) return;
+
+    FVector StartLocation = Camera->GetComponentLocation();
+    FRotator StartRotation = Camera->GetComponentRotation();
+    FVector EndLocation = StartLocation + (StartRotation.Vector() * TraceRange);
+
+    FHitResult HitResult;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(CachedPlayerCharacter);
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(
+        HitResult, StartLocation, EndLocation, ECC_Visibility, Params);
+    
+    DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 1.f);
+
+    if (bHit)
+    {
+        DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 5.f, 12, FColor::Red, false, 1.f);
+        ProcessHitResult(HitResult);
+    }
+    else
+    {
+        HitState = EGrappleState::Default;
+        GrapPoint = EndLocation;
+        ApplyCableLocation();
+
+    }
+}
+
+void UKRGA_Grapple::StartMoveLoopMontage()
+{
+	LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, TEXT("LoopMoveMontage"), LoopMoveMontage);
+    
+	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::StartMoveLoopMontage);
+	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::StartMoveLoopMontage);
+	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::StartMoveLoopMontage);
+	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::StartMoveLoopMontage);
+    
+	LoopMontageTask->ReadyForActivation();
+}
+
+void UKRGA_Grapple::OnStartMontageFinished()
 {
 	switch (HitState)
 	{
-	case EGrappleState::Default:
-		{
-			CancelGrapple();
-		}
-		break;
 	case EGrappleState::HitEnemy:
-		{
-			IAbilitySystemInterface* HitPawnASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
-			if (!HitPawnASI) OnAbilityEnd();
-			UAbilitySystemComponent* HitPawnASC = HitPawnASI->GetAbilitySystemComponent();
-			if (!HitPawnASC) OnAbilityEnd();
-			HitPawnASC->AddLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
-
-			OnPullMontageLoop();
-
-			CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-			
-			GetWorld()->GetTimerManager().SetTimer(
-				MoveToTimer,
-				this,
-				&UKRGA_Grapple::TargetMoveToPlayer,
-				0.01f,
-				true
-			);
-			GetWorld()->GetTimerManager().SetTimer(
-				MaxGrappleTimer,
-				this,
-				&UKRGA_Grapple::CancelGrapple,
-				EnemyGrappleDuration,
-				false
-			);
-		}
+		BeginEnemyGrapple();
 		break;
+        
 	case EGrappleState::HitActor:
-		{
-			OnLoopMontage();
-			
-			float DistSquard = FVector::DistSquared(CachedPlayerCharacter->GetActorLocation(), GrapPoint);
-			float Duration = DistSquard*MoveToSpeed;
-			MoveToTask = UAbilityTask_ApplyRootMotionMoveToForce::ApplyRootMotionMoveToForce(
-				this,
-				TEXT("MoveToTask"),
-				GrapPoint,
-				Duration,
-				true,
-				MOVE_Flying,
-				true,
-				nullptr,
-				ERootMotionFinishVelocityMode::ClampVelocity,
-				CachedPlayerCharacter->GetActorLocation(),
-				true
-			);
-			MoveToTask->OnTimedOut.AddDynamic(this, &UKRGA_Grapple::StopPlayerMove);
-			MoveToTask->OnTimedOutAndDestinationReached.AddDynamic(this, &UKRGA_Grapple::StopPlayerMove);
-			MoveToTask->ReadyForActivation();
-
-			GetWorld()->GetTimerManager().SetTimer(
-				MoveToTimer,
-				this,
-				&UKRGA_Grapple::ApplyCableLocation,
-				0.01f,
-				true
-			);
-			UAbilityTask_WaitDelay* EndDurationTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
-			EndDurationTask->OnFinish.AddDynamic(this, &UKRGA_Grapple::StopPlayerMove);
-			EndDurationTask->ReadyForActivation();
-		}
+		BeginActorGrapple();
+		break;
+        
+	case EGrappleState::Default:
+	default:
+		FinishAbility();
 		break;
 	}
 }
 
-void UKRGA_Grapple::StopPlayerMove()
+void UKRGA_Grapple::StartPullLoopMontage()
 {
-	if (IsValid(MoveToTask))
+	LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, TEXT("LoopPullMontage"), LoopPullMontage);
+    
+	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
+	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
+	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
+	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
+    
+	LoopMontageTask->ReadyForActivation();
+}
+
+void UKRGA_Grapple::OnActorGrappleFinished()
+{
+	CleanupActorGrapple();
+	BeginLaunchMontage();
+}
+
+void UKRGA_Grapple::FinishAbility()
+{
+	if (CachedPlayerCharacter)
+	{
+		CachedPlayerCharacter->bUseControllerRotationYaw = false;
+		CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
+
+	CleanupAllTasks();
+	CleanupAllTimers();
+
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UKRGA_Grapple::BeginStartMontage()
+{
+    StartMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+        this, TEXT("StartMontage"), StartMontage);
+    
+    StartMontageTask->OnBlendedIn.AddDynamic(this, &UKRGA_Grapple::PerformLineTrace);
+    StartMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnStartMontageFinished);
+    StartMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnStartMontageFinished);
+    StartMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnStartMontageFinished);
+    StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnStartMontageFinished);
+    
+    StartMontageTask->ReadyForActivation();
+}
+
+void UKRGA_Grapple::ProcessHitResult(const FHitResult& HitResult)
+{
+    AActor* HitActor = HitResult.GetActor();
+    if (!HitActor)
+    {
+        HitState = EGrappleState::Default;
+        return;
+    }
+
+    if (APawn* HitPawn = Cast<APawn>(HitActor))
+    {
+        if (IsGrappleableEnemy(HitPawn))
+        {
+            HitState = EGrappleState::HitEnemy;
+            CachedTargetPawn = HitPawn;
+            TargetCapsuleComp = HitPawn->GetComponentByClass<UCapsuleComponent>();
+            
+            if (TargetCapsuleComp)
+            {
+                GrapPoint = TargetCapsuleComp->GetComponentLocation();
+                ApplyCableLocation();
+            }
+            
+            //UE_LOG(LogTemp, Display, TEXT("[Grapple] Hit Enemy: %s"), *HitPawn->GetName());
+            return;
+        }
+    }
+
+    HitState = EGrappleState::HitActor;
+    GrapPoint = HitResult.ImpactPoint;
+    
+    UGameplayStatics::SpawnDecalAtLocation(
+        GetWorld(),
+        DecalMaterial,
+        FVector(DecalSize),
+        HitResult.ImpactPoint,
+        HitResult.ImpactNormal.Rotation(),
+        1.f
+    );
+    
+    ApplyCableLocation();
+}
+
+bool UKRGA_Grapple::IsGrappleableEnemy(APawn* Pawn)
+{
+    IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Pawn);
+    if (!ASI) return false;
+
+    UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+    if (!ASC) return false;
+
+    return ASC->HasMatchingGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE);
+}
+
+void UKRGA_Grapple::BeginEnemyGrapple()
+{
+    if (!ApplyStunToEnemy())
+    {
+        FinishAbility();
+        return;
+    }
+
+    CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+
+    StartPullLoopMontage();
+
+    GetWorld()->GetTimerManager().SetTimer(
+        MoveToTimer,
+        this,
+        &UKRGA_Grapple::TickEnemyMovement,
+        0.01f,
+        true
+    );
+
+    GetWorld()->GetTimerManager().SetTimer(
+        MaxGrappleTimer,
+        this,
+        &UKRGA_Grapple::CancelAbility,
+        EnemyGrappleDuration,
+        false
+    );
+}
+
+bool UKRGA_Grapple::ApplyStunToEnemy() const
+{
+    if (!CachedTargetPawn) return false;
+
+    IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
+    if (!ASI) return false;
+
+    UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+    if (!ASC) return false;
+
+    ASC->AddLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
+    return true;
+}
+
+void UKRGA_Grapple::RemoveStunFromEnemy() const
+{
+    if (!CachedTargetPawn) return;
+
+    IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
+    if (!ASI) return;
+
+    UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+    if (!ASC) return;
+
+    ASC->RemoveLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
+}
+
+void UKRGA_Grapple::TickEnemyMovement()
+{
+    if (!TargetCapsuleComp || !CachedTargetPawn)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[Grapple] Invalid target components"));
+        CancelAbility();
+        return;
+    }
+
+    GrapPoint = TargetCapsuleComp->GetComponentLocation();
+    ApplyCableLocation();
+
+    UCapsuleComponent* PlayerCapsule = CachedPlayerCharacter->GetCapsuleComponent();
+    if (!PlayerCapsule) return;
+
+    FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
+    PlayerLocation.Z -= PlayerCapsule->GetScaledCapsuleHalfHeight();
+
+    FVector MoveDirection = (PlayerLocation - GrapPoint).GetSafeNormal();
+    FVector MoveOffset = GetWorld()->GetDeltaSeconds() * MoveDirection * TargetMoveSpeed;
+    CachedTargetPawn->AddActorWorldOffset(MoveOffset, true);
+
+    FVector LookDirection = (GrapPoint - PlayerLocation).GetSafeNormal();
+    CachedPlayerCharacter->SetActorRotation(FRotator(0.2f, LookDirection.Rotation().Yaw, 0.f));
+
+    if (FVector::DistSquared(PlayerLocation, GrapPoint) < StopNealyDistSquared)
+    {
+        CancelAbility();
+    }
+}
+
+void UKRGA_Grapple::CleanupEnemyGrapple()
+{
+    RemoveStunFromEnemy();
+	if (LoopMontageTask && LoopMontageTask->IsActive())
+	{
+		LoopMontageTask->EndTask();
+	}
+    GetWorld()->GetTimerManager().ClearTimer(MoveToTimer);
+    GetWorld()->GetTimerManager().ClearTimer(MaxGrappleTimer);
+	CachedPlayerCharacter->StopAnimMontage(LoopPullMontage);
+	BeginEndPullMontage();
+}
+
+void UKRGA_Grapple::BeginEndPullMontage()
+{
+	if (!CachedPlayerCharacter || !EndPullMontage)
+	{
+		FinishAbility();
+		return;
+	}
+
+	if (EndMontageTask && EndMontageTask->IsActive())
+	{
+		FinishAbility();
+		return;
+	}
+
+	EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, TEXT("EndPullMontage"), EndPullMontage);
+    
+	EndMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+	EndMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+	EndMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+	EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+    
+	EndMontageTask->ReadyForActivation();
+}
+
+void UKRGA_Grapple::BeginActorGrapple()
+{
+	StartMoveLoopMontage();
+
+	float Dist = FVector::Dist(
+		CachedPlayerCharacter->GetActorLocation(),
+		GrapPoint);
+	float Duration = Dist * MoveToSpeed;
+	//UE_LOG(LogTemp,Warning,TEXT("[GA_Grapple] DistSquared : %f, Duration : %f"),Dist,Duration);
+
+	MoveToTask = UAbilityTask_ApplyRootMotionMoveToForce::ApplyRootMotionMoveToForce(
+		this,
+		TEXT("MoveToTask"),
+		GrapPoint,
+		Duration,
+		true,
+		MOVE_Flying,
+		true,
+		nullptr,
+		ERootMotionFinishVelocityMode::ClampVelocity,
+		CachedPlayerCharacter->GetActorLocation(),
+		true
+	);
+
+	MoveToTask->OnTimedOut.AddDynamic(this, &UKRGA_Grapple::OnActorGrappleFinished);
+	MoveToTask->OnTimedOutAndDestinationReached.AddDynamic(this, &UKRGA_Grapple::OnActorGrappleFinished);
+	MoveToTask->ReadyForActivation();
+
+	GetWorld()->GetTimerManager().SetTimer(
+		MoveToTimer,
+		this,
+		&UKRGA_Grapple::TickActorGrappleMovement,
+		0.01f,
+		true
+	);
+
+	UAbilityTask_WaitDelay* DurationTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
+	DurationTask->OnFinish.AddDynamic(this, &UKRGA_Grapple::OnActorGrappleFinished);
+	DurationTask->ReadyForActivation();
+}
+
+void UKRGA_Grapple::TickActorGrappleMovement()
+{
+	ApplyCableLocation();
+
+	//UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] GrapPoint : %f, %f, %f"),GrapPoint.X,GrapPoint.Y,GrapPoint.Z);
+	
+	FVector PlayerLocation = CachedPlayerCharacter->GetActorLocation();
+	FVector LookDirection = (GrapPoint - PlayerLocation).GetSafeNormal();
+	CachedPlayerCharacter->SetActorRotation(FRotator(0.2f, LookDirection.Rotation().Yaw, 0.f));
+}
+
+void UKRGA_Grapple::CleanupActorGrapple()
+{
+	if (MoveToTask && MoveToTask->IsActive())
 	{
 		MoveToTask->EndTask();
 	}
-	if (IsValid(LoopMontageTask))
+    
+	if (LoopMontageTask && LoopMontageTask->IsActive())
 	{
 		LoopMontageTask->EndTask();
 	}
 
+	GetWorld()->GetTimerManager().ClearTimer(MoveToTimer);
+
+	if (CachedPlayerCharacter)
+	{
+		CachedPlayerCharacter->StopAnimMontage(LoopMoveMontage);
+	}
+
 	CachedPlayerCharacter->bUseControllerRotationYaw = true;
 	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-
-	if (EndMontageTask==nullptr)
-	{
-		CachedPlayerCharacter->LaunchCharacter(FVector(0.f,0.f,1.f)*EndLaunchSpeed, true,  true);
-		EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-			this,TEXT("EndMontageTask"),LaunchMontage
-		);
-		EndMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnAbilityEnd);
-		EndMontageTask->ReadyForActivation();
-	}
-	else
-	{
-		OnAbilityEnd();
-	}
 }
 
-void UKRGA_Grapple::LineTrace()
+void UKRGA_Grapple::BeginLaunchMontage()
 {
-	if (!CachedPlayerCharacter) return;
-
-	ApplyCableVisibility(true);
-	
-
-	AController* PlayerController = CachedPlayerCharacter->GetController();
-	if (!PlayerController) return;
-
-	UCameraComponent* Cam = CachedPlayerCharacter->GetComponentByClass<UCameraComponent>();
-	if (!Cam) return;
-
-	FVector StartLocation = Cam->GetComponentLocation();
-	FRotator StartRotation = Cam->GetComponentRotation();
-	FVector EndLocation = StartLocation+(StartRotation.Vector()*TraceRange);
-
-	FHitResult OutHitResult;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(CachedPlayerCharacter);
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHitResult,StartLocation, EndLocation, ECC_Visibility, Params);
-	DrawDebugLine(GetWorld(),StartLocation,EndLocation,FColor::Red,false,1.f);
-	
-	if (bHit)
+	if (EndMontageTask && EndMontageTask->IsActive())
 	{
-		DrawDebugSphere(GetWorld(), OutHitResult.ImpactPoint, 5.f, 12, FColor::Red, false, 1.f);
-
-		if (AActor* HitActor = Cast<AActor>(OutHitResult.GetActor()))
-		{
-			if (APawn* HitPawn = Cast<APawn>(HitActor))
-			{
-				if (IAbilitySystemInterface* HitPawnASI = Cast<IAbilitySystemInterface>(HitPawn))
-				{
-					if (UAbilitySystemComponent* HitPawnASC = HitPawnASI->GetAbilitySystemComponent())
-					{
-						if (HitPawnASC->HasMatchingGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE))
-						{
-							HitState = EGrappleState::HitEnemy;
-							
-							CachedTargetPawn=HitPawn;
-
-							TargetCapsuleComp = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
-							if (TargetCapsuleComp)
-							{
-								GrapPoint=TargetCapsuleComp->GetComponentLocation();
-								ApplyCableLocation();
-							}
-							
-							UE_LOG(LogTemp, Display, TEXT("HitEnemy : %s"), *HitPawn->GetName());
-							return;
-						}
-					}
-				}
-			}
-			else
-			{
-				HitState = EGrappleState::HitActor;
-
-				GrapPoint=OutHitResult.ImpactPoint;
-				UGameplayStatics::SpawnDecalAtLocation(
-					GetWorld(),
-					DecalMaterial,
-					FVector(DecalSize),
-					OutHitResult.ImpactPoint,
-					OutHitResult.ImpactNormal.Rotation(),
-					1.f
-				);
-				ApplyCableLocation();
-				return;
-			}
-		}
+		FinishAbility();
+		return;
 	}
-	HitState = EGrappleState::Default;
-	
-	GrapPoint=EndLocation;
-	ApplyCableLocation();
-}
 
-void UKRGA_Grapple::OnLoopMontage()
-{
-	LoopMontageTask = nullptr;
-	LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		       this, TEXT("LoopMontageTask"),LoopMoveMontage);
-	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnLoopMontage);
-	LoopMontageTask->ReadyForActivation();
-}
-
-void UKRGA_Grapple::OnPullMontageLoop()
-{
-	if (!LoopMontageTask)
-	{
-		LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, TEXT("LoopMontageTask"),LoopPullMontage
+	CachedPlayerCharacter->LaunchCharacter(
+		FVector::UpVector * EndLaunchSpeed, 
+		true, 
+		true
 	);
-		LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
-		LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
-		LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
-		LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnPullMontageLoop);
-		LoopMontageTask->ReadyForActivation();
-	}
+
+	EndMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, TEXT("LaunchMontage"), LaunchMontage);
+    
+	EndMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+	EndMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+	EndMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+	EndMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+    
+	EndMontageTask->ReadyForActivation();
 }
 
-void UKRGA_Grapple::OnAbilityEnd()
-{
-	CachedPlayerCharacter->bUseControllerRotationYaw = false;
-	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
-	
-	EndAbility(CurrentSpecHandle, CurrentActorInfo,CurrentActivationInfo,true,false);
-}
-
-void UKRGA_Grapple::TargetMoveToPlayer()
-{
-	if (!TargetCapsuleComp)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Target CapsuleComponent Is Null"))
-		return;
-	} 
-	GrapPoint = TargetCapsuleComp->GetComponentLocation();
-	ApplyCableLocation();
-	
-	UCapsuleComponent* PlayerCapsule = CachedPlayerCharacter->GetCapsuleComponent();
-	if (!PlayerCapsule)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GA_Grapple] Player CapsuleComponent Is Null"));
-		return;
-	}
-	FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
-	PlayerLocation.Z-=PlayerCapsule->GetScaledCapsuleHalfHeight();
-
-	FVector MoveDirection = (PlayerLocation - GrapPoint).GetSafeNormal();
-	FVector MoveOffset = (GetWorld()->GetDeltaSeconds())*MoveDirection*TargetMoveSpeed;
-	CachedTargetPawn->AddActorWorldOffset(MoveOffset,true);
-
-	FVector LookDirection = (GrapPoint - PlayerLocation).GetSafeNormal();
-	CachedPlayerCharacter->SetActorRotation(FRotator(0.2f,LookDirection.Rotation().Yaw,0.f));
-
-	if (FVector::DistSquared(PlayerLocation,GrapPoint) < StopNealyDistSquared)
-	{
-		CancelGrapple();
-	}
-}
-
-void UKRGA_Grapple::CancelGrapple()
+void UKRGA_Grapple::CancelAbility()
 {
 	ApplyCableVisibility(false);
 	
-	if (CachedPlayerCharacter)
-	{
-		CachedPlayerCharacter->StopAnimMontage();
-	}
-
 	switch (HitState)
 	{
-	case EGrappleState::Default:
-		{
-			OnAbilityEnd();
-		}
-	break;
 	case EGrappleState::HitEnemy:
-		{
-			IAbilitySystemInterface* HitPawnASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
-			if (!HitPawnASI) OnAbilityEnd();
-			UAbilitySystemComponent* HitPawnASC = HitPawnASI->GetAbilitySystemComponent();
-			if (!HitPawnASC) OnAbilityEnd();
-			HitPawnASC->RemoveLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
-			
-			if (MoveToTimer.IsValid())
-            {
-            	GetWorld()->GetTimerManager().ClearTimer(MoveToTimer);
-            }
-			if (MaxGrappleTimer.IsValid())
-			{
-				GetWorld()->GetTimerManager().ClearTimer(MaxGrappleTimer);
-			}
-			OnAbilityEnd();
-		}
-	break;
+		CleanupEnemyGrapple();
+		break;
+        
 	case EGrappleState::HitActor:
-		{
-			if (MoveToTimer.IsValid())
-			{
-				GetWorld()->GetTimerManager().ClearTimer(MoveToTimer);
-			}
-			StopPlayerMove();
-		}
-	break;
+		CleanupActorGrapple();
+		BeginLaunchMontage();
+		return;
+        
+	case EGrappleState::Default:
+	default:
+		break;
 	}
+
+	FinishAbility();
+}
+
+void UKRGA_Grapple::CleanupAllTasks() const
+{
+	if (StartMontageTask && StartMontageTask->IsActive())
+		StartMontageTask->EndTask();
+    
+	if (LoopMontageTask && LoopMontageTask->IsActive())
+		LoopMontageTask->EndTask();
+    
+	if (MoveToTask && MoveToTask->IsActive())
+		MoveToTask->EndTask();
+    
+	if (EndMontageTask && EndMontageTask->IsActive())
+		EndMontageTask->EndTask();
+}
+
+void UKRGA_Grapple::CleanupAllTimers()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	World->GetTimerManager().ClearTimer(MoveToTimer);
+	World->GetTimerManager().ClearTimer(MaxGrappleTimer);
 }

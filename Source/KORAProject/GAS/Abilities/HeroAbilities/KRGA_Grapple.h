@@ -26,39 +26,62 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
-	
+
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
 	void ApplyCableVisibility(bool Visible);
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
 	void ApplyCableLocation();
-
+	
 	UFUNCTION()
-	void StartMove();
-
+	void PerformLineTrace();
 	UFUNCTION()
-	void StopPlayerMove();
+	void StartMoveLoopMontage();
+	UFUNCTION()
+	void OnStartMontageFinished();
+	UFUNCTION()
+	void StartPullLoopMontage();
+	UFUNCTION()
+	void OnActorGrappleFinished();
+	UFUNCTION()
+	void FinishAbility();
+	
+	void BeginStartMontage();
+	
+	void ProcessHitResult(const FHitResult& HitResult);
+	
+	/*static*/ bool IsGrappleableEnemy(APawn* Pawn);
+	
+	void BeginEnemyGrapple();
+	
+	bool ApplyStunToEnemy() const;
+	
+	void RemoveStunFromEnemy() const;
+	
+	void TickEnemyMovement();
+	
+	void CleanupEnemyGrapple();
+	
+	void BeginEndPullMontage();
+
+	void BeginActorGrapple();
+	
+	void TickActorGrappleMovement();
+	
+	void CleanupActorGrapple();
+	
+	void BeginLaunchMontage();
+	
+	void CancelAbility();
+	
+	void CleanupAllTasks() const;
+	
+	void CleanupAllTimers();
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FVector GrapPoint;
 	
 private:
-	UFUNCTION()
-	void LineTrace();
-
-	UFUNCTION()
-	void OnLoopMontage();
-
-	UFUNCTION()
-	void OnPullMontageLoop();
-	
-	UFUNCTION()
-	void OnAbilityEnd();
-		
-	void TargetMoveToPlayer();
-	
-	void CancelGrapple();
-
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> StartMontage = nullptr;
 
@@ -69,7 +92,7 @@ private:
 	TObjectPtr<UAnimMontage> LoopPullMontage = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UAnimMontage> TargettGrappleMontage = nullptr;
+	TObjectPtr<UAnimMontage> EndPullMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> LaunchMontage = nullptr;
@@ -80,15 +103,16 @@ private:
 	TObjectPtr<UAbilityTask_ApplyRootMotionMoveToForce> MoveToTask=nullptr;
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> EndMontageTask=nullptr;
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> StartMontageTask=nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UMaterial> DecalMaterial = nullptr;
 
-	EGrappleState HitState = EGrappleState::Default;
-	
 	FTimerHandle MoveToTimer;
-
 	FTimerHandle MaxGrappleTimer;
+	
+	EGrappleState HitState = EGrappleState::Default;
 		
 	// 에디터 설정
 	UPROPERTY(EditDefaultsOnly)
