@@ -18,6 +18,10 @@ public:
 	AKRHeroCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PossessedBy(AController* NewController) override;
+
+	UFUNCTION(BlueprintCallable, Category = "KR|Movement")
+	void SetMovementMode_Strafe(bool bStrafe);
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Camera")
 	TObjectPtr<UKRCameraComponent> CameraComponent;
