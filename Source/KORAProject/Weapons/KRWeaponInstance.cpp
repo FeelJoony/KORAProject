@@ -1,8 +1,9 @@
 #include "Weapons/KRWeaponInstance.h"
+#include "EnhancedInputSubsystems.h"
+#include "KRWeaponAttributeSet.h"
 #include "Equipment/KREquipmentDefinition.h"
 #include "Item/Weapons/KRWeaponBase.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "GameFramework/Character.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
@@ -10,6 +11,9 @@
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/CacheDataTable.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
+#include "Characters/KRHeroCharacter.h"
+#include "Player/KRPlayerController.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
 
 UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -26,14 +30,46 @@ UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer
 
 void UKRWeaponInstance::OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
 {
-    SpawnEquipmentActors(ActorsToSpawn);
+    Super::OnEquipped(ActorsToSpawn);
 
+    if (CachedIMC)
+    {
+        if (APawn* MyPawn = GetPawn())
+        {
+            if (APlayerController* PC = Cast<APlayerController>(MyPawn->GetController()))
+            {
+                if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+                {
+                    Subsystem->AddMappingContext(CachedIMC, CachedIMCPriority);
+                }
+            }
+        }
+    }
+    
     // 장착 시 로직 (예: HUD 업데이트, 애니메이션 변경)
     UE_LOG(LogTemp, Log, TEXT("Weapon Equipped: %s"), *WeaponType.ToString());
 }
 
 void UKRWeaponInstance::OnUnequipped()
 {
+    if (ACharacter* Char = Cast<ACharacter>(GetPawn()))
+    {
+        Char->GetMesh()->LinkAnimClassLayers(nullptr);
+    }
+    
+    if (CachedIMC)
+    {
+        if (APawn* MyPawn = GetPawn())
+        {
+            if (APlayerController* PC = Cast<APlayerController>(MyPawn->GetController()))
+            {
+                if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+                {
+                    Subsystem->RemoveMappingContext(CachedIMC);
+                }
+            }
+        }
+    }
     Super::OnUnequipped();
 
     UE_LOG(LogTemp, Log, TEXT("Weapon Unequipped: %s"), *WeaponType.ToString());
@@ -73,16 +109,15 @@ void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstanc
 
     if (const UInventoryFragment_EquippableItem* EquipFragment = Cast<UInventoryFragment_EquippableItem>(ItemDef->FindFragmentByTag(FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"))))
     {
-        if (EquipFragment->EquippableAnimLayer)
-        {
-            if (APawn* MyPawn = GetPawn())
-            {
-                if (ACharacter* MyChar = Cast<ACharacter>(MyPawn))
-                {
-                    MyChar->GetMesh()->LinkAnimClassLayers(EquipFragment->EquippableAnimLayer);
-                }
-            }
-        }
+        CachedAnimLayer = EquipFragment->EquippableAnimLayer;
+        CachedWeaponActorClass = EquipFragment->WeaponActorToSpawn;
+        CachedAttachSocket = EquipFragment->AttachSocketName;
+        CachedAttachTransform = EquipFragment->AttachTransform;
+        CachedIMC = EquipFragment->WeaponIMC;
+        CachedIMCPriority = EquipFragment->InputPriority;
+        CachedAbilities = EquipFragment->GrantedAbilities;
+        LightAttackMontages = EquipFragment->LightAttackMontages;
+        ChargeAttackMontages = EquipFragment->ChargeAttackMontages;
     }
 }
 
@@ -114,41 +149,6 @@ void UKRWeaponInstance::InitializeStats(const UInventoryFragment_SetStats* Stats
 );
 
 }
-
-// void UKRWeaponInstance::SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
-// {
-//     AActor* Owner = GetTypedOuter<AActor>();
-//     if (!Owner) return;
-//
-//     UWorld* World = Owner->GetWorld();
-//     if (!World) return;
-//
-//     for (const auto& SpawnInfo : ActorsToSpawn)
-//     {
-//         TSubclassOf<AActor> ActorClass = SpawnInfo.ActorToSpawn;
-//         if (!ActorClass) continue;
-//
-//         AKRWeaponBase* SpawnedWeapon = World->SpawnActor<AKRWeaponBase>(
-//             ActorClass,
-//             SpawnInfo.AttachTransform
-//         );
-//
-//         if (SpawnedWeapon)
-//         {
-//             SpawnedWeaponActor = SpawnedWeapon;
-//
-//             if (USkeletalMeshComponent* Mesh = Owner->FindComponentByClass<USkeletalMeshComponent>())
-//             {
-//                 SpawnedWeapon->AttachToComponent(
-//                     Mesh,
-//                     FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-//                     SpawnInfo.AttachSocket
-//                 );
-//             }
-//         }
-//     }
-// }
-
 
 float UKRWeaponInstance::CalculateDamage(bool& bOutIsCritical)
 {
@@ -188,4 +188,172 @@ void UKRWeaponInstance::ApplyEnhanceLevel(int32 EnhanceLevel)
     
     // Enhance Data Table에서 무기 타입을 TypeTag로 넣어서 GetKey로 만들어서 그걸 기반으로 AddATK랑 AddCritChance를 만들 수 있도록 수정
     
+}
+
+void UKRWeaponInstance::SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
+{
+    Super::SpawnEquipmentActors(ActorsToSpawn);
+    
+    if (CachedWeaponActorClass)
+    {
+        AActor* OwnerActor = GetPawn();
+        UWorld* World = GetWorld();
+
+        if (World && OwnerActor)
+        {
+            bool bShouldHideOnSpawn = false;
+
+            if (OwnerActor->IsA(AKRHeroCharacter::StaticClass()))
+            {
+                bShouldHideOnSpawn = true;
+            }
+            
+            FActorSpawnParameters SpawnParams;
+            SpawnParams.Owner = OwnerActor;
+            SpawnParams.Instigator = Cast<APawn>(OwnerActor);
+            SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+            AActor* NewActor = World->SpawnActorDeferred<AActor>(CachedWeaponActorClass, FTransform::Identity, OwnerActor, Cast<APawn>(OwnerActor), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+            if (NewActor)
+            {
+                NewActor->FinishSpawning(FTransform::Identity, true);
+                
+                if (ACharacter* Char = Cast<ACharacter>(OwnerActor))
+                {
+                    FName SocketName = CachedAttachSocket.IsNone() ? FName("WeaponSocket") : CachedAttachSocket;
+                    NewActor->AttachToComponent(Char->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+                    NewActor->SetActorRelativeTransform(CachedAttachTransform);
+                }
+
+                if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(NewActor))
+                {
+                    WeaponBase->SetOwningInstance(this);
+                    if (bShouldHideOnSpawn)
+                    {
+                        WeaponBase->SetWeaponVisibility(false);
+                    }
+                    else
+                    {
+                        WeaponBase->SetWeaponVisibility(true);
+                    }
+                }
+                
+                SpawnedWeaponActor = NewActor;
+                SpawnedActors.Add(NewActor);
+            }
+        }
+    }
+}
+
+void UKRWeaponInstance::DestroyEquipmentActors()
+{
+    if (SpawnedWeaponActor)
+    {
+        SpawnedWeaponActor->Destroy();
+        SpawnedWeaponActor = nullptr;
+    }
+    Super::DestroyEquipmentActors();
+}
+
+void UKRWeaponInstance::SetWeaponActiveState(bool bIsActive)
+{
+    if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(SpawnedWeaponActor))
+    {
+        WeaponBase->SetWeaponVisibility(bIsActive);
+    }
+}
+
+void UKRWeaponInstance::ApplyWeaponAnimLayer(AKRBaseCharacter* TargetCharacter)
+{
+    if (TargetCharacter && CachedAnimLayer)
+    {
+        TargetCharacter->GetMesh()->LinkAnimClassLayers(CachedAnimLayer);
+    }
+}
+
+void UKRWeaponInstance::RemoveWeaponAnimLayer(AKRBaseCharacter* TargetCharacter)
+{
+    if (TargetCharacter && CachedAnimLayer)
+    {
+        TargetCharacter->GetMesh()->UnlinkAnimClassLayers(CachedAnimLayer);
+    }
+}
+
+void UKRWeaponInstance::AddWeaponInputContext(AKRPlayerController* TargetPC)
+{
+    if (!TargetPC || !CachedIMC) return;
+
+    if (const ULocalPlayer* LocalPlayer = TargetPC->GetLocalPlayer())
+    {
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            Subsystem->RemoveMappingContext(CachedIMC);
+            Subsystem->AddMappingContext(CachedIMC, CachedIMCPriority);
+        }
+    }
+}
+
+void UKRWeaponInstance::RemoveWeaponInputContext(AKRPlayerController* TargetPC)
+{
+    if (!TargetPC || !CachedIMC) return;
+
+    if (const ULocalPlayer* LocalPlayer = TargetPC->GetLocalPlayer())
+    {
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            Subsystem->RemoveMappingContext(CachedIMC);
+        }
+    }
+}
+
+UAnimMontage* UKRWeaponInstance::GetLightAttackMontage(int32 ComboIndex) const
+{
+    if (LightAttackMontages.IsValidIndex(ComboIndex))
+    {
+        return LightAttackMontages[ComboIndex];
+    }
+    return nullptr;
+}
+
+UAnimMontage* UKRWeaponInstance::GetChargeAttackMontage(int32 ComboIndex) const
+{
+    if (ChargeAttackMontages.IsValidIndex(ComboIndex))
+    {
+        return ChargeAttackMontages[ComboIndex];
+    }
+    return nullptr;
+}
+
+float UKRWeaponInstance::GetWeaponChargeTime() const
+{
+    return ChargeTime;
+}
+
+void UKRWeaponInstance::GrantWeaponAbilities(UKRAbilitySystemComponent* ASC)
+{
+    if (!ASC) return;
+
+    RemoveWeaponAbilities(ASC);
+
+    for (const FKRAbilitySet_GameplayAbility& AbilityInfo : CachedAbilities)
+    {
+        if (!AbilityInfo.Ability) continue;
+
+        FGameplayAbilitySpec Spec(AbilityInfo.Ability, AbilityInfo.AbilityLevel, -1, this);
+
+        if (AbilityInfo.InputTag.IsValid())
+        {
+            Spec.GetDynamicSpecSourceTags().AddTag(AbilityInfo.InputTag);
+        }
+
+        FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
+        GrantedHandles.AddAbilitySpecHandle(Handle);
+    }
+}
+
+void UKRWeaponInstance::RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC)
+{
+    if (!ASC) return;
+    GrantedHandles.TakeFromAbilitySystem(ASC);
 }

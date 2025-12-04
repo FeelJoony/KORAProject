@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Characters/KRBaseCharacter.h"
+#include "GameplayTagContainer.h"
 #include "KREnemyCharacter.generated.h"
 
 class UKRCombatCommonSet;
@@ -9,6 +10,7 @@ class UKRAbilitySystemComponent;
 class UKRCombatComponent;
 class UKREnemyAttributeSet;
 class UKRPawnData;
+class UStateTreeComponent;
 
 UCLASS()
 class KORAPROJECT_API AKREnemyCharacter : public AKRBaseCharacter
@@ -39,4 +41,26 @@ protected:
 
 public:
 	FORCEINLINE UKRAbilitySystemComponent* GetEnemyAbilitySystemCompoent() const { return EnemyASC; }
+
+	UKRCombatComponent* GetEnemyCombatComponent() const { return CombatComponent; }
+
+	UStateTreeComponent* GetStateTreeComponent() const;
+
+	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
+	TObjectPtr<UAnimMontage> StunMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
+	TObjectPtr<UAnimMontage> HitMontage;
+
+private:
+	UFUNCTION()
+	void ResigsterTagEvent();
+
+	UFUNCTION()
+	void HandleTagEvent(FGameplayTag Tag, int32 Count);
+
+	UFUNCTION()
+	void SetEnemyState(FGameplayTag StateTag);
+
+	TArray<FGameplayTag> StateTags;
 };

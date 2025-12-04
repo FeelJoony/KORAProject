@@ -38,5 +38,5 @@ FTransform AKRRangeWeapon::GetMuzzleTransform() const
 	{
 		return MuzzlePoint->GetComponentTransform();
 	}
-	return Super::GetMuzzleTransform();
+	return FTransform::Identity;
 }

@@ -112,6 +112,9 @@ public:
 	// 새로운 모드를 스택에 추가
 	void PushCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass);
 
+	// 스택에 추가된 모드 제거
+	void RemoveCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass);
+
 	// 스택 평가 및 최종 뷰 결과 생성
 	bool EvaluateStack(float DeltaTime, FKRCameraModeView& OutCameraModeView);
 

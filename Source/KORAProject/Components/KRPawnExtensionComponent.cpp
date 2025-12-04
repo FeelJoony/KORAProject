@@ -2,11 +2,17 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Data/DataAssets/KRPawnData.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "Data/WeaponDataStruct.h"
+#include "Data/WeaponEnhanceDataStruct.h"
+#include "Equipment/KREquipmentManagerComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "GameplayTag/KRStateTag.h"
+#include "Inventory/KRInventoryItemInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/KRPlayerState.h"
+#include "SubSystem/KRInventorySubsystem.h"
+#include "Weapons/KRWeaponDefinition.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRPawnExtensionComponent)
 
@@ -22,6 +28,7 @@ UKRPawnExtensionComponent::UKRPawnExtensionComponent(const FObjectInitializer& O
 
 	PawnData = nullptr;
 	AbilitySystemComponent = nullptr;
+	bInventoryInitialized = false;
 }
 
 void UKRPawnExtensionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -106,6 +113,15 @@ void UKRPawnExtensionComponent::CheckDefaultInitialization()
 					SetPawnData(PlayerPawnData);
 				}
 			}
+		}
+	}
+
+	if (PawnData && !bInventoryInitialized)
+	{
+		if (GetOwner()->HasAuthority())
+		{
+			InitializeInventory();
+			bInventoryInitialized = true;
 		}
 	}
 	
@@ -258,4 +274,47 @@ void UKRPawnExtensionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason
 void UKRPawnExtensionComponent::OnRep_PawnData()
 {
 	CheckDefaultInitialization();
+}
+
+void UKRPawnExtensionComponent::InitializeInventory()
+{
+	if (!PawnData)
+	{
+		return;
+	}
+	
+	APawn* Pawn = GetPawnChecked<APawn>();
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	UGameInstance* GI = World->GetGameInstance();
+	UKRInventorySubsystem* InvSubSystem = GI ? GI->GetSubsystem<UKRInventorySubsystem>() : nullptr;
+	UKREquipmentManagerComponent* EquipComp = Pawn->FindComponentByClass<UKREquipmentManagerComponent>();
+
+	if (!InvSubSystem)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[KRPawnExtension] InventorySubsystem Not Found!"));
+		return;
+	}
+	
+	for (const UKRWeaponDefinition* WeaponDef : PawnData->DefaultEquipWeapons)
+	{
+		if (!WeaponDef) continue;
+		FWeaponDataStruct DummyData;
+		FWeaponEnhanceDataStruct DummyEnhance;
+
+		UKRInventoryItemDefinition* NewItemDef =const_cast<UKRWeaponDefinition*>(WeaponDef)->CreateInventoryItemDefinition(DummyData, DummyEnhance);
+
+		if (!NewItemDef) continue;
+
+		UKRInventoryItemInstance* NewInst = UKRInventoryItemInstance::CreateItemInstance();
+		NewInst->SetItemDef(NewItemDef);
+		NewInst->SetItemTag(WeaponDef->WeaponTypeTag);
+		InvSubSystem->AddItemInstance(NewInst);
+
+		if (EquipComp)
+		{
+			EquipComp->EquipFromInventory(NewInst);
+		}
+	}
 }

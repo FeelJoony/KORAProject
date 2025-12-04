@@ -11,6 +11,22 @@ UKRCameraComponent::UKRCameraComponent(const FObjectInitializer& ObjectInitializ
 	FieldOfViewOffset = 0.f;
 }
 
+void UKRCameraComponent::PushCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass)
+{
+	if (CameraModeStack)
+	{
+		CameraModeStack->PushCameraMode(CameraModeClass);
+	}
+}
+
+void UKRCameraComponent::RemoveCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass)
+{
+	if (CameraModeStack)
+	{
+		CameraModeStack->RemoveCameraMode(CameraModeClass);
+	}
+}
+
 void UKRCameraComponent::DrawDebug(UCanvas* Canvas) const
 {
 	check(Canvas);

@@ -27,11 +27,12 @@ void UKRGA_Scanning::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 void UKRGA_Scanning::StartScan()
 {
 	CachedScannerController = UScanFunctionLibrary::GetSphereRevealController(GetWorld());
-	if (CachedScannerController)
+	if (!CachedScannerController)
 	{
+		OnEnded();
+	}
 		CachedScannerController->StartScan();
 		GetWorld()->GetTimerManager().SetTimer(ScanTimer,this,&UKRGA_Scanning::SpawnOverlapSphere,0.1f,true);//Task로 변경
-	}
 }
 
 void UKRGA_Scanning::SpawnOverlapSphere()
@@ -120,6 +121,9 @@ void UKRGA_Scanning::SpawnOverlapSphere()
 
 void UKRGA_Scanning::OnEnded()
 {
-	GetWorld()->GetTimerManager().ClearTimer(ScanTimer);
+	if (ScanTimer.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ScanTimer);
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

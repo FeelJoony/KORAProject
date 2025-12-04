@@ -34,6 +34,14 @@ UKRInventoryItemDefinition* UKRWeaponDefinition::CreateInventoryItemDefinition(c
     UInventoryFragment_EquippableItem* EquipFragment = NewObject<UInventoryFragment_EquippableItem>(ItemDef);
     EquipFragment->EquipmentDefinition = EquipmentDefinition;
     EquipFragment->EquippableAnimLayer = EquippableAnimLayer;
+    EquipFragment->WeaponActorToSpawn = WeaponActorClass;
+    EquipFragment->AttachSocketName = AttachSocketName;
+    EquipFragment->AttachTransform = AttachTransform;
+    EquipFragment->WeaponIMC = WeaponIMC;
+    EquipFragment->InputPriority = InputPriority;
+    EquipFragment->GrantedAbilities = GrantedAbilities;
+    EquipFragment->LightAttackMontages = LightAttackMontages;
+    EquipFragment->ChargeAttackMontages = ChargeAttackMontages;
     ItemDef->AddFragment(EquipFragment->GetFragmentTag(), EquipFragment);
 
     // 2. 스탯 Fragment 설정
@@ -51,6 +59,7 @@ UKRInventoryItemDefinition* UKRWeaponDefinition::CreateInventoryItemDefinition(c
     UInventoryFragment_EnhanceableItem* EnhanceFragment = NewObject<UInventoryFragment_EnhanceableItem>(ItemDef);
     EnhanceFragment->EnhanceLevel = 0;
     EnhanceFragment->EnhanceCost = WeaponEnhanceData.Cost;
+    EnhanceFragment->WeaponTypeTag = WeaponTypeTag;
     ItemDef->AddFragment(EnhanceFragment->GetFragmentTag(), EnhanceFragment);
 
     return ItemDef;

@@ -174,6 +174,18 @@ void FKRInventoryList::Clear()
 	Entries.Empty();
 }
 
+void FKRInventoryList::AddEntryDirect(UKRInventoryItemInstance* NewInstance)
+{
+	if (!NewInstance || !NewInstance->GetItemTag().IsValid()) return;
+
+	FGameplayTag Tag = NewInstance->GetItemTag();
+
+	FKRInventoryEntry NewEntry(NewInstance, 1);
+
+	Entries.Add(Tag, NewEntry);
+	ItemTagContainer.AddTag(Tag);
+}
+
 void UKRInventorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -404,6 +416,15 @@ void UKRInventorySubsystem::OnMessageReceived(const FGameplayTag Channel, const 
 		*Message.ItemTag.ToString(),
 		Message.StackCount
 	);
+}
+
+void UKRInventorySubsystem::AddItemInstance(UKRInventoryItemInstance* InInstance)
+{
+	if (!InInstance) return;
+
+	PlayerInventory.AddEntryDirect(InInstance);
+
+	// 필요하면 메시지 브로드캐스트 해야함
 }
 
 void UKRInventorySubsystem::InitialFragmentType(TSubclassOf<UKRInventoryItemFragment> FragmentClass)
