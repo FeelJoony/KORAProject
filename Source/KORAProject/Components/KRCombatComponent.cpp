@@ -218,12 +218,15 @@ void UKRCombatComponent::ToggleWeaponCollision(bool bShouldEnable,
 void UKRCombatComponent::HandleMeleeHit(AActor* HitActor, const FHitResult& Hit)
 {
     if (!CurrentWeaponInstance || !HitActor || !GetOwner()->HasAuthority())
+    {
         return;
-
+    }
+    
     if (OverlappedActors.Contains(HitActor))
     {
         return;
     }
+    
     OverlappedActors.Add(HitActor);
 
     bool bIsCritical = false;
@@ -297,9 +300,13 @@ void UKRCombatComponent::OnWeaponPulledFromTargetActor(AActor* InteractedActor, 
 
 void UKRCombatComponent::ApplyDamageToTarget(AActor* TargetActor, float BaseDamage, bool bIsCritical, const FHitResult* HitResult)
 {
-    if (!ASC || !TargetActor)
-        return;
+    if (!ASC)
+    {
+        ASC = Cast<UKRAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()));
+    }
 
+    if (!TargetActor) return;
+    
     FGameplayEventData EventData;
     EventData.Instigator = GetOwner();
     EventData.Target = TargetActor;
