@@ -25,6 +25,8 @@ void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC, const FName
 		FText BossDisplayName = FText::FromStringTable(TableId, InBossNameKey.ToString());
 		BossName->SetText(BossDisplayName);
 	}
+
+	SetVisibility(ESlateVisibility::Visible);
 }
 
 void UKRBossHealthWidget::OnHUDInitialized()
@@ -36,7 +38,7 @@ void UKRBossHealthWidget::OnHUDInitialized()
 		BossHP->SetPercent(1.f);
 		BossHP->SetVisibility(ESlateVisibility::Hidden);
 	}
-	bBossHPBarVisible = false;
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UKRBossHealthWidget::NativeDestruct()
@@ -97,12 +99,6 @@ void UKRBossHealthWidget::InitBossBarFromASC()
 
 	BossHP->SetPercent(HPPercent);
 	BossDisplayPercent = BossTargetPercent = HPPercent;
-
-	if (!bBossHPBarVisible)
-	{
-		BossHP->SetVisibility(ESlateVisibility::Visible);
-		bBossHPBarVisible = true;
-	}
 }
 
 void UKRBossHealthWidget::OnBossHealthAttributeChanged(const FOnAttributeChangeData& Data)
