@@ -351,8 +351,14 @@ void UKRPlayerStatusWidget::OnWeaponMessageReceived(FGameplayTag Channel, const 
 	switch (Message.Action)
 	{
 	case EWeaponMessageAction::Equipped:
+	{
+		BP_OnWeaponEquipped(KRTAG_PLAYER_WEAPON_SWORD, true);
+		UpdateWeaponAmmoDisplay(KRTAG_PLAYER_WEAPON_SWORD, Message.CurrentAmmo, Message.MaxAmmo);
+		break;
+	}
 	case EWeaponMessageAction::Unequipped:
-		// Currently no special handling needed
+		BP_OnWeaponEquipped(Message.WeaponTypeTag, false);
+		UpdateWeaponAmmoDisplay(Message.WeaponTypeTag, Message.CurrentAmmo, Message.MaxAmmo);
 		break;
 	case EWeaponMessageAction::AmmoUpdated:
 	{
@@ -529,14 +535,7 @@ void UKRPlayerStatusWidget::UpdateGreyHPBar(float NewValueNormalized)
 
 void UKRPlayerStatusWidget::UpdateWeaponAmmoDisplay(const FGameplayTag& WeaponTypeTag, int32 CurrentAmmo, int32 MaxAmmo)
 {
-	if (WeaponTypeTag == KRTAG_PLAYER_WEAPON_SWORD)
-	{
-		if (GunAmmoSection)
-		{
-			GunAmmoSection->SetVisibility(ESlateVisibility::Collapsed);
-		}
-	}
-	else
+	if (WeaponTypeTag == KRTAG_PLAYER_WEAPON_GUN)
 	{
 		if (GunAmmoSection)
 		{
@@ -544,5 +543,12 @@ void UKRPlayerStatusWidget::UpdateWeaponAmmoDisplay(const FGameplayTag& WeaponTy
 		}
 		CurrentBullet->SetText(FText::AsNumber(CurrentAmmo));
 		MaxBullet->SetText(FText::AsNumber(MaxAmmo));
+	}
+	else
+	{
+		if (GunAmmoSection)
+		{
+			GunAmmoSection->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
 }
