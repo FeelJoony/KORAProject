@@ -51,8 +51,6 @@ void UKRGA_EnemySlash::EndAbility(const FGameplayAbilitySpecHandle Handle,
 									const FGameplayAbilityActivationInfo ActivationInfo, 
 									bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Enemy)) return;
 
@@ -61,6 +59,8 @@ void UKRGA_EnemySlash::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		EnemyASC->RemoveLooseGameplayTag(KRTAG_ENEMY_ACTION_SLASH);
 	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UKRGA_EnemySlash::ActivateSlash()
