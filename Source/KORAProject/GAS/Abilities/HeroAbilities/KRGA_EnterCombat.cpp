@@ -51,24 +51,12 @@ void UKRGA_EnterCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	if (SwordInst)
 	{
-		SwordInst->SetWeaponActiveState(true);
-	}
-	if (GunInst)
-	{
-		GunInst->SetWeaponActiveState(true);
-	}
-
-	if (SwordInst)
-	{
-		SwordInst->GrantWeaponAbilities(KRASC);
-		SwordInst->ApplyWeaponAnimLayer(Character);
-		SwordInst->AddWeaponInputContext(PC);
+		SwordInst->ActivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Equipped, true);
 	}
 
 	if (GunInst)
 	{
-		GunInst->RemoveWeaponAbilities(KRASC);
-		GunInst->RemoveWeaponInputContext(PC);
+		GunInst->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, false);
 	}
 	
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);

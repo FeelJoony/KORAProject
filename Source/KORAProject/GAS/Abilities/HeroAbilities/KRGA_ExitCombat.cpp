@@ -22,14 +22,17 @@ void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
-
+	bool bBroadcastDone = false;
 	for (UKREquipmentInstance* Equip : AllWeapons)
 	{
 		if (UKRWeaponInstance* Weapon = Cast<UKRWeaponInstance>(Equip))
 		{
-			Weapon->RemoveWeaponAbilities(KRASC);
-			Weapon->RemoveWeaponInputContext(PC);
-			Weapon->SetWeaponActiveState(false);
+			const bool bBroadcast = !bBroadcastDone;
+			Weapon->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, !bBroadcastDone);
+			if (bBroadcast)
+			{
+				bBroadcastDone = true;
+			}
 		}
 	}
 
