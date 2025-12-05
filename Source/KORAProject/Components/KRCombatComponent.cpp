@@ -8,6 +8,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Weapons/KRRangeWeaponInstance.h"
 #include "Weapons/KRWeaponInstance.h"
+#include "GameFramework/Character.h"
 
 class UKRRangeWeaponInstance;
 
@@ -23,6 +24,77 @@ void UKRCombatComponent::BeginPlay()
     
     ASC = Cast<UKRAbilitySystemComponent>(
         UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()));
+}
+
+void UKRCombatComponent::TryRecoveryWeaponFromSlot(EWeaponSlot Slot)
+{
+    ACharacter* OwnerChar = Cast<ACharacter>(GetOwner());
+    if (!OwnerChar) return;
+
+    FName TargetSocketName = NAME_None;
+
+    if (Slot == EWeaponSlot::RightHand || Slot == EWeaponSlot::AllHands)
+    {
+        TargetSocketName = RightHandSocketName;
+    }
+    else if (Slot == EWeaponSlot::LeftHand)
+    {
+        TargetSocketName = LeftHandSocketName;
+    }
+
+    if (TargetSocketName.IsNone()) return;
+
+    TArray<AActor*> AttachedActors;
+    OwnerChar->GetAttachedActors(AttachedActors);
+
+    for (AActor* AttachedActor : AttachedActors)
+    {
+        if (AKRWeaponBase* FoundWeapon = Cast<AKRWeaponBase>(AttachedActor))
+        {
+            USceneComponent* WeaponRoot = FoundWeapon->GetRootComponent();
+
+            if (WeaponRoot && WeaponRoot->GetAttachParent() == OwnerChar->GetMesh())
+            {
+                if (FoundWeapon->GetAttachParentSocketName() == TargetSocketName)
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("[KRCombatComponent] Recovered Weapon from Socket: %s"), *TargetSocketName.ToString());
+
+                    UKRWeaponInstance* FoundInstance = FoundWeapon->GetWeaponInstance();
+
+                    FGameplayTag WeaponTag;
+                    if (FoundWeapon)
+                    {
+                        WeaponTag = FoundInstance->WeaponType;
+                    }
+                    if (CharacterCarriedWeaponMap.Contains(WeaponTag))
+                    {
+                        if (!SlotToWeaponMap.Contains(Slot))
+                        {
+                            SlotToWeaponMap.Emplace(Slot, FoundWeapon);
+                        }
+
+                        if (CurrentEquippedWeaponTag != WeaponTag)
+                        {
+                            CurrentEquippedWeaponTag = WeaponTag;
+                            CurrentWeaponActor = FoundWeapon;
+                        }
+                    }
+                    else
+                    {
+                        RegisterSpawnedWeapon(WeaponTag, FoundWeapon, Slot, true);
+                    }
+
+
+                    if (FoundInstance)
+                    {
+                        SetCurrentWeapon(FoundInstance, FoundWeapon);
+                    }
+                    
+                    return;
+                }
+            }
+        }
+    }
 }
 
 void UKRCombatComponent::RegisterSpawnedWeapon(
@@ -84,6 +156,15 @@ void UKRCombatComponent::ToggleWeaponCollision(bool bShouldEnable,
                                                  EToggleDamageType ToggleDamageType,
                                                  EWeaponSlot WeaponSlot)
 {
+    if (ToggleDamageType == EToggleDamageType::CurrentEquippedWeapon)
+    {
+        AKRWeaponBase* EquippedWeapon = GetWeaponBySlot(WeaponSlot);
+        if (!EquippedWeapon)
+        {
+            TryRecoveryWeaponFromSlot(WeaponSlot);
+        }
+    }
+    
     switch (ToggleDamageType)
     {
     case EToggleDamageType::CurrentEquippedWeapon:
@@ -237,4 +318,16 @@ void UKRCombatComponent::ApplyDamageToTarget(AActor* TargetActor, float BaseDama
         KRTAG_EVENT_COMBAT_HIT,  // 프로젝트에서 정의한 Hit용 GameplayTag
         EventData
     );
+}
+
+UKRWeaponInstance* UKRCombatComponent::GetCurrentWeaponInstance()
+{
+    if (CurrentWeaponInstance)
+    {
+        return CurrentWeaponInstance;
+    }
+
+    TryRecoveryWeaponFromSlot(EWeaponSlot::RightHand);
+
+    return CurrentWeaponInstance;
 }

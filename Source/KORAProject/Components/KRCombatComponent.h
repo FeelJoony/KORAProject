@@ -61,6 +61,14 @@ protected:
 	UPROPERTY()
 	TArray<TWeakObjectPtr<AActor>> OverlappedActors;
 
+	UPROPERTY(EditDefaultsOnly, Category = "KR|Combat|Config")
+	FName RightHandSocketName = FName("WeaponSocket");
+
+	UPROPERTY(EditDefaultsOnly, Category = "KR|Combat|Config")
+	FName LeftHandSocketName = FName("WeaponSocket_L");
+
+	void TryRecoveryWeaponFromSlot(EWeaponSlot Slot);
+
 public:
 	void RegisterSpawnedWeapon(FGameplayTag InWeaponTagToRegister,
 							   AKRWeaponBase* InWeaponToRegister,
@@ -74,6 +82,7 @@ public:
 	AKRWeaponBase* GetCharacterCurrentEquippedWeapon() const;
 	AKRWeaponBase* GetWeaponBySlot(EWeaponSlot InSlot) const;
 
+	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
 	void ToggleWeaponCollision(bool bShouldEnable,
 							   EToggleDamageType ToggleDamageType,
 							   EWeaponSlot WeaponSlot = EWeaponSlot::AllHands);
@@ -89,5 +98,5 @@ private:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
-	UKRWeaponInstance* GetCurrentWeaponInstance() const { return CurrentWeaponInstance; }
+	UKRWeaponInstance* GetCurrentWeaponInstance();
 };
