@@ -20,6 +20,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void SetWeaponInstance(UKRWeaponInstance* InInstance);
+
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	UKRWeaponInstance* GetWeaponInstance() const { return WeaponInstance; }
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) void PlayEquipEffect();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) void PlayUnequipEffect();
 
