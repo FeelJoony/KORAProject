@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/KREnemyTag.h"
 #include "GameplayTag/KRStateTag.h"
+#include "GameplayTag/KREventTag.h"
 
 #include "AIController.h"
 #include "Components/StateTreeComponent.h"
@@ -57,6 +58,14 @@ void AKREnemyCharacter::BeginPlay()
 	EnemyASC->AddLooseGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE);
 
 	ResigsterTagEvent();
+
+	if (EnemyASC)
+	{
+		EnemyASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(
+			this,
+			&AKREnemyCharacter::OnGEAdded
+		);
+	}
 }
 
 void AKREnemyCharacter::PossessedBy(AController* NewController)
@@ -110,4 +119,13 @@ void AKREnemyCharacter::SetEnemyState(FGameplayTag StateTag)
 	Event.Tag = StateTag;
 
 	EnemyST->SendStateTreeEvent(Event);
+}
+
+void AKREnemyCharacter::OnGEAdded(UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
+{
+	UE_LOG(LogTemp, Error, TEXT("TakeDamage"));
+	if (EnemyASC)
+	{
+		EnemyASC->AddLooseGameplayTag(KRTAG_ENEMY_AISTATE_HITREACTION);
+	}
 }
