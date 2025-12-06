@@ -1,20 +1,17 @@
+// InventoryFragment_ConsumableItem.h
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "GameplayTagContainer.h"
-#include "GameplayEffectTypes.h"
-#include "Item/ConsumableTypes.h"               // ✅ 추가: EConsumableEffectType 공용 헤더
+#include "Item/ConsumableTypes.h"
 #include "InventoryFragment_ConsumableItem.generated.h"
 
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class UKRInventoryItemInstance;
-class UKRDataTablesSubsystem;
 
-// 여기서 EConsumableEffectType 정의는 제거됨 (ConsumableTypes.h 로 이동)
-
-// 데이터 테이블에서 읽어온 설정을 캐싱하는 용도
 USTRUCT(BlueprintType)
 struct FConsumableEffectConfig
 {
@@ -66,11 +63,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Consumable")
 	FConsumableCooldownConfig CooldownConfig;
 
+	/** 버프/라이트용 InUse 태그 (상태 확인용) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Consumable")
 	FGameplayTagContainer InUseTags;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Consumable")
-	FGameplayTagContainer RequiredTags;
 
 	virtual FGameplayTag GetFragmentTag() const override
 	{
@@ -79,19 +74,15 @@ public:
 
 	virtual void OnInstanceCreated(UKRInventoryItemInstance* Instance) override;
 
-	/** 실제 소모품 사용(효과 + 쿨다운 적용) */
-	UFUNCTION(BlueprintCallable, Category="Consumable")   // ✅ BP에서도 쓰고 싶으면
+	UFUNCTION(BlueprintCallable, Category="Consumable")
 	bool UseConsumable(UAbilitySystemComponent* ASC);
 
-	/** 쿨다운 중인지 */
 	UFUNCTION(BlueprintCallable, Category="Consumable")
 	bool IsOnCooldown(UAbilitySystemComponent* ASC) const;
 
-	/** 남은 쿨다운 시간 */
 	UFUNCTION(BlueprintCallable, Category="Consumable")
 	float GetRemainingCooldown(UAbilitySystemComponent* ASC) const;
 
-	/** Duration(인유즈) 상태인지 */
 	UFUNCTION(BlueprintCallable, Category="Consumable")
 	bool IsInUse(UAbilitySystemComponent* ASC) const;
 

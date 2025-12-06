@@ -1,6 +1,7 @@
 #include "Subsystem/KRInventorySubsystem.h"
 
 #include "AbilitySystemInterface.h"
+#include "Player/KRPlayerState.h"
 #include "Subsystem/KRDataTablesSubsystem.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Inventory/KRInventoryItemDefinition.h"
@@ -76,6 +77,31 @@ namespace
 			ItemInstance->GetItemDef()->FindFragmentByTag(ConsumableFragTag);
 
 		return Cast<UInventoryFragment_ConsumableItem>(BaseFrag);
+	}
+
+	static float GetConsumableUITime(const UInventoryFragment_ConsumableItem* Frag)
+	{
+		if (!Frag)
+		{
+			return 0.f;
+		}
+
+		const float EffectDuration = Frag->EffectConfig.Duration;
+
+		float TotalCooldown = Frag->CooldownConfig.ExtraCooldown;
+		if (Frag->CooldownConfig.bIncludeDurationInCooldown)
+		{
+			TotalCooldown += EffectDuration;
+		}
+
+		// 1순위: 쿨다운이 설정돼 있으면 그걸 사용
+		if (TotalCooldown > 0.f)
+		{
+			return TotalCooldown;
+		}
+
+		// 2순위: 쿨다운이 없으면, 순수 Duration 사용
+		return EffectDuration;
 	}
 }
 
@@ -440,47 +466,24 @@ bool UKRInventorySubsystem::GetQuickSlotData(FGameplayTag SlotTag, FGameplayTag&
 
 UAbilitySystemComponent* UKRInventorySubsystem::GetPlayerASC() const
 {
-	UWorld* World = GetWorld();
-	if (!World)
+	if (const UWorld* World = GetWorld())
 	{
-		return nullptr;
+		if (APlayerController* PC = World->GetFirstPlayerController())
+		{
+			if (AKRPlayerState* KRPS = PC->GetPlayerState<AKRPlayerState>())
+			{
+				if (UAbilitySystemComponent* ASC = KRPS->GetAbilitySystemComponent())
+				{
+					return ASC;
+				}
+			}
+		}
 	}
 
-	APlayerController* PC = World->GetFirstPlayerController();
-	if (!PC)
-	{
-		return nullptr;
-	}
-
-	APawn* Pawn = PC->GetPawn();
-	if (!Pawn)
-	{
-		return nullptr;
-	}
-
-	// 캐릭터가 IAbilitySystemInterface 구현했다면 이게 제일 정석
-	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Pawn))
-	{
-		return ASI->GetAbilitySystemComponent();
-	}
-
-	// KR 전용 ASC 컴포넌트
-	if (UKRAbilitySystemComponent* KRASC = Pawn->FindComponentByClass<UKRAbilitySystemComponent>())
-	{
-		return KRASC;
-	}
-
-	// 일반 ASC라도 있으면 사용
-	if (UAbilitySystemComponent* ASC = Pawn->FindComponentByClass<UAbilitySystemComponent>())
-	{
-		return ASC;
-	}
-
+	UE_LOG(LogInventorySubSystem, Warning, TEXT("GetPlayerASC: Failed to get Player ASC (World/PC/Hero null)"));
 	return nullptr;
 }
 
-
-// CurrentSelectedSlot 을 사용하여서 구현되게 수정 (매개변수 없이 돌아가게)
 bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 {
 	if (!IsValidQuickSlot(SlotTag)) { return false; }
@@ -493,16 +496,15 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 
 	UKRInventoryItemInstance* Instance = FindInstanceByItemTag(ItemTag);
 	if (!Instance) { return false; }
-
-	// 1) ASC 찾기
+	
 	UAbilitySystemComponent* ASC = GetPlayerASC();
+
 	if (!ASC)
 	{
 		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: ASC not found"));
 		return false;
 	}
-
-	// 2) CanUse 체크 (쿨다운 / InUse / 개수)
+	
 	FText Reason;
 	if (!CanUseConsumableItem(ItemTag, ASC, Reason))
 	{
@@ -510,8 +512,7 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 			TEXT("UseQuickSlotItem blocked: %s"), *Reason.ToString());
 		return false;
 	}
-
-	// 3) Consumable Fragment
+	
 	const FGameplayTag ConsumableFragTag =
 		FGameplayTag::RequestGameplayTag(TEXT("Fragment.Item.Consumable"));
 
@@ -540,14 +541,14 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 	const int32 NewQuantity = GetItemQuantity_Internal(ItemTag);
 
 	// 6) UI 메시지
-	const float UseDuration = ConsumableFrag->EffectConfig.Duration;
+	const float TimeForUI = GetConsumableUITime(ConsumableFrag);
 
 	SendQuickSlotMessage(
 		EQuickSlotAction::ItemUsed,
 		SlotTag,
 		ItemTag,
 		NewQuantity,
-		UseDuration
+		TimeForUI
 	);
 
 	return true;
@@ -731,7 +732,7 @@ void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 	FItemDataStruct* ItemData = DataTableSubsystem->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
 	if (!ItemData) { return; }
 
-	for (const FGameplayTag& AbilityTag : ItemData->AbilityTags)
+	for (const FGameplayTag& AbilityTag : ItemData->FragmentTags)
 	{
 		if (!FragmentRegistry.Contains(AbilityTag))
 		{
