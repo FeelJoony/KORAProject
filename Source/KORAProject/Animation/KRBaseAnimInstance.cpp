@@ -30,8 +30,8 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 	
 	GroundSpeed = CachedCharacter->GetVelocity().Size2D();
-	bHasAcceleration = CachedMoveComponent->GetCurrentAcceleration().SizeSquared2D()>0.f;
-	bShouldMove = GroundSpeed > 1.0f;
+	bHasAcceleration = !CachedMoveComponent->GetCurrentAcceleration().IsNearlyZero();
+	bShouldMove = GroundSpeed > 5.0f;
 	bIsFalling = CachedMoveComponent->IsFalling();
 	Velocity = CachedCharacter->GetVelocity();
 	Direction = UKismetAnimationLibrary::CalculateDirection(
