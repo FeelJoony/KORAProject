@@ -1,4 +1,6 @@
 #include "Animation/KRBaseAnimInstance.h"
+
+#include "KismetAnimationLibrary.h"
 #include "Characters/KRBaseCharacter.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -16,14 +18,14 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (UNLIKELY(!CachedCharacter || !CachedMoveComponent))
 	{
 		RecacheOwner();
-		if (!CachedCharacter || !CachedMoveComponent)
-		{
-			GroundSpeed = 0.f;
-			bHasAcceleration = false;
-			bShouldMove = false;
-			bIsFalling = false;
-			return;
-		}
+		// if (!CachedCharacter || !CachedMoveComponent)
+		// {
+		// 	GroundSpeed = 0.f;
+		// 	bHasAcceleration = false;
+		// 	bShouldMove = false;
+		// 	bIsFalling = false;
+		// 	return;
+		// }
 		//UE_LOG(LogTemp, Warning, TEXT("KRBaseAnimInstance::NativeUpdateAnimation: CachedCharacter or CachedMoveComponent is nullptr. %s"), *GetName()
 	}
 	
@@ -31,7 +33,11 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bHasAcceleration = CachedMoveComponent->GetCurrentAcceleration().SizeSquared2D()>0.f;
 	bShouldMove = GroundSpeed > 1.0f;
 	bIsFalling = CachedMoveComponent->IsFalling();
-	
+	Velocity = CachedCharacter->GetVelocity();
+	Direction = UKismetAnimationLibrary::CalculateDirection(
+		Velocity,
+		CachedCharacter->GetActorRotation()
+	);
 }
 
 void UKRBaseAnimInstance::RecacheOwner()
