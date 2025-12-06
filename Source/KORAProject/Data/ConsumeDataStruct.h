@@ -27,34 +27,31 @@ struct KORAPROJECT_API FConsumeDataStruct : public FTableRowBase, public ITableK
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Key")
 	int32 Index;
-
-	// 메인 효과
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
 	TSoftClassPtr<UGameplayEffect> MainEffectClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
-	EConsumableEffectType EffectType;   // Instant / HasDuration / Infinite
+	EConsumableEffectType EffectType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
 	float Power;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
 	float Duration;
-
-	// 쿨다운
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
 	TSoftClassPtr<UGameplayEffect> CooldownEffectClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
-	float CooldownDuration; // “추가 쿨다운” (Duration 이후 기다릴 시간)
+	float CooldownDuration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
 	FGameplayTag CooldownTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
 	bool bIncludeDurationInCooldown;
-
-	// Duration 동안 사용 막는 태그들 (InUse)
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Tag")
 	FGameplayTagContainer InUseTags;
 

@@ -6,8 +6,6 @@
 #include "GameplayTagsManager.h"
 #include "Data/ConsumeDataStruct.h"
 #include "Data/SampleDataStruct.h"
-#include "Data/ConsumeItemDataStruct.h"
-#include "Data/MaterialItemDataStruct.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
 #include "Data/WeaponDataStruct.h"
@@ -84,7 +82,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
                 int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
                 int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
-                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags"));
+                int32 FragmentTags_Index = GetHeaderIndex(Headers, TEXT("FragmentTags"));
                 int32 BasePrice_Index = GetHeaderIndex(Headers, TEXT("BasePrice"));
                 int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
                 int32 DescriptionKey_Index = GetHeaderIndex(Headers, TEXT("DescriptionKey"));
@@ -110,11 +108,11 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.MaterialID = ParseIntValue(RowValue[MaterialID_Index]);
                 ItemData.QuestID = ParseIntValue(RowValue[QuestID_Index]);
 
-                TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[AbilityTags_Index]);
+                TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[FragmentTags_Index]);
                 for (const FString& StringValue : AbilityTagsStringValues)
                 {
                     FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName(StringValue));
-                    ItemData.AbilityTags.Add(AbilityTag);
+                    ItemData.FragmentTags.Add(AbilityTag);
                 }
 
                 FName RowName = *FString::Printf(TEXT("Item_%d"), i);
@@ -612,9 +610,12 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				if (CooldownTag_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownTag_Idx))
 				{
 					const FString TagStr = RowValue[CooldownTag_Idx].TrimStartAndEnd();
+					UE_LOG(LogTemp, Warning, TEXT("CSV CooldownTag Raw: '%s'"), *TagStr);
+
 					if (!TagStr.IsEmpty())
 					{
 						ConsumeData.CooldownTag = ParseGameplayTagValue(TagStr);
+						UE_LOG(LogTemp, Warning, TEXT("Parsed CooldownTag: %s"), *ConsumeData.CooldownTag.ToString());
 					}
 				}
 
@@ -652,6 +653,9 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 							if (!TrimmedTag.IsEmpty())
 							{
 								const FGameplayTag Tag = ParseGameplayTagValue(TrimmedTag);
+								UE_LOG(LogTemp, Warning, TEXT("  Token='%s' -> Tag=%s (Valid=%d)"),
+									*TrimmedTag, *Tag.ToString(), Tag.IsValid());
+
 								if (Tag.IsValid())
 								{
 									ConsumeData.InUseTags.AddTag(Tag);
