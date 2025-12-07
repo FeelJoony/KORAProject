@@ -35,10 +35,6 @@ void UKRShopBuy::NativeOnActivated()
 void UKRShopBuy::NativeOnDeactivated()
 {
 
-	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
-	{
-		InputSubsys->UnbindAll(this);
-	}
 	Super::NativeOnDeactivated();
 }
 

@@ -24,7 +24,6 @@ void UKREquipmentMain::NativeOnActivated()
 {
 	Super::NativeOnActivated();
 
-	UE_LOG(LogTemp, Log, TEXT("NativeOnActivated... Equipment"));
 	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
 	{
 		InputSubsys->BindBackDefault(this, TEXT("Equipment"));
@@ -38,10 +37,7 @@ void UKREquipmentMain::NativeOnActivated()
 
 void UKREquipmentMain::NativeOnDeactivated()
 {
-	UE_LOG(LogTemp, Log, TEXT("NativeOnDeactivated... Equipment"));
-	//if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
-	//{
-	//}
+
 	Super::NativeOnDeactivated();
 }
 
