@@ -1,5 +1,3 @@
-// InventoryFragment_ConsumableItem.h
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -28,6 +26,9 @@ struct FConsumableEffectConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effect")
 	float Duration = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effect")
+	int32 StackMax = 1;
 };
 
 USTRUCT(BlueprintType)
@@ -43,9 +44,6 @@ struct FConsumableCooldownConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Cooldown")
 	FGameplayTag CooldownTag;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Cooldown")
-	bool bIncludeDurationInCooldown = true;
 };
 
 UCLASS()
@@ -54,16 +52,20 @@ class KORAPROJECT_API UInventoryFragment_ConsumableItem : public UKRInventoryIte
 	GENERATED_BODY()
 
 public:
+	UInventoryFragment_ConsumableItem();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Consumable")
 	int32 ConsumeID = -1;
+
+	UPROPERTY(EditDefaultsOnly, Category="Consumable|Cooldown")
+	TSubclassOf<UGameplayEffect> DefaultCooldownEffectClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Consumable")
 	FConsumableEffectConfig EffectConfig;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Consumable")
 	FConsumableCooldownConfig CooldownConfig;
-
-	/** 버프/라이트용 InUse 태그 (상태 확인용) */
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Consumable")
 	FGameplayTagContainer InUseTags;
 
@@ -86,8 +88,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Consumable")
 	bool IsInUse(UAbilitySystemComponent* ASC) const;
 
+	int32 GetCurrentStacks(UAbilitySystemComponent* ASC) const;
+	bool CanApplyMoreStacks(UAbilitySystemComponent* ASC) const;
 protected:
 	void LoadFromDataTable(UKRInventoryItemInstance* Instance);
 	bool ApplyMainEffect(UAbilitySystemComponent* ASC, float& OutDuration);
-	bool ApplyCooldown(UAbilitySystemComponent* ASC, float EffectDuration) const;
+	bool ApplyCooldown(UAbilitySystemComponent* ASC) const;
 };

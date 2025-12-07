@@ -475,10 +475,9 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 			const int32 EffectType_Idx          = GetHeaderIndex(Headers, TEXT("EffectType"));
 			const int32 Power_Idx               = GetHeaderIndex(Headers, TEXT("Power"));
 			const int32 Duration_Idx            = GetHeaderIndex(Headers, TEXT("Duration"));
-			const int32 CooldownEffectClass_Idx = GetHeaderIndex(Headers, TEXT("CooldownEffectClass"));
+			const int32 StackMax_Idx            = GetHeaderIndex(Headers, TEXT("StackMax"));
 			const int32 CooldownDuration_Idx    = GetHeaderIndex(Headers, TEXT("CooldownDuration"));
 			const int32 CooldownTag_Idx         = GetHeaderIndex(Headers, TEXT("CooldownTag"));
-			const int32 IncludeDuration_Idx     = GetHeaderIndex(Headers, TEXT("bIncludeDurationInCooldown"));
 			const int32 InUseTags_Idx           = GetHeaderIndex(Headers, TEXT("InUseTags"));
 			
 			auto ParseEffectType = [](const FString& InStr) -> EConsumableEffectType
@@ -576,11 +575,6 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 					ConsumeData.Duration = 0.f;
 				}
 				
-				if (CooldownEffectClass_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownEffectClass_Idx))
-				{
-					ConsumeData.CooldownEffectClass = ParseGEClass(RowValue[CooldownEffectClass_Idx]);
-				}
-				
 				if (CooldownDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownDuration_Idx))
 				{
 					ConsumeData.CooldownDuration = ParseFloatValue(RowValue[CooldownDuration_Idx]);
@@ -598,16 +592,6 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 					{
 						ConsumeData.CooldownTag = ParseGameplayTagValue(TagStr);
 					}
-				}
-				
-				if (IncludeDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(IncludeDuration_Idx))
-				{
-					const FString BoolStr = RowValue[IncludeDuration_Idx].TrimStartAndEnd();
-					ConsumeData.bIncludeDurationInCooldown = BoolStr.ToBool();
-				}
-				else
-				{
-					ConsumeData.bIncludeDurationInCooldown = true;
 				}
 				
 				if (InUseTags_Idx != INDEX_NONE && RowValue.IsValidIndex(InUseTags_Idx))
@@ -640,6 +624,19 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 							}
 						}
 					}
+				}
+
+				if (StackMax_Idx != INDEX_NONE && RowValue.IsValidIndex(StackMax_Idx))
+				{
+					ConsumeData.StackMax = ParseIntValue(RowValue[StackMax_Idx]);
+					if (ConsumeData.StackMax <= 0)
+					{
+						ConsumeData.StackMax = 1;
+					}
+				}
+				else
+				{
+					ConsumeData.StackMax = 1;
 				}
 				
 				const FName RowName = *FString::Printf(TEXT("Consume_%d"), ConsumeData.Index);

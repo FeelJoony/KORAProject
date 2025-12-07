@@ -19,9 +19,8 @@ struct KORAPROJECT_API FConsumeDataStruct : public FTableRowBase, public ITableK
 		, EffectType(EConsumableEffectType::Instant)
 		, Power(0.f)
 		, Duration(0.f)
-		, CooldownEffectClass(nullptr)
+		, StackMax(0)
 		, CooldownDuration(0.f)
-		, bIncludeDurationInCooldown(true)
 	{
 	}
 
@@ -39,18 +38,15 @@ struct KORAPROJECT_API FConsumeDataStruct : public FTableRowBase, public ITableK
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
 	float Duration;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
-	TSoftClassPtr<UGameplayEffect> CooldownEffectClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="StackMax")
+	int32 StackMax;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
 	float CooldownDuration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
 	FGameplayTag CooldownTag;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
-	bool bIncludeDurationInCooldown;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Tag")
 	FGameplayTagContainer InUseTags;

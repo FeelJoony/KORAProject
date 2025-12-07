@@ -7,8 +7,30 @@
 #include "Subsystem/KRDataTablesSubsystem.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/ConsumeDataStruct.h"
+#include "UObject/ConstructorHelpers.h" 
 
 #include "GameplayTag/KRSetByCallerTag.h"
+
+UInventoryFragment_ConsumableItem::UInventoryFragment_ConsumableItem()
+{
+	static ConstructorHelpers::FClassFinder<UGameplayEffect> CooldownGEClass(
+		TEXT("/Game/GameplayEffects/GE_Cooldown_Base.GE_Cooldown_Base_C")
+	);
+
+	if (CooldownGEClass.Succeeded())
+	{
+		DefaultCooldownEffectClass = CooldownGEClass.Class;
+
+		UE_LOG(LogTemp, Warning,
+			TEXT("ConsumableFragment: Cooldown GE set to %s"),
+			*GetNameSafe(DefaultCooldownEffectClass));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("UInventoryFragment_ConsumableItem: Failed to find Cooldown GE class!"));
+	}
+}
 
 void UInventoryFragment_ConsumableItem::OnInstanceCreated(UKRInventoryItemInstance* Instance)
 {
@@ -19,232 +41,42 @@ void UInventoryFragment_ConsumableItem::OnInstanceCreated(UKRInventoryItemInstan
 	CooldownConfig = FConsumableCooldownConfig();
 	InUseTags.Reset();
 
-	if (!Instance)
-	{
-		return;
-	}
+	if (!Instance) { return; }
 
 	LoadFromDataTable(Instance);
 }
 
-void UInventoryFragment_ConsumableItem::LoadFromDataTable(UKRInventoryItemInstance* Instance)
-{
-	UObject* ContextObj = Instance->GetOwnerContext();
-	if (!ContextObj)
-	{
-		return;
-	}
-
-	UGameInstance* GI = Cast<UGameInstance>(ContextObj);
-	if (!GI)
-	{
-		return;
-	}
-
-	UKRDataTablesSubsystem* DT = GI->GetSubsystem<UKRDataTablesSubsystem>();
-	if (!DT)
-	{
-		return;
-	}
-
-	// 1) 아이템 데이터에서 ConsumeID 꺼내오기
-	const FGameplayTag ItemTag = Instance->GetItemTag();
-	FItemDataStruct* ItemRow = DT->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
-	if (!ItemRow)
-	{
-		return;
-	}
-
-	ConsumeID = ItemRow->ConsumeID;
-	if (ConsumeID < 0)
-	{
-		return;
-	}
-
-	// 2) ConsumeData 에서 실제 효과 정보 읽기
-	FConsumeDataStruct* ConsumeRow =
-		DT->GetData<FConsumeDataStruct>(EGameDataType::ConsumeData, ConsumeID);
-
-	if (!ConsumeRow)
-	{
-		return;
-	}
-
-	EffectConfig.MainEffectClass = ConsumeRow->MainEffectClass.LoadSynchronous();
-	EffectConfig.EffectType      = ConsumeRow->EffectType;
-	EffectConfig.Power           = ConsumeRow->Power;
-	EffectConfig.Duration        = ConsumeRow->Duration;
-
-	CooldownConfig.CooldownEffectClass      = ConsumeRow->CooldownEffectClass.LoadSynchronous();
-	CooldownConfig.ExtraCooldown            = ConsumeRow->CooldownDuration;
-	CooldownConfig.CooldownTag              = ConsumeRow->CooldownTag;
-	CooldownConfig.bIncludeDurationInCooldown = ConsumeRow->bIncludeDurationInCooldown;
-
-	InUseTags = ConsumeRow->InUseTags;
-}
-
 bool UInventoryFragment_ConsumableItem::UseConsumable(UAbilitySystemComponent* ASC)
 {
-	if (!ASC)
-	{
-		return false;
-	}
+	if (!ASC) { return false; }
+	
+	if (IsOnCooldown(ASC)) { return false; }
 
-	// 1) 쿨다운 체크
-	if (IsOnCooldown(ASC))
-	{
-		const float Remain = GetRemainingCooldown(ASC);
-
-		return false;
-	}
-
-	// 2) Duration 동안 재사용 방지 (버프형 등)
-	if (IsInUse(ASC))
-	{
-		return false;
-	}
-
-	// 3) 메인 효과 적용
+	if (!CanApplyMoreStacks(ASC)) { return false; }
+	
 	float EffectDuration = 0.f;
-	if (!ApplyMainEffect(ASC, EffectDuration))
-	{
-		return false;
-	}
-
-	// 4) 쿨다운 적용
-	ApplyCooldown(ASC, EffectDuration);
+	if (!ApplyMainEffect(ASC, EffectDuration)) { return false; }
+	
+	ApplyCooldown(ASC);
 
 	return true;
 }
 
-
-
-bool UInventoryFragment_ConsumableItem::ApplyMainEffect(UAbilitySystemComponent* ASC, float& OutDuration)
-{
-	OutDuration = 0.f;
-
-	if (!ASC || !EffectConfig.MainEffectClass)
-	{
-		return false;
-	}
-
-	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
-	FGameplayEffectSpecHandle SpecHandle =
-		ASC->MakeOutgoingSpec(EffectConfig.MainEffectClass, 1.0f, Context);
-
-	if (!SpecHandle.IsValid())
-	{
-		return false;
-	}
-
-	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
-	if (!Spec)
-	{
-		return false;
-	}
-
-	// --- SetByCaller 값 세팅 ---
-	if (EffectConfig.Power != 0.f)
-	{
-		Spec->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_CONSUME_POWER, EffectConfig.Power);
-	}
-
-	if (EffectConfig.Duration > 0.f)
-	{
-		Spec->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_CONSUME_DURATION, EffectConfig.Duration);
-	}
-
-	// 타입별 처리
-	if (EffectConfig.EffectType == EConsumableEffectType::Instant)
-	{
-		// ✔ 그냥 Apply만 하고 성공 처리
-		ASC->ApplyGameplayEffectSpecToSelf(*Spec);
-
-		OutDuration = 0.f;
-		return true;
-	}
-	else
-	{
-		// HasDuration / Infinite 는 핸들 유효성으로 체크
-		FActiveGameplayEffectHandle Handle =
-			ASC->ApplyGameplayEffectSpecToSelf(*Spec);
-
-		const bool bSuccess = Handle.IsValid();
-		OutDuration = EffectConfig.Duration;
-
-		return bSuccess;
-	}
-}
-
-
-bool UInventoryFragment_ConsumableItem::ApplyCooldown(UAbilitySystemComponent* ASC, float EffectDuration) const
-{
-	if (!ASC || !CooldownConfig.CooldownEffectClass)
-	{
-		return false;
-	}
-
-	float FinalCooldown = CooldownConfig.ExtraCooldown;
-	if (CooldownConfig.bIncludeDurationInCooldown)
-	{
-		FinalCooldown += EffectDuration;
-	}
-
-	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
-	FGameplayEffectSpecHandle SpecHandle =
-		ASC->MakeOutgoingSpec(CooldownConfig.CooldownEffectClass, 1.0f, Context);
-
-	if (!SpecHandle.IsValid())
-	{
-		return false;
-	}
-
-	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
-	if (!Spec)
-	{
-		return false;
-	}
-
-	// ① 쿨다운 시간 SetByCaller
-	Spec->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_CONSUME_COOLDOWN, FinalCooldown);
-
-	// ② 이 아이템 전용 쿨다운 태그를 GE에 동적으로 부여
-	if (CooldownConfig.CooldownTag.IsValid())
-	{
-		Spec->DynamicGrantedTags.AddTag(CooldownConfig.CooldownTag);
-	}
-
-	const FActiveGameplayEffectHandle Handle =
-		ASC->ApplyGameplayEffectSpecToSelf(*Spec);
-
-	return Handle.IsValid();
-}
-
-
-// ---------------- 상태 체크 ----------------
-
 bool UInventoryFragment_ConsumableItem::IsOnCooldown(UAbilitySystemComponent* ASC) const
 {
-	if (!ASC || !CooldownConfig.CooldownTag.IsValid())
-	{
-		return false;
-	}
+	if (!ASC || !CooldownConfig.CooldownTag.IsValid()) { return false; }
 
 	return ASC->HasMatchingGameplayTag(CooldownConfig.CooldownTag);
 }
 
 float UInventoryFragment_ConsumableItem::GetRemainingCooldown(UAbilitySystemComponent* ASC) const
 {
-	if (!ASC || !CooldownConfig.CooldownTag.IsValid())
-	{
-		return 0.f;
-	}
+	if (!ASC || !CooldownConfig.CooldownTag.IsValid()) { return 0.f; }
 
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(CooldownConfig.CooldownTag);
 
-	FGameplayEffectQuery Query =
-		FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(TagContainer);
+	FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(TagContainer);
 
 	TArray<float> Times = ASC->GetActiveEffectsTimeRemaining(Query);
 
@@ -262,12 +94,169 @@ float UInventoryFragment_ConsumableItem::GetRemainingCooldown(UAbilitySystemComp
 
 bool UInventoryFragment_ConsumableItem::IsInUse(UAbilitySystemComponent* ASC) const
 {
-	if (!ASC || InUseTags.Num() == 0)
+	if (!ASC || InUseTags.Num() == 0) { return false; }
+	
+	return ASC->HasAnyMatchingGameplayTags(InUseTags);
+}
+
+void UInventoryFragment_ConsumableItem::LoadFromDataTable(UKRInventoryItemInstance* Instance)
+{
+	UObject* ContextObj = Instance->GetOwnerContext();
+	if (!ContextObj) { return; }
+
+	UGameInstance* GI = Cast<UGameInstance>(ContextObj);
+	if (!GI) { return; }
+
+	UKRDataTablesSubsystem* DT = GI->GetSubsystem<UKRDataTablesSubsystem>();
+	if (!DT) { return; }
+	
+	const FGameplayTag ItemTag = Instance->GetItemTag();
+	FItemDataStruct* ItemRow = DT->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	if (!ItemRow) { return; }
+
+	ConsumeID = ItemRow->ConsumeID;
+	if (ConsumeID < 0) { return; }
+	
+	FConsumeDataStruct* ConsumeRow = DT->GetData<FConsumeDataStruct>(EGameDataType::ConsumeData, ConsumeID);
+
+	if (!ConsumeRow) { return; }
+
+	EffectConfig.MainEffectClass = ConsumeRow->MainEffectClass.LoadSynchronous();
+	EffectConfig.EffectType      = ConsumeRow->EffectType;
+	EffectConfig.Power           = ConsumeRow->Power;
+	EffectConfig.Duration        = ConsumeRow->Duration;
+	EffectConfig.StackMax       = FMath::Max(ConsumeRow->StackMax, 1);
+
+	CooldownConfig.CooldownEffectClass = DefaultCooldownEffectClass;
+	
+	CooldownConfig.ExtraCooldown            = ConsumeRow->CooldownDuration;
+	CooldownConfig.CooldownTag              = ConsumeRow->CooldownTag;
+
+	InUseTags = ConsumeRow->InUseTags;
+}
+
+bool UInventoryFragment_ConsumableItem::ApplyMainEffect(UAbilitySystemComponent* ASC, float& OutDuration)
+{
+	OutDuration = 0.f;
+
+	if (!ASC || !EffectConfig.MainEffectClass) { return false; }
+
+	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(EffectConfig.MainEffectClass, 1.0f, Context);
+
+	if (!SpecHandle.IsValid()) { return false; }
+
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+	if (!Spec) { return false; }
+	
+	if (EffectConfig.Power != 0.f)
 	{
-		return false;
+		Spec->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_CONSUME_POWER, EffectConfig.Power);
 	}
 
-	// 🔹 InUseTags 와 동일한 태그를 MainEffect GE 의 GrantedTags 에도 넣어두면,
-	//     버프가 살아있는 동안 ASC 에 자동으로 붙어 있게 됨.
-	return ASC->HasAnyMatchingGameplayTags(InUseTags);
+	if (EffectConfig.Duration > 0.f)
+	{
+		Spec->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_CONSUME_DURATION, EffectConfig.Duration);
+	}
+	
+	if (EffectConfig.EffectType != EConsumableEffectType::Instant && InUseTags.Num() > 0)
+	{
+		Spec->DynamicGrantedTags.AppendTags(InUseTags);
+	}
+	
+	if (EffectConfig.EffectType == EConsumableEffectType::Instant)
+	{
+		ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+		OutDuration = 0.f;
+		return true;
+	}
+	else
+	{
+		FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+
+		OutDuration = EffectConfig.Duration;
+		return Handle.IsValid();
+	}
+}
+
+bool UInventoryFragment_ConsumableItem::ApplyCooldown(UAbilitySystemComponent* ASC) const
+{
+	if (!ASC || !CooldownConfig.CooldownEffectClass) { return false; }
+	
+	const float FinalCooldown = CooldownConfig.ExtraCooldown;
+
+	if (FinalCooldown <= 0.f) { return false; }
+
+	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+	FGameplayEffectSpecHandle SpecHandle =
+		ASC->MakeOutgoingSpec(CooldownConfig.CooldownEffectClass, 1.0f, Context);
+
+	if (!SpecHandle.IsValid()) { return false; }
+
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+	if (!Spec) { return false; }
+	
+	Spec->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_CONSUME_COOLDOWN, FinalCooldown);
+	
+	if (CooldownConfig.CooldownTag.IsValid())
+	{
+		Spec->DynamicGrantedTags.AddTag(CooldownConfig.CooldownTag);
+	}
+
+	const FActiveGameplayEffectHandle Handle =
+		ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+
+	return Handle.IsValid();
+}
+
+int32 UInventoryFragment_ConsumableItem::GetCurrentStacks(UAbilitySystemComponent* ASC) const
+{
+	if (!ASC || InUseTags.Num() == 0)
+	{
+		return 0;
+	}
+
+	// InUse 태그가 붙어있는 모든 GE 찾기
+	FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(InUseTags);
+
+	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
+
+	int32 TotalStacks = 0;
+
+	for (const FActiveGameplayEffectHandle& Handle : Handles)
+	{
+		if (!Handle.IsValid())
+		{
+			continue;
+		}
+
+		// ASC 안에 있는 ActiveGE 접근
+		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle);
+		if (!ActiveGE)
+		{
+			continue;
+		}
+
+		// 이 GE 인스턴스의 스택 수
+		const int32 GEStack = ActiveGE->Spec.StackCount;
+
+		TotalStacks += FMath::Max(GEStack, 1); // 보호 차원에서 최소 1
+	}
+
+	return TotalStacks;
+}
+
+
+bool UInventoryFragment_ConsumableItem::CanApplyMoreStacks(UAbilitySystemComponent* ASC) const
+{
+	if (!ASC) { return false; }
+	
+	if (EffectConfig.EffectType == EConsumableEffectType::Instant) { return true; }
+	
+	if (EffectConfig.StackMax <= 0) { return true; }
+
+	const int32 CurrentStacks = GetCurrentStacks(ASC);
+	const int32 MaxStacks     = FMath::Max(EffectConfig.StackMax, 1);
+
+	return CurrentStacks < MaxStacks;
 }

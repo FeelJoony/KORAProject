@@ -37,22 +37,35 @@ struct FKRInventoryEntry
 {
 	GENERATED_BODY()
 
+	static constexpr int32 GlobalMaxStackCount = 99;
+	
 	FKRInventoryEntry()
 		: Instance(nullptr), StackCount(1)
-	{}
+	{ StackCount = FMath::Clamp(StackCount, 0, GlobalMaxStackCount); }
 
 	FKRInventoryEntry(UKRInventoryItemInstance* InInstance, int32 InStackCount = 1)
 		: Instance(InInstance), StackCount(InStackCount)
-	{}
+	{ StackCount = FMath::Clamp(StackCount, 0, GlobalMaxStackCount); }
 
 	FORCEINLINE void AddCount(int32 InStackCount)
 	{
-		StackCount += InStackCount;
+		if (InStackCount <= 0)
+		{
+			return;
+		}
+
+		const int32 NewCount = StackCount + InStackCount;
+		StackCount = FMath::Clamp(NewCount, 0, GlobalMaxStackCount);
 	}
 
 	FORCEINLINE void SubtractCount(int32 InStackCount)
 	{
-		if (StackCount < InStackCount)
+		if (InStackCount <= 0)
+		{
+			return;
+		}
+		
+		if (StackCount <= InStackCount)
 		{
 			StackCount = 0;
 			return;
@@ -125,7 +138,7 @@ struct FKRItemTableRow : public FTableRowBase
 	FText Description;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-	int32 MaxStackCount = 99;
+	int32 MaxStackCount;
 
 	FKRItemTableRow()
 		: ItemDefinition(nullptr)
@@ -217,6 +230,9 @@ public:
 	float GetConsumableCooldownRemaining(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC) const;
 
 	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
+	int32 GetQuickSlotDisplayCount(const FGameplayTag& ItemTag, int32 ActualCount) const;
+	
+	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
 	bool UseConsumableItem(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC);
 
 	
@@ -235,6 +251,9 @@ private:
 	
 	UPROPERTY()
 	TMap<FGameplayTag, FGameplayTag> PlayerQuickSlot;
+
+	UPROPERTY()
+	TMap<FGameplayTag, int32> PlayerQuickSlotStacks;
 	
 	UPROPERTY()
 	FGameplayTag SelectedQuickSlot;
@@ -281,7 +300,8 @@ private:
 	void HandleAutoSelectSlotFirstRegisteredItem(FGameplayTag SlotTag, bool bHadAssignedBefore);
 	
 	int32 GetItemQuantity_Internal(const FGameplayTag& ItemTag) const;
-
+	int32 GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const;
+	
 	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
 };
 
