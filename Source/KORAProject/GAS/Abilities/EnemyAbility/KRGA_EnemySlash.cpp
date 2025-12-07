@@ -2,6 +2,7 @@
 #include "Enemy/KRHumanEnemyCharacter.h"
 #include "GameplayTag/KREnemyTag.h"
 #include "GAS/KRAbilitySystemComponent.h"
+#include "Components/KRCombatComponent.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 
@@ -25,6 +26,18 @@ void UKRGA_EnemySlash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
+	UKRWeaponInstance* Weapon = nullptr;
+	if (UKRCombatComponent* CombatComp = GetCombatComponentFromActorInfo())
+	{
+		Weapon = CombatComp->GetCurrentWeaponInstance();
+	}
+
+	if (!Weapon)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Enemy))
 	{
@@ -42,7 +55,14 @@ void UKRGA_EnemySlash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 				NAME_None
 			);
 
-		ActivateSlash();
+		if (MontageTask)
+		{
+			MontageTask->OnCompleted.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
+			MontageTask->OnCancelled.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
+			MontageTask->OnInterrupted.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
+			MontageTask->OnBlendOut.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
+			MontageTask->ReadyForActivation();
+		}
 	}
 }
 
@@ -51,8 +71,6 @@ void UKRGA_EnemySlash::EndAbility(const FGameplayAbilitySpecHandle Handle,
 									const FGameplayAbilityActivationInfo ActivationInfo, 
 									bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Enemy)) return;
 
@@ -61,15 +79,8 @@ void UKRGA_EnemySlash::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		EnemyASC->RemoveLooseGameplayTag(KRTAG_ENEMY_ACTION_SLASH);
 	}
-}
 
-void UKRGA_EnemySlash::ActivateSlash()
-{
-	MontageTask->OnCompleted.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
-	MontageTask->OnCancelled.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
-	MontageTask->OnInterrupted.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
-	MontageTask->OnBlendOut.AddDynamic(this, &UKRGA_EnemySlash::OnMontageEnded);
-	MontageTask->ReadyForActivation();
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UKRGA_EnemySlash::OnMontageEnded()
