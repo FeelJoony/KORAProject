@@ -8,11 +8,6 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogQuestInstance, Log, All);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestAccepted, int32, QuestIndex);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestCompleted, int32, QuestIndex);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuestFailed, int32, QuestIndex);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSubQuestProgress, int32, QuestIndex, int32, SubQuestDataKey, const struct FSubQuestEvalData&, EvalData);
-
 UCLASS(BlueprintType)
 class KORAPROJECT_API UKRQuestInstance : public UObject
 {
@@ -20,18 +15,6 @@ class KORAPROJECT_API UKRQuestInstance : public UObject
 
 public:
 	UKRQuestInstance();
-
-	UPROPERTY(BlueprintAssignable, Category = "Quest")
-	FOnQuestAccepted OnQuestAccepted;
-
-	UPROPERTY(BlueprintAssignable, Category = "Quest")
-	FOnQuestCompleted OnQuestCompleted;
-
-	UPROPERTY(BlueprintAssignable, Category = "Quest")
-	FOnQuestFailed OnQuestFailed;
-
-	UPROPERTY(BlueprintAssignable, Category = "Quest")
-	FOnSubQuestProgress OnSubQuestProgress;
 
 	void Initialize(int32 QuestIndex);
 
@@ -45,6 +28,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Quest)
 	void FailQuest();
+
+	UFUNCTION(BlueprintCallable, Category = Quest)
+	void AddChecker();
 	
 	UFUNCTION(BlueprintPure, Category = Quest)
 	EQuestState GetQuestState() const { return CurrentState; }
@@ -94,4 +80,7 @@ protected:
 private:
 	UPROPERTY()
 	TMap<int32, FSubQuestEvalData> SubQuestProgressMap;
+
+	UPROPERTY()
+	TMap<FGameplayTag, TObjectPtr<class UQuestConditionChecker>> QuestCheckers;
 };

@@ -4,6 +4,13 @@
 #include "Interface/TableKey.h"
 #include "QuestDataStruct.generated.h"
 
+UENUM(BlueprintType)
+enum class EQuestType : uint8
+{
+	Q_Tutorial,
+	Q_Main
+};
+
 USTRUCT(BlueprintType)
 struct KORAPROJECT_API FQuestDataStruct : public FTableRowBase, public ITableKey
 {
@@ -12,6 +19,7 @@ struct KORAPROJECT_API FQuestDataStruct : public FTableRowBase, public ITableKey
 public:
 	FQuestDataStruct()
 		: Index(0)
+		, Type(EQuestType::Q_Tutorial)
 		, QuestName(TEXT_NULL)
 		, Description(TEXT_NULL)
 		, StateTreeDefinitionPath(TEXT_NULL)
@@ -20,6 +28,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Quest)
 	int32 Index;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Quest)
+	EQuestType Type;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Quest)
 	FString QuestName;

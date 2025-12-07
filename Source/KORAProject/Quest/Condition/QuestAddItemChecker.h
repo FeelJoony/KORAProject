@@ -12,5 +12,5 @@ class KORAPROJECT_API UQuestAddItemChecker : public UQuestConditionChecker
 public:
 	UQuestAddItemChecker();
 	
-	virtual bool CanCount(const struct FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag, UStruct* InStruct) override;
+	virtual bool CanCount(const struct FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag) override;
 };

@@ -5,7 +5,7 @@ UQuestConditionChecker::UQuestConditionChecker()
 {
 }
 
-bool UQuestConditionChecker::CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag, UStruct* InStruct)
+bool UQuestConditionChecker::CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag)
 {
 	return true;
 }

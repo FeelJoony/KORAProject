@@ -1,5 +1,7 @@
 #include "Quest/KRQuestInstance.h"
 #include "Subsystem/KRDataTablesSubsystem.h"
+#include "Subsystem/KRQuestSubsystem.h"
+#include "Condition/QuestConditionChecker.h"
 
 DEFINE_LOG_CATEGORY(LogQuestInstance);
 
@@ -27,6 +29,9 @@ void UKRQuestInstance::Initialize(int32 QuestIndex)
 		EvalData.Init(CurrentSubQuestData, EvalDataStruct.OrderIndex);
 		SubQuestProgressMap.Add(EvalDataStruct.OrderIndex, EvalData);
 	}
+
+	UKRQuestSubsystem::Get(GetWorld()).InitializeQuestDelegate(this);
+	AddChecker();
 }
 
 void UKRQuestInstance::StartQuest()
@@ -46,6 +51,7 @@ void UKRQuestInstance::StartQuest()
 	
 	UE_LOG(LogQuestInstance, Log, TEXT("Quest state changed to InProgress"));
 
+	UKRQuestSubsystem::Get(GetWorld()).OnAcceptedBroadcast(CurrentQuestData.Type, CurrentSubOrder);
 }
 
 void UKRQuestInstance::TickQuest(float DeltaTime)
@@ -64,6 +70,8 @@ void UKRQuestInstance::CompleteQuest()
 	}
 
 	CurrentState = EQuestState::Completed;
+
+	UKRQuestSubsystem::Get(GetWorld()).UninitializeQuestDelegate();
 }
 
 void UKRQuestInstance::FailQuest()
@@ -76,6 +84,25 @@ void UKRQuestInstance::FailQuest()
 	CurrentState = EQuestState::Failed;
 }
 
+void UKRQuestInstance::AddChecker()
+{
+	UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(GetWorld());
+
+	for (const FSubQuestEvalDataStruct& EvalData : CurrentSubQuestData.EvalDatas)
+	{
+		TSubclassOf<UQuestConditionChecker> ConditionCheckerClass = QuestSubsystem.CheckerGroup.FindRef(EvalData.ObjectiveTag);
+		if (ConditionCheckerClass == nullptr)
+		{
+			UE_LOG(LogQuestInstance, Error, TEXT("Not exist ConditionChecker! Please Check"));
+			
+			continue;
+		}
+
+		UQuestConditionChecker* ConditionCheckerInstance = ConditionCheckerClass->GetDefaultObject<UQuestConditionChecker>();
+		QuestCheckers.Add(EvalData.ObjectiveTag, ConditionCheckerInstance);
+	}
+}
+
 void UKRQuestInstance::AddCount(int32 Amount)
 {
 	if (CurrentState != EQuestState::InProgress)
@@ -86,6 +113,14 @@ void UKRQuestInstance::AddCount(int32 Amount)
 	if (FSubQuestEvalData* EvalData = SubQuestProgressMap.Find(CurrentSubOrder))
 	{
 		if (EvalData->GetState() != EQuestState::InProgress || EvalData->IsCompleted())
+		{
+			return;
+		}
+
+		const FSubQuestEvalDataStruct& EvalDataStruct = EvalData->EvalData;
+		FGameplayTag InTag = EvalDataStruct.ObjectiveTag;
+		UQuestConditionChecker* ConditionCheckerInstance = QuestCheckers.FindRef(InTag);
+		if (ConditionCheckerInstance == nullptr || !ConditionCheckerInstance->CanCount(EvalDataStruct, InTag))
 		{
 			return;
 		}
@@ -115,6 +150,8 @@ void UKRQuestInstance::SetNextQuest()
 			
 			NextEvalData->Start();
 			NextEvalData->bIsActive = true;
+
+			UKRQuestSubsystem::Get(GetWorld()).OnSetNextSubBroadcast(CurrentQuestData.Type, CurrentSubOrder);
 		}
 	}
 }
