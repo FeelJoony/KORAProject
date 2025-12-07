@@ -53,9 +53,9 @@ public:
 	
 	void BeginEnemyGrapple();
 	
-	bool ApplyStunToEnemy() const;
+	bool ApplyStunToEnemy();
 	
-	void RemoveStunFromEnemy() const;
+	void RemoveStunFromEnemy();
 	
 	void TickEnemyMovement();
 	
@@ -77,6 +77,8 @@ public:
 	
 	void CleanupAllTimers();
 
+	UKRAbilitySystemComponent* ReturnKRASC(APawn* APawn);
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FVector GrapPoint;
@@ -96,6 +98,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> LaunchMontage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UAnimMontage> FailMontage = nullptr;
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> LoopMontageTask=nullptr;
