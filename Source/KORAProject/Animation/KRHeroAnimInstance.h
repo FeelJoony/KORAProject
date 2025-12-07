@@ -25,20 +25,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	float EnterRelaxStateTime = 5.f;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
-	float Direction;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
-	FVector Velocity;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
-	bool bIsLockOn;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
+	//bool bIsLockOn; //태그 관리 고려
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
-	float LockOnDirection;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
+	//float LockOnDirection;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
-	float LockOnSpeed;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
+	//float LockOnSpeed;
 
 	float IdleElapsedTime;
 };

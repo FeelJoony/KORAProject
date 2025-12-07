@@ -30,6 +30,7 @@ void UKRGA_Scanning::StartScan()
 	if (!CachedScannerController)
 	{
 		OnEnded();
+		return;
 	}
 		CachedScannerController->StartScan();
 		GetWorld()->GetTimerManager().SetTimer(ScanTimer,this,&UKRGA_Scanning::SpawnOverlapSphere,0.1f,true);//Task로 변경

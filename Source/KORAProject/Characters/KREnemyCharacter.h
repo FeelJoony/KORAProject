@@ -26,7 +26,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "KR|GAS")
 	TObjectPtr<UKRAbilitySystemComponent> EnemyASC;
 
@@ -61,6 +61,10 @@ private:
 
 	UFUNCTION()
 	void SetEnemyState(FGameplayTag StateTag);
+
+	UFUNCTION()
+	void OnGEAdded(UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+
 
 	TArray<FGameplayTag> StateTags;
 };
