@@ -80,7 +80,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
                 int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
                 int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
-                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags"));
+                int32 FragmentTags_Index = GetHeaderIndex(Headers, TEXT("FragmentTags"));
                 int32 BasePrice_Index = GetHeaderIndex(Headers, TEXT("BasePrice"));
                 int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
                 int32 DescriptionKey_Index = GetHeaderIndex(Headers, TEXT("DescriptionKey"));
@@ -106,11 +106,11 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.MaterialID = ParseIntValue(RowValue[MaterialID_Index]);
                 ItemData.QuestID = ParseIntValue(RowValue[QuestID_Index]);
 
-                TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[AbilityTags_Index]);
+                TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[FragmentTags_Index]);
                 for (const FString& StringValue : AbilityTagsStringValues)
                 {
                     FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName(StringValue));
-                    ItemData.AbilityTags.Add(AbilityTag);
+                    ItemData.FragmentTags.Add(AbilityTag);
                 }
 
                 FName RowName = *FString::Printf(TEXT("Item_%d"), i);
@@ -466,27 +466,22 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 		{
 			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
 			auto& Values  = const_cast<TArray<TArray<FString>>&>(Params.Values);
-
-			// 필수 헤더 인덱스
+			
 			const int32 Index_Idx = GetHeaderIndex(Headers, TEXT("Index"));
 			if (Index_Idx == INDEX_NONE)
 			{
-				UE_LOG(LogTemp, Error, TEXT("CreateConsumeData: 'Index' column is required."));
 				return;
 			}
-
-			// 선택/추가 헤더 인덱스 (없어도 동작)
+			
 			const int32 MainEffectClass_Idx     = GetHeaderIndex(Headers, TEXT("MainEffectClass"));
 			const int32 EffectType_Idx          = GetHeaderIndex(Headers, TEXT("EffectType"));
 			const int32 Power_Idx               = GetHeaderIndex(Headers, TEXT("Power"));
 			const int32 Duration_Idx            = GetHeaderIndex(Headers, TEXT("Duration"));
-			const int32 CooldownEffectClass_Idx = GetHeaderIndex(Headers, TEXT("CooldownEffectClass"));
+			const int32 StackMax_Idx            = GetHeaderIndex(Headers, TEXT("StackMax"));
 			const int32 CooldownDuration_Idx    = GetHeaderIndex(Headers, TEXT("CooldownDuration"));
 			const int32 CooldownTag_Idx         = GetHeaderIndex(Headers, TEXT("CooldownTag"));
-			const int32 IncludeDuration_Idx     = GetHeaderIndex(Headers, TEXT("bIncludeDurationInCooldown"));
 			const int32 InUseTags_Idx           = GetHeaderIndex(Headers, TEXT("InUseTags"));
-
-			// EffectType 문자열 → enum 변환 헬퍼
+			
 			auto ParseEffectType = [](const FString& InStr) -> EConsumableEffectType
 			{
 				const FString Trimmed = InStr.TrimStartAndEnd();
@@ -495,8 +490,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					return EConsumableEffectType::Instant;
 				}
-
-				// StaticEnum 사용 (에디터에서 문자열로 채워도 대응)
+				
 				if (UEnum* Enum = StaticEnum<EConsumableEffectType>())
 				{
 					int64 Value = Enum->GetValueByNameString(Trimmed);
@@ -505,8 +499,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 						return static_cast<EConsumableEffectType>(Value);
 					}
 				}
-
-				// 혹시 Enum에 표시명과 다르게 들어온 경우 대비
+				
 				if (Trimmed.Equals(TEXT("Instant"), ESearchCase::IgnoreCase))
 				{
 					return EConsumableEffectType::Instant;
@@ -523,8 +516,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 
 				return EConsumableEffectType::Instant;
 			};
-
-			// SoftClassPtr<UGameplayEffect> 파싱 헬퍼
+			
 			auto ParseGEClass = [](const FString& InStr) -> TSoftClassPtr<UGameplayEffect>
 			{
 				TSoftClassPtr<UGameplayEffect> Result;
@@ -539,30 +531,25 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 			for (int32 i = 0; i < Values.Num(); ++i)
 			{
 				TArray<FString>& RowValue = Values[i];
-
-				// Index 필수
+				
 				if (!RowValue.IsValidIndex(Index_Idx))
 				{
 					continue;
 				}
 
 				FConsumeDataStruct ConsumeData;
-
-				// Index
+				
 				ConsumeData.Index = ParseIntValue(RowValue[Index_Idx]);
 				if (ConsumeData.Index < 0)
 				{
-					// 유효하지 않은 Index는 스킵
 					continue;
 				}
 
-				// MainEffectClass
 				if (MainEffectClass_Idx != INDEX_NONE && RowValue.IsValidIndex(MainEffectClass_Idx))
 				{
 					ConsumeData.MainEffectClass = ParseGEClass(RowValue[MainEffectClass_Idx]);
 				}
-
-				// EffectType
+				
 				if (EffectType_Idx != INDEX_NONE && RowValue.IsValidIndex(EffectType_Idx))
 				{
 					ConsumeData.EffectType = ParseEffectType(RowValue[EffectType_Idx]);
@@ -571,8 +558,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.EffectType = EConsumableEffectType::Instant;
 				}
-
-				// Power
+				
 				if (Power_Idx != INDEX_NONE && RowValue.IsValidIndex(Power_Idx))
 				{
 					ConsumeData.Power = ParseFloatValue(RowValue[Power_Idx]);
@@ -581,8 +567,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.Power = 0.f;
 				}
-
-				// Duration
+				
 				if (Duration_Idx != INDEX_NONE && RowValue.IsValidIndex(Duration_Idx))
 				{
 					ConsumeData.Duration = ParseFloatValue(RowValue[Duration_Idx]);
@@ -591,14 +576,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.Duration = 0.f;
 				}
-
-				// CooldownEffectClass
-				if (CooldownEffectClass_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownEffectClass_Idx))
-				{
-					ConsumeData.CooldownEffectClass = ParseGEClass(RowValue[CooldownEffectClass_Idx]);
-				}
-
-				// CooldownDuration
+				
 				if (CooldownDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownDuration_Idx))
 				{
 					ConsumeData.CooldownDuration = ParseFloatValue(RowValue[CooldownDuration_Idx]);
@@ -607,36 +585,24 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.CooldownDuration = 0.f;
 				}
-
-				// CooldownTag
+				
 				if (CooldownTag_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownTag_Idx))
 				{
 					const FString TagStr = RowValue[CooldownTag_Idx].TrimStartAndEnd();
+
 					if (!TagStr.IsEmpty())
 					{
 						ConsumeData.CooldownTag = ParseGameplayTagValue(TagStr);
 					}
 				}
-
-				// bIncludeDurationInCooldown
-				if (IncludeDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(IncludeDuration_Idx))
-				{
-					const FString BoolStr = RowValue[IncludeDuration_Idx].TrimStartAndEnd();
-					ConsumeData.bIncludeDurationInCooldown = BoolStr.ToBool();
-				}
-				else
-				{
-					ConsumeData.bIncludeDurationInCooldown = true;
-				}
-
-				// InUseTags (| 또는 , 구분자)
+				
 				if (InUseTags_Idx != INDEX_NONE && RowValue.IsValidIndex(InUseTags_Idx))
 				{
 					const FString TagsStr = RowValue[InUseTags_Idx].TrimStartAndEnd();
 					if (!TagsStr.IsEmpty())
 					{
 						TArray<FString> TagStrings;
-						// 우선 | 기준으로 자르고, 없으면 , 기준
+
 						if (TagsStr.Contains(TEXT("|")))
 						{
 							TagsStr.ParseIntoArray(TagStrings, TEXT("|"), true);
@@ -652,6 +618,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 							if (!TrimmedTag.IsEmpty() && TrimmedTag != TEXT("-1"))
 							{
 								const FGameplayTag Tag = ParseGameplayTagValue(TrimmedTag);
+
 								if (Tag.IsValid())
 								{
 									ConsumeData.InUseTags.AddTag(Tag);
@@ -661,7 +628,19 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 					}
 				}
 
-				// RowName은 Index 기반으로
+				if (StackMax_Idx != INDEX_NONE && RowValue.IsValidIndex(StackMax_Idx))
+				{
+					ConsumeData.StackMax = ParseIntValue(RowValue[StackMax_Idx]);
+					if (ConsumeData.StackMax <= 0)
+					{
+						ConsumeData.StackMax = 1;
+					}
+				}
+				else
+				{
+					ConsumeData.StackMax = 1;
+				}
+				
 				const FName RowName = *FString::Printf(TEXT("Consume_%d"), ConsumeData.Index);
 
 				if (FConsumeDataStruct* FindRow =

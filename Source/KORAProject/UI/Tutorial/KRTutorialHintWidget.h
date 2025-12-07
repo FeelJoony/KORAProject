@@ -35,6 +35,10 @@ protected:
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Tutorial")
     void BP_OnTutorialShown();
+    UFUNCTION(BlueprintImplementableEvent, Category = "Tutorial")
+    void BP_ShowPressSpace();
+    UFUNCTION(BlueprintImplementableEvent, Category = "Tutorial")
+    void BP_HidePressSpace();
 
     void HandleTutorialMessage(FGameplayTag Channel, const FKRUIMessage_Tutorial& Msg);
     void ApplyDataTableRow(const FTutorialDataStruct& Row);

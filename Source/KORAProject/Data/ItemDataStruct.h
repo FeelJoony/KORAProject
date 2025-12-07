@@ -33,7 +33,7 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	FGameplayTag RarityTag;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
-	TArray<FGameplayTag> AbilityTags;
+	TArray<FGameplayTag> FragmentTags;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	float BasePrice;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)

@@ -6,6 +6,8 @@
 #include "Player/KRPlayerController.h"
 #include "GameplayTag/KRItemTypeTag.h"
 #include "GameplayTag/KRPlayerTag.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
 void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -28,8 +30,8 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	FGameplayTag SwordTag = FGameplayTag::RequestGameplayTag("ItemType.Equip.Sword");
-	FGameplayTag GunTag = FGameplayTag::RequestGameplayTag("ItemType.Equip.Gun");
+	FGameplayTag SwordTag = KRTAG_ITEMTYPE_EQUIP_SWORD;
+	FGameplayTag GunTag = KRTAG_ITEMTYPE_EQUIP_GUN;
 
 	UKRWeaponInstance* SwordInst = nullptr;
 	UKRWeaponInstance* GunInst = nullptr;
@@ -54,15 +56,9 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		if (GunInst)
 		{
-			if (SwordInst)
-			{
-				SwordInst->RemoveWeaponAbilities(KRASC);
-				SwordInst->RemoveWeaponInputContext(PC);
-			}
+			if (SwordInst) SwordInst->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, false);
 
-			GunInst->GrantWeaponAbilities(KRASC);
-			GunInst->ApplyWeaponAnimLayer(Character);
-			GunInst->AddWeaponInputContext(PC);
+			GunInst->ActivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Switched, true);
 
 			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
 			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
@@ -72,15 +68,9 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		if (SwordInst)
 		{
-			if (GunInst)
-			{
-				GunInst->RemoveWeaponAbilities(KRASC);
-				GunInst->RemoveWeaponInputContext(PC);
-			}
+			if (GunInst) GunInst->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, false);
 
-			SwordInst->GrantWeaponAbilities(KRASC);
-			SwordInst->ApplyWeaponAnimLayer(Character);
-			SwordInst->AddWeaponInputContext(PC);
+			SwordInst->ActivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Switched, true);
 
 			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
 			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
@@ -90,9 +80,7 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		if (SwordInst)
 		{
-			SwordInst->GrantWeaponAbilities(KRASC);
-			SwordInst->ApplyWeaponAnimLayer(Character);
-			SwordInst->AddWeaponInputContext(PC);
+			SwordInst->ActivateWeapon(Character, PC, KRASC);
 
 			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
 			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);

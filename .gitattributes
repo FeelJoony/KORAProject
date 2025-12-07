@@ -6,8 +6,8 @@
 *.jpeg  filter=lfs diff=lfs merge=lfs -text
 *.tga   filter=lfs diff=lfs merge=lfs -text
 *.exr   filter=lfs diff=lfs merge=lfs -text
-git lfs untrack "Content/Levels/"
-git lfs untrack "Content/Megascans/"
-git lfs untrack "Content/MSPresets/"
-git lfs untrack "Content/Rocket/"
+git lfs untrack "Content/Levels/**"
+git lfs untrack "Content/Megascans/**"
+git lfs untrack "Content/MSPresets/**"
+git lfs untrack "Content/Rocket/**"
 git lfs untrack "Content/VFX_SFX/**"

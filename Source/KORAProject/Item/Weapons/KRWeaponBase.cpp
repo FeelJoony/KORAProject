@@ -24,8 +24,6 @@ void AKRWeaponBase::SetWeaponVisibility(bool bVisible)
 	}
 	SetActorEnableCollision(bVisible);
 	SetActorTickEnabled(bVisible);
-	
-	// 이펙트 처리 추가 가능
 }
 
 
@@ -35,6 +33,16 @@ void AKRWeaponBase::SetWeaponInstance(UKRWeaponInstance* InInstance)
 	OnWeaponInstanceAssigned();
 }
 
+
+void AKRWeaponBase::PlayUnequipEffect_Implementation()
+{
+	SetWeaponVisibility(false);
+}
+
+void AKRWeaponBase::PlayEquipEffect_Implementation()
+{
+	SetWeaponVisibility(true);
+}
 void AKRWeaponBase::OnWeaponInstanceAssigned()
 {
 	// 기본은 아무 것도 안함.

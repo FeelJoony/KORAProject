@@ -2,7 +2,7 @@
 
 
 #include "UI/HUD/Modules/KRPlayerStatusWidget.h"
-#include "GameplayTag/KRPlayerTag.h"
+#include "GameplayTag/KRItemTypeTag.h"
 #include "Player/KRPlayerState.h"
 #include "Components/ProgressBar.h"
 #include "CommonTextBlock.h"
@@ -39,8 +39,8 @@ void UKRPlayerStatusWidget::OnHUDInitialized()
 	BindToASC();
 	InitBarsFromASC();
 
-	UpdateWeaponAmmoDisplay(KRTAG_PLAYER_WEAPON_SWORD, 15, 15);
-	BP_OnWeaponChanged(KRTAG_PLAYER_WEAPON_SWORD);
+	UpdateWeaponAmmoDisplay(KRTAG_ITEMTYPE_EQUIP_SWORD, 15, 15);
+	BP_OnWeaponEquipped(KRTAG_ITEMTYPE_EQUIP_SWORD, false);
 }
 
 void UKRPlayerStatusWidget::NativeDestruct()
@@ -351,12 +351,18 @@ void UKRPlayerStatusWidget::OnWeaponMessageReceived(FGameplayTag Channel, const 
 	switch (Message.Action)
 	{
 	case EWeaponMessageAction::Equipped:
+	{
+		BP_OnWeaponEquipped(KRTAG_ITEMTYPE_EQUIP_SWORD, true);
+		UpdateWeaponAmmoDisplay(KRTAG_ITEMTYPE_EQUIP_SWORD, Message.CurrentAmmo, Message.MaxAmmo);
+		break;
+	}
 	case EWeaponMessageAction::Unequipped:
-		// Currently no special handling needed
+		BP_OnWeaponEquipped(KRTAG_ITEMTYPE_EQUIP_SWORD, false);
+		UpdateWeaponAmmoDisplay(KRTAG_ITEMTYPE_EQUIP_SWORD, Message.CurrentAmmo, Message.MaxAmmo);
 		break;
 	case EWeaponMessageAction::AmmoUpdated:
 	{
-		if (Message.WeaponTypeTag == KRTAG_PLAYER_WEAPON_SWORD) return;
+		if (Message.WeaponTypeTag == KRTAG_ITEMTYPE_EQUIP_SWORD) return;
 
 		CurrentBullet->SetText(FText::AsNumber(Message.CurrentAmmo));
 		MaxBullet->SetText(FText::AsNumber(Message.MaxAmmo));
@@ -529,14 +535,7 @@ void UKRPlayerStatusWidget::UpdateGreyHPBar(float NewValueNormalized)
 
 void UKRPlayerStatusWidget::UpdateWeaponAmmoDisplay(const FGameplayTag& WeaponTypeTag, int32 CurrentAmmo, int32 MaxAmmo)
 {
-	if (WeaponTypeTag == KRTAG_PLAYER_WEAPON_SWORD)
-	{
-		if (GunAmmoSection)
-		{
-			GunAmmoSection->SetVisibility(ESlateVisibility::Collapsed);
-		}
-	}
-	else
+	if (WeaponTypeTag == KRTAG_ITEMTYPE_EQUIP_GUN)
 	{
 		if (GunAmmoSection)
 		{
@@ -544,5 +543,12 @@ void UKRPlayerStatusWidget::UpdateWeaponAmmoDisplay(const FGameplayTag& WeaponTy
 		}
 		CurrentBullet->SetText(FText::AsNumber(CurrentAmmo));
 		MaxBullet->SetText(FText::AsNumber(MaxAmmo));
+	}
+	else
+	{
+		if (GunAmmoSection)
+		{
+			GunAmmoSection->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
 }
