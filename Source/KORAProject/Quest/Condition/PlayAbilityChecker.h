@@ -11,6 +11,9 @@ class KORAPROJECT_API UPlayAbilityChecker : public UQuestConditionChecker
 
 public:
 	UPlayAbilityChecker();
-	
+
+	virtual void Initialize(FGameplayTag InTag) override;
 	virtual bool CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag) override;
+
+	void Count(const FGameplayTag InTag, int32 NewCount);
 };

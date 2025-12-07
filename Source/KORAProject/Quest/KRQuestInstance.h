@@ -56,7 +56,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = Quest)
 	const FSubQuestEvalData& GetSubQuestEvalData() const { return *SubQuestProgressMap.Find(CurrentSubOrder); }
 	
-	void AddCount(int32 Amount);
+	void AddCount(int32 Amount = 1);
 	void SetNextQuest();
 	
 

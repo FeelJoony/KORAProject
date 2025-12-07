@@ -13,7 +13,8 @@ class KORAPROJECT_API UQuestConditionChecker : public UObject
 
 public:
 	UQuestConditionChecker();
-	
+
+	virtual void Initialize(FGameplayTag InTag) {}
 	virtual bool CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag);
 	
 	
