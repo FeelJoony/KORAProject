@@ -18,6 +18,7 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (UNLIKELY(!CachedCharacter || !CachedMoveComponent))
 	{
 		RecacheOwner();
+		return;
 		// if (!CachedCharacter || !CachedMoveComponent)
 		// {
 		// 	GroundSpeed = 0.f;
@@ -26,7 +27,7 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		// 	bIsFalling = false;
 		// 	return;
 		// }
-		//UE_LOG(LogTemp, Warning, TEXT("KRBaseAnimInstance::NativeUpdateAnimation: CachedCharacter or CachedMoveComponent is nullptr. %s"), *GetName()
+		//UE_LOG(LogTemp, Warning, TEXT("KRBaseAnimInstance::NativeUpdateAnimation: CachedCharacter or CachedMoveComponent is nullptr. %s"), *GetName
 	}
 	
 	GroundSpeed = CachedCharacter->GetVelocity().Size2D();
@@ -38,6 +39,7 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Velocity,
 		CachedCharacter->GetActorRotation()
 	);
+	UE_LOG(LogTemp, Warning, TEXT("Direction: %f , GroundSpeed: %f"), Direction, GroundSpeed);
 }
 
 void UKRBaseAnimInstance::RecacheOwner()
