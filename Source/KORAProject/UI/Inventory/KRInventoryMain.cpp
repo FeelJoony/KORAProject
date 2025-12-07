@@ -45,10 +45,10 @@ void UKRInventoryMain::NativeOnActivated()
 
 void UKRInventoryMain::NativeOnDeactivated()
 {
-	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
-	{
-		InputSubsys->UnbindAll(this);
-	}
+	if (ConsumablesButton) ConsumablesButton->OnClicked().RemoveAll(this);
+	if (MaterialButton)    MaterialButton->OnClicked().RemoveAll(this);
+	if (QuestButton)       QuestButton->OnClicked().RemoveAll(this);
+
 	Super::NativeOnDeactivated();
 }
 
@@ -71,6 +71,10 @@ void UKRInventoryMain::NativeConstruct()
 
 void UKRInventoryMain::NativeDestruct()
 {
+	if (ConsumablesButton) ConsumablesButton->OnClicked().RemoveAll(this);
+	if (MaterialButton)    MaterialButton->OnClicked().RemoveAll(this);
+	if (QuestButton)       QuestButton->OnClicked().RemoveAll(this);
+
 	Super::NativeDestruct();
 }
 

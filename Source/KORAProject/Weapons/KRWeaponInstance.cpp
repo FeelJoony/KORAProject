@@ -14,6 +14,7 @@
 #include "Characters/KRHeroCharacter.h"
 #include "Player/KRPlayerController.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 
 UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -31,49 +32,41 @@ UKRWeaponInstance::UKRWeaponInstance(const FObjectInitializer& ObjectInitializer
 void UKRWeaponInstance::OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn)
 {
     Super::OnEquipped(ActorsToSpawn);
-    //SpawnEquipmentActors(ActorsToSpawn);
 
-    if (CachedIMC)
-    {
-        if (APawn* MyPawn = GetPawn())
-        {
-            if (APlayerController* PC = Cast<APlayerController>(MyPawn->GetController()))
-            {
-                if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-                {
-                    Subsystem->AddMappingContext(CachedIMC, CachedIMCPriority);
-                }
-            }
-        }
-    }
-    
-    // 장착 시 로직 (예: HUD 업데이트, 애니메이션 변경)
-    UE_LOG(LogTemp, Log, TEXT("Weapon Equipped: %s"), *WeaponType.ToString());
 }
 
 void UKRWeaponInstance::OnUnequipped()
 {
-    if (ACharacter* Char = Cast<ACharacter>(GetPawn()))
-    {
-        Char->GetMesh()->LinkAnimClassLayers(nullptr);
-    }
-    
-    if (CachedIMC)
-    {
-        if (APawn* MyPawn = GetPawn())
-        {
-            if (APlayerController* PC = Cast<APlayerController>(MyPawn->GetController()))
-            {
-                if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-                {
-                    Subsystem->RemoveMappingContext(CachedIMC);
-                }
-            }
-        }
-    }
     Super::OnUnequipped();
+}
 
-    UE_LOG(LogTemp, Log, TEXT("Weapon Unequipped: %s"), *WeaponType.ToString());
+void UKRWeaponInstance::ActivateWeapon(AKRBaseCharacter* Character, AKRPlayerController* PC, UKRAbilitySystemComponent* ASC, EWeaponMessageAction Action, bool bBroadcast)
+{
+    GrantWeaponAbilities(ASC);
+    ApplyWeaponAnimLayer(Character);
+    AddWeaponInputContext(PC);
+
+    if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(SpawnedWeaponActor))
+    {
+        WeaponBase->SetWeaponVisibility(true);
+        WeaponBase->PlayEquipEffect();
+    }
+
+    if (bBroadcast) BroadcastWeaponMessage(Action);
+}
+
+void UKRWeaponInstance::DeactivateWeapon(AKRBaseCharacter* Character, AKRPlayerController* PC, UKRAbilitySystemComponent* ASC, EWeaponMessageAction Action, bool bBroadcast)
+{
+    RemoveWeaponAbilities(ASC);
+    RemoveWeaponInputContext(PC);
+    RemoveWeaponAnimLayer(Character);
+
+    if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(SpawnedWeaponActor))
+    {
+        WeaponBase->PlayUnequipEffect();
+    }
+
+    if (bBroadcast) BroadcastWeaponMessage(Action);
 }
 
 void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstance)
@@ -89,6 +82,7 @@ void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstanc
         return;
     }
 
+    // Stats Fragment
     // Stats Fragment
     if (const UInventoryFragment_SetStats* StatsFragment =
         Cast<UInventoryFragment_SetStats>(ItemDef->FindFragmentByTag(
@@ -118,6 +112,7 @@ void UKRWeaponInstance::InitializeFromItem(UKRInventoryItemInstance* ItemInstanc
         CachedIMCPriority = EquipFragment->InputPriority;
         CachedAbilities = EquipFragment->GrantedAbilities;
         LightAttackMontages = EquipFragment->LightAttackMontages;
+        ChargeAttackMontages = EquipFragment->ChargeAttackMontages;
         ChargeAttackMontages = EquipFragment->ChargeAttackMontages;
     }
 }
@@ -257,14 +252,6 @@ void UKRWeaponInstance::DestroyEquipmentActors()
     Super::DestroyEquipmentActors();
 }
 
-void UKRWeaponInstance::SetWeaponActiveState(bool bIsActive)
-{
-    if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(SpawnedWeaponActor))
-    {
-        WeaponBase->SetWeaponVisibility(bIsActive);
-    }
-}
-
 void UKRWeaponInstance::ApplyWeaponAnimLayer(AKRBaseCharacter* TargetCharacter)
 {
     if (TargetCharacter && CachedAnimLayer)
@@ -357,4 +344,36 @@ void UKRWeaponInstance::RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC)
 {
     if (!ASC) return;
     GrantedHandles.TakeFromAbilitySystem(ASC);
+}
+
+void UKRWeaponInstance::PlayEquipVFX()
+{
+    if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(SpawnedWeaponActor))
+    {
+        WeaponBase->PlayEquipEffect();
+    }
+}
+
+void UKRWeaponInstance::PlayUnequipVFX()
+{
+    if (AKRWeaponBase* WeaponBase = Cast<AKRWeaponBase>(SpawnedWeaponActor))
+    {
+        WeaponBase->PlayUnequipEffect();
+    }
+}
+
+void UKRWeaponInstance::BroadcastWeaponMessage(const EWeaponMessageAction Action)
+{
+    if (UWorld* World = GetWorld())
+    {
+        UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
+
+        FKRUIMessage_Weapon Payload;
+        Payload.Action = Action;
+        Payload.WeaponTypeTag = WeaponType;
+        Payload.CurrentAmmo = CurrentAmmo;
+        Payload.MaxAmmo = MaxAmmo;
+
+        Subsys.BroadcastMessage(FKRUIMessageTags::Weapon(), Payload);
+    }
 }

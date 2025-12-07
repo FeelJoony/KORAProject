@@ -43,6 +43,8 @@ protected:
 	void BP_OnCoreDriveChanged(int32 FullSegments, float PartialSegmentPercent);
 	UFUNCTION(BlueprintImplementableEvent, Category = "PlayerStatus", meta = (DisplayName = "On Weapon Changed"))
 	void BP_OnWeaponChanged(const FGameplayTag& WeaponTypeTag);
+	UFUNCTION(BlueprintImplementableEvent, Category = "PlayerStatus", meta = (DisplayName = "On Weapon Equipped/Unequipped"))
+	void BP_OnWeaponEquipped(const FGameplayTag& WeaponTypeTag, bool bIsEquipped);
 	UFUNCTION(BlueprintImplementableEvent, Category = "PlayerStatus")
 	void BP_OnGuardSuccess();
 	UFUNCTION(BlueprintImplementableEvent, Category = "PlayerStatus")
