@@ -1,7 +1,7 @@
 ﻿#include "QuestConditionChecker.h"
 
 UQuestConditionChecker::UQuestConditionChecker()
-	: Tag(FGameplayTag::EmptyTag)
+	: ObjectiveTag(FGameplayTag::EmptyTag)
 {
 }
 

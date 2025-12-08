@@ -29,9 +29,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Quest)
 	void FailQuest();
 
-	UFUNCTION(BlueprintCallable, Category = Quest)
-	void AddChecker();
-	
 	UFUNCTION(BlueprintPure, Category = Quest)
 	EQuestState GetQuestState() const { return CurrentState; }
 

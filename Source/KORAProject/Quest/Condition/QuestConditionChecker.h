@@ -14,12 +14,14 @@ class KORAPROJECT_API UQuestConditionChecker : public UObject
 public:
 	UQuestConditionChecker();
 
-	virtual void Initialize(FGameplayTag InTag) {}
-	virtual bool CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag);
-	
+	virtual UQuestConditionChecker* Initialize(class UKRQuestInstance* NewQuestInstance, const struct FSubQuestEvalDataStruct& EvalData) { return nullptr; }
+	virtual void Uninitialize() {}
 	
 protected:
-	UPROPERTY()
-	FGameplayTag Tag;
+	virtual bool CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Quest)
+	TObjectPtr<class UKRQuestInstance> QuestInstance;
 	
+	FGameplayTag ObjectiveTag;
 };

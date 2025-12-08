@@ -18,6 +18,7 @@ void UKRQuestInstance::Initialize(int32 QuestIndex)
 	CurrentSubOrder = CurrentSubQuestData.EvalDatas[0].OrderIndex;
 	CurrentState = EQuestState::NotStarted;
 
+	UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(GetWorld());
 	for (const FSubQuestEvalDataStruct& EvalDataStruct : CurrentSubQuestData.EvalDatas)
 	{
 		if (SubQuestProgressMap.Contains(EvalDataStruct.OrderIndex))
@@ -28,10 +29,17 @@ void UKRQuestInstance::Initialize(int32 QuestIndex)
 		FSubQuestEvalData EvalData;
 		EvalData.Init(CurrentSubQuestData, EvalDataStruct.OrderIndex);
 		SubQuestProgressMap.Add(EvalDataStruct.OrderIndex, EvalData);
+
+		// Initialize Checkers
+
+		UQuestConditionChecker* Checker = QuestSubsystem.CheckerGroup.FindRef(EvalDataStruct.ObjectiveTag)->GetDefaultObject<UQuestConditionChecker>()->Initialize(this, EvalDataStruct);
+		if (Checker)
+		{
+			QuestCheckers.Add(EvalDataStruct.ObjectiveTag, Checker);
+		}
 	}
 
 	UKRQuestSubsystem::Get(GetWorld()).InitializeQuestDelegate(this);
-	AddChecker();
 }
 
 void UKRQuestInstance::StartQuest()
@@ -71,6 +79,13 @@ void UKRQuestInstance::CompleteQuest()
 
 	CurrentState = EQuestState::Completed;
 
+	for (const auto& CheckerKeyValue : QuestCheckers)
+	{
+		CheckerKeyValue.Value->Uninitialize();
+	}
+
+	QuestCheckers.Empty();
+	
 	UKRQuestSubsystem::Get(GetWorld()).UninitializeQuestDelegate();
 }
 
@@ -82,25 +97,6 @@ void UKRQuestInstance::FailQuest()
 	}
 
 	CurrentState = EQuestState::Failed;
-}
-
-void UKRQuestInstance::AddChecker()
-{
-	UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(GetWorld());
-
-	for (const FSubQuestEvalDataStruct& EvalData : CurrentSubQuestData.EvalDatas)
-	{
-		TSubclassOf<UQuestConditionChecker> ConditionCheckerClass = QuestSubsystem.CheckerGroup.FindRef(EvalData.ObjectiveTag);
-		if (ConditionCheckerClass == nullptr)
-		{
-			UE_LOG(LogQuestInstance, Error, TEXT("Not exist ConditionChecker! Please Check"));
-			
-			continue;
-		}
-
-		UQuestConditionChecker* ConditionCheckerInstance = ConditionCheckerClass->GetDefaultObject<UQuestConditionChecker>();
-		QuestCheckers.Add(EvalData.ObjectiveTag, ConditionCheckerInstance);
-	}
 }
 
 void UKRQuestInstance::AddCount(int32 Amount)
@@ -117,14 +113,6 @@ void UKRQuestInstance::AddCount(int32 Amount)
 			return;
 		}
 
-		const FSubQuestEvalDataStruct& EvalDataStruct = EvalData->EvalData;
-		FGameplayTag InTag = EvalDataStruct.ObjectiveTag;
-		UQuestConditionChecker* ConditionCheckerInstance = QuestCheckers.FindRef(InTag);
-		if (ConditionCheckerInstance == nullptr || !ConditionCheckerInstance->CanCount(EvalDataStruct, InTag))
-		{
-			return;
-		}
-		
 		EvalData->AddProgress(Amount);
 	}
 }
