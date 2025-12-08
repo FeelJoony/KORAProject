@@ -7,7 +7,8 @@
 UENUM(BlueprintType)
 enum class EDashDirection : uint8
 {
-	Forward = 0,
+	Default = 0,
+	Forward,
 	ForwardRight,
 	Right,
 	BackwardRight,
@@ -26,14 +27,15 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility,	bool bWasCancelled) override;
 
-	void LaunchCharacter(const FVector& InWorldDirection, ACharacter* Character);
+	void LaunchCharacter(const FVector2D& Input, ACharacter* Character);
 
 protected:
 	UFUNCTION()
 	void OnAbilityEnd();
 	
-	EDashDirection GetDashDirection(const FVector& InputVector) const;
-
+	EDashDirection SelectDashDirectionByInput(const FVector2D& Input);
+	FVector CalculateDirection(EDashDirection DashEnum);
+	
 	UPROPERTY(EditDefaultsOnly, Category=KRSpeed)
 	float DashSpeed=1500.f;
 	
