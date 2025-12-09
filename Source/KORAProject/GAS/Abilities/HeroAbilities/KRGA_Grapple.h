@@ -71,7 +71,7 @@ public:
 	
 	void BeginLaunchMontage();
 	
-	void CancelAbility();
+	void CancelGrapple();
 	
 	void CleanupAllTasks() const;
 	

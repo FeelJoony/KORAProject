@@ -213,6 +213,8 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 	if (PC)
 	{
 		const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
+		LastMoveInput = MovementVector;
+		
 		const FRotator MovementRotation(0.f, PC->GetControlRotation().Yaw, 0.f);
 
 		if (MovementVector.Y != 0.f)

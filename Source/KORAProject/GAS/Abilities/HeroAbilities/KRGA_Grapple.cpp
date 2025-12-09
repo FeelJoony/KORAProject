@@ -60,7 +60,7 @@ void UKRGA_Grapple::InputReleased(const FGameplayAbilitySpecHandle Handle,
                                    const FGameplayAbilityActivationInfo ActivationInfo)
 {
     Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-    CancelAbility();
+    CancelGrapple();
 }
 
 void UKRGA_Grapple::PerformLineTrace()
@@ -298,7 +298,7 @@ void UKRGA_Grapple::BeginEnemyGrapple()
     GetWorld()->GetTimerManager().SetTimer(
         MaxGrappleTimer,
         this,
-        &UKRGA_Grapple::CancelAbility,
+        &UKRGA_Grapple::CancelGrapple,
         EnemyGrappleDuration,
         false
     );
@@ -326,7 +326,7 @@ void UKRGA_Grapple::TickEnemyMovement()
     if (!TargetCapsuleComp || !CachedTargetPawn)
     {
         UE_LOG(LogTemp, Warning, TEXT("[Grapple] Invalid target components"));
-        CancelAbility();
+        CancelGrapple();
         return;
     }
 
@@ -348,7 +348,7 @@ void UKRGA_Grapple::TickEnemyMovement()
 
     if (FVector::DistSquared(PlayerLocation, GrapPoint) < StopNealyDistSquared)
     {
-        CancelAbility();
+        CancelGrapple();
     }
 }
 
@@ -490,7 +490,7 @@ void UKRGA_Grapple::BeginLaunchMontage()
 	EndMontageTask->ReadyForActivation();
 }
 
-void UKRGA_Grapple::CancelAbility()
+void UKRGA_Grapple::CancelGrapple()
 {
 	ApplyCableVisibility(false);
 	
