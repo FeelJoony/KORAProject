@@ -5,7 +5,6 @@
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
-#include "UI/Data/KRItemUIData.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "SubSystem/KRInventorySubsystem.h"

@@ -4,13 +4,13 @@
 
 #include "CommonActivatableWidget.h"
 #include "GameplayTagContainer.h"
+#include "UI/Data/KRItemUIData.h"
 #include "KRInventoryMain.generated.h"
 
 class UUniformGridPanel;
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
-struct FKRItemUIData;
 
 UCLASS()
 class KORAPROJECT_API UKRInventoryMain : public UCommonActivatableWidget
