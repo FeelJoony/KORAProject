@@ -33,7 +33,7 @@ void UKRGA_HeroDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FVector2D MoveInput = HeroComponent->GetLastMoveInput();
 	UE_LOG(LogTemp,Warning,TEXT("[GA_Dash] MoveInput.X : %f, MoveInput.Y : %f"),MoveInput.X, MoveInput.Y)
 	
-	LaunchCharacter(MoveInput, Character);
+	LaunchCharacter(MoveInput);
 }
 
 void UKRGA_HeroDash::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -42,10 +42,10 @@ void UKRGA_HeroDash::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UKRGA_HeroDash::LaunchCharacter(const FVector2D& Input, ACharacter* Character)
+void UKRGA_HeroDash::LaunchCharacter(const FVector2D& Input)
 {
 	EDashDirection DashEnum = SelectDashDirectionByInput(Input);
-	FVector LaunchDirection = CalculateDirection(DashEnum);
+	//FVector LaunchDirection = CalculateDirection(DashEnum);
     
 	UAnimMontage* SelectedMontage = nullptr;
 	//HasTag() 0
@@ -63,14 +63,16 @@ void UKRGA_HeroDash::LaunchCharacter(const FVector2D& Input, ACharacter* Charact
 			this, TEXT("DashMontageTask"), SelectedMontage
 		);
 		PlayMontageTask->OnCompleted.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
-		// PlayMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
-		// PlayMontageTask->OnCancelled.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
-		// PlayMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
+		PlayMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
+		PlayMontageTask->OnCancelled.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
+		PlayMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
 		PlayMontageTask->ReadyForActivation();
 
-		
-		
+		FVector CurrentInput = GetKRCharacterFromActorInfo()->GetCharacterMovement()->GetLastInputVector();
+
+		UE_LOG(LogTemp, Warning, TEXT("Input : %f, %f, %f"), CurrentInput.X, CurrentInput.Y, CurrentInput.Z);
 		UE_LOG(LogTemp, Warning, TEXT("Dash Montage direction: %d"), (int32)DashEnum);
+		
 		//Launch
 		//Character->LaunchCharacter(LaunchDirection*DashSpeed, true, true);
 	}
