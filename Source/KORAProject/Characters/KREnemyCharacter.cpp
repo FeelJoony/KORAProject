@@ -7,6 +7,7 @@
 #include "GameplayTag/KREnemyTag.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KREventTag.h"
+#include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Stun.h"
 
 #include "AIController.h"
 #include "Components/StateTreeComponent.h"
@@ -91,6 +92,7 @@ void AKREnemyCharacter::ResigsterTagEvent()
 	StateTags.Add(KRTAG_STATE_HASCC_STUN);
 	StateTags.Add(KRTAG_ENEMY_ACTION_SLASH);
 	StateTags.Add(KRTAG_ENEMY_AISTATE_COMBAT);
+	StateTags.Add(KRTAG_ENEMY_AISTATE_ALERT);
 	StateTags.Add(KRTAG_ENEMY_AISTATE_CHASE);
 	StateTags.Add(KRTAG_ENEMY_AISTATE_HITREACTION);
 
@@ -108,6 +110,24 @@ void AKREnemyCharacter::HandleTagEvent(FGameplayTag Tag, int32 Count)
 	if (EnemyASC->HasMatchingGameplayTag(Tag) && Count > 0)
 	{
 		SetEnemyState(Tag);
+	}
+	else if (Tag == KRTAG_STATE_HASCC_STUN && Count == 0)
+	{
+		if (!EnemyASC) return;
+
+		for (FGameplayAbilitySpec& Spec : EnemyASC->GetActivatableAbilities())
+		{
+			if (Spec.Ability && Spec.Ability->IsA(UKRGA_Enemy_Stun::StaticClass()))
+			{
+				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				{
+					if (UKRGA_Enemy_Stun* StunGA = Cast<UKRGA_Enemy_Stun>(Instance))
+					{
+						StunGA->ExternalStunEnded();
+					}
+				}
+			}
+		}
 	}
 }
 

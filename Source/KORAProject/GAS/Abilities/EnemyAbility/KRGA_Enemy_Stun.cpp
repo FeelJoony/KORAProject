@@ -1,5 +1,7 @@
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Stun.h"
 #include "Characters/KREnemyCharacter.h"
+#include "GAS/KRAbilitySystemComponent.h"
+#include "GameplayTag/KREnemyTag.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 
@@ -56,5 +58,21 @@ void UKRGA_Enemy_Stun::ActivationStun()
 
 void UKRGA_Enemy_Stun::OnMontageEnded()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	bMontageFinished = true;
+	if (bPendingEnd)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+}
+
+void UKRGA_Enemy_Stun::ExternalStunEnded()
+{
+	if (bMontageFinished)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+	else
+	{
+		bPendingEnd = true;
+	}
 }
