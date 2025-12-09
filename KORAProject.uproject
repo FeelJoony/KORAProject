@@ -16,7 +16,8 @@
 				"GameplayTasks",
 				"ModularGameplay",
 				"GameplayStateTreeModule",
-				"CommonGame"
+				"CommonGame",
+				"MassEntity"
 			]
 		},
 		{
@@ -108,6 +109,10 @@
 		},
 		{
 			"Name": "AnimationWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "MassEntity",
 			"Enabled": true
 		}
 	]
