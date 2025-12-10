@@ -1,0 +1,3 @@
+Index,CurrencyID,CurrencyTag,bLossRule
+1,CUR_Gearing,Currency.Purchase.Gearing,TRUE
+2,CUR_Corbyte,Currency.Skill.Corbyte,FALSE

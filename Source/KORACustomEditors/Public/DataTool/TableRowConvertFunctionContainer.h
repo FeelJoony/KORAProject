@@ -44,6 +44,8 @@ public:
 	void CreateEquipmentData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateConsumeData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateCurrencyData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);

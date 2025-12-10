@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "GameplayTagsManager.h"
 #include "Data/ConsumeDataStruct.h"
+#include "Data/CurrencyDataStruct.h"
 #include "Data/SampleDataStruct.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
@@ -649,6 +650,42 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				else
 				{
 					OutDataTable->AddRow(RowName, ConsumeData);
+				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateCurrencyData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("CurrencyData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+				int32 CurrencyID_Index = GetHeaderIndex(Headers, TEXT("CurrencyID"));
+				int32 CurrencyTag_Index = GetHeaderIndex(Headers, TEXT("CurrencyTag"));
+				int32 bLossRule_Index = GetHeaderIndex(Headers, TEXT("bLossRule"));
+
+				FCurrencyDataStruct CurrencyData;
+
+				CurrencyData.Index = ParseIntValue(RowValue[Index_Index]);
+				CurrencyData.CurrencyID = ParseNameValue(RowValue[CurrencyID_Index]);
+				CurrencyData.CurrencyTag = ParseGameplayTagValue(RowValue[CurrencyTag_Index]);
+				CurrencyData.bLossRule = ParseBoolValue(RowValue[bLossRule_Index]);
+
+				FName RowName = *FString::Printf(TEXT("Currency_%d"), i);
+				if (FCurrencyDataStruct* FindRow = OutDataTable->FindRow<FCurrencyDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = CurrencyData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, CurrencyData);
 				}
 			}
 		}));
