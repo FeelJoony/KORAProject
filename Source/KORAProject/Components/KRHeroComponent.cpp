@@ -207,7 +207,7 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
 	APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn) return;
-
+	
 	AController* PC = Pawn->GetController();
 
 	if (PC)
@@ -236,6 +236,16 @@ void UKRHeroComponent::Input_Look(const FInputActionValue& InputActionValue)
 	APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn) return;
 
+	AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
+	if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
+	{
+		if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("State.Acting.LockOn")))
+		{
+			LastLookInput = InputActionValue.Get<FVector2D>();
+			return;
+		}
+	}
+	
 	const FVector2D LookAxisVector = LastLookInput;
 
 	if (LookAxisVector.X != 0.f)
