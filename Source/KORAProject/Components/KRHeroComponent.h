@@ -36,6 +36,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KR|Input")
 	FVector2D GetLastLookInput() const { return LastLookInput; }
 	
+	UFUNCTION(BlueprintCallable, Category = "KR|Input")
+	FVector2D GetLastMoveInput() const { return LastMoveInput; }
 protected:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
@@ -55,6 +57,7 @@ protected:
 	TSubclassOf<UKRCameraMode> AbilityCameraMode;
 
 	FVector2D LastLookInput = FVector2D::ZeroVector;
+    FVector2D LastMoveInput = FVector2D::ZeroVector;
 
 private:
 	bool bReadyToBindInputs;
