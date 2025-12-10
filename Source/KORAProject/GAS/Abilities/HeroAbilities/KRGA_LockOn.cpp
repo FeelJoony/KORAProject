@@ -13,6 +13,11 @@
 #include "GameplayTag/KREnemyTag.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "IMediaCache.h"
+#include "IMediaControls.h"
+#include "Characters/KREnemyCharacter.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 
 UKRGA_LockOn::UKRGA_LockOn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -36,8 +41,12 @@ void UKRGA_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	if (!CurrentTarget)
 	{
 		ResetCamera();
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
+	}
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Acting.LockOn"));
 	}
 
 	if (AKRHeroCharacter* Hero = Cast<AKRHeroCharacter>(GetAvatarActorFromActorInfo()))
@@ -60,7 +69,7 @@ void UKRGA_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 			LockOnWidgetInstance->AddToViewport();
 		}
 	}
-
+	
 	UKRAbilityTask_WaitTick* TickTask = UKRAbilityTask_WaitTick::WaitTick(this, FName("LockOnTick"));
 	if (TickTask)
 	{
@@ -79,7 +88,13 @@ void UKRGA_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	}
 
 	CurrentTarget = nullptr;
+	CurrentSocketName = NAME_None;
 
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Acting.LockOn"));
+	}
+	
 	if (AKRHeroCharacter* Hero = Cast<AKRHeroCharacter>(GetAvatarActorFromActorInfo()))
 	{
 		if (UKRCameraComponent* CameraComp = UKRCameraComponent::FindCameraComponent(Hero))
@@ -92,12 +107,24 @@ void UKRGA_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+void UKRGA_LockOn::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
+	if (IsActive())
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+}
+
 void UKRGA_LockOn::FindTarget()
 {
 	TArray<AActor*> Candidates;
 	GetAvailableTargets(Candidates);
 
 	AActor* BestTarget = nullptr;
+	FName BestSocket = NAME_None;
 	float BestScore = -1.f;
 
 	AKRPlayerController* PC = GetKRPlayerControllerFromActorInfo();
@@ -112,55 +139,135 @@ void UKRGA_LockOn::FindTarget()
 	{
 		if (!IsTargetValid(Candidate)) continue;
 
-		FVector DirToTarget = (Candidate->GetActorLocation() - CameraLoc).GetSafeNormal();
-		float Dot = FVector::DotProduct(CameraDir, DirToTarget);
+		TArray<FName> Sockets = GetTargetSockets(Candidate);
 
-		float Distance = GetAvatarActorFromActorInfo()->GetDistanceTo(Candidate);
-
-		if (Dot > 0.5f)
+		for (const FName& SocketName : Sockets)
 		{
-			float Score = (LockOnRadius - Distance) + (Dot * 1000.f);
-			if (Score > BestScore)
+			FVector TargetLoc = GetTargetLocation(Candidate, SocketName);
+			FVector DirToTarget = (TargetLoc - CameraLoc).GetSafeNormal();
+			
+			float Dot = FVector::DotProduct(CameraDir, DirToTarget);
+			float Distance = FVector::Dist(CameraLoc, TargetLoc);
+
+			if (Dot > 0.5f)
 			{
-				BestScore = Score;
-				BestTarget = Candidate;
+				float Score = (LockOnRadius - Distance) + (Dot * 1000.f);
+				if (Score > BestScore)
+				{
+					BestScore = Score;
+					BestTarget = Candidate;
+					BestSocket = SocketName;
+				}
 			}
 		}
 	}
 	CurrentTarget = BestTarget;
+	CurrentSocketName = BestSocket;
 }
 
 void UKRGA_LockOn::ResetCamera()
 {
-	if (AKRHeroCharacter* Hero = Cast<AKRHeroCharacter>(GetAvatarActorFromActorInfo()))
+	AKRPlayerController* PC = GetKRPlayerControllerFromActorInfo();
+	AKRHeroCharacter* Hero = Cast<AKRHeroCharacter>(GetAvatarActorFromActorInfo());
+
+	if (!PC || !Hero)
 	{
-		GetWorld()->GetTimerManager().SetTimer(CameraResetTimerHandle, this, &ThisClass::UpdateCameraReset, 0.01f, true);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+	
+	CameraResetStartRot = PC->GetControlRotation();
+	CameraResetTargetRot = Hero->GetActorRotation();
+	CameraResetTargetRot.Pitch = 0.f;
+	CameraResetTargetRot.Roll  = 0.f;
+	CameraResetElapsedTime = 0.f;
+	
+	if (CameraResetDuration <= KINDA_SMALL_NUMBER)
+	{
+		CameraResetDuration = 0.2f; 
+	}
+	
+	if (UKRAbilityTask_WaitTick* TickTask = UKRAbilityTask_WaitTick::WaitTick(this, FName("CameraResetTick")))
+	{
+		TickTask->OnTick.AddDynamic(this, &ThisClass::OnResetCameraTick);
+		TickTask->ReadyForActivation();
+	}
+	else
+	{
+		PC->SetControlRotation(CameraResetTargetRot);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }
 
-void UKRGA_LockOn::UpdateCameraReset()
+void UKRGA_LockOn::OnResetCameraTick(float DeltaTime)
 {
 	AKRPlayerController* PC = GetKRPlayerControllerFromActorInfo();
-	AActor* Actor = GetAvatarActorFromActorInfo();
-
-	if (!PC || !Actor)
+	if (!PC)
 	{
-		GetWorld()->GetTimerManager().ClearTimer(CameraResetTimerHandle);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
-
-	FRotator CurrentRot = PC->GetControlRotation();
-	FRotator TargetRot = Actor->GetActorRotation();
-
-	TargetRot.Pitch = 0.f;
-
-	FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetRot, 0.01f, CameraResetInterpSpeed);
-	PC->SetControlRotation(NewRot);
-
-	if (FMath::IsNearlyEqual(NewRot.Yaw, TargetRot.Yaw, 1.f))
+	
+	if (!IsActive())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(CameraResetTimerHandle);
+		return;
 	}
+	
+	CameraResetElapsedTime += DeltaTime;
+	
+	float Alpha = 1.f;
+	if (CameraResetDuration > KINDA_SMALL_NUMBER)
+	{
+		Alpha = FMath::Clamp(CameraResetElapsedTime / CameraResetDuration, 0.f, 1.f);
+	}
+	
+	FRotator NewRot = FMath::Lerp(CameraResetStartRot, CameraResetTargetRot, Alpha);
+	
+	PC->SetControlRotation(NewRot);
+	
+	if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
+	{
+		PC->SetControlRotation(CameraResetTargetRot);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+}
+
+
+FVector UKRGA_LockOn::GetTargetLocation(AActor* Target, FName SocketName) const
+{
+	if (!Target) return FVector::ZeroVector;
+
+	if (!SocketName.IsNone())
+	{
+		if (ACharacter* Char = Cast<ACharacter>(Target))
+		{
+			if (Char->GetMesh() && Char->GetMesh()->DoesSocketExist(SocketName))
+			{
+				return Char->GetMesh()->GetSocketLocation(SocketName);
+			}
+		}
+	}
+
+	FVector OutLoc = Target->GetActorLocation();
+	if (ACharacter* Char = Cast<ACharacter>(Target))
+	{
+		OutLoc.Z -= Char->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 0.2f;
+	}
+	return OutLoc;
+}
+
+TArray<FName> UKRGA_LockOn::GetTargetSockets(AActor* Target) const
+{
+	if (AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(Target))
+	{
+		const TArray<FName>& Sockets = Enemy->GetLockOnSockets();
+		if (Sockets.Num() > 0)
+		{
+			return Sockets;
+		}
+	}
+
+	return {FName("LockOn_Spine")};
 }
 
 void UKRGA_LockOn::OnTick(float DeltaTime)
@@ -171,16 +278,12 @@ void UKRGA_LockOn::OnTick(float DeltaTime)
 		return;
 	}
 
+	FVector TargetLoc = GetTargetLocation(CurrentTarget, CurrentSocketName);
+
 	if (AKRPlayerController* PC = GetKRPlayerControllerFromActorInfo())
 	{
 		FVector MyLoc = GetAvatarActorFromActorInfo()->GetActorLocation();
-		FVector TargetLoc = CurrentTarget->GetActorLocation();
-
-		if (ACharacter* TargetChar = Cast<ACharacter>(CurrentTarget))
-		{
-			TargetLoc.Z -= TargetChar->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 0.2f;
-		}
-
+		
 		FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(MyLoc, TargetLoc);
 		FRotator CurrentRot = PC->GetControlRotation();
 		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRot, DeltaTime, RotationInterpSpeed);
@@ -193,11 +296,10 @@ void UKRGA_LockOn::OnTick(float DeltaTime)
 	if (LockOnWidgetInstance && GetKRPlayerControllerFromActorInfo())
 	{
 		FVector2D ScreenPos;
-		FVector WidgetWorldLoc = CurrentTarget->GetActorLocation();
-
-		if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetKRPlayerControllerFromActorInfo(), WidgetWorldLoc, ScreenPos, true))
+		if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetKRPlayerControllerFromActorInfo(), TargetLoc, ScreenPos, true))
 		{
-			LockOnWidgetInstance->SetPositionInViewport(ScreenPos);
+			LockOnWidgetInstance->SetPositionInViewport(ScreenPos, false);
+			LockOnWidgetInstance->SetAlignmentInViewport(FVector2D(0.5f, 0.5f));
 		}
 	}
 	
@@ -240,12 +342,15 @@ void UKRGA_LockOn::CheckForTargetSwitch()
 
 void UKRGA_LockOn::SwitchTarget(FVector2D InputDirection)
 {
+	InputDirection.Y *= -1.f;
+	
 	if (!CurrentTarget) return;
 
 	TArray<AActor*> Candidates;
 	GetAvailableTargets(Candidates);
 
 	AActor* BestNewTarget = nullptr;
+	FName BestNewSocket = NAME_None;
 	float BestScore = -1.f;
 
 	FVector CameraLoc;
@@ -261,34 +366,47 @@ void UKRGA_LockOn::SwitchTarget(FVector2D InputDirection)
 
 	FTransform CameraTransform(CameraRot, CameraLoc);
 
-	FVector CurrentTargetLocal = CameraTransform.InverseTransformPosition(CurrentTarget->GetActorLocation());
+	FVector CurrentTargetWorldLoc = GetTargetLocation(CurrentTarget, CurrentSocketName);
+	FVector CurrentTargetLocal = CameraTransform.InverseTransformPosition(CurrentTargetWorldLoc);
 
 	for (AActor* Candidate : Candidates)
 	{
-		if (Candidate == CurrentTarget || !IsTargetValid(Candidate)) continue;
+		if (!IsTargetValid(Candidate)) continue;
+		
+		TArray<FName> Sockets = GetTargetSockets(Candidate);
 
-		FVector CandidateLocal = CameraTransform.InverseTransformPosition(Candidate->GetActorLocation());
-		FVector RelativeDelta = CandidateLocal - CurrentTargetLocal;
-		FVector2D ScreenDirToCandidate = FVector2D(RelativeDelta.Y, RelativeDelta.Z).GetSafeNormal();
-		
-		float Dot = FVector2D::DotProduct(InputDirection, ScreenDirToCandidate);
-		
-		if (Dot > 0.5f)
+		for (const FName& SocketName : Sockets)
 		{
-			float Distance = RelativeDelta.Size();
-			float NormalizedDistScore = FMath::Clamp(1.0f - (Distance / LockOnRadius), 0.0f, 1.0f);
-			float TotalScore = (Dot * DirectionScoreWeight) + (NormalizedDistScore * DistanceScoreWeight);
+			if (Candidate == CurrentTarget && SocketName == CurrentSocketName) continue;
 
-			if (TotalScore > BestScore)
+			FVector CandWorldLoc = GetTargetLocation(Candidate, SocketName);
+			FVector CandidateLocal = CameraTransform.InverseTransformPosition(CandWorldLoc);
+
+			FVector RelativeDelta = CandidateLocal - CurrentTargetLocal;
+			FVector2D ScreenDirToCandidate = FVector2D(RelativeDelta.Y, RelativeDelta.Z).GetSafeNormal();
+			
+			float Dot = FVector2D::DotProduct(InputDirection, ScreenDirToCandidate);
+			
+			if (Dot > 0.5f)
 			{
-				BestScore = TotalScore;
-				BestNewTarget = Candidate;
+				float Distance = RelativeDelta.Size();
+				float NormalizedDistScore = FMath::Clamp(1.0f - (Distance / LockOnRadius), 0.0f, 1.0f);
+				float TotalScore = (Dot * DirectionScoreWeight) + (NormalizedDistScore * DistanceScoreWeight);
+
+				if (TotalScore > BestScore)
+				{
+					BestScore = TotalScore;
+					BestNewTarget = Candidate;
+					BestNewSocket = SocketName;
+				}
 			}
 		}
 	}
+
 	if (BestNewTarget)
 	{
 		CurrentTarget = BestNewTarget;
+		CurrentSocketName = BestNewSocket;
 	}
 }
 
@@ -308,19 +426,27 @@ bool UKRGA_LockOn::IsTargetValid(AActor* TargetActor) const
 	
 	float Distance = GetAvatarActorFromActorInfo()->GetDistanceTo(TargetActor);
 	if (Distance > LockOnBreakDistance) return false;
-	
-	FHitResult Hit;
+
+	TArray<FHitResult> Hits;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(GetAvatarActorFromActorInfo());
 	Params.AddIgnoredActor(TargetActor);
 
 	FVector Start = GetAvatarActorFromActorInfo()->GetActorLocation();
-	FVector End = TargetActor->GetActorLocation();
+	FVector End = GetTargetLocation(TargetActor, CurrentSocketName);
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+	bool bHit = GetWorld()->LineTraceMultiByChannel(Hits, Start, End, ECC_Visibility, Params);
 	if (bHit)
 	{
-		return false;
+		for (const FHitResult& Hit : Hits)
+		{
+			AActor* HitActor = Hit.GetActor();
+			if (!HitActor) continue;
+
+			if (HitActor->IsA(APawn::StaticClass())) continue;
+
+			return false;
+		}
 	}
 
 	return true;
