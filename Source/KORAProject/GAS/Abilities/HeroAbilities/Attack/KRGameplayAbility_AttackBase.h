@@ -24,12 +24,15 @@ protected:
 
 	FTimerHandle ComboResetTimerHandle;
 
+	double LastAttackEndTime = 0.f;
+	
 	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
 	void IncrementCombo();
 
 	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
 	void ResetCombo();
 
+	void CheckComboTimeout();
 	void StartComboResetTimer();
 	void OnComboResetTimer();
 	bool IsLastCombo() const;

@@ -17,7 +17,8 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
 	float LockOnRadius = 1500.f;
@@ -27,10 +28,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
 	float RotationInterpSpeed = 15.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
-	float CameraResetInterpSpeed = 10.f;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
 	TSubclassOf<UKRCameraMode> LockOnCameraModeClass;
 
@@ -60,23 +58,41 @@ private:
 	TObjectPtr<AActor> CurrentTarget;
 
 	UPROPERTY()
+	FName CurrentSocketName = NAME_None;
+	
+	UPROPERTY()
 	TObjectPtr<UUserWidget> LockOnWidgetInstance;
 
-	FTimerHandle CameraResetTimerHandle;
 
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|CameraReset")
+	float CameraResetDuration = 0.2f;
+	
+	FRotator CameraResetStartRot;
+	FRotator CameraResetTargetRot;
+	float CameraResetElapsedTime = 0.f;
+	
 	bool bCanSwitchTarget = true;
 	
-	void FindTarget();
-	void ResetCamera();
-	void UpdateCameraReset();
-
 	UFUNCTION()
 	void OnTick(float DeltaTime);
+	
+	UFUNCTION()
+	void ResetCamera();
 
+	UFUNCTION()
+	void OnResetCameraTick(float DeltaTime);
+	
+	void FindTarget();
+
+	FVector GetTargetLocation(AActor* Target, FName SocketName) const;
+	TArray<FName> GetTargetSockets(AActor* Target) const;
+	
 	void CheckForTargetSwitch();
 	void SwitchTarget(FVector2D InputDirection);
 
 	bool IsTargetValid(AActor* TargetActor) const;
 	void GetAvailableTargets(TArray<AActor*>& OutActors);
-	
+
 };
+
+

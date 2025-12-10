@@ -13,6 +13,7 @@ void UKRGameplayAbility_LightAttack::ActivateAbility(const FGameplayAbilitySpecH
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
+	CheckComboTimeout();
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))

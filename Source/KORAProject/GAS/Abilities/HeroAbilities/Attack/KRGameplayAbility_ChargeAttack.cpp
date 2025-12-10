@@ -19,6 +19,7 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
+	CheckComboTimeout();
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
@@ -58,6 +59,8 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 
 	float TargetChargeTime = Weapon->GetWeaponChargeTime();
 
+	UE_LOG(LogTemp, Warning, TEXT("[ChargeAttack] Target Charge Time: %f"), TargetChargeTime);
+	
 	if (TargetChargeTime <= KINDA_SMALL_NUMBER)
 	{
 		TargetChargeTime = 0.5f;
