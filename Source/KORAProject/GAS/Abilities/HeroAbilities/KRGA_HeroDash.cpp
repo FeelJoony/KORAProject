@@ -6,7 +6,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/KRHeroComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Player/KRPlayerController.h"
+#include "GAS/KRAbilitySystemComponent.h"
 
 void UKRGA_HeroDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -31,7 +31,7 @@ void UKRGA_HeroDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		UE_LOG(LogTemp, Warning, TEXT("HeroComponent not found"));
 	}
 	const FVector2D MoveInput = HeroComponent->GetLastMoveInput();
-	UE_LOG(LogTemp,Warning,TEXT("[GA_Dash] MoveInput.X : %f, MoveInput.Y : %f"),MoveInput.X, MoveInput.Y)
+	//UE_LOG(LogTemp,Warning,TEXT("[GA_Dash] MoveInput.X : %f, MoveInput.Y : %f"),MoveInput.X, MoveInput.Y)
 	
 	LaunchCharacter(MoveInput);
 }
@@ -44,15 +44,20 @@ void UKRGA_HeroDash::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 
 void UKRGA_HeroDash::LaunchCharacter(const FVector2D& Input)
 {
-	EDashDirection DashEnum = SelectDashDirectionByInput(Input);
-	//FVector LaunchDirection = CalculateDirection(DashEnum);
-    
-	UAnimMontage* SelectedMontage = nullptr;
-	//HasTag() 0
-
 	UKRAbilitySystemComponent* ASC = GetKRAbilitySystemComponentFromActorInfo();
 	if (!ASC) return;
+
+	EDashDirection DashEnum;
+	if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("State.Acting.LockOn"))))
+	{
+		DashEnum = SelectDashDirectionByInput(Input);
+	}
+	else
+	{
+		DashEnum = EDashDirection::Default;
+	}
 	
+	UAnimMontage* SelectedMontage = nullptr;
 	if (DashMontages.Contains(DashEnum))
 	{
 		SelectedMontage = DashMontages[DashEnum];
@@ -67,14 +72,6 @@ void UKRGA_HeroDash::LaunchCharacter(const FVector2D& Input)
 		PlayMontageTask->OnCancelled.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
 		PlayMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
 		PlayMontageTask->ReadyForActivation();
-
-		FVector CurrentInput = GetKRCharacterFromActorInfo()->GetCharacterMovement()->GetLastInputVector();
-
-		UE_LOG(LogTemp, Warning, TEXT("Input : %f, %f, %f"), CurrentInput.X, CurrentInput.Y, CurrentInput.Z);
-		UE_LOG(LogTemp, Warning, TEXT("Dash Montage direction: %d"), (int32)DashEnum);
-		
-		//Launch
-		//Character->LaunchCharacter(LaunchDirection*DashSpeed, true, true);
 	}
 	else
 	{
@@ -90,6 +87,13 @@ void UKRGA_HeroDash::OnAbilityEnd()
 
 EDashDirection UKRGA_HeroDash::SelectDashDirectionByInput(const FVector2D& Input)
 {
+	FVector CurrentInput = GetKRCharacterFromActorInfo()->GetCharacterMovement()->GetLastInputVector();
+	if (FMath::IsNearlyZero(CurrentInput.X) && FMath::IsNearlyZero(CurrentInput.Y))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("None Input"));
+		return EDashDirection::Backward;
+	}
+	
 	float X = Input.X;	
 	float Y = Input.Y;
 
