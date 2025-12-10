@@ -1,18 +1,28 @@
 ﻿#include "KRGameplayAbility_ChargeAttack.h"
+
+#include "IMediaControls.h"
 #include "Weapons/KRWeaponInstance.h"
 #include "Components/KRCombatComponent.h"
 #include "GameFramework/Character.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
-#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "GAS/Abilities/Tasks/KRAbilityTask_WaitTick.h"
+
+const FName UKRGameplayAbility_ChargeAttack::SECTION_START   = FName("Start");
+const FName UKRGameplayAbility_ChargeAttack::SECTION_FAIL    = FName("Attack_Fail");
+const FName UKRGameplayAbility_ChargeAttack::SECTION_SUCCESS = FName("Attack_Success");
 
 UKRGameplayAbility_ChargeAttack::UKRGameplayAbility_ChargeAttack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	CurrentDamageMultiplier = 1.f;
 	DamageMulti_Fail = 1.f;
 	DamageMulti_Success = 2.f;
-
-	CurrentDamageMultiplier = 1.f;
+	bIsChargeSuccess = false;
+	bIsFullyCharged = false;
+	bIsCharging = false;
+	TargetChargeTime = 0.f;
+	CurrentChargeTime = 0.f;
 }
 
 void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -54,50 +64,41 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 		}
 	}
 
+	CurrentChargeMontage = MontageToPlay;
+
+	// 차지 상태 초기화
 	bIsChargeSuccess = false;
+	bIsFullyCharged = false;
+	bIsCharging = true;
+	CurrentChargeTime = 0.f;
 	CurrentDamageMultiplier = DamageMulti_Fail;
 
-	float TargetChargeTime = Weapon->GetWeaponChargeTime();
-
-	UE_LOG(LogTemp, Warning, TEXT("[ChargeAttack] Target Charge Time: %f"), TargetChargeTime);
-	
+	TargetChargeTime = Weapon->GetWeaponChargeTime();
 	if (TargetChargeTime <= KINDA_SMALL_NUMBER)
 	{
-		TargetChargeTime = 0.5f;
+		TargetChargeTime = 1.f;
 	}
-
-	UAbilityTask_PlayMontageAndWait* PlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+	
+	ChargePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,
-		FName("ChargeAttack"),
-		MontageToPlay,
+		FName("ChargeAttack_Charge"),
+		CurrentChargeMontage,
 		1.f,
 		SECTION_START,
-		true
-		);
+		false);
 
-	if (PlayTask)
+	if (ChargePlayTask)
 	{
-		PlayTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageCompleted);
-		PlayTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
-		PlayTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageInterrupted);
-		PlayTask->OnBlendOut.AddDynamic(this, &ThisClass::OnMontageCompleted);
-		PlayTask->ReadyForActivation();
+		ChargePlayTask->ReadyForActivation();
 	}
 
-	UAbilityTask_WaitInputRelease* ReleaseTask = UAbilityTask_WaitInputRelease::WaitInputRelease(this, true);
-	if (ReleaseTask)
+	ChargeTickTask = UKRAbilityTask_WaitTick::WaitTick(this, FName("ChargeTick"));
+	if (ChargeTickTask)
 	{
-		ReleaseTask->OnRelease.AddDynamic(this, &ThisClass::OnKeyReleased);
-		ReleaseTask->ReadyForActivation();
+		ChargeTickTask->OnTick.AddDynamic(this, &ThisClass::OnChargeTick);
+		ChargeTickTask->ReadyForActivation();
 	}
-
-	UAbilityTask_WaitDelay* ChargeTimerTask = UAbilityTask_WaitDelay::WaitDelay(this, TargetChargeTime);
-	if (ChargeTimerTask)
-	{
-		ChargeTimerTask->OnFinish.AddDynamic(this, &ThisClass::OnChargeCompleted);
-		ChargeTimerTask->ReadyForActivation();
-	}
-
+	
 	IncrementCombo();
 }
 
@@ -116,47 +117,114 @@ void UKRGameplayAbility_ChargeAttack::EndAbility(const FGameplayAbilitySpecHandl
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UKRGameplayAbility_ChargeAttack::OnKeyReleased(float TimeHeld)
+void UKRGameplayAbility_ChargeAttack::InputReleased(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	if (bIsChargeSuccess) return;;
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 
-	if (ACharacter* MyChar = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	if (!bIsCharging)
 	{
-		if (UAnimInstance* AnimInst = MyChar->GetMesh()->GetAnimInstance())
+		return;
+	}
+
+	bIsCharging = false;
+
+	if (ChargeTickTask)
+	{
+		ChargeTickTask->EndTask();
+		ChargeTickTask = nullptr;
+	}
+
+	bIsChargeSuccess = false;
+	CurrentDamageMultiplier = DamageMulti_Fail;
+
+	StartReleaseMontage(false);
+}
+
+void UKRGameplayAbility_ChargeAttack::OnChargeTick(float DeltaTime)
+{
+	if (!bIsCharging)
+	{
+		return;
+	}
+
+	CurrentChargeTime += DeltaTime;
+
+	if (!bIsFullyCharged && CurrentChargeTime >= TargetChargeTime)
+	{
+		bIsFullyCharged = true;
+		bIsChargeSuccess =true;
+		bIsCharging = false;
+		CurrentDamageMultiplier = DamageMulti_Success;
+
+		if (ChargeTickTask)
 		{
-			if (AnimInst->Montage_IsPlaying(nullptr))
-			{
-				AnimInst->Montage_JumpToSection(SECTION_FAIL);
-			}
+			ChargeTickTask->EndTask();
+			ChargeTickTask = nullptr;
 		}
+
+		StartReleaseMontage(true);
 	}
 }
 
-void UKRGameplayAbility_ChargeAttack::OnChargeCompleted()
-{
-	bIsChargeSuccess = true;
-	CurrentDamageMultiplier = DamageMulti_Success;
 
-	if (ACharacter* MyChar = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
-	{
-		if (UAnimInstance* AnimInst = MyChar->GetMesh()->GetAnimInstance())
-		{
-			if (AnimInst->Montage_IsPlaying(nullptr))
-			{
-				AnimInst->Montage_JumpToSection(SECTION_SUCCESS);
-			}
-		}
-	}
-
-	// 차징 완료 이펙트, 사운드(GameplayCue 추가 활용 가능)
-}
 
 void UKRGameplayAbility_ChargeAttack::OnMontageCompleted()
 {
+	if (!IsActive())
+	{
+		return;
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UKRGameplayAbility_ChargeAttack::OnMontageInterrupted()
 {
+	if (!IsActive())
+	{
+		return;
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UKRGameplayAbility_ChargeAttack::StartReleaseMontage(bool bSuccess)
+{
+	ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!Char || !CurrentChargeMontage)
+	{
+		return;
+	}
+
+	if (ChargePlayTask)
+	{
+		ChargePlayTask->EndTask();
+		ChargePlayTask = nullptr;
+	}
+	
+	if (UAnimInstance* AnimInst = Char->GetMesh() ? Char->GetMesh()->GetAnimInstance() : nullptr)
+	{
+		if (AnimInst->Montage_IsPlaying(CurrentChargeMontage))
+		{
+			AnimInst->Montage_Stop(0.1f, CurrentChargeMontage);
+		}
+	}
+
+	const FName ReleaseSection = bSuccess ? SECTION_SUCCESS : SECTION_FAIL;
+
+	ReleasePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this,
+		FName("ChargeAttack_Release"),
+		CurrentChargeMontage,
+		1.f,
+		ReleaseSection,
+		true);
+
+	if (ReleasePlayTask)
+	{
+		ReleasePlayTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageCompleted);
+		ReleasePlayTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
+		ReleasePlayTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageInterrupted);
+		ReleasePlayTask->OnBlendOut.AddDynamic(this, &ThisClass::OnMontageCompleted);
+		ReleasePlayTask->ReadyForActivation();
+	}
 }
