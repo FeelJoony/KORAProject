@@ -21,6 +21,9 @@ public:
 	UFUNCTION()
 	void OnMontageEnded();
 
+	UFUNCTION()
+	void ExternalAbilityEnded();
+
 	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
 	TObjectPtr<UAnimMontage> AlertMontage;
 

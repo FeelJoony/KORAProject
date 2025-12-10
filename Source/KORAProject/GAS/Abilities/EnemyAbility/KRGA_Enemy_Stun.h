@@ -22,7 +22,7 @@ public:
 	void OnMontageEnded();
 
 	UFUNCTION()
-	void ExternalStunEnded();
+	void ExternalAbilityEnded();
 
 	bool bMontageFinished;
 

@@ -65,7 +65,7 @@ void UKRGA_Enemy_Stun::OnMontageEnded()
 	}
 }
 
-void UKRGA_Enemy_Stun::ExternalStunEnded()
+void UKRGA_Enemy_Stun::ExternalAbilityEnded()
 {
 	if (bMontageFinished)
 	{
