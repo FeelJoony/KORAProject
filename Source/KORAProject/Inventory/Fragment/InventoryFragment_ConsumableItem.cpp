@@ -10,6 +10,9 @@
 #include "UObject/ConstructorHelpers.h" 
 
 #include "GameplayTag/KRSetByCallerTag.h"
+#include "Player/KRPlayerState.h"
+
+class AKRPlayerState;
 
 UInventoryFragment_ConsumableItem::UInventoryFragment_ConsumableItem()
 {
@@ -163,6 +166,27 @@ bool UInventoryFragment_ConsumableItem::ApplyMainEffect(UAbilitySystemComponent*
 	{
 		Spec->DynamicGrantedTags.AppendTags(InUseTags);
 	}
+
+	const FGameplayTag InsuranceActiveTag =
+			FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"));
+
+	const bool bIsInsuranceConsumable =
+		(EffectConfig.EffectType == EConsumableEffectType::Infinite) &&
+		InUseTags.HasTag(InsuranceActiveTag);
+
+	if (bIsInsuranceConsumable)
+	{
+		if (AActor* OwnerActor = ASC->GetOwnerActor())
+		{
+			if (AKRPlayerState* KRPS = Cast<AKRPlayerState>(OwnerActor))
+			{
+				if (UKRCurrencyComponent* CurComp = KRPS->GetCurrencyComponentSet())
+				{
+					CurComp->SetInsuranceKeepRate(EffectConfig.Power);
+				}
+			}
+		}
+	}
 	
 	if (EffectConfig.EffectType == EConsumableEffectType::Instant)
 	{
@@ -173,7 +197,6 @@ bool UInventoryFragment_ConsumableItem::ApplyMainEffect(UAbilitySystemComponent*
 	else
 	{
 		FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
-
 		OutDuration = EffectConfig.Duration;
 		return Handle.IsValid();
 	}
@@ -215,8 +238,7 @@ int32 UInventoryFragment_ConsumableItem::GetCurrentStacks(UAbilitySystemComponen
 	{
 		return 0;
 	}
-
-	// InUse 태그가 붙어있는 모든 GE 찾기
+	
 	FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(InUseTags);
 
 	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
@@ -229,18 +251,16 @@ int32 UInventoryFragment_ConsumableItem::GetCurrentStacks(UAbilitySystemComponen
 		{
 			continue;
 		}
-
-		// ASC 안에 있는 ActiveGE 접근
+		
 		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle);
 		if (!ActiveGE)
 		{
 			continue;
 		}
 
-		// 이 GE 인스턴스의 스택 수
 		const int32 GEStack = ActiveGE->Spec.StackCount;
 
-		TotalStacks += FMath::Max(GEStack, 1); // 보호 차원에서 최소 1
+		TotalStacks += FMath::Max(GEStack, 1);
 	}
 
 	return TotalStacks;

@@ -47,4 +47,15 @@ public:
 	FGameplayAttributeData MaxCoreDrive;
 	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, MaxCoreDrive)
 	
+	UPROPERTY(BlueprintReadOnly, Category="Currency")
+	FGameplayAttributeData GearingCurrent;
+	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, GearingCurrent);
+
+	UPROPERTY(BlueprintReadOnly, Category="Currency")
+	FGameplayAttributeData GearingLost;
+	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, GearingLost);
+
+	UPROPERTY(BlueprintReadOnly, Category="Currency")
+	FGameplayAttributeData CorbyteCurrent;
+	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, CorbyteCurrent);
 };
