@@ -59,7 +59,7 @@ public:
 
 private:
 	UFUNCTION()
-	void ResigsterTagEvent();
+	void RegisterTagEvent();
 
 	UFUNCTION()
 	void HandleTagEvent(FGameplayTag Tag, int32 Count);
