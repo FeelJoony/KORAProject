@@ -452,13 +452,19 @@ bool UKRInventorySubsystem::GetQuickSlotData(FGameplayTag SlotTag, FGameplayTag&
 	OutQuantity = 0;
 
 	if (!IsValidQuickSlot(SlotTag)) { return false; }
-	
+
 	OutItemTag = GetQuickSlotItemTag(SlotTag);
-	
 	if (!OutItemTag.IsValid()) { return false; }
 	
-	OutQuantity = GetItemQuantity_Internal(OutItemTag);
-	
+	if (const int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag))
+	{
+		OutQuantity = *SlotCountPtr;
+	}
+	else
+	{
+		OutQuantity = 0;
+	}
+
 	return true;
 }
 
@@ -488,17 +494,14 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 
     const FGameplayTag ItemTag = GetQuickSlotItemTag(SlotTag);
     if (!ItemTag.IsValid()) { return false; }
-
-    // ✅ 슬롯 스택 체크
+	
     int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag);
     if (!SlotCountPtr || *SlotCountPtr <= 0)
     {
-        // 슬롯에 더 이상 쓸 스택이 없음
         return false;
     }
     int32& SlotCount = *SlotCountPtr;
-
-    // 인벤토리 스택 (실제 수량)도 확인
+	
     int32 CurrentCount = GetItemQuantity_Internal(ItemTag);
     if (CurrentCount <= 0) { return false; }
 
@@ -535,32 +538,44 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 
     UInventoryFragment_ConsumableItem* ConsumableFrag =
         const_cast<UInventoryFragment_ConsumableItem*>(ConsumableFragConst);
-
-    // 4) 실제 사용
+	
     if (!ConsumableFrag->UseConsumable(ASC))
     {
         return false;
     }
-
-    // ✅ 5-1) 퀵슬롯 스택 감소
+	
     SlotCount = FMath::Max(0, SlotCount - 1);
-
-    // ✅ 5-2) 인벤토리 수량 감소 (이 함수는 NotifyQuickSlotQuantityChanged도 호출)
+	
     SubtractItem(ItemTag, 1);
+	
+    const float RawTimeForUI = GetConsumableUITime(ConsumableFrag);
 
-    // 인벤토리 새로운 수량
-    const int32 ActualQuantityAfter = GetItemQuantity_Internal(ItemTag);
+    float TimeForUI = RawTimeForUI;
+    if (SlotCount <= 0)
+    {
+        TimeForUI = 0.f;
+    }
 
-    // 6) UI 메시지 (퀵슬롯 스택 기준으로 보냄)
-    const float TimeForUI = GetConsumableUITime(ConsumableFrag);
-
-    SendQuickSlotMessage(
-        EQuickSlotAction::ItemUsed,
-        SlotTag,
-        ItemTag,
-        SlotCount,      // ✅ 퀵슬롯 남은 스택
-        TimeForUI
-    );
+	if (SlotCount > 0)
+	{
+		SendQuickSlotMessage(
+		EQuickSlotAction::ItemUsed,
+		SlotTag,
+		ItemTag,
+		SlotCount,
+		TimeForUI
+		);
+	}
+	
+    if (SlotCount <= 0 && !IsPersistentQuickSlotItem(ItemTag))
+    {
+        HandleQuickSlotUnbind(SlotTag, ItemTag);
+    	
+        if (!SelectNextAvailableQuickSlot())
+        {
+            NotifySlotChanged(FGameplayTag());
+        }
+    }
 
     return true;
 }
@@ -605,8 +620,7 @@ bool UKRInventorySubsystem::CanUseConsumableItem(
         OutReason = FText::FromString(TEXT("Not a consumable item"));
         return false;
     }
-
-    // 1) 쿨다운 체크
+	
     if (ConsumableFrag->IsOnCooldown(TargetASC))
     {
         const float Remaining = ConsumableFrag->GetRemainingCooldown(TargetASC);
@@ -617,11 +631,10 @@ bool UKRInventorySubsystem::CanUseConsumableItem(
         );
         return false;
     }
-
-    // 2) 스택 한도 체크 (← 여기서 StackMax 사용)
+	
     if (!ConsumableFrag->CanApplyMoreStacks(TargetASC))
     {
-        OutReason = FText::FromString(TEXT("Already in use")); // 혹은 "Max stacks reached"
+        OutReason = FText::FromString(TEXT("Already in use"));
         return false;
     }
 
@@ -715,22 +728,18 @@ bool UKRInventorySubsystem::UseConsumableItem(FGameplayTag ItemTag, UAbilitySyst
 	{
 		return false;
 	}
-
-	// 실제 GE + 쿨다운 적용
+	
 	if (!ConsumableFrag->UseConsumable(TargetASC))
 	{
 		return false;
 	}
-
-	// 스택 감소
+	
 	Entry->SubtractCount(1);
 	if (Entry->GetStackCount() <= 0)
 	{
-		// 수량이 0이면 인벤토리에서 제거
 		PlayerInventory.RemoveItem(ItemTag);
 	}
-
-	// 퀵슬롯 및 UI 업데이트
+	
 	NotifyQuickSlotQuantityChanged(ItemTag);
 
 	return true;
@@ -750,8 +759,6 @@ void UKRInventorySubsystem::AddItemInstance(UKRInventoryItemInstance* InInstance
 	if (!InInstance) return;
 
 	PlayerInventory.AddEntryDirect(InInstance);
-
-	// 필요하면 메시지 브로드캐스트 해야함
 }
 
 FKRInventoryList& UKRInventorySubsystem::GetInventory()
@@ -841,18 +848,14 @@ bool UKRInventorySubsystem::IsAssignedSelectedQuickSlot() const
 		{
 			if (!ItemTag.IsValid()) { return; }
 
-			if (const int32* SlotCount = PlayerQuickSlotStacks.Find(SlotTag))
+			if (GetQuickSlotItemDisplayCount(ItemTag) > 0)
 			{
-				if (*SlotCount > 0)
-				{
-					bSelectable = true;
-				}
+				bSelectable = true;
 			}
 		});
 
 	return bSelectable;
 }
-
 
 bool UKRInventorySubsystem::SelectQuickSlotInternal(bool bClockwise)
 {
@@ -885,15 +888,15 @@ bool UKRInventorySubsystem::SelectQuickSlotInternal(bool bClockwise)
 
 		const FGameplayTag ItemTag = GetQuickSlotItemTag(CandidateSlot);
 		if (!ItemTag.IsValid()) { continue; }
-
-		const int32* SlotCountPtr = PlayerQuickSlotStacks.Find(CandidateSlot);
-		if (!SlotCountPtr || *SlotCountPtr <= 0) { continue; }
-
+		
+		const int32 Count = GetQuickSlotItemDisplayCount(ItemTag);
+		if (Count <= 0) { continue; }
+        
 		SelectedQuickSlot = CandidateSlot;
 		NotifySlotChanged(SelectedQuickSlot);
 		return true;
 	}
-
+    
 	NotifySlotChanged(FGameplayTag());
 	return false;
 }
@@ -980,7 +983,7 @@ bool UKRInventorySubsystem::SelectNextAvailableQuickSlot()
 		{
 			if (!FoundSlot.IsValid() && BoundTag.IsValid())
 			{
-				int32 Count = GetItemQuantity_Internal(BoundTag);
+				int32 Count = GetQuickSlotItemDisplayCount(BoundTag);
 				if (Count > 0)
 				{
 					FoundSlot = SlotTag;
@@ -1000,84 +1003,60 @@ bool UKRInventorySubsystem::SelectNextAvailableQuickSlot()
 
 void UKRInventorySubsystem::NotifyQuickSlotQuantityChanged(const FGameplayTag& ItemTag)
 {
-    if (!ItemTag.IsValid()) { return; }
+	if (!ItemTag.IsValid()) { return; }
+	
+	const int32 NewDisplayCount = GetQuickSlotItemDisplayCount(ItemTag);
 
-    const int32 NewInventoryQuantity = GetItemQuantity_Internal(ItemTag);
+	FGameplayTag SlotWithThisItem;
+    
+	ForEachQuickSlot(PlayerQuickSlot,
+		[&](const FGameplayTag& SlotTag, FGameplayTag& BoundItemTag)
+		{
+			if (BoundItemTag != ItemTag) { return; }
+            
+			if (!SlotWithThisItem.IsValid())
+			{
+				SlotWithThisItem = SlotTag;
+			}
+			
+			if (NewDisplayCount <= 0 && !IsPersistentQuickSlotItem(ItemTag))
+			{
+				HandleQuickSlotUnbind(SlotTag, ItemTag);
+			}
+			
+			SendQuickSlotMessage(
+				EQuickSlotAction::QuantityUpdated,
+				SlotTag,
+				ItemTag,
+				NewDisplayCount
+			);
+		});
+	
+	if (NewDisplayCount <= 0)
+	{
+		const bool bHasAnyBound      = IsAssignedQuickSlot();
+		const bool bHasAnySelectable = IsAssignedSelectedQuickSlot();
 
-    FGameplayTag SlotWithThisItem;
-    bool bHadAnySlot = false;
+		if (!bHasAnyBound || !bHasAnySelectable)
+		{
+			NotifySlotChanged(FGameplayTag());
+		}
+        
+		if (bHasAnyBound)
+		{
+			SelectNextAvailableQuickSlot();
+		}
 
-    ForEachQuickSlot(PlayerQuickSlot,
-        [&](const FGameplayTag& SlotTag, FGameplayTag& BoundItemTag)
-        {
-            if (BoundItemTag != ItemTag) { return; }
-
-            bHadAnySlot = true;
-
-            if (!SlotWithThisItem.IsValid())
-            {
-                SlotWithThisItem = SlotTag;
-            }
-
-            // ✅ 슬롯 스택 가져와서 인벤토리와 동기화
-            int32& SlotCount = PlayerQuickSlotStacks.FindOrAdd(SlotTag);
-
-            // StackMax 기준으로 다시 클램프
-            int32 StackMax = GetConsumableStackMaxForItem(ItemTag);
-            int32 MaxAllowedByInventory = NewInventoryQuantity;
-
-            if (StackMax > 0)
-            {
-                MaxAllowedByInventory = FMath::Min(NewInventoryQuantity, StackMax);
-            }
-
-            if (MaxAllowedByInventory < 0)
-            {
-                MaxAllowedByInventory = 0;
-            }
-
-            SlotCount = FMath::Min(SlotCount, MaxAllowedByInventory);
-
-            // 인벤토리 0이고 비-영구 아이템 → 기존 로직대로 언바인드
-            if (NewInventoryQuantity <= 0 && !IsPersistentQuickSlotItem(ItemTag))
-            {
-                HandleQuickSlotUnbind(SlotTag, ItemTag);
-            }
-
-            SendQuickSlotMessage(
-                EQuickSlotAction::QuantityUpdated,
-                SlotTag,
-                ItemTag,
-                SlotCount          // ✅ 퀵슬롯 스택 기준
-            );
-        });
-
-    // 밑에 SelectedQuickSlot 처리 로직은 그대로 두되,
-    // NotifySlotChanged 내부에서 ItemCount 대신 슬롯 스택을 쓰게 고치면 더 깔끔함.
-    if (NewInventoryQuantity <= 0)
-    {
-        const bool bHasAnyBound      = IsAssignedQuickSlot();
-        const bool bHasAnySelectable = IsAssignedSelectedQuickSlot();
-
-        if (!bHasAnyBound || !bHasAnySelectable)
-        {
-            NotifySlotChanged(FGameplayTag());
-        }
-
-        if (bHasAnyBound)
-        {
-            SelectNextAvailableQuickSlot();
-        }
-
-        return;
-    }
-
-    if (!SelectedQuickSlot.IsValid() && SlotWithThisItem.IsValid())
-    {
-        SelectedQuickSlot = SlotWithThisItem;
-        NotifySlotChanged(SlotWithThisItem);
-    }
+		return;
+	}
+	
+	if (!SelectedQuickSlot.IsValid() && SlotWithThisItem.IsValid())
+	{
+		SelectedQuickSlot = SlotWithThisItem;
+		NotifySlotChanged(SlotWithThisItem);
+	}
 }
+
 
 bool UKRInventorySubsystem::IsValidQuickSlot(const FGameplayTag& SlotTag) const
 {
@@ -1120,6 +1099,14 @@ bool UKRInventorySubsystem::HandleQuickSlotUnbind(FGameplayTag SlotTag, FGamepla
 
 		UnboundItem = FGameplayTag();
 
+		SendQuickSlotMessage(
+				EQuickSlotAction::ItemUsed,
+				SlotTag,
+				ItemTag,
+				0,
+				0.1f
+				);
+		
 		SendQuickSlotMessage(
 			EQuickSlotAction::ItemUnregistered,
 			SlotTag,
@@ -1170,6 +1157,26 @@ int32 UKRInventorySubsystem::GetItemQuantity_Internal(const FGameplayTag& ItemTa
 	return 0;
 }
 
+int32 UKRInventorySubsystem::GetQuickSlotItemDisplayCount(const FGameplayTag& ItemTag) const
+{
+	if (!ItemTag.IsValid()) { return 0; }
+
+	for (const auto& Pair : PlayerQuickSlot)
+	{
+		const FGameplayTag& SlotTag  = Pair.Key;
+		const FGameplayTag& BoundTag = Pair.Value;
+
+		if (BoundTag != ItemTag) { continue; }
+
+		if (const int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag))
+		{
+			return *SlotCountPtr;
+		}
+	}
+
+	return 0;
+}
+
 int32 UKRInventorySubsystem::GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const
 {
 	if (!ItemTag.IsValid())
@@ -1178,8 +1185,7 @@ int32 UKRInventorySubsystem::GetConsumableStackMaxForItem(const FGameplayTag& It
 	}
 
 	int32 StackMax = 0;
-
-	// 1) 우선 Consumable Fragment에서 StackMax 가져오기
+	
 	if (const FKRInventoryEntry* Entry = PlayerInventory.GetItem(ItemTag))
 	{
 		if (const UInventoryFragment_ConsumableItem* Frag = GetConsumableFragmentFromItem(Entry))

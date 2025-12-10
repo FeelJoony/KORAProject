@@ -300,6 +300,7 @@ private:
 	void HandleAutoSelectSlotFirstRegisteredItem(FGameplayTag SlotTag, bool bHadAssignedBefore);
 	
 	int32 GetItemQuantity_Internal(const FGameplayTag& ItemTag) const;
+	int32 GetQuickSlotItemDisplayCount(const FGameplayTag& ItemTag) const;
 	int32 GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const;
 	
 	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
