@@ -24,6 +24,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
 	const TArray<UKRInventoryItemInstance*>& GetShopStock() const { return CurrentShopInventory; }
+	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
+	int32 GetStockCountByItemTag(FGameplayTag ItemTag) const;
 
 private:
 	void GenerateShopStock();

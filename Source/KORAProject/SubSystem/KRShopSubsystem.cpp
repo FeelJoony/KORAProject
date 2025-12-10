@@ -38,6 +38,17 @@ void UKRShopSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+int32 UKRShopSubsystem::GetStockCountByItemTag(FGameplayTag ItemTag) const
+{
+	if (!ItemTag.IsValid()) return 0;
+	if (const int32* Found = ShopStockCountMap.Find(ItemTag))
+	{
+		return *Found;
+	}
+
+	return 0;
+}
+
 void UKRShopSubsystem::GenerateShopStock()
 {
 	if (!PrepareShopGeneration())

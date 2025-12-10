@@ -17,4 +17,5 @@ struct KORAPROJECT_API FKRItemUIData
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Quantity = 0;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 Price = -1;
     UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 UpgradeLevel = 0;
+    UPROPERTY(BlueprintReadOnly, EditAnywhere) int32 ShopStock = 0;
 };
