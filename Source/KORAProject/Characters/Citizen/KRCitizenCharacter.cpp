@@ -56,7 +56,7 @@ UGroomComponent* AKRCitizenCharacter::GetGroomComponent(ECitizenGroomSlot Slot) 
 	}
 }
 
-void AKRCitizenCharacter::ApplyAppearanceFromRow(const FKRCitizenAppearanceData& Row)
+void AKRCitizenCharacter::ApplyAppearanceFromRow(const FKRCitizenAppearanceDataStruct& Row)
 {
 	if (Body && Row.BodyMesh.IsValid())
 	{
@@ -103,7 +103,7 @@ void AKRCitizenCharacter::BeginPlay()
 
 	if (MHAppearanceTable && !AppearanceCharacterRowID.IsNone())
 	{
-		if (const FKRCitizenAppearanceData* Row = MHAppearanceTable->FindRow<FKRCitizenAppearanceData>(AppearanceCharacterRowID, TEXT("KRCitizen (BeginPlay)")))
+		if (const FKRCitizenAppearanceDataStruct* Row = MHAppearanceTable->FindRow<FKRCitizenAppearanceDataStruct>(AppearanceCharacterRowID, TEXT("KRCitizen (BeginPlay)")))
 		{
 			ApplyAppearanceFromRow(*Row);
 		}
@@ -206,7 +206,7 @@ void AKRCitizenCharacter::SetAnimInstanceVectorProperty(UAnimInstance* AnimInsta
 	}
 }
 
-void AKRCitizenCharacter::ApplyGroomSlots(const FKRCitizenAppearanceData& Row)
+void AKRCitizenCharacter::ApplyGroomSlots(const FKRCitizenAppearanceDataStruct& Row)
 {
 	for (const FCitizenGroomSlotData& SlotData : Row.GroomSlots)
 	{

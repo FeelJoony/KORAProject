@@ -65,7 +65,7 @@ void UKRCitizenAppearanceProcessor::Execute(FMassEntityManager& EntityManager, F
 				AKRCitizenCharacter* Citizen = Cast<AKRCitizenCharacter>(Actor);
 				if (!Citizen) continue;
 
-				const FKRCitizenAppearanceData* Row = StreamSubsystem->GetAppearanceRow(Appearance.AppearanceRowName);
+				const FKRCitizenAppearanceDataStruct* Row = StreamSubsystem->GetAppearanceRow(Appearance.AppearanceRowName);
 				if (!Row)
 				{
 					UE_LOG(LogTemp, Error, TEXT("[CitizenProcessor] Row NOT FOUND: %s"), *Appearance.AppearanceRowName.ToString());

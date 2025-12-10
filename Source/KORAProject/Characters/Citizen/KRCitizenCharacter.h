@@ -4,7 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
-#include "Data/DataAssets/KRcitizenAppearanceData.h"
+#include "Data/KRCitizenAppearanceDataStruct.h"
 #include "KRCitizenCharacter.generated.h"
 
 class USkeletalMeshComponent;
@@ -22,7 +22,7 @@ public:
 	AKRCitizenCharacter();
 
 	UGroomComponent* GetGroomComponent(ECitizenGroomSlot Slot) const;
-	void ApplyAppearanceFromRow(const FKRCitizenAppearanceData& Row);
+	void ApplyAppearanceFromRow(const FKRCitizenAppearanceDataStruct& Row);
 
 protected:
 	virtual void BeginPlay() override;
@@ -77,5 +77,5 @@ private:
 	void ApplyClavicleOffsets(USkeletalMeshComponent* BodyMesh);
 	void SetAnimInstanceVectorProperty(UAnimInstance* AnimInstance, const FName& PropertyName, const FVector& Value);
 
-	void ApplyGroomSlots(const FKRCitizenAppearanceData& Row);
+	void ApplyGroomSlots(const FKRCitizenAppearanceDataStruct& Row);
 };

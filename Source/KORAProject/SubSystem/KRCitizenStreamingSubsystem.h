@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Engine/DataTable.h"
-#include "Data/DataAssets/KRCitizenAppearanceData.h"
+#include "Data/KRCitizenAppearanceDataStruct.h"
 #include "KRCitizenStreamingSubsystem.generated.h"
 
 
@@ -28,7 +28,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Citizen|Appearance")
 	void SetAppearanceTable(UDataTable* InTable, bool bPreload = true);
 
-	const FKRCitizenAppearanceData* GetAppearanceRow(FName RowName) const;
+	const FKRCitizenAppearanceDataStruct* GetAppearanceRow(FName RowName) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Citizen|Appearance")	FName GetRandomRowName() const;
 	UFUNCTION(BlueprintPure, Category = "Citizen|Appearance")		bool IsPreloadCompleted() const { return bPreloadCompleted; }
@@ -39,7 +39,7 @@ private:
 
 	bool bPreloadCompleted = false;
 
-	TMap<FName, const FKRCitizenAppearanceData*> CachedRows;
+	TMap<FName, const FKRCitizenAppearanceDataStruct*> CachedRows;
 	TArray<FName> CachedRowNames;
 	TArray<FSoftObjectPath> PreloadAssetList;
 };
