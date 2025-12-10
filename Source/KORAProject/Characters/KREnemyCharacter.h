@@ -26,7 +26,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "KR|GAS")
 	TObjectPtr<UKRAbilitySystemComponent> EnemyASC;
 
@@ -46,11 +46,16 @@ public:
 
 	UStateTreeComponent* GetStateTreeComponent() const;
 
+	const TArray<FName>& GetLockOnSockets() const { return LockOnSockets; }
+
 	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
 	TObjectPtr<UAnimMontage> StunMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
 	TObjectPtr<UAnimMontage> HitMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KR|Combat")
+	TArray<FName> LockOnSockets;
 
 private:
 	UFUNCTION()
@@ -61,6 +66,13 @@ private:
 
 	UFUNCTION()
 	void SetEnemyState(FGameplayTag StateTag);
+
+	UFUNCTION()
+	void ExternalGAEnded(FGameplayTag Tag);
+
+	UFUNCTION()
+	void OnGEAdded(UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+
 
 	TArray<FGameplayTag> StateTags;
 };

@@ -7,11 +7,13 @@
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Camera/CameraComponent.h"
+#include "Characters/KREnemyCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/KREnemyTag.h"
 #include "GameplayTag/KRStateTag.h"
+#include "GAS/KRAbilitySystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 //CharacterMovement->AirControl = 0.35f;
@@ -115,6 +117,7 @@ void UKRGA_Grapple::OnStartMontageFinished()
 	switch (HitState)
 	{
 	case EGrappleState::HitEnemy:
+		//Grapple Failed와 Succed
 		BeginEnemyGrapple();
 		break;
         
@@ -159,6 +162,13 @@ void UKRGA_Grapple::FinishAbility()
 	CleanupAllTasks();
 	CleanupAllTimers();
 
+	UKRAbilitySystemComponent* PlayerASC = GetKRAbilitySystemComponentFromActorInfo();
+	if (PlayerASC)
+	{
+		PlayerASC->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_GRAPPLING_SUCCESS);
+		PlayerASC->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_GRAPPLING_FAIL);
+	}
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
@@ -185,24 +195,62 @@ void UKRGA_Grapple::ProcessHitResult(const FHitResult& HitResult)
         return;
     }
 
-    if (APawn* HitPawn = Cast<APawn>(HitActor))
-    {
-        if (IsGrappleableEnemy(HitPawn))
-        {
-            HitState = EGrappleState::HitEnemy;
-            CachedTargetPawn = HitPawn;
-            TargetCapsuleComp = HitPawn->GetComponentByClass<UCapsuleComponent>();
+	if (APawn* HitPawn = Cast<APawn>(HitActor))
+	{
+		if (AKREnemyCharacter* HitEnemy = Cast<AKREnemyCharacter>(HitPawn))
+		{
+			if (IsGrappleableEnemy(HitEnemy))
+			{
+				//Grapple 성공 태그 부착
+				UKRAbilitySystemComponent* PlayerASC = GetKRAbilitySystemComponentFromActorInfo();
+				if (!PlayerASC)
+				{
+					return;
+				}
+				PlayerASC->AddLooseGameplayTag(KRTAG_STATE_ACTING_GRAPPLING_SUCCESS);
+        	
+				HitState = EGrappleState::HitEnemy;
+				CachedTargetPawn = HitEnemy;
+				TargetCapsuleComp = HitEnemy->GetComponentByClass<UCapsuleComponent>();
             
-            if (TargetCapsuleComp)
-            {
-                GrapPoint = TargetCapsuleComp->GetComponentLocation();
-                ApplyCableLocation();
-            }
+				if (TargetCapsuleComp)
+				{
+					GrapPoint = TargetCapsuleComp->GetComponentLocation();
+					ApplyCableLocation();
+				}
             
-            //UE_LOG(LogTemp, Display, TEXT("[Grapple] Hit Enemy: %s"), *HitPawn->GetName());
-            return;
-        }
-    }
+				//UE_LOG(LogTemp, Display, TEXT("[Grapple] Hit Enemy: %s"), *HitPawn->GetName());
+				return;
+			}
+			else
+			{
+				//Grapple 실패 태그 부착
+				UKRAbilitySystemComponent* PlayerASC = GetKRAbilitySystemComponentFromActorInfo();
+				if (ensure(!PlayerASC))
+				{
+					return;
+				}
+				PlayerASC->AddLooseGameplayTag(KRTAG_STATE_ACTING_GRAPPLING_FAIL);
+    		
+				//Montage 재생 후 EndAbility
+				UAbilityTask_PlayMontageAndWait* FailMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+					this, TEXT("EndMontage"), FailMontage);
+    		
+				FailMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+				FailMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+				FailMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+				FailMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::FinishAbility);
+    		
+				FailMontageTask->ReadyForActivation();
+				return;
+			}
+		}
+		else
+		{
+			HitState = EGrappleState::Default;
+			return;
+		}
+	}
 
     HitState = EGrappleState::HitActor;
     GrapPoint = HitResult.ImpactPoint;
@@ -221,10 +269,7 @@ void UKRGA_Grapple::ProcessHitResult(const FHitResult& HitResult)
 
 bool UKRGA_Grapple::IsGrappleableEnemy(APawn* Pawn)
 {
-    IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Pawn);
-    if (!ASI) return false;
-
-    UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+    UAbilitySystemComponent* ASC = ReturnKRASC(Pawn);
     if (!ASC) return false;
 
     return ASC->HasMatchingGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE);
@@ -259,28 +304,18 @@ void UKRGA_Grapple::BeginEnemyGrapple()
     );
 }
 
-bool UKRGA_Grapple::ApplyStunToEnemy() const
+bool UKRGA_Grapple::ApplyStunToEnemy()
 {
-    if (!CachedTargetPawn) return false;
-
-    IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
-    if (!ASI) return false;
-
-    UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+	UKRAbilitySystemComponent* ASC = ReturnKRASC(CachedTargetPawn);
     if (!ASC) return false;
 
     ASC->AddLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
     return true;
 }
 
-void UKRGA_Grapple::RemoveStunFromEnemy() const
+void UKRGA_Grapple::RemoveStunFromEnemy()
 {
-    if (!CachedTargetPawn) return;
-
-    IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(CachedTargetPawn);
-    if (!ASI) return;
-
-    UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+    UKRAbilitySystemComponent* ASC = ReturnKRASC(CachedTargetPawn);
     if (!ASC) return;
 
     ASC->RemoveLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
@@ -500,4 +535,19 @@ void UKRGA_Grapple::CleanupAllTimers()
 
 	World->GetTimerManager().ClearTimer(MoveToTimer);
 	World->GetTimerManager().ClearTimer(MaxGrappleTimer);
+}
+
+UKRAbilitySystemComponent* UKRGA_Grapple::ReturnKRASC(APawn* APawn)
+{
+	if (!APawn) return nullptr;
+	
+	IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(APawn);
+	if (!ASI) return nullptr;
+	
+	if (UKRAbilitySystemComponent* ASC = Cast<UKRAbilitySystemComponent>(ASI->GetAbilitySystemComponent()))
+	{
+		return ASC;
+	}
+	
+	return nullptr;	
 }

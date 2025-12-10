@@ -29,6 +29,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
 	bool bIsFalling;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
+	FVector Velocity;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
+	float Direction;
+	
 	UPROPERTY()
 	TObjectPtr<AKRBaseCharacter> CachedCharacter = nullptr;
 	

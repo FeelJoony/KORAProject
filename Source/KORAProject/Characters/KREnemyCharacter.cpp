@@ -6,6 +6,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/KREnemyTag.h"
 #include "GameplayTag/KRStateTag.h"
+#include "GameplayTag/KREventTag.h"
+#include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Stun.h"
+#include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Alert.h"
 
 #include "AIController.h"
 #include "Components/StateTreeComponent.h"
@@ -57,6 +60,14 @@ void AKREnemyCharacter::BeginPlay()
 	EnemyASC->AddLooseGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE);
 
 	ResigsterTagEvent();
+
+	if (EnemyASC)
+	{
+		EnemyASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(
+			this,
+			&AKREnemyCharacter::OnGEAdded
+		);
+	}
 }
 
 void AKREnemyCharacter::PossessedBy(AController* NewController)
@@ -81,6 +92,9 @@ void AKREnemyCharacter::ResigsterTagEvent()
 {
 	StateTags.Add(KRTAG_STATE_HASCC_STUN);
 	StateTags.Add(KRTAG_ENEMY_ACTION_SLASH);
+	StateTags.Add(KRTAG_ENEMY_AISTATE_COMBAT);
+	StateTags.Add(KRTAG_ENEMY_AISTATE_ALERT);
+	StateTags.Add(KRTAG_ENEMY_AISTATE_PATROL);
 	StateTags.Add(KRTAG_ENEMY_AISTATE_CHASE);
 	StateTags.Add(KRTAG_ENEMY_AISTATE_HITREACTION);
 
@@ -99,6 +113,10 @@ void AKREnemyCharacter::HandleTagEvent(FGameplayTag Tag, int32 Count)
 	{
 		SetEnemyState(Tag);
 	}
+	else if (Count == 0)
+	{
+		ExternalGAEnded(Tag);
+	}
 }
 
 void AKREnemyCharacter::SetEnemyState(FGameplayTag StateTag)
@@ -110,4 +128,49 @@ void AKREnemyCharacter::SetEnemyState(FGameplayTag StateTag)
 	Event.Tag = StateTag;
 
 	EnemyST->SendStateTreeEvent(Event);
+}
+
+void AKREnemyCharacter::ExternalGAEnded(FGameplayTag Tag)
+{
+	if (!EnemyASC) return;
+
+	for (FGameplayAbilitySpec& Spec : EnemyASC->GetActivatableAbilities())
+	{
+		if (Tag == KRTAG_STATE_HASCC_STUN)
+		{
+			if (Spec.Ability && Spec.Ability->IsA(UKRGA_Enemy_Stun::StaticClass()))
+			{
+				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				{
+					if (UKRGA_Enemy_Stun* StunGA = Cast<UKRGA_Enemy_Stun>(Instance))
+					{
+						StunGA->ExternalAbilityEnded();
+					}
+				}
+			}
+		}
+		else if (Tag == KRTAG_ENEMY_AISTATE_ALERT)
+		{
+			if (Spec.Ability && Spec.Ability->IsA(UKRGA_Enemy_Alert::StaticClass()))
+			{
+				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				{
+					if (UKRGA_Enemy_Alert* AlertGA = Cast<UKRGA_Enemy_Alert>(Instance))
+					{
+						AlertGA->ExternalAbilityEnded();
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+
+void AKREnemyCharacter::OnGEAdded(UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
+{
+	UE_LOG(LogTemp, Error, TEXT("TakeDamage"));
+	if (EnemyASC)
+	{
+		EnemyASC->AddLooseGameplayTag(KRTAG_ENEMY_AISTATE_HITREACTION);
+	}
 }

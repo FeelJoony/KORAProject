@@ -27,17 +27,8 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		IdleElapsedTime += DeltaSeconds;
 		bShouldEnterRelaxState = (IdleElapsedTime >= EnterRelaxStateTime);
 	}
-
-	if (CachedCharacter)
-	{
-		Velocity = CachedCharacter->GetVelocity();
-	}
-	
-	/*Direction = UKismetAnimationLibrary::CalculateDirection(
-			CachedCharacter->GetVelocity(),
-			CachedCharacter->GetActorRotation()
-	);
-	
+		
+	/*
 	if (bIsLockOn)
 	{
 		FRotator ControlRotation = CachedCharacter->GetControlRotation();
@@ -46,5 +37,6 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		LockOnDirection = UKismetMathLibrary::NormalizedDeltaRotator(VelocityRotation, ControlRotation).Yaw;
         
 		//CachedMoveComponent->MaxWalkSpeed=LockOnSpeed;
-	}*/
+	}
+	*/
 }
