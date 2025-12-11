@@ -22,6 +22,14 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UFUNCTION(BlueprintCallable, Category = "AI|Speed")
+	void SetPatrolSpeed();
+
+	UFUNCTION(BlueprintCallable, Category = "AI|Speed")
+	void SetAlertSpeed();
+
+	UFUNCTION(BlueprintCallable, Category = "AI|Speed")
+	void SetChaseSpeed();
 	
 protected:
 	virtual void BeginPlay() override;
