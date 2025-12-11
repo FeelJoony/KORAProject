@@ -13,7 +13,9 @@
 #include "CommonButtonBase.h"
 #include "CommonNumericTextBlock.h"
 #include "Engine/Texture2D.h"
+#include "Player/KRPlayerState.h"
 
+class AKRPlayerState;
 DEFINE_LOG_CATEGORY_STATIC(LogShopBuy, Log, All);
 
 void UKRShopBuy::NativeOnActivated()
@@ -296,7 +298,18 @@ void UKRShopBuy::RefreshShopInventory()
 
 void UKRShopBuy::UpdatePlayerCurrency()
 {
+	if (!PlayerCurrencyPanel) return;
 
+	APlayerController* PC = GetOwningPlayer();
+	if (!PC) return;
+
+	AKRPlayerState* KRPS = PC->GetPlayerState<AKRPlayerState>();
+	if (!KRPS) return;
+
+	UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet();
+	if (!Currency) return;
+
+	Currency->ForceBroadcastCurrencyUI();
 }
 
 

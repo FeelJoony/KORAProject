@@ -1,13 +1,17 @@
 #include "KRCurrencyComponent.h"
 
+#include "Data/CurrencyDataStruct.h"
 #include "Data/GameDataType.h"
 #include "GAS/KRAbilitySystemComponent.h"
-#include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 #include "Player/KRPlayerState.h"
+#include "GameplayTag/KRShopTag.h"
+#include "GameplayTag/KRStateTag.h"
 
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
-#include "SubSystem/KRDataTablesSubsystem.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "Subsystem/KRDataTablesSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
 DEFINE_LOG_CATEGORY(LogKRCurrency);
 
@@ -23,11 +27,14 @@ void UKRCurrencyComponent::BeginPlay()
 	
 	InitializeAbilityReferences();
 	InitializeDataTables();
+	InitializeCurrencyLossRules();
+	
+	BroadcastCurrencyUI();
 }
 
 void UKRCurrencyComponent::InitializeAbilityReferences()
 {
-	if (ASC && AttributeSet) return;
+	if (ASC) return;
 	
 	AActor* OwnerActor = GetOwner();
 	if (!OwnerActor) return;
@@ -39,7 +46,6 @@ void UKRCurrencyComponent::InitializeAbilityReferences()
 			if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(ASCBase))
 			{
 				ASC = KRASC;
-				AttributeSet = ASC->GetSet<UKRPlayerAttributeSet>();
 			}
 		}
 	}
@@ -59,186 +65,6 @@ void UKRCurrencyComponent::InitializeDataTables()
 	if (!GI) return;
 
 	DataTables = GI->GetSubsystem<UKRDataTablesSubsystem>();
-}
-
-bool UKRCurrencyComponent::GetAttributeForCurrencyTag(
-	const FGameplayTag& CurrencyTag,
-	FGameplayAttribute& OutAttribute) const
-{
-	if (!ASC) return false;
-
-	static const FGameplayTag Tag_Gearing =
-		FGameplayTag::RequestGameplayTag(TEXT("Currency.Purchase.Gearing"));
-	static const FGameplayTag Tag_Corbyte =
-		FGameplayTag::RequestGameplayTag(TEXT("Currency.Skill.Corbyte"));
-
-	if (CurrencyTag.MatchesTagExact(Tag_Gearing))
-	{
-		OutAttribute = UKRPlayerAttributeSet::GetGearingCurrentAttribute();
-		return true;
-	}
-
-	if (CurrencyTag.MatchesTagExact(Tag_Corbyte))
-	{
-		OutAttribute = UKRPlayerAttributeSet::GetCorbyteCurrentAttribute();
-		return true;
-	}
-
-	return false;
-}
-
-bool UKRCurrencyComponent::GetLostAttributeForCurrencyTag(
-	const FGameplayTag& CurrencyTag,
-	FGameplayAttribute& OutAttribute) const
-{
-	if (!ASC) return false;
-
-	static const FGameplayTag Tag_Gearing =
-		FGameplayTag::RequestGameplayTag(TEXT("Currency.Purchase.Gearing"));
-
-	if (CurrencyTag.MatchesTagExact(Tag_Gearing))
-	{
-		OutAttribute = UKRPlayerAttributeSet::GetGearingLostAttribute();
-		return true;
-	}
-
-	return false;
-}
-
-bool UKRCurrencyComponent::IsLostOnDeath(const FGameplayTag& CurrencyTag) const
-{
-	const_cast<UKRCurrencyComponent*>(this)->InitializeCurrencyLossRules();
-
-	if (!CurrencyTag.IsValid()) return false;
-	
-	if (const bool* bLossPtr = CurrencyLossRuleMap.Find(CurrencyTag))
-	{
-		return *bLossPtr;
-	}
-	
-	return false;
-}
-
-int32 UKRCurrencyComponent::GetCurrency(const FGameplayTag& CurrencyTag) const
-{
-	if (!ASC || !AttributeSet || !CurrencyTag.IsValid()) return 0;
-
-	FGameplayAttribute Attr;
-	if (!GetAttributeForCurrencyTag(CurrencyTag, Attr)) return 0;
-
-	const float Value = ASC->GetNumericAttribute(Attr);
-	return static_cast<int32>(Value);
-}
-
-int32 UKRCurrencyComponent::GetLostCurrency(const FGameplayTag& CurrencyTag) const
-{
-	if (!ASC || !CurrencyTag.IsValid()) return 0;
-	
-	FGameplayAttribute LostAttr;
-	if (!GetLostAttributeForCurrencyTag(CurrencyTag, LostAttr)) return 0;
-	
-	const float Value = ASC->GetNumericAttribute(LostAttr);
-	return static_cast<int32>(Value);
-}
-
-bool UKRCurrencyComponent::CanAfford(const FGameplayTag& CurrencyTag, int32 Amount) const
-{
-	if (Amount <= 0) return true;
-	
-	return GetCurrency(CurrencyTag) >= Amount;
-}
-
-void UKRCurrencyComponent::AddCurrency(const FGameplayTag& CurrencyTag, int32 Delta)
-{
-	if (Delta == 0 || !CurrencyTag.IsValid()) return;
-
-	const int32 OldValue = GetCurrency(CurrencyTag);
-	const int32 NewValue = FMath::Max(0, OldValue + Delta);
-
-	ApplyCurrencyChange(CurrencyTag, NewValue);
-}
-
-bool UKRCurrencyComponent::SpendCurrency(const FGameplayTag& CurrencyTag, int32 Cost)
-{
-	if (Cost <= 0 || !CurrencyTag.IsValid()) return false;
-
-	const int32 OldValue = GetCurrency(CurrencyTag);
-	if (OldValue < Cost) return false;
-
-	const int32 NewValue = OldValue - Cost;
-	ApplyCurrencyChange(CurrencyTag, NewValue);
-	return true;
-}
-
-void UKRCurrencyComponent::SetInsuranceKeepRate(float NewRate)
-{
-	InsuranceKeepRate = FMath::Clamp(NewRate, 0.0f, 1.0f);
-}
-
-void UKRCurrencyComponent::ClearInsurance()
-{
-	InsuranceKeepRate = 0.0f;
-}
-
-float UKRCurrencyComponent::GetInsuranceKeepRate() const
-{
-	return InsuranceKeepRate;
-}
-
-void UKRCurrencyComponent::HandleDeath()
-{
-	if (!ASC) return;
-
-	const FGameplayTag GearingTag = FGameplayTag::RequestGameplayTag(TEXT("Currency.Purchase.Gearing"));
-	
-	if (!IsLostOnDeath(GearingTag)) return;
-	
-	const int32 CurrentGearing = FMath::Max(0, GetCurrency(GearingTag));
-	
-	const float KeepRate = FMath::Clamp(GetInsuranceKeepRate(), 0.0f, 1.0f);
-	const float LossRate = 1.0f - KeepRate;
-	
-	const int32 KeepAmount = FMath::FloorToInt(CurrentGearing * KeepRate);
-	const int32 LostAmount = CurrentGearing - KeepAmount;
-	
-	ApplyCurrencyChange(GearingTag, KeepAmount);
-	
-	FGameplayAttribute LostAttr;
-	if (GetLostAttributeForCurrencyTag(GearingTag, LostAttr))
-	{
-		const float NewLost = static_cast<float>(LostAmount);
-		ASC->SetNumericAttributeBase(LostAttr, NewLost);
-	}
-	
-	ConsumeInsuranceEffects();
-}
-
-void UKRCurrencyComponent::ApplyCurrencyChange(
-	const FGameplayTag& CurrencyTag, int32 NewValue)
-{
-	if (!ASC || !AttributeSet || !CurrencyTag.IsValid()) return;
-
-	FGameplayAttribute Attr;
-	if (!GetAttributeForCurrencyTag(CurrencyTag, Attr)) return;
-	
-	const int32 OldValue = GetCurrency(CurrencyTag);
-	ASC->SetNumericAttributeBase(Attr, static_cast<float>(NewValue));
-
-	// TODO: 나중에 여기서 UI Message Broadcast 하면 될거 같음.
-}
-
-void UKRCurrencyComponent::ConsumeInsuranceEffects()
-{
-	ClearInsurance();
-
-	if (!ASC) return;
-
-	const FGameplayTag InsuranceActiveTag = FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"));
-
-	FGameplayTagContainer TagsToRemove;
-	TagsToRemove.AddTag(InsuranceActiveTag);
-
-	ASC->RemoveActiveEffectsWithGrantedTags(TagsToRemove);
 }
 
 void UKRCurrencyComponent::InitializeCurrencyLossRules()
@@ -281,3 +107,189 @@ void UKRCurrencyComponent::InitializeCurrencyLossRules()
 	}
 }
 
+bool UKRCurrencyComponent::IsLostOnDeath(const FGameplayTag& CurrencyTag) const
+{
+	if (!CurrencyTag.IsValid()) return false;
+	
+	if (const bool* bLossPtr = CurrencyLossRuleMap.Find(CurrencyTag))
+	{
+		return *bLossPtr;
+	}
+	
+	return false;
+}
+
+int32 UKRCurrencyComponent::GetCurrency(const FGameplayTag& CurrencyTag) const
+{
+	if (!CurrencyTag.IsValid())
+	{
+		return 0;
+	}
+
+	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_PURCHASE_GEARING))
+	{
+		return GearingCurrent;
+	}
+	
+	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_SKILL_CORBYTE))
+	{
+		return CorbyteCurrent;
+	}
+
+	return 0;
+}
+
+int32 UKRCurrencyComponent::GetLostCurrency(const FGameplayTag& CurrencyTag) const
+{
+	if (!CurrencyTag.IsValid())
+	{
+		return 0;
+	}
+
+	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_PURCHASE_GEARING))
+	{
+		return -FMath::Abs(GearingLost);
+	}
+
+	return 0;
+}
+
+bool UKRCurrencyComponent::CanAfford(const FGameplayTag& CurrencyTag, int32 Amount) const
+{
+	if (Amount <= 0)
+	{
+		return true;
+	}
+	
+	return GetCurrency(CurrencyTag) >= Amount;
+}
+
+void UKRCurrencyComponent::AddCurrency(const FGameplayTag& CurrencyTag, int32 Delta)
+{
+	if (Delta == 0 || !CurrencyTag.IsValid())
+	{
+		return;
+	}
+
+	const int32 OldValue = GetCurrency(CurrencyTag);
+	const int32 NewValue = FMath::Max(0, OldValue + Delta);
+
+	ApplyCurrencyChange_Internal(CurrencyTag, NewValue);
+}
+
+bool UKRCurrencyComponent::SpendCurrency(const FGameplayTag& CurrencyTag, int32 Cost)
+{
+	if (Cost <= 0 || !CurrencyTag.IsValid())
+	{
+		return false;
+	}
+
+	const int32 OldValue = GetCurrency(CurrencyTag);
+	if (OldValue < Cost)
+	{
+		return false;
+	}
+
+	const int32 NewValue = OldValue - Cost;
+	ApplyCurrencyChange_Internal(CurrencyTag, NewValue);
+	
+	return true;
+}
+
+void UKRCurrencyComponent::SetInsuranceKeepRate(float NewRate)
+{
+	InsuranceKeepRate = FMath::Clamp(NewRate, 0.0f, 1.0f);
+}
+
+void UKRCurrencyComponent::ClearInsurance()
+{
+	InsuranceKeepRate = 0.0f;
+}
+
+float UKRCurrencyComponent::GetInsuranceKeepRate() const
+{
+	return InsuranceKeepRate;
+}
+
+void UKRCurrencyComponent::HandleDeath()
+{
+	const FGameplayTag GearingTag = KRTAG_CURRENCY_PURCHASE_GEARING;
+	
+	if (!IsLostOnDeath(GearingTag))
+	{
+		return;
+	}
+	
+	const int32 Current = FMath::Max(0, GetCurrency(GearingTag));
+	
+	const float KeepRate  = FMath::Clamp(GetInsuranceKeepRate(), 0.0f, 1.0f);
+	const int32 KeepAmount = FMath::FloorToInt(Current * KeepRate);
+	const int32 LostAmount = Current - KeepAmount;
+	
+	GearingCurrent = KeepAmount;
+	GearingLost    = LostAmount;
+
+	ApplyCurrencyChange_Internal(GearingTag, KeepAmount);
+	ConsumeInsuranceEffects();
+}
+
+void UKRCurrencyComponent::ApplyCurrencyChange_Internal(const FGameplayTag& CurrencyTag, int32 NewValue)
+{
+	if (!CurrencyTag.IsValid())
+	{
+		return;
+	}
+
+	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_PURCHASE_GEARING))
+	{
+		GearingCurrent = FMath::Max(0, NewValue);
+	}
+	else if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_SKILL_CORBYTE))
+	{
+		CorbyteCurrent = FMath::Max(0, NewValue);
+	}
+	else
+	{
+		return;
+	}
+
+	BroadcastCurrencyUI();
+}
+
+void UKRCurrencyComponent::ConsumeInsuranceEffects()
+{
+	ClearInsurance();
+
+	if (!ASC) return;
+	
+	const FGameplayTag InsuranceActiveTag = KRTAG_STATUS_ITEM_INSURANCE_CURRENCY;
+
+	FGameplayTagContainer TagsToRemove;
+	TagsToRemove.AddTag(InsuranceActiveTag);
+
+	ASC->RemoveActiveEffectsWithGrantedTags(TagsToRemove);
+}
+
+void UKRCurrencyComponent::BroadcastCurrencyUI() const
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	
+	static const FGameplayTag Tag_Gearing  = KRTAG_CURRENCY_PURCHASE_GEARING;
+	static const FGameplayTag Tag_Corbyte = KRTAG_CURRENCY_SKILL_CORBYTE;
+
+	FKRUIMessage_Currency Payload;
+	Payload.CurrentGearing = GetCurrency(Tag_Gearing);
+	Payload.CurrentCorbyte = GetCurrency(Tag_Corbyte);
+	Payload.DeltaGearing   = GetLostCurrency(Tag_Gearing);
+
+	UGameplayMessageSubsystem::Get(World).BroadcastMessage(FKRUIMessageTags::Currency(), Payload);
+}
+
+void UKRCurrencyComponent::ForceBroadcastCurrencyUI()
+{
+	BroadcastCurrencyUI();
+}

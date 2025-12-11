@@ -14,6 +14,9 @@
 #include "CommonButtonBase.h"
 #include "CommonNumericTextBlock.h"
 #include "Engine/Texture2D.h"
+#include "Player/KRPlayerState.h"
+
+class AKRPlayerState;
 
 void UKRShopSell::NativeOnActivated()
 {
@@ -258,7 +261,18 @@ void UKRShopSell::RefreshShopInventory()
 
 void UKRShopSell::UpdatePlayerCurrency()
 {
+	if (!PlayerCurrencyPanel) return;
 
+	APlayerController* PC = GetOwningPlayer();
+	if (!PC) return;
+
+	AKRPlayerState* KRPS = PC->GetPlayerState<AKRPlayerState>();
+	if (!KRPS) return;
+
+	UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet();
+	if (!Currency) return;
+
+	Currency->ForceBroadcastCurrencyUI();
 }
 
 void UKRShopSell::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)

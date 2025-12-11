@@ -9,7 +9,4 @@ UKRPlayerAttributeSet::UKRPlayerAttributeSet()
 	InitStaminaRegenDelay(1.f);
 	InitCoreDrive(0.f);
 	InitMaxCoreDrive(60.f);
-	InitGearingCurrent(0);
-	InitGearingLost(0);
-	InitCorbyteCurrent(0);
 }

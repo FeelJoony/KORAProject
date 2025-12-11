@@ -11,8 +11,10 @@
 #include "GameplayTag/KRShopTag.h"
 #include "GameplayTag/KRAbilityTag.h"
 #include "GameplayTag/KRUITag.h"
+#include "Player/KRPlayerState.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
+class AKRPlayerState;
 DEFINE_LOG_CATEGORY(LogShopSubSystem);
 
 void UKRShopSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -47,6 +49,22 @@ int32 UKRShopSubsystem::GetStockCountByItemTag(FGameplayTag ItemTag) const
 	}
 
 	return 0;
+}
+
+UKRCurrencyComponent* UKRShopSubsystem::GetCurrencyComponent() const
+{
+	if (UWorld* World = GetWorld())
+	{
+		if (APlayerController* PC = World->GetFirstPlayerController())
+		{
+			if (AKRPlayerState* KRPS = PC->GetPlayerState<AKRPlayerState>())
+			{
+				return KRPS->FindComponentByClass<UKRCurrencyComponent>();
+			}
+		}
+	}
+	
+	return nullptr;
 }
 
 void UKRShopSubsystem::GenerateShopStock()
@@ -105,9 +123,12 @@ bool UKRShopSubsystem::TryBuyItem(FGameplayTag ItemTag, int32 InCount)
 
 	UKRInventorySubsystem* InventorySubsystem = GetGameInstance()->GetSubsystem<UKRInventorySubsystem>();
 	if (!InventorySubsystem) return false;
+
+	UKRCurrencyComponent* CurrencyComp = GetCurrencyComponent();
+	if (!CurrencyComp) return false;
+	
 	UKRInventoryItemInstance* ShopItem = FindShopItemInstanceByTag(ItemTag);
 	if (!ShopItem) return false;
-
 
 	const FGameplayTag& DisplayUITag = KRTAG_ABILITY_ITEM_DISPLAYUI;
 	const UKRInventoryItemFragment* Frag = ShopItem->FindFragmentByTag(DisplayUITag);
@@ -115,13 +136,14 @@ bool UKRShopSubsystem::TryBuyItem(FGameplayTag ItemTag, int32 InCount)
 	if (!DisplayUI) return false;
 
 	const int32 TotalCost = DisplayUI->Price * InCount;
-	if (!CanAfford(InventorySubsystem, TotalCost))
+	if (!CurrencyComp->CanAfford(KRTAG_CURRENCY_PURCHASE_GEARING, TotalCost))
 	{
 		UE_LOG(LogShopSubSystem, Warning, TEXT("TryBuyItem Failed: Not enough currency."));
 		return false;
 	}
-
-	InventorySubsystem->SubtractItem(KRTAG_CURRENCY_PURCHASE_GEARING, TotalCost);
+	
+	CurrencyComp->SpendCurrency(KRTAG_CURRENCY_PURCHASE_GEARING, TotalCost);
+	
 	InventorySubsystem->AddItem(ItemTag, InCount);
 
 	CurrentStock -= InCount;
@@ -142,6 +164,9 @@ bool UKRShopSubsystem::TrySellItem(FGameplayTag InItemTag, int32 InCount)
 	UKRInventorySubsystem* InventorySubsystem = GetGameInstance()->GetSubsystem<UKRInventorySubsystem>();
 	if (!InventorySubsystem) return false;
 
+	UKRCurrencyComponent* CurrencyComp = GetCurrencyComponent();
+	if (!CurrencyComp) return false;
+
 	if (InventorySubsystem->GetItemCountByTag(InItemTag) < InCount) return false;
 
 	const FGameplayTag& SellableTag = KRTAG_ABILITY_ITEM_SELLABLE;
@@ -156,16 +181,21 @@ bool UKRShopSubsystem::TrySellItem(FGameplayTag InItemTag, int32 InCount)
 	const int32 SellPrice = Round5(DiscountedPrice);
 	
 	const int32 TotalPayout = SellPrice * InCount;
-
+	
 	InventorySubsystem->SubtractItem(InItemTag, InCount);
-	InventorySubsystem->AddItem(KRTAG_CURRENCY_PURCHASE_GEARING, TotalPayout);
+	
+	CurrencyComp->AddCurrency(KRTAG_CURRENCY_PURCHASE_GEARING, TotalPayout);
+
 	return true;
 }
 
+
 bool UKRShopSubsystem::CanAfford(UKRInventorySubsystem* InInventory, int32 InTotalCost) const
 {
-	if (!InInventory) return false;
-	return InInventory->GetItemCountByTag(KRTAG_CURRENCY_PURCHASE_GEARING) >= InTotalCost;
+	UKRCurrencyComponent* CurrencyComp = GetCurrencyComponent();
+	if (!CurrencyComp) return false;
+
+	return CurrencyComp->CanAfford(KRTAG_CURRENCY_PURCHASE_GEARING, InTotalCost);
 }
 
 int32 UKRShopSubsystem::Round5(float InValue) const

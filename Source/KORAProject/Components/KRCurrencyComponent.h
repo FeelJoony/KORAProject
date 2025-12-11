@@ -3,27 +3,25 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
-#include "Data/CurrencyDataStruct.h"
 #include "KRCurrencyComponent.generated.h"
 
 class UKRAbilitySystemComponent;
 class UKRDataTablesSubsystem;
-class UKRPlayerAttributeSet;
-class AKRPlayerState;
+struct FCurrencyDataStruct;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogKRCurrency, Log, All);
 
-UCLASS()
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class KORAPROJECT_API UKRCurrencyComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	UKRCurrencyComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
+	
 	UFUNCTION(BlueprintCallable, Category="Currency")
 	int32 GetCurrency(const FGameplayTag& CurrencyTag) const;
-
+	
 	UFUNCTION(BlueprintPure, Category="Currency")
 	int32 GetLostCurrency(const FGameplayTag& CurrencyTag) const;
 	
@@ -35,15 +33,18 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Currency")
 	bool SpendCurrency(const FGameplayTag& CurrencyTag, int32 Cost);
-
+	
 	UFUNCTION(BlueprintCallable, Category="Currency|Insurance")
 	void SetInsuranceKeepRate(float NewRate);
-
+	
 	UFUNCTION(BlueprintCallable, Category="Currency|Insurance")
 	void ClearInsurance();
 	
 	UFUNCTION(BlueprintCallable, Category="Currency")
 	void HandleDeath();
+	
+	UFUNCTION(BlueprintCallable, Category="Currency|UI")
+	void ForceBroadcastCurrencyUI();
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category="Currency|Insurance")
@@ -54,26 +55,32 @@ protected:
 	
 	void InitializeAbilityReferences();
 	void InitializeDataTables();
+	void InitializeCurrencyLossRules();
 	
-	bool GetAttributeForCurrencyTag(const FGameplayTag& CurrencyTag, struct FGameplayAttribute& OutAttribute) const;
-	bool GetLostAttributeForCurrencyTag(const FGameplayTag& CurrencyTag, struct FGameplayAttribute& OutAttribute) const;
 	bool IsLostOnDeath(const FGameplayTag& CurrencyTag) const;
-	void ApplyCurrencyChange(const FGameplayTag& CurrencyTag, int32 NewValue);
-
 	float GetInsuranceKeepRate() const;
 	void ConsumeInsuranceEffects();
-	void InitializeCurrencyLossRules();
+	void ApplyCurrencyChange_Internal(const FGameplayTag& CurrencyTag, int32 NewValue);
+	void BroadcastCurrencyUI() const;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
+	int32 GearingCurrent = 0;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
+	int32 CorbyteCurrent = 0;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
+	int32 GearingLost = 0;
 	
 	UPROPERTY()
 	TObjectPtr<UKRAbilitySystemComponent> ASC = nullptr;
-
+	
 	UPROPERTY()
-	UKRDataTablesSubsystem* DataTables = nullptr;
+	TObjectPtr<UKRDataTablesSubsystem> DataTables = nullptr;
 	
 	UPROPERTY()
 	TMap<FGameplayTag, bool> CurrencyLossRuleMap;
 
 	bool bCurrencyTableInitialized = false;
-	
-	const UKRPlayerAttributeSet* AttributeSet = nullptr;
 };

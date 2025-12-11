@@ -4,6 +4,7 @@
 #include "UI/Currency/KROnlyGearingPanel.h"
 #include "CommonNumericTextBlock.h"
 #include "Components/HorizontalBox.h"
+#include "Math/UnrealMathUtility.h"
 
 void UKROnlyGearingPanel::NativeConstruct()
 {
@@ -45,12 +46,12 @@ void UKROnlyGearingPanel::UpdateGearingPanel(int32 InCurrentGearing, int32 InLos
 
 	if (LostGearing)
 	{
-		LostGearing->SetCurrentValue(InLostGearing);
+		LostGearing->SetCurrentValue(FMath::Abs(InLostGearing));
 	}
 
 	if (LostGearingSection)
 	{
-		if (InLostGearing > 0)
+		if (InLostGearing < 0)
 		{
 			LostGearingSection->SetVisibility(ESlateVisibility::Visible);
 		}

@@ -1,6 +1,4 @@
 #include "Inventory/Fragment/InventoryFragment_ConsumableItem.h"
-
-#include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 #include "GAS/KRAbilitySystemComponent.h"
 
 #include "Inventory/KRInventoryItemInstance.h"
@@ -44,24 +42,46 @@ void UInventoryFragment_ConsumableItem::OnInstanceCreated(UKRInventoryItemInstan
 	CooldownConfig = FConsumableCooldownConfig();
 	InUseTags.Reset();
 
-	if (!Instance) { return; }
+	if (!Instance) return;
 
 	LoadFromDataTable(Instance);
 }
 
 bool UInventoryFragment_ConsumableItem::UseConsumable(UAbilitySystemComponent* ASC)
 {
-	if (!ASC) { return false; }
+	if (!ASC) return false;
 	
-	if (IsOnCooldown(ASC)) { return false; }
+	if (IsOnCooldown(ASC)) return false;
 
-	if (!CanApplyMoreStacks(ASC)) { return false; }
+	if (!CanApplyMoreStacks(ASC)) return false;
 	
 	float EffectDuration = 0.f;
-	if (!ApplyMainEffect(ASC, EffectDuration)) { return false; }
+	if (!ApplyMainEffect(ASC, EffectDuration)) return false;
 	
 	ApplyCooldown(ASC);
 
+	if (EffectConfig.EffectType == EConsumableEffectType::Infinite)
+	{
+		if (!ASC) return true;
+		
+		
+		AActor* Avatar = ASC->GetAvatarActor();
+		if (!Avatar) return true;
+		
+
+		APawn* Pawn = Cast<APawn>(Avatar);
+		if (!Pawn) return true;
+		
+		
+		if (AKRPlayerState* KRPS = Pawn->GetPlayerState<AKRPlayerState>())
+		{
+			if (UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet())
+			{
+				Currency->SetInsuranceKeepRate(EffectConfig.Power);
+			}
+		}
+	}
+	
 	return true;
 }
 
