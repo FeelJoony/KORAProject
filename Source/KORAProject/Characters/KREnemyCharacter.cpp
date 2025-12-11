@@ -44,6 +44,21 @@ UAbilitySystemComponent* AKREnemyCharacter::GetAbilitySystemComponent() const
 	return EnemyASC;
 }
 
+void AKREnemyCharacter::SetPatrolSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+}
+
+void AKREnemyCharacter::SetAlertSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+}
+
+void AKREnemyCharacter::SetChaseSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+}
+
 void AKREnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();

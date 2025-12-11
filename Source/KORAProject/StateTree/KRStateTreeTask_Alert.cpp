@@ -11,7 +11,7 @@ UKRStateTreeTask_Alert::UKRStateTreeTask_Alert(const FObjectInitializer& ObjectI
 {
 	bShouldCallTick = true;
 
-	AttackDelayTime = 2.f;
+	AttackDelayTime = 1.5f;
 
 	ElapsedTime = 0.0f;
 }

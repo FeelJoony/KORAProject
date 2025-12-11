@@ -12,6 +12,9 @@ class KORAPROJECT_API UKRStateTreeTask_Alert : public UStateTreeTaskBlueprintBas
 public:
 	UKRStateTreeTask_Alert(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AlertTime")
+	float ElapsedTime;
+
 protected:
 
 	//virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition);
@@ -24,7 +27,4 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AlertTime")
 	float AttackDelayTime;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AlertTime")
-	float ElapsedTime;
 };
