@@ -6,13 +6,9 @@
 #include "CommonTextBlock.h"
 #include "CommonButtonBase.h"
 
-void UKRConfirmModal::SetupConfirm(const FText& InMessage, EConfirmContext InContext, FGameplayTag InItemTag)
+void UKRConfirmModal::SetupConfirm(FName MessageKey, EConfirmContext InContext, FGameplayTag InItemTag)
 {
-    if (AlertText)
-    {
-        AlertText->SetText(InMessage);
-    }
-
+    UpdateAlertText(MessageKey);
     Context = InContext;
     ItemTag = InItemTag;
 	QuickSlotTag = FGameplayTag();
@@ -25,13 +21,9 @@ void UKRConfirmModal::SetupConfirm(const FText& InMessage, EConfirmContext InCon
     }
 }
 
-void UKRConfirmModal::SetupConfirmWithQuantity(const FText& InMessage, EConfirmContext InContext, FGameplayTag InItemTag, int32 InMin, int32 InMax, int32 InDefault)
+void UKRConfirmModal::SetupConfirmWithQuantity(FName MessageKey, EConfirmContext InContext, FGameplayTag InItemTag, int32 InMin, int32 InMax, int32 InDefault)
 {
-    if (AlertText)
-    {
-        AlertText->SetText(InMessage);
-    }
-
+    UpdateAlertText(MessageKey);
     Context = InContext;
     ItemTag = InItemTag;
 	QuickSlotTag = FGameplayTag();
@@ -48,13 +40,9 @@ void UKRConfirmModal::SetupConfirmWithQuantity(const FText& InMessage, EConfirmC
     RefreshQuantityUI();
 }
 
-void UKRConfirmModal::SetupConfirmWithQuickSlotTag(const FText& InMessage, EConfirmContext InContext, FGameplayTag InItemTag, FGameplayTag InSlotTag)
+void UKRConfirmModal::SetupConfirmWithQuickSlotTag(FName MessageKey, EConfirmContext InContext, FGameplayTag InItemTag, FGameplayTag InSlotTag)
 {
-    if (AlertText)
-    {
-        AlertText->SetText(InMessage);
-    }
-
+    UpdateAlertText(MessageKey);
 	Context = InContext;
 	ItemTag = InItemTag;
 	QuickSlotTag = InSlotTag;
@@ -151,3 +139,15 @@ void UKRConfirmModal::RefreshQuantityUI()
     }
 }
 
+void UKRConfirmModal::UpdateAlertText(FName MessageKey)
+{
+    FText Msg = FText::FromStringTable(
+        TEXT("/Game/UI/StringTable/ST_UIBaseTexts"),
+        MessageKey.ToString()
+    );
+
+    if (AlertText)
+    {
+        AlertText->SetText(Msg);
+    }
+}

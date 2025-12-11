@@ -39,7 +39,7 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Velocity,
 		CachedCharacter->GetActorRotation()
 	);
-	UE_LOG(LogTemp, Warning, TEXT("Direction: %f , GroundSpeed: %f"), Direction, GroundSpeed);
+	//UE_LOG(LogTemp, Warning, TEXT("Direction: %f , GroundSpeed: %f"), Direction, GroundSpeed);
 }
 
 void UKRBaseAnimInstance::RecacheOwner()

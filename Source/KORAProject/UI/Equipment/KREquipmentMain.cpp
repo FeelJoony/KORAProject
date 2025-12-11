@@ -4,6 +4,7 @@
 #include "UI/Equipment/KREquipmentMain.h"
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
+#include "UI/Modal/KRConfirmModal.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Data/KRItemUIData.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
@@ -221,6 +222,7 @@ bool UKREquipmentMain::TryEquipSelectedItem()
 	const FKRItemUIData& Data = CachedUIData[Sel];
 
 	FKRUIMessage_Confirm Msg;
+	Msg.Context = EConfirmContext::Equipment;
 	Msg.Result = EConfirmResult::None;
 	Msg.ItemTag = Data.ItemTag;
 
@@ -230,7 +232,13 @@ bool UKREquipmentMain::TryEquipSelectedItem()
 	{
 		if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
 		{
-			Router->ToggleRoute(TEXT("Confirm"));
+			if (UCommonActivatableWidget* Widget = Router->ToggleRoute(TEXT("Confirm")))
+			{
+				if (UKRConfirmModal* ConfirmModal = Cast<UKRConfirmModal>(Widget))
+				{
+					ConfirmModal->SetupConfirm(TEXT("Modal_EquipConfirm"), EConfirmContext::Equipment, Data.ItemTag);
+				}
+			}
 		}
 	}
 

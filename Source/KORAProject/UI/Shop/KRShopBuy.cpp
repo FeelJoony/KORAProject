@@ -45,8 +45,6 @@ void UKRShopBuy::NativeConstruct()
 	Super::NativeConstruct();
 
 	RefreshShopInventory();
-	UpdatePlayerCurrency();
-
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
@@ -117,11 +115,6 @@ void UKRShopBuy::HandleSelect()
 
 	UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] Selected item: %s"), *ItemTag.ToString());
 
-	const FText Msg = FText::FromStringTable(
-		TEXT("/Game/UI/StringTable/ST_UIBaseTexts"),
-		TEXT("Modal_BuyConfirm")
-	);
-
 	if (UGameInstance* GI = GetGameInstance())
 	{
 		UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] GameInstance valid"));
@@ -140,7 +133,7 @@ void UKRShopBuy::HandleSelect()
 					UE_LOG(LogShopBuy, Log, TEXT("[ShopBuy] Cast to UKRConfirmModal success. Calling SetupConfirmWithQuantity"));
 
 					Confirm->SetupConfirmWithQuantity(
-						Msg,
+						TEXT("Modal_BuyConfirm"),
 						EConfirmContext::ShopBuy,
 						ItemTag,
 						1,
@@ -296,23 +289,7 @@ void UKRShopBuy::RefreshShopInventory()
 	}
 }
 
-void UKRShopBuy::UpdatePlayerCurrency()
-{
-	if (!PlayerCurrencyPanel) return;
-
-	APlayerController* PC = GetOwningPlayer();
-	if (!PC) return;
-
-	AKRPlayerState* KRPS = PC->GetPlayerState<AKRPlayerState>();
-	if (!KRPS) return;
-
-	UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet();
-	if (!Currency) return;
-}
-
-
 void UKRShopBuy::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)
 {
-	UpdatePlayerCurrency();
 	RefreshShopInventory();
 }

@@ -41,7 +41,6 @@ private:
 	int32 StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int32 NumTotal) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Shop") void RefreshShopInventory();
-	UFUNCTION(BlueprintCallable, Category = "Shop") void UpdatePlayerCurrency();
 
 	void OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message);
 

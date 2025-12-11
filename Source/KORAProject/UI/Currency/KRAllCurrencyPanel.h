@@ -8,6 +8,7 @@
 #include "KRAllCurrencyPanel.generated.h"
 
 class UCommonNumericTextBlock;
+class UKRCurrencyComponent;
 
 UCLASS()
 class KORAPROJECT_API UKRAllCurrencyPanel : public UCommonUserWidget
@@ -27,5 +28,7 @@ protected:
 	UPROPERTY(meta = (BindWidget)) UCommonNumericTextBlock* Corbyte = nullptr;
 
 private:
+	void RefreshFromCurrencyComponent();
+
 	FGameplayMessageListenerHandle CurrencyListener;
 };

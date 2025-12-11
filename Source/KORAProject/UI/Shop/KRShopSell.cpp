@@ -47,8 +47,6 @@ void UKRShopSell::NativeConstruct()
 	if (MaterialButton) MaterialButton->OnClicked().AddUObject(this, &UKRShopSell::OnClickMaterial);
 
 	OnClickConsumables();
-	UpdatePlayerCurrency();
-
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
@@ -112,10 +110,6 @@ void UKRShopSell::HandleSelect()
 	const FKRItemUIData& ItemData = CachedShopItems[Index];
 	FGameplayTag ItemTag = ItemData.ItemTag;
 
-	FText Msg = FText::FromStringTable(
-		TEXT("/Game/UI/StringTable/ST_UIBaseTexts"),
-		TEXT("Modal_SellConfirm")
-	);
 	if (UGameInstance* GI = GetGameInstance())
 	{
 		if (auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
@@ -125,7 +119,7 @@ void UKRShopSell::HandleSelect()
 				if (auto* Confirm = Cast<UKRConfirmModal>(Widget))
 				{
 					Confirm->SetupConfirmWithQuantity(
-						Msg,
+						TEXT("Modal_SellConfirm"),
 						EConfirmContext::ShopSell,
 						ItemTag,
 						1,
@@ -259,24 +253,8 @@ void UKRShopSell::RefreshShopInventory()
 	}
 }
 
-void UKRShopSell::UpdatePlayerCurrency()
-{
-	if (!PlayerCurrencyPanel) return;
-
-	APlayerController* PC = GetOwningPlayer();
-	if (!PC) return;
-
-	AKRPlayerState* KRPS = PC->GetPlayerState<AKRPlayerState>();
-	if (!KRPS) return;
-
-	UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet();
-	if (!Currency) return;
-}
-
 void UKRShopSell::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)
 {
-	UpdatePlayerCurrency();
-
 	if (CurrentFilterTag.IsValid()) FilterSellableItems(CurrentFilterTag);
 	else FilterSellableItems(KRTAG_ITEMTYPE_CONSUME);
 }

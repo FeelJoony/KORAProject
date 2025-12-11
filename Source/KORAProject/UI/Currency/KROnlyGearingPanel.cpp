@@ -2,8 +2,11 @@
 
 
 #include "UI/Currency/KROnlyGearingPanel.h"
+#include "Player/KRPlayerState.h"
 #include "CommonNumericTextBlock.h"
 #include "Components/HorizontalBox.h"
+#include "Components/KRCurrencyComponent.h"
+#include "GameplayTag/KRShopTag.h"
 #include "Math/UnrealMathUtility.h"
 
 void UKROnlyGearingPanel::NativeConstruct()
@@ -19,6 +22,8 @@ void UKROnlyGearingPanel::NativeConstruct()
 			&ThisClass::OnCurrencyMessageReceived
 		);
 	}
+
+	RefreshFromCurrencyComponent();
 }
 
 void UKROnlyGearingPanel::NativeDestruct()
@@ -58,6 +63,23 @@ void UKROnlyGearingPanel::UpdateGearingPanel(int32 InCurrentGearing, int32 InLos
 		else
 		{
 			LostGearingSection->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+}
+
+void UKROnlyGearingPanel::RefreshFromCurrencyComponent()
+{
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		if (AKRPlayerState* KRPS = PC->GetPlayerState<AKRPlayerState>())
+		{
+			if (UKRCurrencyComponent* CurrencyComp = KRPS->GetCurrencyComponentSet())
+			{
+				const int32 Current = CurrencyComp->GetCurrency(KRTAG_CURRENCY_PURCHASE_GEARING);
+				const int32 Lost = CurrencyComp->GetLostCurrency(KRTAG_CURRENCY_PURCHASE_GEARING);
+
+				UpdateGearingPanel(Current, Lost);
+			}
 		}
 	}
 }
