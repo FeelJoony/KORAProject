@@ -6,12 +6,12 @@
 #include "Engine/GameInstance.h"
 #include "KRGameInstance.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class KORAPROJECT_API UKRGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void Init() override;
 };

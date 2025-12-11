@@ -1,5 +1,6 @@
 #include "Data/CacheDataTable.h"
 
+#include "CurrencyDataStruct.h"
 #include "QuestDataStruct.h"
 #include "SubQuestDataStruct.h"
 #include "Engine/DataTable.h"
@@ -20,54 +21,53 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 {
 	switch (InDataType)
 	{
-	case EGameDataType::SampleData:
+		case EGameDataType::SampleData:
 		{
 			InitKeyList<FSampleDataStruct>(NewDataTable);
 		}
 		break;
 
-	case EGameDataType::ItemData:
+		case EGameDataType::ItemData:
 		{
 			InitKeyList<FItemDataStruct>(NewDataTable);
 		}
 		break;
 
-	case EGameDataType::WeaponData:
+		case EGameDataType::WeaponData:
 		{
 			InitKeyList<FWeaponDataStruct>(NewDataTable);
 		}
 		break;
 
-	case EGameDataType::WeaponEnhanceData:
+		case EGameDataType::WeaponEnhanceData:
 		{
 			InitKeyList<FWeaponEnhanceDataStruct>(NewDataTable);
 		}
 		break;
 
-	case EGameDataType::TutorialData:
+		case EGameDataType::TutorialData:
 		{
 			InitKeyList<FWeaponEnhanceDataStruct>(NewDataTable);
 		}
 		break;
 	
-	case EGameDataType::ShopItemData:
+		case EGameDataType::ShopItemData:
 		{
 			InitKeyList<FShopItemDataStruct>(NewDataTable);
 		}
 		break;
 
-	case EGameDataType::EquipmentData:
+		case EGameDataType::EquipmentData:
 		{
 			InitKeyList<FEquipmentDataStruct>(NewDataTable);
 		}
 		break;
-	
 
-	case EGameDataType::ConsumeData:
+		case EGameDataType::ConsumeData:
 		{
 			InitKeyList<FConsumeDataStruct>(NewDataTable);
 		}
-	break;
+		break;
 		
 
 		case EGameDataType::QuestData:
@@ -79,6 +79,12 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 		case EGameDataType::SubQuestData:
 		{
 			InitKeyList<FSubQuestDataStruct>(NewDataTable);
+		}
+		break;
+
+		case EGameDataType::CurrencyData:
+		{
+			InitKeyList<FCurrencyDataStruct>(NewDataTable);
 		}
 		break;
 	}

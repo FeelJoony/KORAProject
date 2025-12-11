@@ -37,7 +37,6 @@ protected:
 	virtual void NativeDestruct() override;
 
 private:
-	//TWeakObjectPtr<UKRInventoryComponent> InventoryComp;
 	TArray<FKRItemUIData> CachedUIData;
 
 	enum class EFocusRegion : uint8 { Category, Grid };
@@ -57,16 +56,14 @@ private:
 	struct FNavAdj { int32 L = -1, R = -1, U = -1, D = -1; };
 	TArray<FNavAdj> CategoryAdj;
 
-	void RebuildByTag(const FName& TagName);
-
 	void BuildCategoryGroup();
 	UFUNCTION() void HandleCategoryChanged(UCommonButtonBase* SelectedButton, int32 ButtonIndex);
 	void FocusCategory();
 	void FocusGrid(int32 PreferIndex = 0);
 
 	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
-
-	void RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny);
+	void FilterAndCacheItems(const FGameplayTag& FilterTag);
+	void RebuildInventoryUI(const FGameplayTag& FilterTag);
 	void UpdateDescriptionUI(int32 CellIndex);
 
 	void HandleMoveLeft();

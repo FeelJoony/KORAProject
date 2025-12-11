@@ -162,7 +162,8 @@ enum class EConfirmContext : uint8
 	ShopSell    UMETA(DisplayName = "Shop|Sell"),
 	WeaponUpgrade   UMETA(DisplayName = "BlackSmith|WeaponUpgrade"),
 	QuickSlotAssign UMETA(DisplayName = "Inventory|QuickSlotAssign"),
-	InventoryItemUse UMETA(DisplayName = "Inventory|ItemUse")
+	InventoryItemUse UMETA(DisplayName = "Inventory|ItemUse"),
+	Equipment		UMETA(DisplayName = "Equipment|Equipped"),
 };
 
 USTRUCT(BlueprintType)

@@ -2,10 +2,10 @@ Index,MainEffectClass,EffectType,Power,Duration,StackMax,CooldownDuration,Cooldo
 1,/Game/GameplayEffects/GE_HealthPotion.GE_HealthPotion_C,Instant,50,0,3,5,Cooldown.Item.FirstAid,
 2,/Game/GameplayEffects/GE_StaminaPotion.GE_StaminaPotion_C,Instant,50,0,3,5,Cooldown.Item.Stamina,
 3,/Game/GameplayEffects/GE_ViolicAll.GE_ViolicAll_C,Instant,25,0,3,10,Cooldown.Item.ViolicAll,
-4,/Game/GameplayEffects/GE_ATKBoost.GE_ATKBoost_C,HasDuration,15,90,3,0,Cooldown.Item.ATKBoost,Status.Item.InUse.ATKBoost
-5,/Game/GameplayEffects/GE_Suppress.GE_Suppress_C,HasDuration,30,60,3,0,Cooldown.Item.Suppress,Status.Item.InUse.Suppress
+4,/Game/GameplayEffects/GE_ATKBoost.GE_ATKBoost_C,HasDuration,15,90,3,0,Cooldown.Item.Common,Status.Item.InUse.ATKBoost
+5,/Game/GameplayEffects/GE_Suppress.GE_Suppress_C,HasDuration,30,60,3,0,Cooldown.Item.Common,Status.Item.InUse.Suppress
 6,/Game/GameplayEffects/GE_CoreBattery.GE_CoreBattery_C,Instant,20,0,3,30,Cooldown.Item.CoreBattery,
-7,/Game/GameplayEffects/GE_Light.GE_Light_C,HasDuration,0,300,1,0,Cooldown.Item.Light,Status.Item.InUse.Light
-8,/Game/GameplayEffects/GE_InsuranceCoin.GE_InsuranceCoin_C,Infinite,0.5,0,1,0,,
-9,/Game/GameplayEffects/GE_InsuranceWallet.GE_InsuranceWallet_C,Infinite,1,0,1,0,,
-10,/Game/GameplayEffects/GE_UseKey_Clara.GE_UseKey_Clara_C,Instant,0,0,99,0,,
+7,/Game/GameplayEffects/GE_Light.GE_Light_C,HasDuration,0,300,1,0,Cooldown.Item.Common,Status.Item.InUse.Light
+8,/Game/GameplayEffects/GE_Insurance_Base.GE_Insurance_Base_C,Infinite,0.5,0,1,0,Cooldown.Item.Common,Status.Item.Insurance.Currency
+9,/Game/GameplayEffects/GE_Insurance_Base.GE_Insurance_Base_C,Infinite,1,0,1,0,Cooldown.Item.Common,Status.Item.Insurance.Currency
+10,/Game/GameplayEffects/GE_UseKey_Clara.GE_UseKey_Clara_C,Instant,0,0,99,0,Cooldown.Item.Common,

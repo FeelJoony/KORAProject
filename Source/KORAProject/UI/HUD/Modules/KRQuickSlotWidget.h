@@ -45,7 +45,7 @@ protected:
 
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Item Used From Slot"))
-	void BP_OnItemUsedFromSlot(FGameplayTag Direction, int32 Duration);
+	void BP_OnItemUsedFromSlot(FGameplayTag Direction, float Duration);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot Registered"))
 	void BP_OnSlotRegistered(FGameplayTag Direction);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot UnRegistered"))

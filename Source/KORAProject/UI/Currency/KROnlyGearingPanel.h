@@ -9,6 +9,7 @@
 
 class UCommonNumericTextBlock;
 class UHorizontalBox;
+class UKRCurrencyComponent;
 
 UCLASS()
 class KORAPROJECT_API UKROnlyGearingPanel : public UCommonUserWidget
@@ -29,5 +30,6 @@ protected:
 	UPROPERTY(meta = (BindWidget)) UCommonNumericTextBlock* LostGearing = nullptr;
 
 private:
+	void RefreshFromCurrencyComponent();
 	FGameplayMessageListenerHandle CurrencyListener;
 };

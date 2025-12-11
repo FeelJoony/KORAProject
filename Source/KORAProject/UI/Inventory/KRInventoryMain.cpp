@@ -5,14 +5,13 @@
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
-#include "UI/Data/KRItemUIData.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "SubSystem/KRInventorySubsystem.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
 
 #include "CommonButtonBase.h"
-#include "GameplayTagsManager.h"
+#include "GameplayTag/KRItemTypeTag.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
@@ -23,7 +22,7 @@ void UKRInventoryMain::BeginQuickSlotAssign(FGameplayTag SlotDir)
 	bQuickSlotAssignMode = true;
 	PendingQuickSlotDir = SlotDir;
 
-	RebuildByTag(TEXT("ItemType.Consume"));
+	RebuildInventoryUI(KRTAG_ITEMTYPE_CONSUME);
 
 	// Hide Material Quest Filter Buttons
 }
@@ -78,15 +77,9 @@ void UKRInventoryMain::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-void UKRInventoryMain::OnClickConsumables() { RebuildByTag(TEXT("ItemType.Consume")); }
-void UKRInventoryMain::OnClickMaterial() { RebuildByTag(TEXT("ItemType.Material")); }
-void UKRInventoryMain::OnClickQuest() { RebuildByTag(TEXT("ItemType.Quest")); }
-
-void UKRInventoryMain::RebuildByTag(const FName& TagName)
-{
-	const FGameplayTag Tag = UGameplayTagsManager::Get().RequestGameplayTag(TagName);
-	RebuildInventoryUI({ Tag });
-}
+void UKRInventoryMain::OnClickConsumables() { RebuildInventoryUI(KRTAG_ITEMTYPE_CONSUME); }
+void UKRInventoryMain::OnClickMaterial() { RebuildInventoryUI(KRTAG_ITEMTYPE_MATERIAL); }
+void UKRInventoryMain::OnClickQuest() { RebuildInventoryUI(KRTAG_ITEMTYPE_QUEST); }
 
 void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
 {
@@ -195,6 +188,8 @@ void UKRInventoryMain::HandleSelect()
 			Router->ToggleRoute(TEXT("Confirm"));
 		}
 	}
+
+	// Setup Confirm -> Confirm Yes¸é PauseMenu Äü½½·Ô ¾÷µ¥ÀÌÆ®
 }
 
 int32 UKRInventoryMain::StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const

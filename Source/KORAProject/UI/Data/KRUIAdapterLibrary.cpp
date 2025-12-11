@@ -102,6 +102,16 @@ void UKRUIAdapterLibrary::GetShopUIData(UObject* WorldContextObject, TArray<FKRI
         {
             const TArray<UKRInventoryItemInstance*>& Items = Shop->GetShopStock();
             ConvertItemInstancesToUIData(Items, Out);
+
+            for (FKRItemUIData& Data : Out)
+            {
+                if (!Data.ItemTag.IsValid())
+                {
+                    Data.ShopStock = 0;
+                    continue;
+                }
+                Data.ShopStock = Shop->GetStockCountByItemTag(Data.ItemTag);
+            }
         }
     }
 }

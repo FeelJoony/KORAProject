@@ -17,18 +17,18 @@ class KORAPROJECT_API UKRConfirmModal : public UCommonActivatableWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetupConfirm(const FText& InMessage,
+	void SetupConfirm(FName MessageKey,
 		EConfirmContext InContext,
 		FGameplayTag InItemTag = FGameplayTag());
 
 	UFUNCTION(BlueprintCallable)
-	void SetupConfirmWithQuantity(const FText& InMessage,
+	void SetupConfirmWithQuantity(FName MessageKey,
 		EConfirmContext InContext,
 		FGameplayTag InItemTag,
 		int32 InMin, int32 InMax, int32 InDefault);
 
 	UFUNCTION(BlueprintCallable)
-	void SetupConfirmWithQuickSlotTag(const FText& InMessage,
+	void SetupConfirmWithQuickSlotTag(FName MessageKey,
 		EConfirmContext InContext,
 		FGameplayTag InItemTag, FGameplayTag InSlotTag);
 
@@ -60,4 +60,5 @@ private:
 	UFUNCTION() void HandleDecrease();
 
 	void RefreshQuantityUI();
+	void UpdateAlertText(FName MessageKey);
 };

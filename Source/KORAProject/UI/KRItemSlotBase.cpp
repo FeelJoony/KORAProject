@@ -21,7 +21,14 @@ void UKRItemSlotBase::SetItemData(const FKRItemUIData& InData, int32 OverrideFie
 	if (ItemDescription)	ItemDescription->SetText(GetSourceStringFromTable(InData.ItemDescriptionKey));
     if (ItemCount)			ItemCount->SetText(FText::AsNumber(InData.Quantity));
 	if (ItemPrice)			ItemPrice->SetText(FText::AsNumber(InData.Price));
-	if (ItemIcon)			ItemIcon->SetBrushFromLazyTexture(InData.ItemIcon, true);
+	if (ItemIcon)
+	{
+		ItemIcon->SetBrushFromLazyTexture(InData.ItemIcon, true);
+		FSlateBrush Brush = ItemIcon->GetBrush();
+		Brush.ImageSize = FVector2D(70.f, 70.f);
+		ItemIcon->SetBrush(Brush);
+	}
+	if (ShopStock)			ShopStock->SetText(FText::AsNumber(InData.ShopStock));
 
 	ApplyFieldsVisibility((OverrideFields >= 0) ? OverrideFields : VisibleFields);
 }
@@ -33,6 +40,7 @@ void UKRItemSlotBase::ClearItemData()
 	if (ItemCount)			ItemCount->SetText(FText::GetEmpty());
 	if (ItemPrice)			ItemPrice->SetText(FText::GetEmpty());
 	if (ItemIcon)			SetWidgetVisible(ItemIcon, false);
+	if (ShopStock)			ShopStock->SetText(FText::GetEmpty());
 }
 
 void UKRItemSlotBase::ApplyFieldsVisibility(int32 Fields)
@@ -42,6 +50,7 @@ void UKRItemSlotBase::ApplyFieldsVisibility(int32 Fields)
 	SetWidgetVisible(ItemDescription, HasField(Fields, EKRItemField::Description));
 	SetWidgetVisible(ItemCount, HasField(Fields, EKRItemField::Count));
 	SetWidgetVisible(ItemPrice, HasField(Fields, EKRItemField::Price));
+	SetWidgetVisible(ShopStock, HasField(Fields, EKRItemField::ShopStock));
 }
 
 void UKRItemSlotBase::SetWidgetVisible(UWidget* W, bool bShow)
@@ -59,7 +68,8 @@ bool UKRItemSlotBase::IsDataEmpty(const FKRItemUIData& D)
 	const bool bNoIcon = D.ItemIcon.IsNull();
 	const bool bNoQty = (D.Quantity <= 0);
 	const bool bNoPrice = (D.Price <= -1);
-	return bNoName && bNoDesc && bNoIcon && bNoQty && bNoPrice;
+	const bool bNoShopStock = (D.ShopStock <= 0);
+	return bNoName && bNoDesc && bNoIcon && bNoQty && bNoPrice && bNoShopStock;
 }
 
 FText UKRItemSlotBase::GetSourceStringFromTable(const FName& InKey)

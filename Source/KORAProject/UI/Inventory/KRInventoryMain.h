@@ -4,13 +4,13 @@
 
 #include "CommonActivatableWidget.h"
 #include "GameplayTagContainer.h"
+#include "UI/Data/KRItemUIData.h"
 #include "KRInventoryMain.generated.h"
 
 class UUniformGridPanel;
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
-struct FKRItemUIData;
 
 UCLASS()
 class KORAPROJECT_API UKRInventoryMain : public UCommonActivatableWidget
@@ -42,7 +42,6 @@ private:
 	UFUNCTION() void OnClickConsumables();
 	UFUNCTION() void OnClickMaterial();
 	UFUNCTION() void OnClickQuest();
-	void RebuildByTag(const FName& TagName);
 
 	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
 

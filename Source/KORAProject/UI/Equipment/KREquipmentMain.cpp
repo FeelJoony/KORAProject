@@ -4,21 +4,16 @@
 #include "UI/Equipment/KREquipmentMain.h"
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
+#include "UI/Modal/KRConfirmModal.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Data/KRItemUIData.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
 #include "SubSystem/KRUIInputSubsystem.h"
-
 #include "CommonButtonBase.h"
 #include "Groups/CommonButtonGroupBase.h"
-#include "GameplayTagsManager.h"
-/*
-#include "Inventory/KRInventoryComponent.h"   // 인벤토리 컴포넌트 받고 수정
-#include "Item/KRBaseItem.h"                 // 아이템 받고 수정
-*/
-
-// 필요 함수 리스트 !! 
-/* 현재 위젯 소유자 Pawn에서 인벤토리 컴포넌트 가져오는 함수 */
-/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+#include "GameplayTag/KRItemTypeTag.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 
 void UKREquipmentMain::NativeOnActivated()
 {
@@ -50,10 +45,9 @@ void UKREquipmentMain::NativeConstruct()
 	if (HeadColorSelect)		HeadColorSelect->OnClicked().AddUObject(this, &UKREquipmentMain::OnClickHeadColor);
 	if (DressColorSelect)	DressColorSelect->OnClicked().AddUObject(this, &UKREquipmentMain::OnClickDressColor);
 
-	//BindInventoryEvents();
 	BuildCategoryGroup();
 	FocusCategory();
-	//OnClickSwordModule();
+	OnClickSwordModule();
 }
 
 void UKREquipmentMain::NativeDestruct()
@@ -61,18 +55,12 @@ void UKREquipmentMain::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-void UKREquipmentMain::OnClickSwordModule() { RebuildByTag(TEXT("ItemType.Equip.SwordModule")); }
-void UKREquipmentMain::OnClickSwordSkin() { RebuildByTag(TEXT("ItemType.Equip.Sword")); }
-void UKREquipmentMain::OnClickGunModule() { RebuildByTag(TEXT("ItemType.Equip.GunModule")); }
-void UKREquipmentMain::OnClickGunSkin() { RebuildByTag(TEXT("ItemType.Equip.Gun")); }
-void UKREquipmentMain::OnClickHeadColor() { RebuildByTag(TEXT("ItemType.Equip.Head")); }
-void UKREquipmentMain::OnClickDressColor() { RebuildByTag(TEXT("ItemType.Equip.Costume")); }
-
-void UKREquipmentMain::RebuildByTag(const FName& TagName)
-{
-	const FGameplayTag Tag = UGameplayTagsManager::Get().RequestGameplayTag(TagName);
-	RebuildInventoryUI({ Tag });
-}
+void UKREquipmentMain::OnClickSwordModule() { RebuildInventoryUI(KRTAG_ITEMTYPE_EQUIP_SWORDMODULE); }
+void UKREquipmentMain::OnClickSwordSkin() { RebuildInventoryUI(KRTAG_ITEMTYPE_EQUIP_SWORD); }
+void UKREquipmentMain::OnClickGunModule() { RebuildInventoryUI(KRTAG_ITEMTYPE_EQUIP_GUNMODULE); }
+void UKREquipmentMain::OnClickGunSkin() { RebuildInventoryUI(KRTAG_ITEMTYPE_EQUIP_GUN); }
+void UKREquipmentMain::OnClickHeadColor() { RebuildInventoryUI(KRTAG_ITEMTYPE_EQUIP_HEAD); }
+void UKREquipmentMain::OnClickDressColor() { RebuildInventoryUI(KRTAG_ITEMTYPE_EQUIP_COSTUME); }
 
 void UKREquipmentMain::BuildCategoryGroup()
 {
@@ -144,9 +132,17 @@ void UKREquipmentMain::OnGridSlotSelected(int32 CellIndex)
 	UpdateDescriptionUI(CellIndex);
 }
 
-void UKREquipmentMain::RebuildInventoryUI(const TArray<FGameplayTag>& TagsAny)
+void UKREquipmentMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
 {
-	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+	UKRUIAdapterLibrary::GetInventoryUIDataFiltered(this, FilterTag, CachedUIData);
+}
+
+void UKREquipmentMain::RebuildInventoryUI(const FGameplayTag& FilterTag)
+{
+	FilterAndCacheItems(FilterTag);
+
+	// 장착된 장비 아이템들을 받아다가 각각의 장비 슬롯에 넣어줘야함. Sword모듈부터 Dress까지 
+
 	if (InventorySlot)
 	{
 		InventorySlot->InitializeItemGrid(CachedUIData);
@@ -223,10 +219,31 @@ bool UKREquipmentMain::TryEquipSelectedItem()
 	const int32 Sel = InventorySlot->GetSelectedIndex();
 	if (!CachedUIData.IsValidIndex(Sel)) return false;
 
-	// 모달 띄우고 확인되면 Try Equip 진행 
+	const FKRItemUIData& Data = CachedUIData[Sel];
 
-	const FKRItemUIData& Pick = CachedUIData[Sel];
-	// Equip manager Compo -> Try Equip 
+	FKRUIMessage_Confirm Msg;
+	Msg.Context = EConfirmContext::Equipment;
+	Msg.Result = EConfirmResult::None;
+	Msg.ItemTag = Data.ItemTag;
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Confirm(), Msg);
+
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+		{
+			if (UCommonActivatableWidget* Widget = Router->ToggleRoute(TEXT("Confirm")))
+			{
+				if (UKRConfirmModal* ConfirmModal = Cast<UKRConfirmModal>(Widget))
+				{
+					ConfirmModal->SetupConfirm(TEXT("Modal_EquipConfirm"), EConfirmContext::Equipment, Data.ItemTag);
+				}
+			}
+		}
+	}
+
+	// Setup Confirm -> Confirm Yes/No -> Yes면 다시 장착된 거 받아서 업데이트 -> 캐릭터 업데이트 후 애니메이션 처리 (RenderTarget)
+
 	return true;
 }
 

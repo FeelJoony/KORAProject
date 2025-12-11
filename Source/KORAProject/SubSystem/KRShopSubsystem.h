@@ -4,6 +4,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameplayTagContainer.h"
 #include "Data/ShopItemDataStruct.h"
+#include "Components/KRCurrencyComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "KRShopSubsystem.generated.h"
 
@@ -24,7 +25,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
 	const TArray<UKRInventoryItemInstance*>& GetShopStock() const { return CurrentShopInventory; }
+	UFUNCTION(BlueprintCallable, Category = "KR|Shop")
+	int32 GetStockCountByItemTag(FGameplayTag ItemTag) const;
 
+protected:
+	UKRCurrencyComponent* GetCurrencyComponent() const;
+	
 private:
 	void GenerateShopStock();
 	void LoadShopDataCache();

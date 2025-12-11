@@ -46,5 +46,4 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Player")
 	FGameplayAttributeData MaxCoreDrive;
 	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, MaxCoreDrive)
-	
 };
