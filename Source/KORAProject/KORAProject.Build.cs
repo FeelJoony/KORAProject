@@ -31,7 +31,17 @@ public class KORAProject : ModuleRules
 			"GameFeatures",
 			"ModularGameplayActors",
 			"AIModule",
-		});
+            "HairStrandsCore",
+			"Niagara",
+            "MassEntity",
+            "MassCommon",
+            "MassActors",
+            "MassSpawner",
+            "MassAIBehavior",
+            "MassNavigation",
+            "MassRepresentation",
+			"ZoneGraph",
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{

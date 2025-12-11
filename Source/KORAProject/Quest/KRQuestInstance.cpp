@@ -1,5 +1,7 @@
 #include "Quest/KRQuestInstance.h"
 #include "Subsystem/KRDataTablesSubsystem.h"
+#include "Subsystem/KRQuestSubsystem.h"
+#include "Condition/QuestConditionChecker.h"
 
 DEFINE_LOG_CATEGORY(LogQuestInstance);
 
@@ -16,6 +18,7 @@ void UKRQuestInstance::Initialize(int32 QuestIndex)
 	CurrentSubOrder = CurrentSubQuestData.EvalDatas[0].OrderIndex;
 	CurrentState = EQuestState::NotStarted;
 
+	UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(GetWorld());
 	for (const FSubQuestEvalDataStruct& EvalDataStruct : CurrentSubQuestData.EvalDatas)
 	{
 		if (SubQuestProgressMap.Contains(EvalDataStruct.OrderIndex))
@@ -26,7 +29,17 @@ void UKRQuestInstance::Initialize(int32 QuestIndex)
 		FSubQuestEvalData EvalData;
 		EvalData.Init(CurrentSubQuestData, EvalDataStruct.OrderIndex);
 		SubQuestProgressMap.Add(EvalDataStruct.OrderIndex, EvalData);
+
+		// Initialize Checkers
+
+		UQuestConditionChecker* Checker = QuestSubsystem.CheckerGroup.FindRef(EvalDataStruct.ObjectiveTag)->GetDefaultObject<UQuestConditionChecker>()->Initialize(this, EvalDataStruct);
+		if (Checker)
+		{
+			QuestCheckers.Add(EvalDataStruct.ObjectiveTag, Checker);
+		}
 	}
+
+	UKRQuestSubsystem::Get(GetWorld()).InitializeQuestDelegate(this);
 }
 
 void UKRQuestInstance::StartQuest()
@@ -46,6 +59,7 @@ void UKRQuestInstance::StartQuest()
 	
 	UE_LOG(LogQuestInstance, Log, TEXT("Quest state changed to InProgress"));
 
+	UKRQuestSubsystem::Get(GetWorld()).OnAcceptedBroadcast(CurrentQuestData.Type, CurrentSubOrder);
 }
 
 void UKRQuestInstance::TickQuest(float DeltaTime)
@@ -64,6 +78,15 @@ void UKRQuestInstance::CompleteQuest()
 	}
 
 	CurrentState = EQuestState::Completed;
+
+	for (const auto& CheckerKeyValue : QuestCheckers)
+	{
+		CheckerKeyValue.Value->Uninitialize();
+	}
+
+	QuestCheckers.Empty();
+	
+	UKRQuestSubsystem::Get(GetWorld()).UninitializeQuestDelegate();
 }
 
 void UKRQuestInstance::FailQuest()
@@ -89,7 +112,7 @@ void UKRQuestInstance::AddCount(int32 Amount)
 		{
 			return;
 		}
-		
+
 		EvalData->AddProgress(Amount);
 	}
 }
@@ -115,6 +138,8 @@ void UKRQuestInstance::SetNextQuest()
 			
 			NextEvalData->Start();
 			NextEvalData->bIsActive = true;
+
+			UKRQuestSubsystem::Get(GetWorld()).OnSetNextSubBroadcast(CurrentQuestData.Type, CurrentSubOrder);
 		}
 	}
 }

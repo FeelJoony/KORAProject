@@ -5,14 +5,11 @@
 #include "GameplayTagContainer.h"
 #include "GameplayTagsManager.h"
 #include "Data/ConsumeDataStruct.h"
+#include "Data/CurrencyDataStruct.h"
 #include "Data/SampleDataStruct.h"
-//#include "Data/ConsumeItemDataStruct.h"
-//#include "Data/MaterialItemDataStruct.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
 #include "Data/WeaponDataStruct.h"
-#include "Data/QuestDataStruct.h"
-#include "Data/SubQuestDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/TutorialDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
@@ -84,7 +81,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
                 int32 TypeTag_Index = GetHeaderIndex(Headers, TEXT("TypeTag"));
                 int32 RarityTag_Index = GetHeaderIndex(Headers, TEXT("RarityTag"));
-                int32 AbilityTags_Index = GetHeaderIndex(Headers, TEXT("AbilityTags"));
+                int32 FragmentTags_Index = GetHeaderIndex(Headers, TEXT("FragmentTags"));
                 int32 BasePrice_Index = GetHeaderIndex(Headers, TEXT("BasePrice"));
                 int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
                 int32 DescriptionKey_Index = GetHeaderIndex(Headers, TEXT("DescriptionKey"));
@@ -110,11 +107,11 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.MaterialID = ParseIntValue(RowValue[MaterialID_Index]);
                 ItemData.QuestID = ParseIntValue(RowValue[QuestID_Index]);
 
-                TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[AbilityTags_Index]);
+                TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[FragmentTags_Index]);
                 for (const FString& StringValue : AbilityTagsStringValues)
                 {
                     FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName(StringValue));
-                    ItemData.AbilityTags.Add(AbilityTag);
+                    ItemData.FragmentTags.Add(AbilityTag);
                 }
 
                 FName RowName = *FString::Printf(TEXT("Item_%d"), i);
@@ -142,6 +139,7 @@ void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDat
                 TArray<FString>& RowValue = Values[i];
 
                 int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+            	int32 Type_Index = GetHeaderIndex(Headers, TEXT("Type"));
                 int32 QuestName_Index = GetHeaderIndex(Headers, TEXT("QuestName"));
                 int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
                 int32 StateTreeDefinitionAssetPath_Index = GetHeaderIndex(Headers, TEXT("StateTreeDefinitionAssetPath"));
@@ -149,6 +147,7 @@ void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDat
                 FQuestDataStruct QuestData;
                 
                 QuestData.Index = ParseIntValue(RowValue[Index_Index]);
+            	QuestData.Type = ParseEnumValue<EQuestType>(RowValue[Type_Index]);
                 QuestData.QuestName = RowValue[QuestName_Index];
                 QuestData.Description = RowValue[Description_Index];
                 QuestData.StateTreeDefinitionPath = ParseNameValue(RowValue[StateTreeDefinitionAssetPath_Index]);
@@ -186,15 +185,17 @@ void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* Out
                 int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
                 int32 RequiredCount_Index = GetHeaderIndex(Headers, TEXT("RequiredCount"));
                 int32 TimeLimit_Index = GetHeaderIndex(Headers, TEXT("TimeLimit"));
-
+            	int32 UIRowName_Index = GetHeaderIndex(Headers, TEXT("UIRowName"));
+            	
                 FSubQuestEvalDataStruct EvalData;
 
                 EvalData.OrderIndex = ParseIntValue(RowValue[OrderIndex_Index]);
-                //EvalData.ObjectiveTag = ParseGameplayTagValue(RowValue[ObjectiveTag_Index]);
+                EvalData.ObjectiveTag = ParseGameplayTagValue(RowValue[ObjectiveTag_Index]);
                 EvalData.SubQuestName = ParseTextValue(RowValue[SubQuestName_Index]);
                 EvalData.Description = ParseTextValue(RowValue[Description_Index]);
                 EvalData.RequiredCount = ParseIntValue(RowValue[RequiredCount_Index]);
                 EvalData.TimeLimit = ParseFloatValue(RowValue[TimeLimit_Index]);
+            	EvalData.UIRowName = ParseNameValue(RowValue[UIRowName_Index]);
                 
                 if (TempIndex < ParseIntValue(RowValue[GroupIndex_Index]))
                 {
@@ -204,7 +205,9 @@ void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* Out
                     TempIndex = SubQuestData.GroupIndex;
                     TempRowName = *FString::Printf(TEXT("SubQuest_%d"), i);
 
-                    FName RowName = *FString::Printf(TEXT("SubQuest_%d"), i);
+                	SubQuestData.EvalDatas.Add(EvalData);
+                	
+                    FName RowName = TempRowName;
                     if (FSubQuestDataStruct* FindRow = OutDataTable->FindRow<FSubQuestDataStruct>(RowName, TEXT("")))
                     {
                         *FindRow = SubQuestData;
@@ -213,10 +216,8 @@ void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* Out
                     {
                         OutDataTable->AddRow(RowName, SubQuestData);
                     }
-
-                    SubQuestData.EvalDatas.Add(EvalData);
                 }
-                else if (TempIndex == GroupIndex_Index)
+                else if (TempIndex == ParseIntValue(RowValue[GroupIndex_Index]))
                 {
                     if (FSubQuestDataStruct* FindRow = OutDataTable->FindRow<FSubQuestDataStruct>(TempRowName, TEXT("")))
                     {
@@ -435,14 +436,14 @@ void UTableRowConvertFunctionContainer::CreateEquipmentData(class UDataTable* Ou
                 TArray<FString> CompatibleSlotsStr = ParseArrayValue(RowValue[CompatibleModuleSlots_Index]);
                 for (const FString& SlotTagStr : CompatibleSlotsStr)
                 {
-                    FGameplayTag SlotTag = FGameplayTag::RequestGameplayTag(FName(*SlotTagStr));
+                    FGameplayTag SlotTag = SlotTagStr != TEXT("None") ? FGameplayTag::RequestGameplayTag(FName(*SlotTagStr)) : FGameplayTag::EmptyTag;
                     EquipmentData.CompatibleModuleSlots.AddTag(SlotTag);
                 }
                 
                 TArray<FString> DefaultModulesStr = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
                 for (const FString& ModuleTagStr : DefaultModulesStr)
                 {
-                    FGameplayTag ModuleTag = FGameplayTag::RequestGameplayTag(FName(*ModuleTagStr));
+                    FGameplayTag ModuleTag = ModuleTagStr != TEXT("None") ? FGameplayTag::RequestGameplayTag(FName(*ModuleTagStr)) : FGameplayTag::EmptyTag;
                     EquipmentData.DefaultModuleTags.Add(ModuleTag);
                 }
                 
@@ -466,27 +467,22 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 		{
 			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
 			auto& Values  = const_cast<TArray<TArray<FString>>&>(Params.Values);
-
-			// 필수 헤더 인덱스
+			
 			const int32 Index_Idx = GetHeaderIndex(Headers, TEXT("Index"));
 			if (Index_Idx == INDEX_NONE)
 			{
-				UE_LOG(LogTemp, Error, TEXT("CreateConsumeData: 'Index' column is required."));
 				return;
 			}
-
-			// 선택/추가 헤더 인덱스 (없어도 동작)
+			
 			const int32 MainEffectClass_Idx     = GetHeaderIndex(Headers, TEXT("MainEffectClass"));
 			const int32 EffectType_Idx          = GetHeaderIndex(Headers, TEXT("EffectType"));
 			const int32 Power_Idx               = GetHeaderIndex(Headers, TEXT("Power"));
 			const int32 Duration_Idx            = GetHeaderIndex(Headers, TEXT("Duration"));
-			const int32 CooldownEffectClass_Idx = GetHeaderIndex(Headers, TEXT("CooldownEffectClass"));
+			const int32 StackMax_Idx            = GetHeaderIndex(Headers, TEXT("StackMax"));
 			const int32 CooldownDuration_Idx    = GetHeaderIndex(Headers, TEXT("CooldownDuration"));
 			const int32 CooldownTag_Idx         = GetHeaderIndex(Headers, TEXT("CooldownTag"));
-			const int32 IncludeDuration_Idx     = GetHeaderIndex(Headers, TEXT("bIncludeDurationInCooldown"));
 			const int32 InUseTags_Idx           = GetHeaderIndex(Headers, TEXT("InUseTags"));
-
-			// EffectType 문자열 → enum 변환 헬퍼
+			
 			auto ParseEffectType = [](const FString& InStr) -> EConsumableEffectType
 			{
 				const FString Trimmed = InStr.TrimStartAndEnd();
@@ -495,8 +491,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					return EConsumableEffectType::Instant;
 				}
-
-				// StaticEnum 사용 (에디터에서 문자열로 채워도 대응)
+				
 				if (UEnum* Enum = StaticEnum<EConsumableEffectType>())
 				{
 					int64 Value = Enum->GetValueByNameString(Trimmed);
@@ -505,8 +500,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 						return static_cast<EConsumableEffectType>(Value);
 					}
 				}
-
-				// 혹시 Enum에 표시명과 다르게 들어온 경우 대비
+				
 				if (Trimmed.Equals(TEXT("Instant"), ESearchCase::IgnoreCase))
 				{
 					return EConsumableEffectType::Instant;
@@ -523,8 +517,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 
 				return EConsumableEffectType::Instant;
 			};
-
-			// SoftClassPtr<UGameplayEffect> 파싱 헬퍼
+			
 			auto ParseGEClass = [](const FString& InStr) -> TSoftClassPtr<UGameplayEffect>
 			{
 				TSoftClassPtr<UGameplayEffect> Result;
@@ -539,30 +532,25 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 			for (int32 i = 0; i < Values.Num(); ++i)
 			{
 				TArray<FString>& RowValue = Values[i];
-
-				// Index 필수
+				
 				if (!RowValue.IsValidIndex(Index_Idx))
 				{
 					continue;
 				}
 
 				FConsumeDataStruct ConsumeData;
-
-				// Index
+				
 				ConsumeData.Index = ParseIntValue(RowValue[Index_Idx]);
 				if (ConsumeData.Index < 0)
 				{
-					// 유효하지 않은 Index는 스킵
 					continue;
 				}
 
-				// MainEffectClass
 				if (MainEffectClass_Idx != INDEX_NONE && RowValue.IsValidIndex(MainEffectClass_Idx))
 				{
 					ConsumeData.MainEffectClass = ParseGEClass(RowValue[MainEffectClass_Idx]);
 				}
-
-				// EffectType
+				
 				if (EffectType_Idx != INDEX_NONE && RowValue.IsValidIndex(EffectType_Idx))
 				{
 					ConsumeData.EffectType = ParseEffectType(RowValue[EffectType_Idx]);
@@ -571,8 +559,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.EffectType = EConsumableEffectType::Instant;
 				}
-
-				// Power
+				
 				if (Power_Idx != INDEX_NONE && RowValue.IsValidIndex(Power_Idx))
 				{
 					ConsumeData.Power = ParseFloatValue(RowValue[Power_Idx]);
@@ -581,8 +568,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.Power = 0.f;
 				}
-
-				// Duration
+				
 				if (Duration_Idx != INDEX_NONE && RowValue.IsValidIndex(Duration_Idx))
 				{
 					ConsumeData.Duration = ParseFloatValue(RowValue[Duration_Idx]);
@@ -591,14 +577,7 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.Duration = 0.f;
 				}
-
-				// CooldownEffectClass
-				if (CooldownEffectClass_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownEffectClass_Idx))
-				{
-					ConsumeData.CooldownEffectClass = ParseGEClass(RowValue[CooldownEffectClass_Idx]);
-				}
-
-				// CooldownDuration
+				
 				if (CooldownDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownDuration_Idx))
 				{
 					ConsumeData.CooldownDuration = ParseFloatValue(RowValue[CooldownDuration_Idx]);
@@ -607,36 +586,24 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				{
 					ConsumeData.CooldownDuration = 0.f;
 				}
-
-				// CooldownTag
+				
 				if (CooldownTag_Idx != INDEX_NONE && RowValue.IsValidIndex(CooldownTag_Idx))
 				{
 					const FString TagStr = RowValue[CooldownTag_Idx].TrimStartAndEnd();
+
 					if (!TagStr.IsEmpty())
 					{
 						ConsumeData.CooldownTag = ParseGameplayTagValue(TagStr);
 					}
 				}
-
-				// bIncludeDurationInCooldown
-				if (IncludeDuration_Idx != INDEX_NONE && RowValue.IsValidIndex(IncludeDuration_Idx))
-				{
-					const FString BoolStr = RowValue[IncludeDuration_Idx].TrimStartAndEnd();
-					ConsumeData.bIncludeDurationInCooldown = BoolStr.ToBool();
-				}
-				else
-				{
-					ConsumeData.bIncludeDurationInCooldown = true;
-				}
-
-				// InUseTags (| 또는 , 구분자)
+				
 				if (InUseTags_Idx != INDEX_NONE && RowValue.IsValidIndex(InUseTags_Idx))
 				{
 					const FString TagsStr = RowValue[InUseTags_Idx].TrimStartAndEnd();
 					if (!TagsStr.IsEmpty())
 					{
 						TArray<FString> TagStrings;
-						// 우선 | 기준으로 자르고, 없으면 , 기준
+
 						if (TagsStr.Contains(TEXT("|")))
 						{
 							TagsStr.ParseIntoArray(TagStrings, TEXT("|"), true);
@@ -649,9 +616,10 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 						for (const FString& TagToken : TagStrings)
 						{
 							const FString TrimmedTag = TagToken.TrimStartAndEnd();
-							if (!TrimmedTag.IsEmpty())
+							if (!TrimmedTag.IsEmpty() && TrimmedTag != TEXT("-1"))
 							{
 								const FGameplayTag Tag = ParseGameplayTagValue(TrimmedTag);
+
 								if (Tag.IsValid())
 								{
 									ConsumeData.InUseTags.AddTag(Tag);
@@ -661,7 +629,19 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 					}
 				}
 
-				// RowName은 Index 기반으로
+				if (StackMax_Idx != INDEX_NONE && RowValue.IsValidIndex(StackMax_Idx))
+				{
+					ConsumeData.StackMax = ParseIntValue(RowValue[StackMax_Idx]);
+					if (ConsumeData.StackMax <= 0)
+					{
+						ConsumeData.StackMax = 1;
+					}
+				}
+				else
+				{
+					ConsumeData.StackMax = 1;
+				}
+				
 				const FName RowName = *FString::Printf(TEXT("Consume_%d"), ConsumeData.Index);
 
 				if (FConsumeDataStruct* FindRow =
@@ -672,6 +652,42 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 				else
 				{
 					OutDataTable->AddRow(RowName, ConsumeData);
+				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateCurrencyData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("CurrencyData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+				int32 CurrencyID_Index = GetHeaderIndex(Headers, TEXT("CurrencyID"));
+				int32 CurrencyTag_Index = GetHeaderIndex(Headers, TEXT("CurrencyTag"));
+				int32 bLossRule_Index = GetHeaderIndex(Headers, TEXT("bLossRule"));
+
+				FCurrencyDataStruct CurrencyData;
+
+				CurrencyData.Index = ParseIntValue(RowValue[Index_Index]);
+				CurrencyData.CurrencyID = ParseNameValue(RowValue[CurrencyID_Index]);
+				CurrencyData.CurrencyTag = ParseGameplayTagValue(RowValue[CurrencyTag_Index]);
+				CurrencyData.bLossRule = ParseBoolValue(RowValue[bLossRule_Index]);
+
+				FName RowName = *FString::Printf(TEXT("Currency_%d"), i);
+				if (FCurrencyDataStruct* FindRow = OutDataTable->FindRow<FCurrencyDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = CurrencyData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, CurrencyData);
 				}
 			}
 		}));

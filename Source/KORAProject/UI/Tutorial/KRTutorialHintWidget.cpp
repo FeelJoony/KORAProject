@@ -112,6 +112,10 @@ void UKRTutorialHintWidget::ApplyDataTableRow(const FTutorialDataStruct& Row)
     }
 
     BP_OnTutorialShown(); // For Animation
+    if (Row.PopupType == TEXT("WaitInput") || Row.PopupType == TEXT("TimedOrInput"))
+    {
+        BP_ShowPressSpace();
+    }
 }
 
 void UKRTutorialHintWidget::ClosePopup()
@@ -163,6 +167,7 @@ void UKRTutorialHintWidget::HandleOk()
 	if (bHasActiveRow && IsInputPopup(CurrentRow))
 	{
 		ClosePopup();
+        BP_HidePressSpace();
 	}
 
     if (APlayerController* PC = GetOwningLocalPlayer()->GetPlayerController(GetWorld()))

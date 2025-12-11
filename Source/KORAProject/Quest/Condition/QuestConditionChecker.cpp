@@ -1,11 +1,11 @@
 ﻿#include "QuestConditionChecker.h"
 
 UQuestConditionChecker::UQuestConditionChecker()
-	: Tag(FGameplayTag::EmptyTag)
+	: ObjectiveTag(FGameplayTag::EmptyTag)
 {
 }
 
-bool UQuestConditionChecker::CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag, UStruct* InStruct)
+bool UQuestConditionChecker::CanCount(const FSubQuestEvalDataStruct& EvalData, const FGameplayTag& InTag)
 {
 	return true;
 }

@@ -40,8 +40,6 @@ private:
 	float BossAnimElapsed = 0.f;
 	FTimerHandle BossAnimTimerHandle;
 
-	bool bBossHPBarVisible = false;
-
 	void BindToBossASC(UAbilitySystemComponent* InASC);
 	void InitBossBarFromASC();
 

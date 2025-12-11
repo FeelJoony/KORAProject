@@ -14,6 +14,9 @@
 #include "CommonButtonBase.h"
 #include "CommonNumericTextBlock.h"
 #include "Engine/Texture2D.h"
+#include "Player/KRPlayerState.h"
+
+class AKRPlayerState;
 
 void UKRShopSell::NativeOnActivated()
 {
@@ -33,11 +36,6 @@ void UKRShopSell::NativeOnActivated()
 
 void UKRShopSell::NativeOnDeactivated()
 {
-
-	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
-	{
-		InputSubsys->UnbindAll(this);
-	}
 	Super::NativeOnDeactivated();
 }
 
@@ -49,8 +47,6 @@ void UKRShopSell::NativeConstruct()
 	if (MaterialButton) MaterialButton->OnClicked().AddUObject(this, &UKRShopSell::OnClickMaterial);
 
 	OnClickConsumables();
-	UpdatePlayerCurrency();
-
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
@@ -114,10 +110,6 @@ void UKRShopSell::HandleSelect()
 	const FKRItemUIData& ItemData = CachedShopItems[Index];
 	FGameplayTag ItemTag = ItemData.ItemTag;
 
-	FText Msg = FText::FromStringTable(
-		TEXT("/Game/UI/StringTable/ST_UIBaseTexts"),
-		TEXT("Modal_SellConfirm")
-	);
 	if (UGameInstance* GI = GetGameInstance())
 	{
 		if (auto* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
@@ -127,7 +119,7 @@ void UKRShopSell::HandleSelect()
 				if (auto* Confirm = Cast<UKRConfirmModal>(Widget))
 				{
 					Confirm->SetupConfirmWithQuantity(
-						Msg,
+						TEXT("Modal_SellConfirm"),
 						EConfirmContext::ShopSell,
 						ItemTag,
 						1,
@@ -261,15 +253,8 @@ void UKRShopSell::RefreshShopInventory()
 	}
 }
 
-void UKRShopSell::UpdatePlayerCurrency()
-{
-
-}
-
 void UKRShopSell::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)
 {
-	UpdatePlayerCurrency();
-
 	if (CurrentFilterTag.IsValid()) FilterSellableItems(CurrentFilterTag);
 	else FilterSellableItems(KRTAG_ITEMTYPE_CONSUME);
 }

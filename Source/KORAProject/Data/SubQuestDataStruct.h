@@ -9,18 +9,27 @@ USTRUCT(BlueprintType)
 struct FSubQuestEvalDataStruct
 {
 	GENERATED_BODY()
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SubQuest)
 	int32 OrderIndex;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SubQuest)
 	FGameplayTag ObjectiveTag;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SubQuest)
 	FText SubQuestName;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SubQuest)
 	FText Description;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SubQuest)
 	int32 RequiredCount;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SubQuest)
 	float TimeLimit;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SubQuest)
+	FName UIRowName;
 };
 
 USTRUCT(BlueprintType)

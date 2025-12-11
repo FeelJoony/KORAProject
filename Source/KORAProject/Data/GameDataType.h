@@ -16,4 +16,5 @@ enum class EGameDataType : uint8
 	ConsumeData,
 	QuestData,
 	SubQuestData,
+	CurrencyData,
 };

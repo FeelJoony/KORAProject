@@ -4,6 +4,7 @@
 #include "Equipment/KREquipmentInstance.h"
 #include "GameplayTagContainer.h"
 #include "GAS/AbilitySet/KRAbilitySet.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRWeaponInstance.generated.h"
 
 class UInputMappingContext;
@@ -25,8 +26,10 @@ public:
     virtual void OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
     virtual void OnUnequipped() override;
 
+    void ActivateWeapon(AKRBaseCharacter* Character, AKRPlayerController* PC, UKRAbilitySystemComponent* ASC, EWeaponMessageAction Action = EWeaponMessageAction::Equipped, bool bBroadcast = true);
+    void DeactivateWeapon(AKRBaseCharacter* Character, AKRPlayerController* PC, UKRAbilitySystemComponent* ASC, EWeaponMessageAction Action = EWeaponMessageAction::Unequipped, bool bBroadcast = true);
+
     void InitializeFromItem(UKRInventoryItemInstance* ItemInstance);
-    // 무기 스펙 초기화 (Fragment의 SetStats에서 가져옴)
     virtual void InitializeStats(const UInventoryFragment_SetStats* StatsFragment) override;
     
     // 무기 타입
@@ -111,9 +114,6 @@ public:
     virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn) override;
     virtual void DestroyEquipmentActors() override;
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void SetWeaponActiveState(bool bIsActive);
-
     UFUNCTION(BlueprintCallable, Category = "Weapon|Visual")
     void ApplyWeaponAnimLayer(AKRBaseCharacter* TargetCharacter);
 
@@ -137,4 +137,9 @@ public:
     
     void GrantWeaponAbilities(UKRAbilitySystemComponent* ASC);
     void RemoveWeaponAbilities(UKRAbilitySystemComponent* ASC);
+
+    void PlayEquipVFX();
+    void PlayUnequipVFX();
+
+    void BroadcastWeaponMessage(const EWeaponMessageAction Action);
 };

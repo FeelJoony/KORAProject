@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "ModularPlayerState.h"
 #include "AbilitySystemInterface.h"
+#include "Components/KRCurrencyComponent.h"
 #include "KRPlayerState.generated.h"
 
 class UKRCombatCommonSet;
@@ -43,6 +44,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UKRPlayerAttributeSet> PlayerAttributeSet;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	TObjectPtr<UKRCurrencyComponent> CurrencyComponent;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_PawnData)
 	TObjectPtr<const UKRPawnData> PawnData;
 
@@ -54,5 +58,6 @@ protected:
 public:
 	FORCEINLINE UKRCombatCommonSet* GetCombatCommonSet() const {return CombatCommonSet;}
 	FORCEINLINE UKRPlayerAttributeSet* GetPlayerAttributeSet() const {return PlayerAttributeSet;}
+	FORCEINLINE UKRCurrencyComponent* GetCurrencyComponentSet() const {return CurrencyComponent;}
 	
 };

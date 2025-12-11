@@ -19,7 +19,8 @@ enum class EKRItemField : uint8
 	Name,
 	Description,
 	Count,
-	Price
+	Price,
+	ShopStock,
 };
 ENUM_CLASS_FLAGS(EKRItemField)
 
@@ -45,6 +46,7 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional)) UCommonTextBlock* ItemDescription = nullptr;
 	UPROPERTY(meta = (BindWidgetOptional)) UCommonNumericTextBlock* ItemCount = nullptr;
 	UPROPERTY(meta = (BindWidgetOptional)) UCommonNumericTextBlock* ItemPrice = nullptr;
+	UPROPERTY(meta = (BindWidgetOptional)) UCommonNumericTextBlock* ShopStock = nullptr;
 
 private:
 

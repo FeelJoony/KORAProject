@@ -7,6 +7,7 @@
 #include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 #include "Data/DataAssets/KRPawnData.h"
 #include "GAS/AbilitySet/KRAbilitySet.h"
+#include "Components/KRCurrencyComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AKRPlayerState::AKRPlayerState(const FObjectInitializer& ObjectInitializer)
@@ -20,7 +21,8 @@ AKRPlayerState::AKRPlayerState(const FObjectInitializer& ObjectInitializer)
 
 	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
 	PlayerAttributeSet = CreateDefaultSubobject<UKRPlayerAttributeSet>(TEXT("PlayerAttributeSet"));
-	
+
+	CurrencyComponent = CreateDefaultSubobject<UKRCurrencyComponent>(TEXT("CurrencyComponent"));
 }
 
 void AKRPlayerState::BeginPlay()

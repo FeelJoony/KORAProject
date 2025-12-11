@@ -14,8 +14,6 @@ class KORAPROJECT_API AKRQuestActor : public AActor
 public:
 	AKRQuestActor();
 
-	virtual void Tick(float DeltaTime) override;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Quest")
 	TObjectPtr<class UStateTreeComponent> QuestStateTreeComp;
 
@@ -25,8 +23,5 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<class UKRQuestInstance> QuestInstance;
-
-	float CheckTime = 5.f;
-	float ElapsedTime = 0.f;
 };
 

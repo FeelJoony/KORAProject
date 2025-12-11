@@ -21,6 +21,7 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	AddDataTable(EGameDataType::ShopItemData, FString(TEXT("ShopItemData")));
 	AddDataTable(EGameDataType::EquipmentData, FString(TEXT("EquipmentData")));
 	AddDataTable(EGameDataType::ConsumeData, FString(TEXT("ConsumeData")));
+	AddDataTable(EGameDataType::CurrencyData, FString(TEXT("CurrencyData")));
 }
 
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
