@@ -52,6 +52,7 @@ protected:
 	
 	void InitializeDataTables();
 	void InitializeCurrencyLossRules();
+	void InitializeAbilityReferences();
 	
 	bool IsLostOnDeath(const FGameplayTag& CurrencyTag) const;
 	float GetInsuranceKeepRate() const;

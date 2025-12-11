@@ -27,6 +27,7 @@ void UKRCurrencyComponent::BeginPlay()
 	
 	InitializeDataTables();
 	InitializeCurrencyLossRules();
+	InitializeAbilityReferences();
 	
 	BroadcastCurrencyUI();
 }
@@ -84,6 +85,25 @@ void UKRCurrencyComponent::InitializeCurrencyLossRules()
 		if (!Row->CurrencyTag.IsValid()) continue;
 		
 		CurrencyLossRuleMap.Add(Row->CurrencyTag, Row->bLossRule);
+	}
+}
+
+void UKRCurrencyComponent::InitializeAbilityReferences()
+{
+	if (ASC) return;
+    
+	AActor* OwnerActor = GetOwner();
+	if (!OwnerActor) return;
+    
+	if (AKRPlayerState* KRPS = Cast<AKRPlayerState>(OwnerActor))
+	{
+		if (UAbilitySystemComponent* ASCBase = KRPS->GetAbilitySystemComponent())
+		{
+			if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(ASCBase))
+			{
+				ASC = KRASC;
+			}
+		}
 	}
 }
 
@@ -267,9 +287,4 @@ void UKRCurrencyComponent::BroadcastCurrencyUI() const
 	Payload.DeltaGearing   = GetLostCurrency(Tag_Gearing);
 
 	UGameplayMessageSubsystem::Get(World).BroadcastMessage(FKRUIMessageTags::Currency(), Payload);
-}
-
-void UKRCurrencyComponent::ForceBroadcastCurrencyUI()
-{
-	BroadcastCurrencyUI();
 }

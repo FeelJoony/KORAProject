@@ -22,7 +22,7 @@ public:
 protected:
 	void OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message);
 
-	void UpdateCurrency(int32 InGearing, int32 InCorbyte);
+	void UpdateCurrencyPanel(int32 InCurrentGearing, int32 InCurrentCorbyte);
 
 	UPROPERTY(meta = (BindWidget)) UCommonNumericTextBlock* Gearing = nullptr;
 	UPROPERTY(meta = (BindWidget)) UCommonNumericTextBlock* Corbyte = nullptr;
