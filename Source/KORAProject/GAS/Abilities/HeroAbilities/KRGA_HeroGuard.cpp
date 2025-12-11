@@ -2,6 +2,7 @@
 
 
 UKRGA_HeroGuard::UKRGA_HeroGuard(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 }
 

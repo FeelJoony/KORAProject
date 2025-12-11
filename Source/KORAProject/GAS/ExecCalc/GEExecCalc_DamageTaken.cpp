@@ -56,6 +56,4 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(const FGameplayEffectCustom
 		return;
 	}
 
-	FGameplayTagContainer TargetTags;
-	ExecutionParams.Get
 }
