@@ -31,6 +31,9 @@ public:
 	void ApplyCableVisibility(bool Visible);
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
 	void ApplyCableLocation();
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
+	bool IsGrapplePoint(AActor* HitActor);
 	
 	UFUNCTION()
 	void PerformLineTrace();
@@ -123,8 +126,8 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float EndLaunchSpeed = 500.f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float TraceRange = 5000.f;
+	UPROPERTY(VisibleDefaultsOnly)
+	float TraceRange = 5000.f; //수정할 때 GrappleVolume도 수정
 
 	UPROPERTY(EditDefaultsOnly)
 	float TargetMoveSpeed = 200.f;
