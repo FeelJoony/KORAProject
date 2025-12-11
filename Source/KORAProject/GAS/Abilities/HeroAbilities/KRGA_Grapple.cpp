@@ -9,11 +9,13 @@
 #include "Camera/CameraComponent.h"
 #include "Characters/KREnemyCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/KREnemyTag.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GAS/KRAbilitySystemComponent.h"
+#include "Interaction/GrappleVolume.h"
 #include "Kismet/GameplayStatics.h"
 
 //CharacterMovement->AirControl = 0.35f;
@@ -60,7 +62,7 @@ void UKRGA_Grapple::InputReleased(const FGameplayAbilitySpecHandle Handle,
                                    const FGameplayAbilityActivationInfo ActivationInfo)
 {
     Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-    CancelAbility();
+    CancelGrapple();
 }
 
 void UKRGA_Grapple::PerformLineTrace()
@@ -95,7 +97,6 @@ void UKRGA_Grapple::PerformLineTrace()
         HitState = EGrappleState::Default;
         GrapPoint = EndLocation;
         ApplyCableLocation();
-
     }
 }
 
@@ -252,19 +253,73 @@ void UKRGA_Grapple::ProcessHitResult(const FHitResult& HitResult)
 		}
 	}
 
-    HitState = EGrappleState::HitActor;
-    GrapPoint = HitResult.ImpactPoint;
+	if (IsGrapplePoint(HitActor))
+	{
+		TArray<FOverlapResult> OverlapResults;
+		FCollisionShape CollisionShape;
+		FCollisionQueryParams QueryParams;
+
+		CollisionShape.SetCapsule(50.f,100.f); 
+		QueryParams.AddIgnoredActor(CachedPlayerCharacter); 
+
+		UWorld* World = GetWorld();
+		if (!World) return;
+
+		bool bHit = World->OverlapMultiByChannel(
+			OverlapResults, 
+			CachedPlayerCharacter->GetActorLocation(), 
+			FQuat::Identity,
+			ECollisionChannel::ECC_WorldDynamic,
+			CollisionShape, 
+			QueryParams
+		);
+		DrawDebugCapsule(
+			World,                  // 월드 객체
+			CachedPlayerCharacter->GetActorLocation(),      // 캡슐의 중심 위치
+			100.f,             // 캡슐의 높이 (실제 캡슐의 절반 높이)
+			50.f,                 // 캡슐의 반지름
+			FQuat::Identity,
+			FColor::Red,             // 색상
+			false,                  // bPersistentLines (1프레임만 드로잉)
+			3.f,           // LifeTime (3초 동안 표시)
+			0,                      // Depth Priority
+			5.0f                    // 두께 (Thickness)
+		);
+
+		if (bHit)
+		{
+			for (const FOverlapResult& Overlap : OverlapResults)
+			{
+				if (AActor* OverlappedActor = Overlap.GetActor())
+				{
+					if(AGrappleVolume* GrappleVolume = Cast<AGrappleVolume>(OverlappedActor))
+					{
+						if (GrappleVolume->CachedGrapplePoint)
+						{
+							GrapPoint=GrappleVolume->CachedGrapplePoint->GetActorLocation();
+						}
+					}
+					UE_LOG(LogTemp, Warning, TEXT("Overlapped with: %s"), *OverlappedActor->GetName());
+				}
+			}
+			if (GrapPoint!=FVector::ZeroVector)
+			{
+				HitState = EGrappleState::HitActor;
     
-    UGameplayStatics::SpawnDecalAtLocation(
-        GetWorld(),
-        DecalMaterial,
-        FVector(DecalSize),
-        HitResult.ImpactPoint,
-        HitResult.ImpactNormal.Rotation(),
-        1.f
-    );
+				UGameplayStatics::SpawnDecalAtLocation(
+					GetWorld(),
+					DecalMaterial,
+					FVector(DecalSize),
+					HitResult.ImpactPoint,
+					HitResult.ImpactNormal.Rotation(),
+					1.f
+				);
     
-    ApplyCableLocation();
+				ApplyCableLocation();
+			}
+		}
+	}
+	HitState = EGrappleState::Default;
 }
 
 bool UKRGA_Grapple::IsGrappleableEnemy(APawn* Pawn)
@@ -298,7 +353,7 @@ void UKRGA_Grapple::BeginEnemyGrapple()
     GetWorld()->GetTimerManager().SetTimer(
         MaxGrappleTimer,
         this,
-        &UKRGA_Grapple::CancelAbility,
+        &UKRGA_Grapple::CancelGrapple,
         EnemyGrappleDuration,
         false
     );
@@ -326,7 +381,7 @@ void UKRGA_Grapple::TickEnemyMovement()
     if (!TargetCapsuleComp || !CachedTargetPawn)
     {
         UE_LOG(LogTemp, Warning, TEXT("[Grapple] Invalid target components"));
-        CancelAbility();
+        CancelGrapple();
         return;
     }
 
@@ -348,7 +403,7 @@ void UKRGA_Grapple::TickEnemyMovement()
 
     if (FVector::DistSquared(PlayerLocation, GrapPoint) < StopNealyDistSquared)
     {
-        CancelAbility();
+        CancelGrapple();
     }
 }
 
@@ -490,7 +545,7 @@ void UKRGA_Grapple::BeginLaunchMontage()
 	EndMontageTask->ReadyForActivation();
 }
 
-void UKRGA_Grapple::CancelAbility()
+void UKRGA_Grapple::CancelGrapple()
 {
 	ApplyCableVisibility(false);
 	

@@ -21,6 +21,13 @@ public:
 	UFUNCTION()
 	void OnMontageEnded();
 
+	UFUNCTION()
+	void ExternalAbilityEnded();
+
+	bool bMontageFinished;
+
+	bool bPendingEnd;
+
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* MontageTask;
 

@@ -1,8 +1,12 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_HeroDash.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Characters/KRHeroCharacter.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/KRHeroComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GAS/KRAbilitySystemComponent.h"
 
 void UKRGA_HeroDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -21,17 +25,15 @@ void UKRGA_HeroDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	//input
-	FVector LocalInputVector = Character->GetLastMovementInputVector();
-    LocalInputVector.Z = 0.0f;
-    
-    const FRotator ControlRotation = Character->GetController()->GetControlRotation();
-    const FRotator YawRotation(0, ControlRotation.Yaw, 0);
-    
-    FVector WorldDirection = UKismetMathLibrary::GreaterGreater_VectorRotator(LocalInputVector, YawRotation);
-    WorldDirection.Normalize(); 
-
-	LaunchCharacter(WorldDirection, Character);
+	UKRHeroComponent* HeroComponent = Character->FindComponentByClass<UKRHeroComponent>();
+	if (!HeroComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HeroComponent not found"));
+	}
+	const FVector2D MoveInput = HeroComponent->GetLastMoveInput();
+	//UE_LOG(LogTemp,Warning,TEXT("[GA_Dash] MoveInput.X : %f, MoveInput.Y : %f"),MoveInput.X, MoveInput.Y)
+	
+	LaunchCharacter(MoveInput);
 }
 
 void UKRGA_HeroDash::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -40,16 +42,27 @@ void UKRGA_HeroDash::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UKRGA_HeroDash::LaunchCharacter(const FVector& InWorldDirection, ACharacter* Character)
+void UKRGA_HeroDash::LaunchCharacter(const FVector2D& Input)
 {
-	EDashDirection DashEnum = GetDashDirection(InWorldDirection);
-    
-	UAnimMontage* SelectedMontage = nullptr; 
+	UKRAbilitySystemComponent* ASC = GetKRAbilitySystemComponentFromActorInfo();
+	if (!ASC) return;
+
+	EDashDirection DashEnum;
+	if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("State.Acting.LockOn"))))
+	{
+		DashEnum = SelectDashDirectionByInput(Input);
+	}
+	else
+	{
+		DashEnum = EDashDirection::Default;
+	}
+	
+	UAnimMontage* SelectedMontage = nullptr;
 	if (DashMontages.Contains(DashEnum))
 	{
 		SelectedMontage = DashMontages[DashEnum];
 	}
-	if (SelectedMontage)
+	if (SelectedMontage != nullptr)
 	{
 		UAbilityTask_PlayMontageAndWait* PlayMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, TEXT("DashMontageTask"), SelectedMontage
@@ -59,10 +72,6 @@ void UKRGA_HeroDash::LaunchCharacter(const FVector& InWorldDirection, ACharacter
 		PlayMontageTask->OnCancelled.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
 		PlayMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_HeroDash::OnAbilityEnd);
 		PlayMontageTask->ReadyForActivation();
-
-		//Launch
-		FVector LaunchVelocity = InWorldDirection * DashSpeed;
-		Character->LaunchCharacter(LaunchVelocity, true, true);
 	}
 	else
 	{
@@ -76,27 +85,62 @@ void UKRGA_HeroDash::OnAbilityEnd()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-EDashDirection UKRGA_HeroDash::GetDashDirection(const FVector& InputVector) const
+EDashDirection UKRGA_HeroDash::SelectDashDirectionByInput(const FVector2D& Input)
 {
-	if (InputVector.IsNearlyZero())
+	FVector CurrentInput = GetKRCharacterFromActorInfo()->GetCharacterMovement()->GetLastInputVector();
+	if (FMath::IsNearlyZero(CurrentInput.X) && FMath::IsNearlyZero(CurrentInput.Y))
 	{
-		return EDashDirection::Forward;
+		UE_LOG(LogTemp, Warning, TEXT("None Input"));
+		return EDashDirection::Backward;
+	}
+	
+	float X = Input.X;	
+	float Y = Input.Y;
+
+	if (X > 0.3f)
+	{
+		if (Y >= 0.3f)					  return EDashDirection::ForwardRight;
+		if (Y <= -0.3f)					  return EDashDirection::BackwardRight;
+		return EDashDirection::Right;
 	}
 
-	float Angle = FMath::Atan2(InputVector.Y, InputVector.X);
-	
-	Angle = FMath::RadiansToDegrees(Angle);
-	
-	if (Angle < 0.f)
+	if (X < -0.3f)
 	{
-		Angle += 360.f;
+		if (Y >= 0.3f)					  return EDashDirection::ForwardLeft;
+		if (Y <= -0.3f)					  return EDashDirection::BackwardLeft;
+		return EDashDirection::Left;
 	}
 
-	float SectorAngle = FMath::Fmod(Angle + 22.5f + 360.f, 360.f);
-    
-	int32 DirectionIndex = FMath::FloorToInt(SectorAngle / 45.f);
-	
-	return static_cast<EDashDirection>(DirectionIndex);
+	if (Y > 0.3f)       return EDashDirection::Forward;
+	if (Y < -0.3f)       return EDashDirection::Backward;
+	return EDashDirection::Backward;
 }
 
+FVector UKRGA_HeroDash::CalculateDirection(EDashDirection DashEnum)
+{
+	AKRBaseCharacter* Character = GetKRCharacterFromActorInfo();
+	if (!Character) return FVector::BackwardVector;
+	
+	FRotator ControlRot = Character->GetControlRotation();
+    FRotator YawRot(0.f, ControlRot.Yaw, 0.f);
+	FVector LocalDir = FVector::BackwardVector;
+	
+	switch (DashEnum)
+	{
+		case EDashDirection::Forward:         LocalDir = FVector(0, 1, 0); break;
+		case EDashDirection::ForwardRight:    LocalDir = FVector(1, 1, 0); break;
+		case EDashDirection::Right:           LocalDir = FVector(1, 0, 0); break;
+		case EDashDirection::BackwardRight:   LocalDir = FVector(1, -1, 0); break;
+		case EDashDirection::Backward:        LocalDir = FVector(0, -1, 0); break;
+		case EDashDirection::BackwardLeft:    LocalDir = FVector(-1, -1, 0); break;
+		case EDashDirection::Left:            LocalDir = FVector(-1, 0, 0); break;
+		case EDashDirection::ForwardLeft:     LocalDir = FVector(-1, 1, 0); break;
 
+		default: break;
+	}
+
+	FVector WorldDir = LocalDir.GetSafeNormal();
+	WorldDir = UKismetMathLibrary::GreaterGreater_VectorRotator(WorldDir, YawRot);
+
+	return WorldDir;
+}
