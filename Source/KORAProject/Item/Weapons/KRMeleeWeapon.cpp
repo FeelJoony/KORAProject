@@ -17,7 +17,7 @@ void AKRMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	WeaponCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AKRMeleeWeapon::OnCollisionBoxBeginOverlap);
+	//WeaponCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AKRMeleeWeapon::OnCollisionBoxBeginOverlap);
 }
 
 void AKRMeleeWeapon::OnCollisionBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

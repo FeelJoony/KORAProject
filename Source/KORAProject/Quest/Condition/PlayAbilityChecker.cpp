@@ -14,7 +14,7 @@ UQuestConditionChecker* UPlayAbilityChecker::Initialize(UKRQuestInstance* NewQue
 {
 	ObjectiveTag = EvalData.ObjectiveTag;
 	QuestInstance = NewQuestInstance;
-	PS = UGameplayStatics::GetPlayerState(GetWorld(), 0);
+	PS = UGameplayStatics::GetPlayerState(NewQuestInstance, 0);
 
 	if (PS)
 	{
@@ -22,31 +22,7 @@ UQuestConditionChecker* UPlayAbilityChecker::Initialize(UKRQuestInstance* NewQue
 		ASC = Interface->GetAbilitySystemComponent();
 		if (ASC)
 		{
-			OnTagCountChangedDelegateHandle = ASC->RegisterGameplayTagEvent(ObjectiveTag).AddLambda([&](const FGameplayTag Tag, int32 NewCount)
-			{
-				if (ObjectiveTag.IsValid() == false)
-				{
-					return;
-				}
-
-				if (!CanCount(EvalData, Tag))
-				{
-					return;
-				}
-	
-				if (NewCount > 0)
-				{
-					if (QuestInstance)
-					{
-						if (QuestInstance->GetSubQuestEvalDataStruct().ObjectiveTag != ObjectiveTag)
-						{
-							return;
-						}
-		
-						QuestInstance->AddCount();
-					}
-				}
-			});
+			OnTagCountChangedDelegateHandle = ASC->RegisterGameplayTagEvent(ObjectiveTag).AddUObject(this, &ThisClass::ReceiveMessage);
 		}
 	}
 
@@ -69,11 +45,24 @@ bool UPlayAbilityChecker::CanCount(const FSubQuestEvalDataStruct& EvalData, cons
 {
 	if (ASC)
 	{
-		if (ASC != nullptr && ASC->HasMatchingGameplayTag(InTag))
-		{
-			return true;
-		}
+		return ASC->HasMatchingGameplayTag(EvalData.ObjectiveTag);
 	}
 	
 	return false;
+}
+
+void UPlayAbilityChecker::ReceiveMessage(const FGameplayTag InTag, int32 Count)
+{
+	if (ObjectiveTag.IsValid() == false)
+	{
+		return;
+	}
+
+	const FSubQuestEvalDataStruct& EvalData = QuestInstance->GetSubQuestEvalDataStruct();
+	if (!CanCount(EvalData, InTag))
+	{
+		return;
+	}
+	
+	QuestInstance->AddCount();
 }
