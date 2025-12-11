@@ -308,8 +308,6 @@ void UKRShopBuy::UpdatePlayerCurrency()
 
 	UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet();
 	if (!Currency) return;
-
-	Currency->ForceBroadcastCurrencyUI();
 }
 
 

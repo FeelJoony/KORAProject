@@ -25,30 +25,10 @@ void UKRCurrencyComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InitializeAbilityReferences();
 	InitializeDataTables();
 	InitializeCurrencyLossRules();
 	
 	BroadcastCurrencyUI();
-}
-
-void UKRCurrencyComponent::InitializeAbilityReferences()
-{
-	if (ASC) return;
-	
-	AActor* OwnerActor = GetOwner();
-	if (!OwnerActor) return;
-	
-	if (AKRPlayerState* KRPS = Cast<AKRPlayerState>(OwnerActor))
-	{
-		if (UAbilitySystemComponent* ASCBase = KRPS->GetAbilitySystemComponent())
-		{
-			if (UKRAbilitySystemComponent* KRASC = Cast<UKRAbilitySystemComponent>(ASCBase))
-			{
-				ASC = KRASC;
-			}
-		}
-	}
 }
 
 void UKRCurrencyComponent::InitializeDataTables()
@@ -128,12 +108,12 @@ int32 UKRCurrencyComponent::GetCurrency(const FGameplayTag& CurrencyTag) const
 
 	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_PURCHASE_GEARING))
 	{
-		return GearingCurrent;
+		return CurrentGearing;
 	}
 	
 	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_SKILL_CORBYTE))
 	{
-		return CorbyteCurrent;
+		return CurrentCorbyte;
 	}
 
 	return 0;
@@ -148,7 +128,7 @@ int32 UKRCurrencyComponent::GetLostCurrency(const FGameplayTag& CurrencyTag) con
 
 	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_PURCHASE_GEARING))
 	{
-		return -FMath::Abs(GearingLost);
+		return -FMath::Abs(DeltaGearing);
 	}
 
 	return 0;
@@ -226,8 +206,8 @@ void UKRCurrencyComponent::HandleDeath()
 	const int32 KeepAmount = FMath::FloorToInt(Current * KeepRate);
 	const int32 LostAmount = Current - KeepAmount;
 	
-	GearingCurrent = KeepAmount;
-	GearingLost    = LostAmount;
+	CurrentGearing = KeepAmount;
+	DeltaGearing    = LostAmount;
 
 	ApplyCurrencyChange_Internal(GearingTag, KeepAmount);
 	ConsumeInsuranceEffects();
@@ -242,11 +222,11 @@ void UKRCurrencyComponent::ApplyCurrencyChange_Internal(const FGameplayTag& Curr
 
 	if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_PURCHASE_GEARING))
 	{
-		GearingCurrent = FMath::Max(0, NewValue);
+		CurrentGearing = FMath::Max(0, NewValue);
 	}
 	else if (CurrencyTag.MatchesTagExact(KRTAG_CURRENCY_SKILL_CORBYTE))
 	{
-		CorbyteCurrent = FMath::Max(0, NewValue);
+		CurrentCorbyte = FMath::Max(0, NewValue);
 	}
 	else
 	{

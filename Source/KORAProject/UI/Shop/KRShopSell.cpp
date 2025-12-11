@@ -271,8 +271,6 @@ void UKRShopSell::UpdatePlayerCurrency()
 
 	UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet();
 	if (!Currency) return;
-
-	Currency->ForceBroadcastCurrencyUI();
 }
 
 void UKRShopSell::OnCurrencyMessageReceived(FGameplayTag Channel, const FKRUIMessage_Currency& Message)

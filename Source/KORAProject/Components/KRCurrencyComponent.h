@@ -42,9 +42,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Currency")
 	void HandleDeath();
-	
-	UFUNCTION(BlueprintCallable, Category="Currency|UI")
-	void ForceBroadcastCurrencyUI();
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category="Currency|Insurance")
@@ -53,7 +50,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	void InitializeAbilityReferences();
 	void InitializeDataTables();
 	void InitializeCurrencyLossRules();
 	
@@ -65,13 +61,13 @@ protected:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
-	int32 GearingCurrent = 0;
+	int32 CurrentGearing = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
+	int32 DeltaGearing = 0;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
-	int32 CorbyteCurrent = 0;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
-	int32 GearingLost = 0;
+	int32 CurrentCorbyte = 0;
 	
 	UPROPERTY()
 	TObjectPtr<UKRAbilitySystemComponent> ASC = nullptr;
