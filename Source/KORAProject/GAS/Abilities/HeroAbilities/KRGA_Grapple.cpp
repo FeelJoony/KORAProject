@@ -83,7 +83,7 @@ void UKRGA_Grapple::PerformLineTrace()
     Params.AddIgnoredActor(CachedPlayerCharacter);
 
     bool bHit = GetWorld()->LineTraceSingleByChannel(
-        HitResult, StartLocation, EndLocation, ECC_Visibility, Params);
+        HitResult, StartLocation, EndLocation, ECC_GameTraceChannel4, Params);
     
     DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 1.f);
 
