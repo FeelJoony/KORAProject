@@ -47,6 +47,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KR|Enemy")
 	TObjectPtr<const UKRPawnData> PawnData;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Speed")
+	float PatrolSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Speed")
+	float AlertSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Speed")
+	float ChaseSpeed;
+
 public:
 	FORCEINLINE UKRAbilitySystemComponent* GetEnemyAbilitySystemCompoent() const { return EnemyASC; }
 
@@ -61,6 +70,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
 	TObjectPtr<UAnimMontage> HitMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = KRMontage)
+	TObjectPtr<UAnimMontage> DieMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KR|Combat")
 	TArray<FName> LockOnSockets;

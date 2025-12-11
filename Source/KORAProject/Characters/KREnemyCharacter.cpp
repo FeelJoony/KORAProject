@@ -21,7 +21,7 @@ AKREnemyCharacter::AKREnemyCharacter(const FObjectInitializer& ObjectInitializer
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -46,17 +46,17 @@ UAbilitySystemComponent* AKREnemyCharacter::GetAbilitySystemComponent() const
 
 void AKREnemyCharacter::SetPatrolSpeed()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
 }
 
 void AKREnemyCharacter::SetAlertSpeed()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->MaxWalkSpeed = AlertSpeed;
 }
 
 void AKREnemyCharacter::SetChaseSpeed()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
 }
 
 void AKREnemyCharacter::BeginPlay()
@@ -127,6 +127,7 @@ void AKREnemyCharacter::RegisterTagEvent()
 	StateTags.Add(KRTAG_ENEMY_AISTATE_PATROL);
 	StateTags.Add(KRTAG_ENEMY_AISTATE_CHASE);
 	StateTags.Add(KRTAG_ENEMY_AISTATE_HITREACTION);
+	StateTags.Add(KRTAG_ENEMY_AISTATE_DEAD);
 
 	for (const FGameplayTag& Tag : StateTags)
 	{
