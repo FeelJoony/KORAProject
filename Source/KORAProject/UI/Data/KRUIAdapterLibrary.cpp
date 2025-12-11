@@ -38,8 +38,7 @@ bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInsta
     {
         if (UKRInventorySubsystem* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
         {
-            FGameplayTag ItemTag = Instance->GetItemTag();
-            Out.Quantity = Inv->GetItemCountByTag(ItemTag);
+            Out.Quantity = Inv->GetItemCountByTag(Instance->GetItemTag());
         }
     }
 

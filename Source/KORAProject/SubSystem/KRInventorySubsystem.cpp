@@ -345,7 +345,9 @@ const UKRInventoryItemInstance* UKRInventorySubsystem::GetItem(const FGameplayTa
 
 int32 UKRInventorySubsystem::GetItemCountByTag(const FGameplayTag& InTag)
 {
-	return GetItemQuantity_Internal(InTag);
+	int32 ItemQuantity = GetItemQuantity_Internal(InTag);
+	
+	return ItemQuantity;
 }
 
 TArray<UKRInventoryItemInstance*> UKRInventorySubsystem::GetAllItems() const
