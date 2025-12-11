@@ -92,6 +92,11 @@ void UKRUIAdapterLibrary::GetInventoryUIDataFiltered(UObject* WorldContextObject
 				Items = Inv->FindItemsByTag(FilterTag);
 			}
 			ConvertItemInstancesToUIData(Items, Out);
+
+            for (FKRItemUIData& Data : Out)
+            {
+                Data.Quantity = Inv->GetItemCountByTag(Data.ItemTag);
+            }
 		}
 	}
 }
