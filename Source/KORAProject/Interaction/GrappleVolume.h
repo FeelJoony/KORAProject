@@ -17,6 +17,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void ChangeWidgetClass(AActor* GrapplePointActor);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void AllClearWidgetClass();
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	TObjectPtr<AActor> CachedGrapplePoint = nullptr;
