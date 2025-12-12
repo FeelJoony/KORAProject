@@ -88,8 +88,4 @@ void UKRGA_Enemy_Alert::ExternalAbilityEnded()
 	}
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	if (!EnemyASC->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_COMBAT) && !EnemyASC->HasMatchingGameplayTag(AlertAbilityTag))
-	{
-		EnemyASC->AddLooseGameplayTag(KRTAG_ENEMY_AISTATE_PATROL);
-	}
 }
