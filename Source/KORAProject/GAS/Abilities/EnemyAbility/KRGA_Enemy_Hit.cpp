@@ -25,12 +25,6 @@ void UKRGA_Enemy_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
-	UKRAbilitySystemComponent* EnemyASC = Enemy->GetEnemyAbilitySystemCompoent();
-	if (EnemyASC && EnemyASC->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_ALERT))
-	{
-		EnemyASC->RemoveLooseGameplayTag(KRTAG_ENEMY_AISTATE_ALERT);
-	}
-
 	if (Enemy->HitMontage)
 	{
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
