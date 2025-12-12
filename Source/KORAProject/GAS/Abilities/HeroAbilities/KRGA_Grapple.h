@@ -12,9 +12,10 @@ class UCharacterMovementComponent;
 UENUM()
 enum class EGrappleState : uint8
 {
-	Default		UMETA(DisplayName = "Default"),
-	HitEnemy	UMETA(DisplayName = "Hit Enemy"),
-	HitActor	UMETA(DisplayName = "Hit Actor")
+	Default			UMETA(DisplayName = "Default"),
+	HitEnemy	 	UMETA(DisplayName = "Hit Enemy Success"),
+	HitEnemyFail	UMETA(DisplayName = "Hit Enemy Fail"),
+	HitPoint		UMETA(DisplayName = "Hit Point Actor")
 };
 
 UCLASS()
@@ -31,14 +32,13 @@ public:
 	void ApplyCableVisibility(bool Visible);
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
 	void ApplyCableLocation();
-
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
-	bool IsGrapplePoint(AActor* HitActor);
 	
 	UFUNCTION()
 	void PerformLineTrace();
 	UFUNCTION()
 	void StartMoveLoopMontage();
+	UFUNCTION()
+	void OnStartCableSetting();
 	UFUNCTION()
 	void OnStartMontageFinished();
 	UFUNCTION()
@@ -50,16 +50,26 @@ public:
 	
 	void BeginStartMontage();
 	
-	void ProcessHitResult(const FHitResult& HitResult);
+	class AKREnemyCharacter* IsEnemy(const FHitResult& HitResult);
 	
-	/*static*/ bool IsGrappleableEnemy(APawn* Pawn);
+	/*static*/ bool IsGrappleableEnemy(AKREnemyCharacter* TargetEnemy);
+
+	TArray<class AGrappleVolume*> ReturnGrappleVolume();
+
+	float GrapplePointDistance(const FVector& PointLocation) const;
 	
 	void BeginEnemyGrapple();
+
+	void FailEnemyGrapple();
+	
+	FVector ReturnGrapplePointLocation();
 	
 	bool ApplyStunToEnemy();
+
+	void JudgeEnumState(FHitResult& HitResult);
 	
 	void RemoveStunFromEnemy();
-	
+
 	void TickEnemyMovement();
 	
 	void CleanupEnemyGrapple();
@@ -84,7 +94,7 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
-	FVector GrapPoint;
+	FVector CachedGrapplePoint;
 	
 private:
 	UPROPERTY(EditDefaultsOnly)
