@@ -1,7 +1,5 @@
 #include "Interaction/GrappleVolume.h"
 
-#include "CollisionDebugDrawingPublic.h"
-#include "KismetTraceUtils.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/KRHeroCharacter.h"
 #include "Components/BoxComponent.h"
@@ -54,13 +52,6 @@ void AGrappleVolume::OnOverlapBegin(
 		
 		IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(CachedPlayer);
 		if (!ASI) return;
-
-		//for문으로 BP_VisibleUI();
-		//시야에 있고 가장 가까운 것 찾아서 있으면 ASC에 "State.Can.Grapple" 추가하고
-
-		
-		//멤버 변수에 위치 저장
-		
 		
 		UE_LOG(LogTemp, Warning, TEXT("Player Is Overlaped"));
 	}
@@ -84,6 +75,7 @@ void AGrappleVolume::OnOverlapEnd(
 	{
 		GrapplePoint->SetActorHiddenInGame(true);
 	}
+	AllClearWidgetClass();
 	
 	CachedGrapplePoint = nullptr;
 	
@@ -116,9 +108,10 @@ void AGrappleVolume::LineTrace(const FVector& StartLocation, const FRotator& Sta
 	FVector EndLocation = StartRotation.Vector() * TraceRange + StartLocation;
 	GetWorld()->LineTraceSingleByChannel(HitResult,StartLocation,EndLocation,ECC_Visibility,Params);
 	AActor* GrapplePointActor = HitResult.GetActor();
-	if (GrapplePointActor && GrapplePoints.Contains(GrapplePointActor))
-	{
-		ChangeWidgetClass(GrapplePointActor);
-		UE_LOG(LogTemp, Warning, TEXT("GrapplePoint HitResult : %s"),*HitResult.GetActor()->GetName());
-	}
+	ChangeWidgetClass(GrapplePointActor);
+
+	// if (GrapplePointActor)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("GrapplePoint HitResult : %s"),*GrapplePointActor->GetName());
+	// }
 }
