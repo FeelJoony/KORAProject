@@ -17,6 +17,7 @@ class KORAPROJECT_API UKRQuickSlotButtonBase : public UCommonButtonBase
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuickSlot") FGameplayTag SlotDirection;
     virtual void NativeOnHovered() override;
+    virtual void NativeOnClicked() override;
     virtual void NativeDestruct() override;
 
     UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot")

@@ -25,7 +25,10 @@ public:
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKRQuickSlotHovered, FGameplayTag, SlotDirection);
 	UPROPERTY(BlueprintAssignable, Category = "QuickSlot") FKRQuickSlotHovered OnSlotHovered;
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FKRQuickSlotClicked);
+	UPROPERTY(BlueprintAssignable, Category = "QuickSlot") FKRQuickSlotClicked OnSlotClicked;
 	void NotifySlotHovered(FGameplayTag SlotDir);
+	void NotifySlotClicked();
 
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);

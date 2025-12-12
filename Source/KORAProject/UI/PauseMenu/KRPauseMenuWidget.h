@@ -9,6 +9,7 @@
 #include "KRPauseMenuWidget.generated.h"
 
 class UKRInventorySubsystem;
+class UKRSlotGridBase;
 struct FKRItemUIData;
 
 UCLASS()
@@ -32,9 +33,9 @@ protected:
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRSlotNameWidget> SlotNameWidget;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRQuickSlotWidget> QuickSlotWidget;
 
-	UPROPERTY() UKRInventorySubsystem* InventorySubsystem = nullptr;
+	UPROPERTY(meta = (BindWidgetOptional)) TObjectPtr<UKRSlotGridBase> QuickSlotInventoryGrid;
 
-
+private:
 	void BindMenuButton(UKRMenuTabButton* Button);
 	UFUNCTION() void HandleMenuHovered(UKRMenuTabButton* Button);
 	UFUNCTION() void HandleQuickSlotHovered(FGameplayTag SlotDir);
@@ -43,9 +44,13 @@ protected:
 	UFUNCTION() void HandleSlotNameSecondary(EKRSlotNameContext Context);
 
 	bool GetQuickItemUIData(FGameplayTag SlotDir, FKRItemUIData& OutData) const;
+	void OpenQuickSlotInventoryForSlot(const FGameplayTag& SlotDir);
+	void CloseQuickSlotInventory();
+	void HandleQuickSlotInventorySelect();
+	void HandleQuickSlotInventoryMove(uint8 DirIdx);
+	int32 StepGridIndex(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const;
 
-private:
-	void HandleSelect();
+	UFUNCTION() void HandleSelect();
 	void HandleMoveLeft();
 	void HandleMoveRight();
 	void HandleMoveUp();
@@ -54,4 +59,7 @@ private:
 	EKRSlotNameContext CurrentSlotContext = EKRSlotNameContext::Menu;
 	FName CurrentMenuRouteName;
 	FGameplayTag CurrentQuickSlotDir;
+
+	bool bQuickSlotInventoryOpen = false;
+	TArray<FKRItemUIData> QuickSlotInventoryItemList; // From Inventory
 };

@@ -2,7 +2,8 @@
 
 #include "UI/HUD/Modules/KRQuickSlotWidget.h"
 #include "UI/HUD/Modules/KRQuickSlotButtonBase.h"
-
+#include "UI/Data/KRItemUIData.h"
+#include "UI/Data/KRUIAdapterLibrary.h"
 #include "Engine/World.h"
 
 void UKRQuickSlotWidget::NativeConstruct()
@@ -48,12 +49,35 @@ void UKRQuickSlotWidget::NativeDestruct()
 
 void UKRQuickSlotWidget::RefreshFromInventory()
 {
-	// Initialize QuickSlot 
+	TArray<FGameplayTag> Dirs = {
+		FKRUIMessageTags::QuickSlot_North(),
+		FKRUIMessageTags::QuickSlot_East(),
+		FKRUIMessageTags::QuickSlot_South(),
+		FKRUIMessageTags::QuickSlot_West()
+	};
+
+	for (const auto& Dir : Dirs)
+	{
+		FKRItemUIData Data;
+		if (UKRUIAdapterLibrary::GetQuickSlotUIData(this, Dir, Data))
+		{
+			UpdateSlot(Dir, Data.Quantity, Data.ItemIcon);
+		}
+		else
+		{
+			ClearSlot(Dir);
+		}
+	}
 }
 
 void UKRQuickSlotWidget::NotifySlotHovered(FGameplayTag SlotDir)
 {
 	OnSlotHovered.Broadcast(SlotDir);
+}
+
+void UKRQuickSlotWidget::NotifySlotClicked()
+{
+	OnSlotClicked.Broadcast();
 }
 
 void UKRQuickSlotWidget::OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message)
