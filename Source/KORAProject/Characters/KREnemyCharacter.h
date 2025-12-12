@@ -11,6 +11,7 @@ class UKRCombatComponent;
 class UKREnemyAttributeSet;
 class UKRPawnData;
 class UStateTreeComponent;
+class UWidgetComponent;
 
 UCLASS()
 class KORAPROJECT_API AKREnemyCharacter : public AKRBaseCharacter
@@ -33,6 +34,7 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "KR|GAS")
@@ -77,6 +79,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KR|Combat")
 	TArray<FName> LockOnSockets;
 
+	UWidgetComponent* HPWidgetComp;
+
 private:
 	UFUNCTION()
 	void RegisterTagEvent();
@@ -92,7 +96,6 @@ private:
 
 	UFUNCTION()
 	void OnGEAdded(UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
-
 
 	TArray<FGameplayTag> StateTags;
 };

@@ -9,7 +9,10 @@
 #include "GameplayTag/KREventTag.h"
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Stun.h"
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Alert.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Components/KREnemyHPWidget.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "AIController.h"
 #include "Components/StateTreeComponent.h"
 #include "KORADebugHelper.h"
@@ -18,6 +21,9 @@ AKREnemyCharacter::AKREnemyCharacter(const FObjectInitializer& ObjectInitializer
 	: Super(ObjectInitializer)
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickInterval = 0.01f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -93,11 +99,32 @@ void AKREnemyCharacter::BeginPlay()
 
 	if (EnemyASC)
 	{
-		EnemyASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(
-			this,
-			&AKREnemyCharacter::OnGEAdded
-		);
+		HPWidgetComp = FindComponentByClass<UWidgetComponent>();
+		if (HPWidgetComp) return;
+
+		UKREnemyHPWidget* HPWidget = Cast<UKREnemyHPWidget>(HPWidgetComp->GetUserWidgetObject());
+		if (!HPWidget) return;
+
+		HPWidget->InitFromASC(EnemyASC, this);
 	}
+}
+
+void AKREnemyCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!HPWidgetComp) return;
+
+	APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	if (!Cam) return;
+
+	FVector CamLocation = Cam->GetCameraLocation();
+	FRotator LookAtRot = (CamLocation - HPWidgetComp->GetComponentLocation()).Rotation();
+
+	LookAtRot.Pitch = 0.0f;
+	LookAtRot.Roll = 0.0f;
+
+	HPWidgetComp->SetWorldRotation(LookAtRot);
 }
 
 void AKREnemyCharacter::PossessedBy(AController* NewController)
