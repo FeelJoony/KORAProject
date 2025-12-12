@@ -176,6 +176,7 @@ void AKREnemyCharacter::ExternalGAEnded(FGameplayTag Tag)
 					if (UKRGA_Enemy_Stun* StunGA = Cast<UKRGA_Enemy_Stun>(Instance))
 					{
 						StunGA->ExternalAbilityEnded();
+						return;
 					}
 				}
 			}
