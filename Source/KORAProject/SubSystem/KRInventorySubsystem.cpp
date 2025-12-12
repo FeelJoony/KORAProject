@@ -231,6 +231,8 @@ void UKRInventorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UKRInventorySubsystem::Deinitialize()
 {
 	Super::Deinitialize();
+
+	EndListenQuickSlotAssignConfirm();
 }
 
 TSubclassOf<UKRInventoryItemFragment> UKRInventorySubsystem::GetFragmentClass(const FGameplayTag& Tag) const 
@@ -726,6 +728,36 @@ void UKRInventorySubsystem::AddItemInstance(UKRInventoryItemInstance* InInstance
 	// 필요하면 메시지 브로드캐스트 해야함
 }
 
+void UKRInventorySubsystem::BeginListenQuickSlotAssignConfirm()
+{
+	if (QuickSlotConfirmHandle.IsValid())
+	{
+		return;
+	}
+	
+	UGameplayMessageSubsystem& MsgSys = UGameplayMessageSubsystem::Get(this);
+
+	QuickSlotConfirmHandle = MsgSys.RegisterListener(
+		FKRUIMessageTags::Confirm(),
+		this,
+		&UKRInventorySubsystem::OnQuickSlotConfirmMessage
+	);
+}
+
+void UKRInventorySubsystem::EndListenQuickSlotAssignConfirm()
+{
+	if (!QuickSlotConfirmHandle.IsValid())
+	{
+		return;
+	}
+
+	UGameplayMessageSubsystem& MsgSys = UGameplayMessageSubsystem::Get(this);
+	MsgSys.UnregisterListener(QuickSlotConfirmHandle);
+
+	QuickSlotConfirmHandle = FGameplayMessageListenerHandle();
+}
+
+
 FKRInventoryList& UKRInventorySubsystem::GetInventory()
 {
 	return PlayerInventory;
@@ -1150,20 +1182,17 @@ int32 UKRInventorySubsystem::GetConsumableStackMaxForItem(const FGameplayTag& It
 	return StackMax;
 }
 
-void UKRInventorySubsystem::OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload)
+void UKRInventorySubsystem::OnQuickSlotConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload)
 {
 	if (Payload.Context == EConfirmContext::QuickSlotAssign)
 	{
-		BindItemByQuickSlotTag(Payload.ItemTag, Payload.SlotTag);
-	}
-	else if (Payload.Context == EConfirmContext::InventoryItemUse)
-	{
-		UAbilitySystemComponent* ASC = GetPlayerASC();
-		if (!ASC)
+		EndListenQuickSlotAssignConfirm();
+		
+		if (Payload.Result != EConfirmResult::Yes)
 		{
 			return;
 		}
-
-		UseConsumableItem(Payload.ItemTag, ASC);
+		
+		BindItemByQuickSlotTag(Payload.SlotTag, Payload.ItemTag);
 	}
 }

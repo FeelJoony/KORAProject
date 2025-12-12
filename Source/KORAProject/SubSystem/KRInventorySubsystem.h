@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "AbilitySystemInterface.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "GAS/KRAbilitySystemComponent.h"
 
 #include "KRInventorySubsystem.generated.h"
@@ -27,6 +28,9 @@ struct FAddItemMessage
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Message)
 	FGameplayTag ItemTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Message)
+	FGameplayTag SlotTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Message)
 	int32 StackCount = 0;
@@ -242,10 +246,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void AddItemInstance(UKRInventoryItemInstance* InInstance);
+
+	void BeginListenQuickSlotAssignConfirm();
+	void EndListenQuickSlotAssignConfirm();
 	
 private:
 	UPROPERTY()
 	TMap<FGameplayTag, TSubclassOf<class UKRInventoryItemFragment>> FragmentRegistry;
+
+	FGameplayMessageListenerHandle QuickSlotConfirmHandle;
 	
 	UPROPERTY()
 	TMap<FGameplayTag, FGameplayTag> PlayerQuickSlot;
@@ -301,6 +310,7 @@ private:
 	int32 GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const;
 	
 	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
+	void OnQuickSlotConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload);
 };
 
 template <typename T>
