@@ -15,6 +15,8 @@ class KORAPROJECT_API AKRPlayerController : public ACommonPlayerController
 public:
 	AKRPlayerController(const FObjectInitializer& ObjectInitializer);
 
+	virtual void BeginPlay() override;
+
 	virtual void OnUnPossess() override;
 	
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;

@@ -2,11 +2,20 @@
 #include "Camera/KRPlayerCameraManager.h"
 #include "Player/KRPlayerState.h"
 #include "GAS/KRAbilitySystemComponent.h"
+#include "Subsystem/KRQuestSubsystem.h"
 
 AKRPlayerController::AKRPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PlayerCameraManagerClass = AKRPlayerCameraManager::StaticClass();
+}
+
+void AKRPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UKRQuestSubsystem& KRSubsystem = UKRQuestSubsystem::Get(this);
+	KRSubsystem.AcceptQuest(1);
 }
 
 void AKRPlayerController::OnUnPossess()

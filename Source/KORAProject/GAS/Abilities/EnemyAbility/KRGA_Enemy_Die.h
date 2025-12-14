@@ -6,6 +6,14 @@
 
 class UAbilityTask_PlayMontageAndWait;
 
+USTRUCT(BlueprintType)
+struct FKillMonsterMessage
+{
+	GENERATED_BODY()
+
+	int32 MonsterIndex;
+};
+
 UCLASS()
 class KORAPROJECT_API UKRGA_Enemy_Die : public UKRGameplayAbility
 {
