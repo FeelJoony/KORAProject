@@ -6,6 +6,8 @@
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "GameplayTag/KREnemyTag.h"
 
 void UKRGA_Enemy_Die::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 										const FGameplayAbilityActorInfo* ActorInfo, 
@@ -39,6 +41,12 @@ void UKRGA_Enemy_Die::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 		OrganizeStateTag();
 		ActivationDie();
+
+		UGameplayMessageSubsystem& Subsystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+		FKillMonsterMessage Message;
+		Message.MonsterIndex = 1;
+		Subsystem.BroadcastMessage(KRTAG_ENEMY_AISTATE_DEAD, Message);
 	}
 }
 

@@ -367,9 +367,9 @@ void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 		}
 		CachedTargetPawn = TargetEnemy;
 		
-		//AKRAIC_Enemy* EnemyAIC = Cast<AKRAIC_Enemy>(CachedTargetPawn->GetController());
-		//if (!IsValid(EnemyAIC)) return;
-		//EnemyAIC->SetAttackTarget(GetAvatarActorFromActorInfo());
+		AKRAIC_Enemy* EnemyAIC = Cast<AKRAIC_Enemy>(CachedTargetPawn->GetController());
+		if (!IsValid(EnemyAIC)) return;
+		EnemyAIC->SetAttackTarget(GetAvatarActorFromActorInfo());
 		
 		if (IsGrappleableEnemy(TargetEnemy))
 		{

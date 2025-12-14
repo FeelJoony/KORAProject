@@ -9,11 +9,13 @@
 #include "Quest/KRQuestInstance.h"
 #include "Quest/Condition/QuestAddItemChecker.h"
 #include "Quest/Condition/PlayAbilityChecker.h"
+#include "Quest/Condition/KillMonsterChecker.h"
 #include "Quest/Delegates/QuestDelegate.h"
 #include "System/KRAssetManager.h"
 #include "Quest/Delegates/TutorialDelegate.h"
 #include "GameplayTag/KRAbilityTag.h"
 #include "GameplayTag/KRStateTag.h"
+#include "GameplayTag/KREnemyTag.h"
 
 DEFINE_LOG_CATEGORY(LogQuestSubSystem);
 
@@ -29,6 +31,7 @@ void UKRQuestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	CheckerGroup.Add(KRTAG_ABILITY_LOCKON, UPlayAbilityChecker::StaticClass());
 	CheckerGroup.Add(KRTAG_STATE_ACTING_LOCKON, UPlayAbilityChecker::StaticClass());
 	CheckerGroup.Add(KRTAG_STATE_ACTING_GRAPPLING_SUCCESS, UPlayAbilityChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_ENEMY_AISTATE_DEAD, UKillMonsterChecker::StaticClass());
 }
 
 void UKRQuestSubsystem::Deinitialize()
