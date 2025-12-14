@@ -1,5 +1,8 @@
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GameplayEffectExtension.h"
+#include "GameplayTag/KREventTag.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayTag/KRStateTag.h"
 
 UKRCombatCommonSet::UKRCombatCommonSet()
 {
@@ -33,10 +36,39 @@ void UKRCombatCommonSet::PostGameplayEffectExecute(const struct FGameplayEffectM
 
 		if (LocalDamageDone > 0.f)
 		{
-			const float NewHealth = GetCurrentHealth() - LocalDamageDone;
-			SetCurrentHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+			const float OldHealth = GetCurrentHealth();
+			const float NewHealth = FMath::Clamp(OldHealth - LocalDamageDone, 0.f, GetMaxHealth());
+			SetCurrentHealth(NewHealth);
 
-			// 사망처리 혹은 메세지 시스템을 활용해 이벤트 전송
+			FGameplayEventData Payload;
+			Payload.EventTag = (NewHealth <= 0.f) ? KRTAG_EVENT_COMBAT_DEATH : KRTAG_EVENT_COMBAT_HIT;
+			Payload.EventMagnitude = LocalDamageDone;
+
+			Payload.Instigator = Data.EffectSpec.GetEffectContext().GetOriginalInstigator();
+			Payload.Target = GetOwningActor();
+			Payload.ContextHandle = Data.EffectSpec.GetContext();
+
+			const bool bIsDead = GetOwningAbilitySystemComponent()->HasMatchingGameplayTag(KRTAG_STATE_ACTING_DEAD);
+
+			if (!bIsDead)
+			{
+				if (NewHealth <= 0.f)
+				{
+					UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+						GetOwningActor(),
+						KRTAG_EVENT_COMBAT_DEATH,
+						Payload
+						);
+				}
+				else
+				{
+					UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+						GetOwningActor(),
+						KRTAG_EVENT_COMBAT_HITREACTION,
+						Payload
+						);
+				}
+			}
 		}
 	}
 }
