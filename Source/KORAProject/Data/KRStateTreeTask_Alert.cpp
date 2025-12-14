@@ -1,4 +1,4 @@
-#include "StateTree/KRStateTreeTask_Alert.h"
+#include "KRStateTreeTask_Alert.h"
 #include "Characters/KREnemyCharacter.h"
 #include "Enemy/KRAIC_Enemy.h"
 #include "Interface/AICInterface.h"
