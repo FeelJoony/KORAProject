@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Characters/KRBaseCharacter.h"
 #include "GameplayTagContainer.h"
+#include "GameplayEffectTypes.h"
 #include "KREnemyCharacter.generated.h"
 
 class UKRCombatCommonSet;
@@ -94,8 +95,7 @@ private:
 	UFUNCTION()
 	void ExternalGAEnded(FGameplayTag Tag);
 
-	UFUNCTION()
-	void OnGEAdded(UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+	void OnGEAdded(const FOnAttributeChangeData& Data);
 
 	TArray<FGameplayTag> StateTags;
 };
