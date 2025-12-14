@@ -13,6 +13,7 @@
 #include "System/KRAssetManager.h"
 #include "Quest/Delegates/TutorialDelegate.h"
 #include "GameplayTag/KRAbilityTag.h"
+#include "GameplayTag/KRStateTag.h"
 
 DEFINE_LOG_CATEGORY(LogQuestSubSystem);
 
@@ -26,6 +27,8 @@ void UKRQuestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	QuestDelegateMap.Add(EQuestType::Q_Tutorial, NewObject<UTutorialDelegate>(this));
 
 	CheckerGroup.Add(KRTAG_ABILITY_LOCKON, UPlayAbilityChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_STATE_ACTING_LOCKON, UPlayAbilityChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_STATE_ACTING_GRAPPLING_SUCCESS, UPlayAbilityChecker::StaticClass());
 }
 
 void UKRQuestSubsystem::Deinitialize()
