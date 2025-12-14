@@ -99,8 +99,12 @@ void AKREnemyCharacter::BeginPlay()
 
 	if (EnemyASC)
 	{
+		EnemyASC->GetGameplayAttributeValueChangeDelegate(
+			UKRCombatCommonSet::GetCurrentHealthAttribute()
+		).AddUObject(this, &AKREnemyCharacter::OnGEAdded);
+
 		HPWidgetComp = FindComponentByClass<UWidgetComponent>();
-		if (HPWidgetComp) return;
+		if (!HPWidgetComp) return;
 
 		UKREnemyHPWidget* HPWidget = Cast<UKREnemyHPWidget>(HPWidgetComp->GetUserWidgetObject());
 		if (!HPWidget) return;
@@ -225,7 +229,7 @@ void AKREnemyCharacter::ExternalGAEnded(FGameplayTag Tag)
 	}
 }
 
-void AKREnemyCharacter::OnGEAdded(UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
+void AKREnemyCharacter::OnGEAdded(const FOnAttributeChangeData& Data)
 {
 	UE_LOG(LogTemp, Error, TEXT("TakeDamage"));
 	if (EnemyASC)
