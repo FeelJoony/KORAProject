@@ -157,7 +157,7 @@ float UKRWeaponInstance::CalculateDamage(bool& bOutIsCritical)
         BaseDamage *= CritMultiplier;
     }
 
-    return BaseDamage;
+    return 20.f;
 }
 
 void UKRWeaponInstance::ApplyEnhanceLevel(int32 EnhanceLevel)
