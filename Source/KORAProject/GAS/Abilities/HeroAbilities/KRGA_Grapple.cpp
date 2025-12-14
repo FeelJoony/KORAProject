@@ -16,7 +16,7 @@
 #include "GameplayTag/KRStateTag.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Interaction/GrappleVolume.h"
-//#include "Enemy/KRAIC_Enemy.h"
+#include "Enemy/KRAIC_Enemy.h"
 
 //CharacterMovement->AirControl = 0.35f;
 
