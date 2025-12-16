@@ -100,15 +100,21 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 	{
 		return;
 	}
-	
+
+	Entry.ItemInstance = ItemInstance;
 	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
 	APlayerController* PC = CastChecked<APlayerController>(Character->GetController());
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 
+	// Init Stats
+	if (SetStatFragment)
+	{
+		ApplyStatsToASC(SetStatFragment, true);
+	}
+	
 	// GrantAbilities
 	if (ASC)
 	{
-		GrantedHandles.TakeFromAbilitySystem(ASC);
 		for (const FKRAbilitySet_GameplayAbility& AbilityInfo : Entry.GrantedAbilities)
 		{
 			if (!AbilityInfo.Ability)
@@ -124,7 +130,7 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 			}
 
 			FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(AbilitySpec);
-			GrantedHandles.AddAbilitySpecHandle(Handle);
+			Entry.GrantedHandles.AddAbilitySpecHandle(Handle);
 		}
 	}
 
@@ -146,19 +152,32 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 			}
 		}
 	}
-	
+
+	AKRWeaponBase* TargetWeapon = nullptr;
 	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
 	{
-		MeleeActorInstance->ConfigureWeapon(EquippableFragment, SetStatFragment);
-		MeleeActorInstance->SetWeaponVisibility(true);
-		MeleeActorInstance->PlayEquipEffect();
+		TargetWeapon = MeleeActorInstance;
+	}
+	else if(ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	{
+		TargetWeapon = RangeActorInstance;
 	}
 
-	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	if (TargetWeapon)
 	{
-		RangeActorInstance->ConfigureWeapon(EquippableFragment, SetStatFragment);
-		RangeActorInstance->SetWeaponVisibility(true);
-		RangeActorInstance->PlayEquipEffect();
+		if (Entry.SocketName != NAME_None)
+		{
+			TargetWeapon->AttachToComponent(
+				Character->GetMesh(),
+				FAttachmentTransformRules::SnapToTargetIncludingScale,
+				Entry.SocketName
+				);
+			TargetWeapon->SetActorRelativeTransform(Entry.AttachTransform);
+		}
+
+		TargetWeapon->ConfigureWeapon(EquippableFragment, SetStatFragment);
+		TargetWeapon->SetWeaponVisibility(true);
+		TargetWeapon->PlayEquipEffect();
 	}
 
 	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_COSTUME))
@@ -226,9 +245,18 @@ void UKREquipmentManagerComponent::UnequipItem(UKRInventoryItemInstance* ItemIns
 		return;
 	}
 
-	// Remove Abilities
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	GrantedHandles.TakeFromAbilitySystem(ASC);
+	// Remove Ability
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		Entry.GrantedHandles.TakeFromAbilitySystem(ASC);
+	}
+
+	// Remove Stat
+	const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
+	if (SetStatFragment)
+	{
+		ApplyStatsToASC(SetStatFragment, false);
+	}
 
 	// Remove Anim Layer
 	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
@@ -250,14 +278,35 @@ void UKREquipmentManagerComponent::UnequipItem(UKRInventoryItemInstance* ItemIns
 		}
 	}
 
+	AKRWeaponBase* TargetWeapon = nullptr;
 	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
 	{
-		MeleeActorInstance->PlayUnequipEffect();
+		TargetWeapon = MeleeActorInstance;
+	}
+	else if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	{
+		TargetWeapon = RangeActorInstance;
 	}
 
-	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	if (TargetWeapon)
 	{
-		RangeActorInstance->PlayUnequipEffect();
+		TargetWeapon->PlayUnequipEffect();
+		TargetWeapon->SetWeaponVisibility(false);
+	}
+
+	Entry.ItemInstance = nullptr;
+}
+
+void UKREquipmentManagerComponent::ChangeEquipment(class UKRInventoryItemInstance* OldItem,
+	class UKRInventoryItemInstance* NewItem)
+{
+	if (OldItem)
+	{
+		UnequipItem(OldItem);
+	}
+	if (NewItem)
+	{
+		EquipItem(NewItem);
 	}
 }
 
@@ -295,6 +344,15 @@ UKRInventoryItemInstance* UKREquipmentManagerComponent::GetEquippedItemInstanceB
 	}
 
 	return nullptr;
+}
+
+void UKREquipmentManagerComponent::ApplyStatsToASC(const class UInventoryFragment_SetStats* SetStatsFragment, bool bAdd)
+{
+	if (!SetStatsFragment) return;
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC) return;
+	
 }
 
 void UKREquipmentManagerComponent::InitializeComponent()
@@ -343,15 +401,9 @@ void UKREquipmentManagerComponent::SpawnActorInstances()
 		AKRMeleeWeapon* MeleeActor = GetWorld()->SpawnActorDeferred<AKRMeleeWeapon>(MeleeActorClass, FTransform::Identity, GetOwner(), Character, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (MeleeActor)
 		{
-			if (false == MeleeSocketName.IsNone())
-			{
-				MeleeActor->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, MeleeSocketName);
-				MeleeActor->SetActorRelativeTransform(MeleeAttachTransform);
-
-				MeleeActorInstance = MeleeActor;
-			}
-			
+			MeleeActorInstance = MeleeActor;
 			MeleeActor->FinishSpawning(FTransform::Identity, true);
+			MeleeActor->SetActorHiddenInGame(true);
 		}
 	}
 
@@ -360,15 +412,9 @@ void UKREquipmentManagerComponent::SpawnActorInstances()
 		AKRRangeWeapon* RangeActor = GetWorld()->SpawnActorDeferred<AKRRangeWeapon>(RangeActorClass, FTransform::Identity, GetOwner(), Character, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (RangeActor)
 		{
-			if (false == RangeSocketName.IsNone())
-			{
-				RangeActor->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RangeSocketName);
-				RangeActor->SetActorRelativeTransform(RangeAttachTransform);
-
-				RangeActorInstance = RangeActor;
-			}
-			
+			RangeActorInstance = RangeActor;
 			RangeActor->FinishSpawning(FTransform::Identity, true);
+			RangeActor->SetActorHiddenInGame(true);
 		}
 	}
 }

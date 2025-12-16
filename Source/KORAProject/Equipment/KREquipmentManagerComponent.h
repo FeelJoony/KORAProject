@@ -55,6 +55,9 @@ protected:
 	TArray<TObjectPtr<class UAnimMontage>> ChargeAttackMontages;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	FName SocketName;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
 	FTransform AttachTransform;
 
 	bool IsValid() const;
@@ -64,10 +67,10 @@ private:
 	friend UKREquipmentManagerComponent;
 
 	UPROPERTY()
-	TObjectPtr<class UKRInventoryItemInstance> ItemInstance;
+	mutable TObjectPtr<class UKRInventoryItemInstance> ItemInstance;
 	
 	UPROPERTY()
-	TArray<FGameplayAbilitySpecHandle> GrantedAbilityHandles;
+	mutable FKRAbilitySet_GrantedHandles GrantedHandles;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -126,6 +129,9 @@ public:
 	void UnequipItem(class UKRInventoryItemInstance* ItemInstance);
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void ChangeEquipment(class UKRInventoryItemInstance* OldItem, class UKRInventoryItemInstance* NewItem);
+	
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	const FKRAppliedEquipmentEntry& FindEntryByTag(const FGameplayTag& ItemTag) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
@@ -144,6 +150,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equip|Entry", meta = (AllowPrivateAccess = "true"))
 	TMap<FGameplayTag, FKREquipmentList> EquipSlotTagToEquipmentListMap;
 
+	void ApplyStatsToASC(const class UInventoryFragment_SetStats* SetStatsFragment, bool bAdd);
+	
 private:
 	UPROPERTY()
 	TObjectPtr<class AKRMeleeWeapon> MeleeActorInstance;
@@ -154,9 +162,4 @@ private:
 	UPROPERTY()
 	FKRAbilitySet_GrantedHandles GrantedHandles;
 	
-	const FName MeleeSocketName = TEXT("hand_lSocket");
-	const FName RangeSocketName = TEXT("hand_rSocket");
-
-	const FTransform MeleeAttachTransform = FTransform::Identity;
-	const FTransform RangeAttachTransform = FTransform::Identity;
 };
