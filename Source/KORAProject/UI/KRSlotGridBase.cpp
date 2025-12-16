@@ -39,7 +39,6 @@ void UKRSlotGridBase::BuildGrid()
 {
 	if (!SlotGrid || !SlotClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("KRSlotGridBase::BuildGrid - SlotGrid or SlotClass is null."));
 		return;
 	}
 

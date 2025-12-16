@@ -236,7 +236,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
 	bool UseConsumableItem(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC);
-
 	
 	UFUNCTION()
 	void OnMessageReceived(const FGameplayTag Channel, const FAddItemMessage& Message);
@@ -246,14 +245,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void AddItemInstance(UKRInventoryItemInstance* InInstance);
-
-	void BeginListenQuickSlotAssignConfirm();
-	void EndListenQuickSlotAssignConfirm();
 	
 private:
 	UPROPERTY()
 	TMap<FGameplayTag, TSubclassOf<class UKRInventoryItemFragment>> FragmentRegistry;
 
+	TArray<FGameplayMessageListenerHandle> ListenerHandles;
 	FGameplayMessageListenerHandle QuickSlotConfirmHandle;
 	
 	UPROPERTY()
@@ -275,6 +272,9 @@ private:
 	
 	void InitializeItemDefinitionFragments();
 	void InitialFragmentType(TSubclassOf<class UKRInventoryItemFragment> FragmentClass);
+
+	void RegisterAllListeners();
+	void UnregisterAllListeners();
 	
 	bool IsPersistentQuickSlotItem(const FGameplayTag& ItemTag) const;
 	bool IsAssignedQuickSlot() const;

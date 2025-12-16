@@ -27,8 +27,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotIndexEvent OnSelectionChanged;
 	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotIndexEvent OnHoverChanged;
-	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotClickedEvent OnSlotClicked;
-
+	UPROPERTY(BlueprintAssignable, Category="Slots") FOnSlotClickedEvent OnSlotClicked;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slots") bool bSelectOnHover = true; // When Hovered == Selected
 
 	UFUNCTION(BlueprintCallable, Category = "Slots") void InitializeItemGrid(const TArray<FKRItemUIData>& InData);

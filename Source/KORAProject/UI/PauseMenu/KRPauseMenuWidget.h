@@ -42,7 +42,7 @@ private:
 
 	UFUNCTION() void HandleSlotNamePrimary(EKRSlotNameContext Context);
 	UFUNCTION() void HandleSlotNameSecondary(EKRSlotNameContext Context);
-
+	
 	bool GetQuickItemUIData(FGameplayTag SlotDir, FKRItemUIData& OutData) const;
 	void OpenQuickSlotInventoryForSlot(const FGameplayTag& SlotDir);
 	void CloseQuickSlotInventory();
@@ -51,6 +51,7 @@ private:
 	int32 StepGridIndex(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const;
 
 	UFUNCTION() void HandleSelect();
+	UFUNCTION() void HandleDeselect();
 	void HandleMoveLeft();
 	void HandleMoveRight();
 	void HandleMoveUp();
@@ -59,7 +60,7 @@ private:
 	EKRSlotNameContext CurrentSlotContext = EKRSlotNameContext::Menu;
 	FName CurrentMenuRouteName;
 	FGameplayTag CurrentQuickSlotDir;
-
+	
 	bool bQuickSlotInventoryOpen = false;
 	TArray<FKRItemUIData> QuickSlotInventoryItemList; // From Inventory
 };

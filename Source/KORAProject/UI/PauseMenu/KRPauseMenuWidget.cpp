@@ -5,12 +5,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-#include "SubSystem/KRInventorySubsystem.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "UI/Inventory/KRInventoryMain.h"
 #include "UI/KRSlotGridBase.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Widgets/SWidget.h"
+#include "UI/KRItemSlotBase.h"
 #include "GameplayTag/KRItemTypeTag.h"
 
 void UKRPauseMenuWidget::NativeConstruct()
@@ -30,11 +32,17 @@ void UKRPauseMenuWidget::NativeConstruct()
 	}
 	if (QuickSlotWidget)
 	{
-		QuickSlotWidget->bListenGameplayMessages = false;
+		QuickSlotWidget->bListenGameplayMessages = true;
 		QuickSlotWidget->OnSlotHovered.AddDynamic(this, &ThisClass::HandleQuickSlotHovered);
 		QuickSlotWidget->OnSlotClicked.AddDynamic(this, &ThisClass::HandleSelect);
 		QuickSlotWidget->RefreshFromInventory();
 	}
+
+	if (QuickSlotInventoryGrid)
+	{
+		QuickSlotInventoryGrid->OnSlotClicked.AddDynamic(this, &ThisClass::HandleSelect);
+	}
+
 	CloseQuickSlotInventory();
 	HandleMenuHovered(EquipmentButton);
 }
@@ -50,7 +58,10 @@ void UKRPauseMenuWidget::NativeDestruct()
 	{
 		QuickSlotWidget->OnSlotHovered.RemoveDynamic(this, &ThisClass::HandleQuickSlotHovered);
 	}
-
+	if (QuickSlotInventoryGrid)
+	{
+		//QuickSlotInventoryGrid->OnSlotClicked.RemoveDynamic(this, &ThisClass::HandleQuickSlotInventorySelect);
+	}
 	Super::NativeDestruct();
 }
 
@@ -62,6 +73,7 @@ void UKRPauseMenuWidget::NativeOnActivated()
 	{
 		InputSubsys->BindBackDefault(this, TEXT("PauseMenu"));
 		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
+		InputSubsys->BindRow(this, TEXT("Unequip"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleDeselect));;
 		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveLeft));
 		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveRight));
 		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveUp));
@@ -89,7 +101,8 @@ void UKRPauseMenuWidget::BindMenuButton(UKRMenuTabButton* Button)
 void UKRPauseMenuWidget::HandleMenuHovered(UKRMenuTabButton* Button)
 {
 	if (!SlotNameWidget || !Button) return;
-
+	if (bQuickSlotInventoryOpen) return;
+	
 	SlotNameWidget->SetupForMenu(Button->MenuNameKey);
 	CurrentMenuRouteName = Button->RouteName;
 	CurrentSlotContext = EKRSlotNameContext::Menu;
@@ -100,6 +113,8 @@ void UKRPauseMenuWidget::HandleQuickSlotHovered(FGameplayTag SlotDir)
 {
 	if (!SlotNameWidget) return;
 
+	if (bQuickSlotInventoryOpen) return;
+	
 	FKRItemUIData ItemUIData;
 	const bool bHasItem = GetQuickItemUIData(SlotDir, ItemUIData);
 
@@ -155,8 +170,29 @@ void UKRPauseMenuWidget::HandleSlotNameSecondary(EKRSlotNameContext Context)
 {
 	if (Context == EKRSlotNameContext::QuickSlot_HasItem)
 	{
-		// Remove Button
-		// InventorySubsystem->ClearQuickSlot(SlotDir)
+		if (!QuickSlotInventoryGrid) return;
+		if (!CurrentQuickSlotDir.IsValid()) return;
+
+		const int32 Index = QuickSlotInventoryGrid->GetSelectedIndex();
+		if (!QuickSlotInventoryItemList.IsValidIndex(Index)) return;
+
+		const FKRItemUIData& Data = QuickSlotInventoryItemList[Index];
+		if (!Data.ItemTag.IsValid()) return;
+
+		if (UWorld* World = GetWorld())
+		{
+			FKRUIMessage_Confirm Msg;
+			Msg.Context = EConfirmContext::QuickSlotRemove;
+			Msg.Result = EConfirmResult::Yes;
+			Msg.ItemTag = Data.ItemTag;
+			Msg.SlotTag = CurrentQuickSlotDir;
+			Msg.Quantity = Data.Quantity;
+
+			UGameplayMessageSubsystem::Get(World).BroadcastMessage(
+				FKRUIMessageTags::Confirm(),
+				Msg
+			);
+		}
 	}
 }
 
@@ -204,11 +240,6 @@ void UKRPauseMenuWidget::OpenQuickSlotInventoryForSlot(const FGameplayTag& SlotD
 	{
 		QuickSlotInventoryGrid->SetFocus();
 	}
-
-	//if (QuickSlotWidget)
-	//{
-	//	QuickSlotWidget->HighlightSlot(SlotDir);
-	//}
 }
 
 void UKRPauseMenuWidget::CloseQuickSlotInventory()
@@ -333,13 +364,15 @@ int32 UKRPauseMenuWidget::StepGridIndex(int32 Cur, uint8 DirIdx, int32 Cols, int
 
 void UKRPauseMenuWidget::HandleSelect()
 {
-	if (bQuickSlotInventoryOpen)
+    if (bQuickSlotInventoryOpen) HandleQuickSlotInventorySelect();
+    else HandleSlotNamePrimary(CurrentSlotContext);
+}
+
+void UKRPauseMenuWidget::HandleDeselect()
+{
+	if (!bQuickSlotInventoryOpen)
 	{
-		HandleQuickSlotInventorySelect();
-	}
-	else
-	{
-		HandleSlotNamePrimary(CurrentSlotContext);
+		HandleSlotNameSecondary(CurrentSlotContext);
 	}
 }
 
