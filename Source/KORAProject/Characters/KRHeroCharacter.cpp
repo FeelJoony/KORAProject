@@ -3,12 +3,13 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/KRCameraComponent.h"
+#include "Components/KRCharacterMovementComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/KRHeroComponent.h"
 #include "Components/KRPawnExtensionComponent.h"
 
 AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UKRCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	CameraComponent = CreateDefaultSubobject<UKRCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.f, 0.f, 75.f));
