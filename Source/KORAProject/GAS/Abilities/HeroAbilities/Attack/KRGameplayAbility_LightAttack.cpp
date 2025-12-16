@@ -34,7 +34,7 @@ void UKRGameplayAbility_LightAttack::ActivateAbility(const FGameplayAbilitySpecH
 		return;
 	}
 
-	UAnimMontage* MontageToPlay = Weapon->GetLightAttackMontage(CurrentComboIndex);
+	/*UAnimMontage* MontageToPlay = Weapon->GetLightAttackMontage(CurrentComboIndex);
 
 	if (!MontageToPlay)
 	{
@@ -68,7 +68,7 @@ void UKRGameplayAbility_LightAttack::ActivateAbility(const FGameplayAbilitySpecH
 		Task->OnBlendOut.AddDynamic(this, &ThisClass::OnMontageCompleted);
 
 		Task->ReadyForActivation();
-	}
+	}*/
 
 	IncrementCombo();
 }

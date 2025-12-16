@@ -1,12 +1,27 @@
 #include "Inventory/KRInventoryItemDefinition.h"
-#include "Templates/SubclassOf.h"
-#include "UObject/ObjectPtr.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventoryItemDefinition)
 
 UKRInventoryItemDefinition::UKRInventoryItemDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+}
+
+const class UKRInventoryItemFragment* UKRInventoryItemDefinition::FindFragmentByClass(
+	TSubclassOf<class UKRInventoryItemFragment> FragmentClass) const
+{
+	if (FragmentClass != nullptr)
+	{
+		for (const auto& FragmentPair : FragmentContainer)
+		{
+			if (FragmentPair.Value && FragmentPair.Value->IsA(FragmentClass))
+			{
+				return FragmentPair.Value;
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 UKRInventoryItemFragment* UKRInventoryItemDefinition::FindFragmentByTag(FGameplayTag Tag)

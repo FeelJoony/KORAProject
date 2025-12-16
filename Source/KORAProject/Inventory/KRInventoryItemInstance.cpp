@@ -32,6 +32,16 @@ UKRInventoryItemInstance* UKRInventoryItemInstance::CreateItemDefinition()
 	return this;
 }
 
+const UKRInventoryItemFragment* UKRInventoryItemInstance::FindFragmentByClass(TSubclassOf<UKRInventoryItemFragment> FragmentClass) const
+{
+	if ((ItemDef != nullptr) && (FragmentClass != nullptr))
+	{
+		return ItemDef->FindFragmentByClass(FragmentClass);
+	}
+
+	return nullptr;
+}
+
 const UKRInventoryItemFragment* UKRInventoryItemInstance::FindFragmentByTag(FGameplayTag Tag) const
 {
 	const UKRInventoryItemFragment* Fragment = nullptr;

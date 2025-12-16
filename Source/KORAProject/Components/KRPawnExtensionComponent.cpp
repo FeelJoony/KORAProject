@@ -299,7 +299,7 @@ void UKRPawnExtensionComponent::InitializeInventory()
 		return;
 	}
 	
-	for (const UKRWeaponDefinition* WeaponDef : PawnData->DefaultEquipWeapons)
+	/*for (const UKRWeaponDefinition* WeaponDef : PawnData->DefaultEquipWeapons)
 	{
 		if (!WeaponDef) continue;
 		FWeaponDataStruct DummyData;
@@ -314,9 +314,9 @@ void UKRPawnExtensionComponent::InitializeInventory()
 		NewInst->SetItemTag(WeaponDef->WeaponTypeTag);
 		InvSubSystem->AddItemInstance(NewInst);
 
-		if (EquipComp)
+		/*if (EquipComp)
 		{
 			EquipComp->EquipFromInventory(NewInst);
-		}
-	}
+		}#1#
+	}*/
 }

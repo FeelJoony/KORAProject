@@ -15,6 +15,7 @@
 #include "Data/WeaponEnhanceDataStruct.h"
 #include "Data/ShopItemDataStruct.h"
 #include "Data/EquipmentDataStruct.h"
+#include "Data/EquipDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -689,6 +690,60 @@ void UTableRowConvertFunctionContainer::CreateCurrencyData(class UDataTable* Out
 				{
 					OutDataTable->AddRow(RowName, CurrencyData);
 				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("ConsumeData")), FParseMethod::CreateLambda(
+		[&](FParseMethodParams Params)
+		{
+			auto& Headers = Params.Headers;
+			auto& Values = Params.Values;
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = const_cast<TArray<FString>&>(Values[i]);
+
+				int32 GroupID_Index = GetHeaderIndex(Headers, TEXT("GroupID"));
+				int32 EquipItemTag_Index = GetHeaderIndex(Headers, TEXT("EquipItemTag"));
+				int32 SlotTag_Index = GetHeaderIndex(Headers, TEXT("SlotTag"));
+				int32 EquipmentMesh_Index = GetHeaderIndex(Headers, TEXT("EquipmentMesh"));
+				int32 OverrideMaterials_Index = GetHeaderIndex(Headers, TEXT("OverrideMaterials"));
+				//int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("CompatibleModuleSlots"));
+				//int32 DefaultModuleTags_Index = GetHeaderIndex(Headers, TEXT("DefaultModuleTags"));
+
+				FEquipDataStruct EquipData;
+
+				EquipData.GroupID = ParseIntValue(RowValue[GroupID_Index]);
+				EquipData.EquipItemTag = ParseGameplayTagValue(RowValue[EquipItemTag_Index]);
+				EquipData.SlotTag = ParseGameplayTagValue(RowValue[SlotTag_Index]);
+				EquipData.EquipmentMesh = ParseSoftObjectValue<UStaticMesh>(RowValue[EquipmentMesh_Index]);
+
+				TArray<FString> MaterialValueStrings = ParseArrayValue(RowValue[OverrideMaterials_Index]);
+				for (const FString& MaterialValueString : MaterialValueStrings)
+				{
+					if (MaterialValueString == TEXT("-1"))
+					{
+						break;
+					}
+
+					EquipData.OverrideMaterials.Add(ParseSoftObjectValue<UMaterialInterface>(MaterialValueString));
+				}
+
+				// EquipData.CompatibleModuleSlots = ParseIntValue(RowValue[CompatibleModuleSlots_Index]);
+				//
+				// TArray<FString> ModuleTagValueStrings = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
+				// for (const FString& ModuleTagValueString : ModuleTagValueStrings)
+				// {
+				// 	if (ModuleTagValueString == TEXT("-1"))
+				// 	{
+				// 		break;
+				// 	}
+				// 	
+				// 	EquipData.DefaultModuleTags.Add(ParseGameplayTagValue(ModuleTagValueString));
+				// }
 			}
 		}));
 }

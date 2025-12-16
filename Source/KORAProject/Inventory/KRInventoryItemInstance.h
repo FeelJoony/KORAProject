@@ -41,8 +41,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	UKRInventoryItemInstance* CreateItemDefinition();
 
-	UFUNCTION(BlueprintCallable, Category = Inventory)
-	const UKRInventoryItemFragment* FindFragmentByTag(FGameplayTag Tag) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure=false, meta=(DeterminesOutputType=FragmentClass))
+	const class UKRInventoryItemFragment* FindFragmentByClass(TSubclassOf<class UKRInventoryItemFragment> FragmentClass) const;
+	
+	template <typename ResultClass>
+	const ResultClass* FindFragmentByClass() const
+	{
+		return Cast<ResultClass>(FindFragmentByClass(ResultClass::StaticClass()));
+	}
+	
+	const class UKRInventoryItemFragment* FindFragmentByTag(FGameplayTag Tag) const;
 
 	template <typename ResultClass>
 	const ResultClass* FindFragmentByTag(FGameplayTag Tag) const
@@ -70,3 +78,4 @@ private:
 	UPROPERTY()
 	TObjectPtr<class UKRInventoryItemDefinition> ItemDef;
 };
+

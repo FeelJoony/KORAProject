@@ -1,11 +1,30 @@
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "Equipment/KREquipmentInstance.h"
+#include "Equipment/KREquipmentDefinition.h"
+#include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
+#include "Inventory/Fragment/InventoryFragment_SetStats.h"
 
 AKRRangeWeapon::AKRRangeWeapon()
 {
 	MuzzlePoint = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzlePoint"));
 	MuzzlePoint->SetupAttachment(GetRootComponent());
+}
+
+void AKRRangeWeapon::ConfigureWeapon(const UInventoryFragment_EquippableItem* Equippable, const UInventoryFragment_SetStats* SetStat)
+{
+	if (UKREquipmentInstance* EquipInstance = EquippableFragment->GetEquipInstance())
+	{
+		if (const UKREquipmentDefinition* EquipDefinition = EquipInstance->GetDefinition())
+		{
+			if (const FEquipDataStruct* EquipDataStruct = EquipDefinition->GetEquipDataStruct())
+			{
+				WeaponMesh->SetMaterial(0, EquipDataStruct->OverrideMaterials[0].LoadSynchronous());
+			}
+		}
+	}
+
+	// ToDo : Stat 적용 로직 구현
 }
 
 void AKRRangeWeapon::FireProjectile()

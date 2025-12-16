@@ -21,7 +21,21 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	AddDataTable(EGameDataType::ShopItemData, FString(TEXT("ShopItemData")));
 	AddDataTable(EGameDataType::EquipmentData, FString(TEXT("EquipmentData")));
 	AddDataTable(EGameDataType::ConsumeData, FString(TEXT("ConsumeData")));
-	AddDataTable(EGameDataType::CurrencyData, FString(TEXT("CurrencyData")));
+	AddDataTable(EGameDataType::EquipData, FString(TEXT("EquipData")));
+}
+
+void UKRDataTablesSubsystem::Deinitialize()
+{
+	Super::Deinitialize();
+}
+
+UKRDataTablesSubsystem& UKRDataTablesSubsystem::Get(const UObject* WorldContextObject)
+{
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::Assert);
+	check(World);
+	UKRDataTablesSubsystem* DataTablesSubsystem = UGameInstance::GetSubsystem<UKRDataTablesSubsystem>(World->GetGameInstance());
+	check(DataTablesSubsystem);
+	return *DataTablesSubsystem;
 }
 
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)

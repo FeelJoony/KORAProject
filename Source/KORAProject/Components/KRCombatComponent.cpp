@@ -6,7 +6,6 @@
 #include "Item/Weapons/KRMeleeWeapon.h"
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Weapons/KRRangeWeaponInstance.h"
 #include "Weapons/KRWeaponInstance.h"
 #include "GameFramework/Character.h"
 
@@ -59,7 +58,7 @@ void UKRCombatComponent::TryRecoveryWeaponFromSlot(EWeaponSlot Slot)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("[KRCombatComponent] Recovered Weapon from Socket: %s"), *TargetSocketName.ToString());
 
-                    UKRWeaponInstance* FoundInstance = FoundWeapon->GetWeaponInstance();
+                    /*UKRWeaponInstance* FoundInstance = nullptr;
 
                     FGameplayTag WeaponTag;
                     if (FoundWeapon)
@@ -88,7 +87,7 @@ void UKRCombatComponent::TryRecoveryWeaponFromSlot(EWeaponSlot Slot)
                     if (FoundInstance)
                     {
                         SetCurrentWeapon(FoundInstance, FoundWeapon);
-                    }
+                    }*/
                     
                     return;
                 }
@@ -230,14 +229,14 @@ void UKRCombatComponent::HandleMeleeHit(AActor* HitActor, const FHitResult& Hit)
     OverlappedActors.Add(HitActor);
 
     bool bIsCritical = false;
-    const float Damage = CurrentWeaponInstance->CalculateDamage(bIsCritical);
+    /*const float Damage = CurrentWeaponInstance->CalculateDamage(bIsCritical);
 
-    ApplyDamageToTarget(HitActor, Damage, bIsCritical, &Hit);
+    ApplyDamageToTarget(HitActor, Damage, bIsCritical, &Hit);*/
 }
 
 bool UKRCombatComponent::FireRangedWeapon()
 {
-    if (!CurrentWeaponInstance || !CurrentWeaponActor || !GetOwner()->HasAuthority())
+    /*if (!CurrentWeaponInstance || !CurrentWeaponActor || !GetOwner()->HasAuthority())
         return false;
 
     UKRRangeWeaponInstance* RangeInstance = Cast<UKRRangeWeaponInstance>(CurrentWeaponInstance);
@@ -282,7 +281,7 @@ bool UKRCombatComponent::FireRangedWeapon()
         ApplyDamageToTarget(Hit.GetActor(), Damage, bIsCritical, &Hit);
     }
 
-    // TODO: 탄피, 이펙트, 사운드 등
+    // TODO: 탄피, 이펙트, 사운드 등*/
 
     return true;
 }

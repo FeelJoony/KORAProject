@@ -1,11 +1,9 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_WeaponSwap.h"
 #include "Equipment/KREquipmentManagerComponent.h"
-#include "Weapons/KRWeaponInstance.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Characters/KRBaseCharacter.h"
 #include "Player/KRPlayerController.h"
 #include "GameplayTag/KRItemTypeTag.h"
-#include "GameplayTag/KRPlayerTag.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
@@ -33,7 +31,7 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	FGameplayTag SwordTag = KRTAG_ITEMTYPE_EQUIP_SWORD;
 	FGameplayTag GunTag = KRTAG_ITEMTYPE_EQUIP_GUN;
 
-	UKRWeaponInstance* SwordInst = nullptr;
+	/*UKRWeaponInstance* SwordInst = nullptr;
 	UKRWeaponInstance* GunInst = nullptr;
 
 	TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
@@ -85,6 +83,6 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
 			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
 		}
-	}
+	}*/
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

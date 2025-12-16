@@ -33,6 +33,8 @@ public:
 		return NewObject<UKRInventoryItemDefinition>();
 	}
 
+	const class UKRInventoryItemFragment* FindFragmentByClass(TSubclassOf<class UKRInventoryItemFragment> FragmentClass) const;
+	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	UKRInventoryItemFragment* FindFragmentByTag(FGameplayTag Tag);
 	

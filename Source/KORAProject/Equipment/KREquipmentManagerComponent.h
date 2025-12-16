@@ -5,6 +5,7 @@
 #include "Components/PawnComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Abilities/GameplayAbilityTypes.h"
+#include "GAS/AbilitySet/KRAbilitySet.h"
 
 #include "KREquipmentManagerComponent.generated.h"
 
@@ -19,6 +20,8 @@ struct FGameplayAbilitySpecHandle;
 struct FFrame;
 struct FKREquipmentList;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogEquipmentManagerComponent, Log, All);
+
 USTRUCT(BlueprintType)
 struct FKRAppliedEquipmentEntry
 {
@@ -27,21 +30,47 @@ struct FKRAppliedEquipmentEntry
 	FKRAppliedEquipmentEntry()
 	{}
 
+	static FKRAppliedEquipmentEntry Invalid_Entry;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	FGameplayTag TypeTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	TArray<FKRAbilitySet_GameplayAbility> GrantedAbilities;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UAnimInstance> EquipAnimLayer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputMappingContext> EquipIMC;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	int32 InputPriority;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	TArray<TObjectPtr<class UAnimMontage>> LightAttackMontages;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	TArray<TObjectPtr<class UAnimMontage>> ChargeAttackMontages;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
+	FTransform AttachTransform;
+
+	bool IsValid() const;
+	
 private:
 	friend FKREquipmentList;
 	friend UKREquipmentManagerComponent;
-	
+
 	UPROPERTY()
-	TSubclassOf<UKREquipmentDefinition> EquipmentDefinition;
-	
-	UPROPERTY()
-	TObjectPtr<UKREquipmentInstance> Instance = nullptr;
+	TObjectPtr<class UKRInventoryItemInstance> ItemInstance;
 	
 	UPROPERTY()
 	TArray<FGameplayAbilitySpecHandle> GrantedAbilityHandles;
 };
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, Blueprintable)
 struct FKREquipmentList
 {
 	GENERATED_BODY()
@@ -56,18 +85,16 @@ struct FKREquipmentList
 	{
 	}
 
-public:
-	FKRAppliedEquipmentEntry* AddEntry(TSubclassOf<UKREquipmentDefinition> InEquipmentDefinition);
 
-	void RemoveEntry(UKREquipmentInstance* InInstance);
+	FKRAppliedEquipmentEntry& FindEntryByItemTag(FGameplayTag InTypeTag);
+	const FKRAppliedEquipmentEntry& FindEntryByItemTag(FGameplayTag InTypeTag) const;
 
-	FKRAppliedEquipmentEntry* FindEntryByInstance(UKREquipmentInstance* InInstance);
-
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EntryList", meta = (AllowPrivateAccess = "true"))
+	TArray<FKRAppliedEquipmentEntry> Entries;
+	
 private:
 	friend UKREquipmentManagerComponent;
-
-	UPROPERTY()
-	TArray<FKRAppliedEquipmentEntry> Entries;
 
 	UPROPERTY()
 	TObjectPtr<UActorComponent> OwnerComponent;
@@ -85,36 +112,51 @@ public:
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void AddEquip(class UKRInventoryItemInstance* ItemInstance);
+
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void SpawnActorInstances();
 	
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	UKREquipmentInstance* EquipItem(TSubclassOf<UKREquipmentDefinition> InEquipmentDefinition);
+	void EquipItem(class UKRInventoryItemInstance* ItemInstance);
 
-	UFUNCTION(BlueprintCallable, Category="Equipment")
-	UKREquipmentInstance* EquipFromInventory(class UKRInventoryItemInstance* ItemInstance);
-	
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void UnequipItem(UKREquipmentInstance* InItemInstance);
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Equipment")
-	UKREquipmentInstance* GetFirstInstanceOfType(TSubclassOf<UKREquipmentInstance> InstanceType) const;
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Equipment")
-	TArray<UKREquipmentInstance*> GetEquipmentInstancesOfType(TSubclassOf<UKREquipmentInstance> InstanceType) const;
+	void UnequipItem(class UKRInventoryItemInstance* ItemInstance);
 
-	template <typename T>
-	T* GetFirstInstanceOfType() const
-	{
-		return (T*)GetFirstInstanceOfType(T::StaticClass());
-	}
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	const FKRAppliedEquipmentEntry& FindEntryByTag(const FGameplayTag& ItemTag) const;
 
-	// --------Debug--------
-	UFUNCTION(BlueprintCallable, Category = "Debug") 
-	void Debug_TestEquip(FGameplayTag InItemTag);
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	UKRInventoryItemInstance* GetEquippedItemInstanceBySlotTag(const FGameplayTag& SlotTag) const;
+	
+	FORCEINLINE class AKRMeleeWeapon* GetMeleeActorInstance() { return MeleeActorInstance; }
+	FORCEINLINE class AKRRangeWeapon* GetRangeActorInstance() { return RangeActorInstance; }
+	
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Equip|Actor", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AKRMeleeWeapon> MeleeActorClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Equip|Actor", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AKRRangeWeapon> RangeActorClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equip|Entry", meta = (AllowPrivateAccess = "true"))
+	TMap<FGameplayTag, FKREquipmentList> EquipSlotTagToEquipmentListMap;
 
 private:
 	UPROPERTY()
-	FKREquipmentList EquipmentList;
+	TObjectPtr<class AKRMeleeWeapon> MeleeActorInstance;
 
 	UPROPERTY()
-	TMap<FGameplayTag, TObjectPtr<UKREquipmentInstance>> EquippedSlotsMap;
+	TObjectPtr<class AKRRangeWeapon> RangeActorInstance;
+
+	UPROPERTY()
+	FKRAbilitySet_GrantedHandles GrantedHandles;
+	
+	const FName MeleeSocketName = TEXT("hand_lSocket");
+	const FName RangeSocketName = TEXT("hand_rSocket");
+
+	const FTransform MeleeAttachTransform = FTransform::Identity;
+	const FTransform RangeAttachTransform = FTransform::Identity;
 };

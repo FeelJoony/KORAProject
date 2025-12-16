@@ -50,7 +50,7 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 		return;
 	}
 
-	UAnimMontage* MontageToPlay = Weapon->GetChargeAttackMontage(CurrentComboIndex);
+	/*UAnimMontage* MontageToPlay = Weapon->GetChargeAttackMontage(CurrentComboIndex);
 
 	if (!MontageToPlay)
 	{
@@ -77,7 +77,7 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 	if (TargetChargeTime <= KINDA_SMALL_NUMBER)
 	{
 		TargetChargeTime = 1.f;
-	}
+	}*/
 	
 	ChargePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,

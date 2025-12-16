@@ -1,4 +1,5 @@
 #include "Weapons/KRWeaponInstance.h"
+/*
 #include "EnhancedInputSubsystems.h"
 #include "KRWeaponAttributeSet.h"
 #include "Equipment/KREquipmentDefinition.h"
@@ -377,3 +378,4 @@ void UKRWeaponInstance::BroadcastWeaponMessage(const EWeaponMessageAction Action
         Subsys.BroadcastMessage(FKRUIMessageTags::Weapon(), Payload);
     }
 }
+*/
