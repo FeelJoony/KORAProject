@@ -20,19 +20,19 @@ struct KORAPROJECT_API FTutorialDataStruct : public FTableRowBase, public ITable
 
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	// FName RowName;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ItemData)
 	FString PopupType;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ItemData)
 	float Duration;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ItemData)
 	bool PauseGame;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ItemData)
 	FName StringKey;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ItemData)
 	float OffsetX;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ItemData)
 	float OffsetY;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ItemData)
 	FName CompletionTrigger;
 
 	virtual uint32 GetKey() const override

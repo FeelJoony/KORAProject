@@ -24,31 +24,31 @@ struct KORAPROJECT_API FConsumeDataStruct : public FTableRowBase, public ITableK
 	{
 	}
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Key")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Key")
 	int32 Index;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effect")
 	TSoftClassPtr<UGameplayEffect> MainEffectClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effect")
 	EConsumableEffectType EffectType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effect")
 	float Power;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effect")
 	float Duration;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="StackMax")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="StackMax")
 	int32 StackMax;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cooldown")
 	float CooldownDuration;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cooldown")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cooldown")
 	FGameplayTag CooldownTag;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Tag")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Tag")
 	FGameplayTagContainer InUseTags;
 
 	virtual uint32 GetKey() const override

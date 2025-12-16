@@ -20,19 +20,19 @@ struct KORAPROJECT_API FShopItemDataStruct : public FTableRowBase, public ITable
 	{
 	}
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop Item")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop Item")
 	int32 Index;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop Item")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop Item")
 	FGameplayTag ItemTag;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop Item")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop Item")
 	FGameplayTag PoolTag;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop Item", meta = (ClampMin = "1"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop Item", meta = (ClampMin = "1"))
 	int32 StockBase = 1;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop Item", meta = (ClampMin = "0.0"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop Item", meta = (ClampMin = "0.0"))
 	float Weight = 1.0f;
 
 	virtual uint32 GetKey() const override

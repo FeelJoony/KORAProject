@@ -19,16 +19,16 @@ struct KORAPROJECT_API FCurrencyDataStruct  : public FTableRowBase, public ITabl
 	{
 	}
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Currency")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Currency")
 	int32 Index = 0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Currency")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Currency")
 	FName CurrencyID;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Currency")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Currency")
 	FGameplayTag CurrencyTag;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Currency")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Currency")
 	bool bLossRule;
 
 	virtual uint32 GetKey() const override

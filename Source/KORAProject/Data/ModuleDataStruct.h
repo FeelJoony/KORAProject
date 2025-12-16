@@ -10,12 +10,13 @@
 class UTexture2D;
 
 UENUM(BlueprintType)
-enum class EModeuleOp : uint8
+enum class EModuleSlotBit : uint8
 {
-	Add UMETA(DisplayName = "Add (+)"), //합
-	Multiply UMETA(DisplayName = "Multiply (%)"), //곱
-	Override UMETA(DisplayName = "Override (=)") //덮어쓰기
+	None = 0,
+	Sword = 1 << 0,
+	Gun = 1 << 1,
 };
+ENUM_CLASS_FLAGS(EModuleSlotBit)
 
 USTRUCT(BlueprintType)
 struct KORAPROJECT_API FModuleDataStruct : public FTableRowBase, public ITableKey
@@ -23,34 +24,28 @@ struct KORAPROJECT_API FModuleDataStruct : public FTableRowBase, public ITableKe
 	GENERATED_BODY()
 
 	FModuleDataStruct()
-		: Magnitude(0.0f)
-		, Operation(EModeuleOp::Add)
+		: GroupID(-1)
+		, ModuleItemTag(FGameplayTag())
+		, ModuleSlotBit(EModuleSlotBit::None)
+		, EquipAbilityID(-1)
 	{}
 
 public:
-	//--------Identity--------
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Identity")
-	FGameplayTag ItemTag;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Identity")
+	int32 GroupID;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Logic")
+	FGameplayTag ModuleItemTag;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Identity")
-	FName DisplayNameKey;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Logic")
+	EModuleSlotBit ModuleSlotBit;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Identity")
-	TSoftObjectPtr<UTexture2D> Icon;
-
-	//--------Logic--------
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logic")
-	FGameplayTag TargetStatTag;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logic")
-	float Magnitude;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logic")
-	EModeuleOp Operation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logic")
-	FGameplayTagContainer RequiredSlotTags;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Logic")
+	int32 EquipAbilityID;
 
 public:
-	virtual uint32 GetKey() const override { return GetTypeHash(ItemTag); }
+	virtual uint32 GetKey() const override
+	{
+		return GroupID;
+	}
 };

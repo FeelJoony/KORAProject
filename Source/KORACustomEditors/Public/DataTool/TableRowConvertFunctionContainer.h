@@ -23,9 +23,7 @@ class KORACUSTOMEDITORS_API UTableRowConvertFunctionContainer : public UObject
 	
 public:
 	UTableRowConvertFunctionContainer();
-
-	UFUNCTION()
-	void CreateSampleData(class UDataTable* OutDataTable, const FString& InCSVString);
+	
 	UFUNCTION()
 	void CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
@@ -33,21 +31,21 @@ public:
 	UFUNCTION()
 	void CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
-	void CreateWeaponData(class UDataTable* OutDataTable, const FString& InCSVString);
-	UFUNCTION()
 	void CreateWeaponEnhanceData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateTutorialData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateShopItemData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
-	void CreateEquipmentData(class UDataTable* OutDataTable, const FString& InCSVString);
-	UFUNCTION()
 	void CreateConsumeData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateCurrencyData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateEquipData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateEquipAbilityData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateModuleData(class UDataTable* OutDataTable, const FString& InCSVString);
 	
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);
