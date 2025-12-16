@@ -6,13 +6,7 @@
 #include "Data/EquipDataStruct.h"
 #include "KREquipmentDefinition.generated.h"
 
-class AActor;
-class UGameplayAbility;
 
-/**
- * Equipment Definition
- * 장착 시 생성될 Instance, 부여할 Ability, 스폰할 Actor 정의
- */
 UCLASS(Blueprintable, BlueprintType, Abstract)
 class KORAPROJECT_API UKREquipmentDefinition : public UObject
 {

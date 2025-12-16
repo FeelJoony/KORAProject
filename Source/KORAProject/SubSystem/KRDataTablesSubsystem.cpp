@@ -10,18 +10,18 @@ UKRDataTablesSubsystem::UKRDataTablesSubsystem()
 void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
-	AddDataTable(EGameDataType::SampleData, FString(TEXT("SampleData")));
+	
 	AddDataTable(EGameDataType::ItemData, FString(TEXT("ItemData")));
-	AddDataTable(EGameDataType::QuestData, FString(TEXT("QuestData")));
-	AddDataTable(EGameDataType::SubQuestData, FString(TEXT("SubQuestData")));
-	AddDataTable(EGameDataType::WeaponData, FString(TEXT("WeaponData")));
 	AddDataTable(EGameDataType::WeaponEnhanceData, FString(TEXT("WeaponEnhanceData")));
 	AddDataTable(EGameDataType::TutorialData, FString(TEXT("TutorialData")));
 	AddDataTable(EGameDataType::ShopItemData, FString(TEXT("ShopItemData")));
-	AddDataTable(EGameDataType::EquipmentData, FString(TEXT("EquipmentData")));
 	AddDataTable(EGameDataType::ConsumeData, FString(TEXT("ConsumeData")));
+	AddDataTable(EGameDataType::QuestData, FString(TEXT("QuestData")));
+	AddDataTable(EGameDataType::SubQuestData, FString(TEXT("SubQuestData")));
 	AddDataTable(EGameDataType::EquipData, FString(TEXT("EquipData")));
+	AddDataTable(EGameDataType::EquipAbilityData, FString(TEXT("EquipAbilityData")));
+	AddDataTable(EGameDataType::ModuleData, FString(TEXT("ModuleData")));
+	AddDataTable(EGameDataType::CurrencyData, FString(TEXT("CurrencyData")));
 }
 
 void UKRDataTablesSubsystem::Deinitialize()

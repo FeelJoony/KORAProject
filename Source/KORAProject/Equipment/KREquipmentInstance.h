@@ -3,20 +3,12 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "GameplayTagContainer.h"
-#include "KREquipmentDefinition.h"
+#include "Equipment/KREquipmentDefinition.h"
 #include "Data/EquipDataStruct.h"
 #include "KREquipmentInstance.generated.h"
 
 class UInventoryFragment_SetStats;
-class APawn;
-class AActor;
-struct FKREquipmentActorToSpawn;
-struct FEquipmentDataStruct;
 
-/**
- * Equipment Instance Base
- * 모든 장비의 기본 클래스 (무기, 방어구 등)
- */
 UCLASS(Blueprintable, BlueprintType)
 class KORAPROJECT_API UKREquipmentInstance : public UObject
 {

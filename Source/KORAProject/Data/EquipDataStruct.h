@@ -16,8 +16,7 @@ struct KORAPROJECT_API FEquipDataStruct : public FTableRowBase, public ITableKey
 		, SlotTag(FGameplayTag::EmptyTag)
 		, EquipmentMesh(nullptr)
 		, OverrideMaterials({})
-		, CompatibleModuleSlots(0)
-		, DefaultModuleTags({})
+		, ModuleSlotTag(FGameplayTag())
 	{
 	}
 
@@ -25,10 +24,10 @@ struct KORAPROJECT_API FEquipDataStruct : public FTableRowBase, public ITableKey
 	int32 GroupID;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equip)
-	FGameplayTag SlotTag;
+	FGameplayTag EquipItemTag;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equip)
-	FGameplayTag EquipItemTag;
+	FGameplayTag SlotTag;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equip)
 	TSoftObjectPtr<UStaticMesh> EquipmentMesh;
@@ -37,10 +36,10 @@ struct KORAPROJECT_API FEquipDataStruct : public FTableRowBase, public ITableKey
 	TArray<TSoftObjectPtr<UMaterialInterface>> OverrideMaterials;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equip)
-	uint8 CompatibleModuleSlots;
+	FGameplayTag ModuleSlotTag;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equip)
-	TArray<FGameplayTag> DefaultModuleTags;
+	int32 EquipAbilityID;
 
 	virtual uint32 GetKey() const override { return GroupID; }
 };
