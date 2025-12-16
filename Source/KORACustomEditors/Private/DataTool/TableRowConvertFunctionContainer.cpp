@@ -563,8 +563,7 @@ void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDat
 				int32 SlotTag_Index = GetHeaderIndex(Headers, TEXT("SlotTag"));
 				int32 EquipmentMesh_Index = GetHeaderIndex(Headers, TEXT("EquipmentMesh"));
 				int32 OverrideMaterials_Index = GetHeaderIndex(Headers, TEXT("OverrideMaterials"));
-				int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("CompatibleModuleSlots"));
-				int32 DefaultModuleTags_Index = GetHeaderIndex(Headers, TEXT("DefaultModuleTags"));
+				int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("ModuleSlotTag"));
 				int32 EquipAbilityID_Index = GetHeaderIndex(Headers, TEXT("EquipAbilityID"));
 
 				FEquipDataStruct EquipData;
@@ -585,19 +584,7 @@ void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDat
 					EquipData.OverrideMaterials.Add(ParseSoftObjectValue<UMaterialInterface>(MaterialValueString));
 				}
 
-				EquipData.CompatibleModuleSlots = ParseIntValue(RowValue[CompatibleModuleSlots_Index]);
-				
-				TArray<FString> ModuleTagValueStrings = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
-				for (const FString& ModuleTagValueString : ModuleTagValueStrings)
-				{
-					if (ModuleTagValueString == TEXT("-1"))
-					{
-						break;
-					}
-					
-					EquipData.DefaultModuleTags.Add(ParseGameplayTagValue(ModuleTagValueString));
-				}
-
+				EquipData.ModuleSlotTag = ParseGameplayTagValue(RowValue[CompatibleModuleSlots_Index]);
 				EquipData.EquipAbilityID = ParseIntValue(RowValue[EquipAbilityID_Index]);
 
 				FName RowName = *FString::Printf(TEXT("Equip_%d"), i);
@@ -681,14 +668,14 @@ void UTableRowConvertFunctionContainer::CreateModuleData(class UDataTable* OutDa
 
 				int32 GroupID_Index = GetHeaderIndex(Headers, TEXT("GroupID"));
 				int32 ModuleItemTag_Index = GetHeaderIndex(Headers, TEXT("ModuleItemTag"));
-				int32 ModuleSlotBit_Index = GetHeaderIndex(Headers, TEXT("ModuleSlotBit"));
+				int32 ModuleSlotTag_Index = GetHeaderIndex(Headers, TEXT("SlotTag"));
 				int32 EquipAbilityID_Index = GetHeaderIndex(Headers, TEXT("EquipAbilityID"));
 
 
 				FModuleDataStruct ModuleData;;
 				ModuleData.GroupID = ParseIntValue(RowValue[GroupID_Index]);
 				ModuleData.ModuleItemTag = ParseGameplayTagValue(RowValue[ModuleItemTag_Index]);
-				ModuleData.ModuleSlotBit = static_cast<EModuleSlotBit>(static_cast<uint8>(ParseIntValue(RowValue[ModuleSlotBit_Index])));
+				ModuleData.SlotTag = ParseGameplayTagValue(RowValue[ModuleSlotTag_Index]);
 				ModuleData.EquipAbilityID = ParseIntValue(RowValue[EquipAbilityID_Index]);
 				
 				FName RowName = *FString::Printf(TEXT("Module_%d"), i);

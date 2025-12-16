@@ -9,15 +9,6 @@
 
 class UTexture2D;
 
-UENUM(BlueprintType)
-enum class EModuleSlotBit : uint8
-{
-	None = 0,
-	Sword = 1 << 0,
-	Gun = 1 << 1,
-};
-ENUM_CLASS_FLAGS(EModuleSlotBit)
-
 USTRUCT(BlueprintType)
 struct KORAPROJECT_API FModuleDataStruct : public FTableRowBase, public ITableKey
 {
@@ -26,7 +17,7 @@ struct KORAPROJECT_API FModuleDataStruct : public FTableRowBase, public ITableKe
 	FModuleDataStruct()
 		: GroupID(-1)
 		, ModuleItemTag(FGameplayTag())
-		, ModuleSlotBit(EModuleSlotBit::None)
+		, SlotTag(FGameplayTag())
 		, EquipAbilityID(-1)
 	{}
 
@@ -38,7 +29,7 @@ public:
 	FGameplayTag ModuleItemTag;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Logic")
-	EModuleSlotBit ModuleSlotBit;
+	FGameplayTag SlotTag;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Logic")
 	int32 EquipAbilityID;
