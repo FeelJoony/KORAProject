@@ -19,6 +19,7 @@ class KORAPROJECT_API UKRWeaponInstance : public UKREquipmentInstance
 {
     GENERATED_BODY()
 
+    /*
 public:
     UKRWeaponInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
@@ -141,5 +142,6 @@ public:
     void PlayEquipVFX();
     void PlayUnequipVFX();
 
-    void BroadcastWeaponMessage(const EWeaponMessageAction Action);
+    void BroadcastWeaponMessage(const EWeaponMessageAction Action);#1#
+*/
 };

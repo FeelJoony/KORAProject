@@ -3,70 +3,62 @@
 #include "KREquipmentInstance.h"
 #include "Weapons/KRWeaponInstance.h"
 #include "AbilitySystemComponent.h"
-#include "Abilities/GameplayAbility.h"
+#include "EnhancedInputSubsystems.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "Inventory/KRInventoryItemInstance.h"
-#include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
 #include "SubSystem/KRDataTablesSubsystem.h"
-#include "Data/EquipmentDataStruct.h"
-#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
+#include "GameplayTag/KRItemTypeTag.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
+#include "Item/Weapons/KRRangeWeapon.h"
+#include "GAS/Abilities/KRGameplayAbility.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
-FKRAppliedEquipmentEntry* FKREquipmentList::AddEntry(TSubclassOf<UKREquipmentDefinition> InEquipmentDefinition)
-{
-	check(InEquipmentDefinition != nullptr);
- 	check(OwnerComponent);
-	
-	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(InEquipmentDefinition);
+DEFINE_LOG_CATEGORY(LogEquipmentManagerComponent);
 
-	TSubclassOf<UKREquipmentInstance> InstanceType = EquipmentCDO->InstanceType;
-	if (InstanceType == nullptr)
-	{
-		InstanceType = UKREquipmentInstance::StaticClass();
-	}
-	
-	FKRAppliedEquipmentEntry& NewEntry = Entries.AddDefaulted_GetRef();
-	NewEntry.EquipmentDefinition = InEquipmentDefinition;
-	NewEntry.Instance = NewObject<UKREquipmentInstance>(OwnerComponent->GetOwner(), InstanceType);
-	
-	return &NewEntry;
+static FKRAppliedEquipmentEntry Invalid_Entry = FKRAppliedEquipmentEntry();
+
+bool FKRAppliedEquipmentEntry::IsValid() const
+{
+	return TypeTag.IsValid();
 }
 
-void FKREquipmentList::RemoveEntry(UKREquipmentInstance* InInstance)
+FKRAppliedEquipmentEntry& FKREquipmentList::FindEntryByItemTag(FGameplayTag InTypeTag)
 {
-	for (auto EntryIt = Entries.CreateIterator(); EntryIt; ++EntryIt)
+	for (FKRAppliedEquipmentEntry& Entry : Entries)
 	{
-		FKRAppliedEquipmentEntry& Entry = *EntryIt;
-		if (Entry.Instance == InInstance)
+		if (Entry.TypeTag == InTypeTag)
 		{
-			EntryIt.RemoveCurrent();
-			return;
+			return Entry;
 		}
 	}
+
+	UE_LOG(LogEquipmentManagerComponent, Error, TEXT("Invalid ItemTag: %s"), *InTypeTag.ToString());
+
+	return Invalid_Entry;
 }
 
-FKRAppliedEquipmentEntry* FKREquipmentList::FindEntryByInstance(UKREquipmentInstance* InInstance)
+const FKRAppliedEquipmentEntry& FKREquipmentList::FindEntryByItemTag(FGameplayTag InTypeTag) const
 {
-	if (InInstance)
+	for (const FKRAppliedEquipmentEntry& Entry : Entries)
 	{
-		for (FKRAppliedEquipmentEntry& Entry : Entries)
+		if (Entry.TypeTag == InTypeTag)
 		{
-			if (Entry.Instance == InInstance)
-			{
-				return &Entry;
-			}
+			return Entry;
 		}
 	}
-	return nullptr;
-}
 
+	UE_LOG(LogEquipmentManagerComponent, Error, TEXT("Invalid ItemTag: %s"), *InTypeTag.ToString());
+
+	return Invalid_Entry;
+}
 
 UKREquipmentManagerComponent::UKREquipmentManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
-	, EquipmentList(this)
 {
 	bWantsInitializeComponent = true;
 }
@@ -81,274 +73,303 @@ UAbilitySystemComponent* UKREquipmentManagerComponent::GetAbilitySystemComponent
 			return ASI->GetAbilitySystemComponent();
 		}
 	}
+	
 	return nullptr;
 }
 
-UKREquipmentInstance* UKREquipmentManagerComponent::EquipItem(TSubclassOf<UKREquipmentDefinition> InEquipmentDefinition)
+void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInstance)
 {
-	if (InEquipmentDefinition == nullptr)
+	if (ItemInstance == nullptr)
 	{
-		return nullptr;
+		return;
 	}
 
-	const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(InEquipmentDefinition);
-
-	const FGameplayTag SlotTagToOccupy = EquipmentCDO->EquipmentSlotTag;
-
-	// 충돌나서 ! 변경
-	if (!SlotTagToOccupy.IsValid())
+	const UInventoryFragment_EquippableItem* EquippableFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_EquippableItem>();
+	if (EquippableFragment == nullptr)
 	{
-		TArray<UKREquipmentInstance*> OldInstancesToUnequip;
-
-		if (UKREquipmentInstance* OldInstance = EquippedSlotsMap.FindRef(SlotTagToOccupy))
-		{
-			OldInstancesToUnequip.AddUnique(OldInstance);
-		}
-
-		for (UKREquipmentInstance* OldInstance : OldInstancesToUnequip)
-		{
-			UnequipItem(OldInstance);
-		}
-	}
-
-	FKRAppliedEquipmentEntry* NewEntry = EquipmentList.AddEntry(InEquipmentDefinition);
-	UKREquipmentInstance* NewInstance = NewEntry->Instance;
-	
-	if (NewInstance != nullptr)
-	{
-		NewInstance->OnEquipped(EquipmentCDO->ActorsToSpawn);
+		UE_LOG(LogEquipmentManagerComponent, Error, TEXT("This Item not equippable"));
 		
-		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
-		{
-			const TArray<TSubclassOf<UGameplayAbility>>& AbilitiesToGrant = EquipmentCDO->AbilitiesToGrant;
+		return;
+	}
 	
-			for (const TSubclassOf<UGameplayAbility>& AbilityClass : AbilitiesToGrant)
+	const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
+	
+	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
+	const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
+	if (!Entry.IsValid())
+	{
+		return;
+	}
+	
+	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
+	APlayerController* PC = CastChecked<APlayerController>(Character->GetController());
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+
+	// GrantAbilities
+	if (ASC)
+	{
+		GrantedHandles.TakeFromAbilitySystem(ASC);
+		for (const FKRAbilitySet_GameplayAbility& AbilityInfo : Entry.GrantedAbilities)
+		{
+			if (!AbilityInfo.Ability)
 			{
-				if (AbilityClass)
+				continue;
+			}
+
+			FGameplayAbilitySpec AbilitySpec(AbilityInfo.Ability, AbilityInfo.AbilityLevel, -1, this);
+
+			if (AbilityInfo.InputTag.IsValid())
+			{
+				AbilitySpec.GetDynamicSpecSourceTags().AddTag(AbilityInfo.InputTag);
+			}
+
+			FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(AbilitySpec);
+			GrantedHandles.AddAbilitySpecHandle(Handle);
+		}
+	}
+
+	// Apply Anim Layer
+	if (Entry.EquipAnimLayer)
+	{
+		Character->GetMesh()->LinkAnimClassLayers(Entry.EquipAnimLayer);
+	}
+
+	// Add Input Context
+	if (PC && Entry.EquipIMC)
+	{
+		if (const ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PC->Player))
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+			{
+				Subsystem->RemoveMappingContext(Entry.EquipIMC);
+				Subsystem->AddMappingContext(Entry.EquipIMC, Entry.InputPriority);
+			}
+		}
+	}
+	
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
+	{
+		MeleeActorInstance->ConfigureWeapon(EquippableFragment, SetStatFragment);
+		MeleeActorInstance->SetWeaponVisibility(true);
+		MeleeActorInstance->PlayEquipEffect();
+	}
+
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	{
+		RangeActorInstance->ConfigureWeapon(EquippableFragment, SetStatFragment);
+		RangeActorInstance->SetWeaponVisibility(true);
+		RangeActorInstance->PlayEquipEffect();
+	}
+
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_COSTUME))
+	{
+		if (USkeletalMeshComponent* SKMeshComp = Character->GetMesh())
+		{
+			static FName CostumeSlotName1 = FName("MAT_CB_DRESS1");
+			static FName CostumeSlotName2 = FName("MAT_CB_SHOES");
+			static FName CostumeSlotName3 = FName("MAT_CB_ARM");
+				
+			int32 CostumeIndex1 = SKMeshComp->GetMaterialIndex(CostumeSlotName1);
+			int32 CostumeIndex2 = SKMeshComp->GetMaterialIndex(CostumeSlotName2);
+			int32 CostumeIndex3 = SKMeshComp->GetMaterialIndex(CostumeSlotName3);
+
+			if (UKREquipmentInstance* Instance = EquippableFragment->GetEquipInstance())
+			{
+				if (const UKREquipmentDefinition* Definition = Instance->GetDefinition())
 				{
-					FGameplayAbilitySpec AbilitySpec(AbilityClass, 1, -1, NewInstance);
-					FGameplayAbilitySpecHandle AbilityHandle = ASC->GiveAbility(AbilitySpec);
-					NewEntry->GrantedAbilityHandles.Add(AbilityHandle);
+					if (const FEquipDataStruct* EquipDataStruct = Definition->GetEquipDataStruct())
+					{
+						SKMeshComp->SetMaterial(CostumeIndex1, EquipDataStruct->OverrideMaterials[0].LoadSynchronous());
+						SKMeshComp->SetMaterial(CostumeIndex2, EquipDataStruct->OverrideMaterials[1].LoadSynchronous());
+						SKMeshComp->SetMaterial(CostumeIndex3, EquipDataStruct->OverrideMaterials[2].LoadSynchronous());
+					}
 				}
 			}
 		}
-		
-		EquippedSlotsMap.Add(SlotTagToOccupy, NewInstance);
 	}
-	
-	return NewInstance;
-}
 
-UKREquipmentInstance* UKREquipmentManagerComponent::EquipFromInventory(UKRInventoryItemInstance* ItemInstance)
-{
-    if (!ItemInstance)
-    {
-        UE_LOG(LogTemp, Error, TEXT("[Equipment] Invalid ItemInstance"));
-        return nullptr;
-    }
-
-    const UKRInventoryItemDefinition* ItemDef = ItemInstance->GetItemDef();
-    if (!ItemDef)
-    {
-        UE_LOG(LogTemp, Error, TEXT("[Equipment] No ItemDefinition"));
-        return nullptr;
-    }
-
-    // --------------------------------------------
-    // 1. Equippable Fragment 가져오기
-    // --------------------------------------------
-    const UInventoryFragment_EquippableItem* EquipFragment =
-        ItemDef->FindFragmentByTag<UInventoryFragment_EquippableItem>(
-            FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"));
-
-    if (!EquipFragment || !EquipFragment->EquipmentDefinition)
-    {
-        UE_LOG(LogTemp, Error, TEXT("[Equipment] Not Equipable Item."));
-        return nullptr;
-    }
-    // --------------------------------------------
-    // 2. Equipment Definition 기반 장착 진행
-    //    (Lyra 기반 EquipItem 사용)
-    // --------------------------------------------
-    UKREquipmentInstance* NewEquipInstance = EquipItem(EquipFragment->EquipmentDefinition);
-    if (!NewEquipInstance)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[Equipment] Equip failed"));
-        return nullptr;
-    }
-
-    // --------------------------------------------
-    // 3. Stats Fragment 적용
-    // --------------------------------------------
-    const UInventoryFragment_SetStats* StatsFragment =
-        ItemDef->FindFragmentByTag<UInventoryFragment_SetStats>(
-            FGameplayTag::RequestGameplayTag("Ability.Item.SetStat"));
-
-    if (StatsFragment)
-    {
-        NewEquipInstance->InitializeStats(StatsFragment);
-    }
-
-    // --------------------------------------------
-    // 4. 강화 Fragment 적용
-    // --------------------------------------------
-    const UInventoryFragment_EnhanceableItem* EnhanceFragment =
-        ItemDef->FindFragmentByTag<UInventoryFragment_EnhanceableItem>(
-            FGameplayTag::RequestGameplayTag("Fragment.Item.Enhanceable"));
-
-    if (EnhanceFragment)
-    {
-        NewEquipInstance->ApplyEnhanceLevel(EnhanceFragment->EnhanceLevel);
-    }
-
-    // --------------------------------------------
-    // 5. 무기일 경우 WeaponInstance 전용 초기화 실행
-    // --------------------------------------------
-    if (UKRWeaponInstance* WeaponInst = Cast<UKRWeaponInstance>(NewEquipInstance))
-    {
-    	WeaponInst->InitializeFromItem(ItemInstance);
-        // Actor Spawn
-        const UKREquipmentDefinition* EquipDefCDO = EquipFragment->EquipmentDefinition->GetDefaultObject<UKREquipmentDefinition>();
-        WeaponInst->SpawnEquipmentActors(EquipDefCDO->ActorsToSpawn);
-    }
-
-    return NewEquipInstance;
-}
-
-void UKREquipmentManagerComponent::UnequipItem(UKREquipmentInstance* InItemInstance)
-{
-	if (InItemInstance == nullptr)
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_HEAD))
 	{
-		return;
-	}
-	
-	FKRAppliedEquipmentEntry* Entry = EquipmentList.FindEntryByInstance(InItemInstance);
-	if (Entry == nullptr)
-	{
-		return;
-	}
-	
-	// const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
-	// const UKREquipmentDefinition* EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
-
-	// 디버깅을 위해 잠시 Definition이 있을 때만 CDO를 가져오도록 변경
-	const TSubclassOf<UKREquipmentDefinition> EquipmentDefClass = Entry->EquipmentDefinition;
-	const UKREquipmentDefinition* EquipmentCDO = nullptr;
-
-	if (EquipmentDefClass)
-	{
-		EquipmentCDO = GetDefault<UKREquipmentDefinition>(EquipmentDefClass);
-	}
-	
-	InItemInstance->OnUnequipped();
-	
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
-	{
-		for (const FGameplayAbilitySpecHandle& AbilityHandle : Entry->GrantedAbilityHandles)
+		if (USkeletalMeshComponent* SKMeshComp = Character->GetMesh())
 		{
-			ASC->ClearAbility(AbilityHandle);
-		}
-		Entry->GrantedAbilityHandles.Empty();
-	}
+			static FName HeadSlotName = FName("MAT_CB_EARS_SOC");
+				
+			int32 HeadIndex = SKMeshComp->GetMaterialIndex(HeadSlotName);
 
-	if (EquipmentCDO)
-	{
-		const FGameplayTag& SlotTag = EquipmentCDO->EquipmentSlotTag;
-		
-		if (EquippedSlotsMap.FindRef(SlotTag) == InItemInstance)
-		{
-			EquippedSlotsMap.Remove(SlotTag);
+			if (UKREquipmentInstance* Instance = EquippableFragment->GetEquipInstance())
+			{
+				if (const UKREquipmentDefinition* Definition = Instance->GetDefinition())
+				{
+					if (const FEquipDataStruct* EquipDataStruct = Definition->GetEquipDataStruct())
+					{
+						SKMeshComp->SetMaterial(HeadIndex, EquipDataStruct->OverrideMaterials[0].LoadSynchronous());
+					}
+				}
+			}
 		}
 	}
 
-	EquipmentList.RemoveEntry(InItemInstance);
+	//BroadcastWeaponMessage();
+}
+
+void UKREquipmentManagerComponent::UnequipItem(UKRInventoryItemInstance* ItemInstance)
+{
+	if (ItemInstance == nullptr)
+	{
+		return;
+	}
+
+	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
+	const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
+	if (!Entry.IsValid())
+	{
+		return;
+	}
+
+	// Remove Abilities
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	GrantedHandles.TakeFromAbilitySystem(ASC);
+
+	// Remove Anim Layer
+	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
+	if (Character && Entry.EquipAnimLayer)
+	{
+		Character->GetMesh()->UnlinkAnimClassLayers(Entry.EquipAnimLayer);
+	}
+
+	// Remove Input Context
+	APlayerController* PC = CastChecked<APlayerController>(Character->GetController());
+	if (PC && Entry.EquipIMC)
+	{
+		if (const ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PC->Player))
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+			{
+				Subsystem->RemoveMappingContext(Entry.EquipIMC);
+			}
+		}
+	}
+
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
+	{
+		MeleeActorInstance->PlayUnequipEffect();
+	}
+
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	{
+		RangeActorInstance->PlayUnequipEffect();
+	}
+}
+
+const FKRAppliedEquipmentEntry& UKREquipmentManagerComponent::FindEntryByTag(const FGameplayTag& ItemTag) const
+{
+	for (const auto& EntryListPair : EquipSlotTagToEquipmentListMap)
+	{
+		if (EntryListPair.Key.MatchesTag(ItemTag))
+		{
+			const FKREquipmentList& EquipmentList = EntryListPair.Value;
+			const FKRAppliedEquipmentEntry& Entry = EquipmentList.FindEntryByItemTag(ItemTag);
+
+			return Entry;
+		}
+	}
+
+	return Invalid_Entry;
+}
+
+UKRInventoryItemInstance* UKREquipmentManagerComponent::GetEquippedItemInstanceBySlotTag(
+	const FGameplayTag& SlotTag) const
+{
+	const FKREquipmentList* EquipmentList = EquipSlotTagToEquipmentListMap.Find(SlotTag);
+	if (!EquipmentList)
+	{
+		return nullptr;
+	}
+	
+	for (const FKRAppliedEquipmentEntry& Entry : EquipmentList->Entries)
+	{
+		if (Entry.IsValid() && Entry.ItemInstance)
+		{
+			return Entry.ItemInstance;
+		}
+	}
+
+	return nullptr;
 }
 
 void UKREquipmentManagerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+	//AddEquip();
 }
 
 void UKREquipmentManagerComponent::UninitializeComponent()
 {
-	TArray<UKREquipmentInstance*> AllEquipmentInstances;
-	
-	for (const FKRAppliedEquipmentEntry& Entry : EquipmentList.Entries)
-	{
-		AllEquipmentInstances.Add(Entry.Instance);
-	}
-
-	for (UKREquipmentInstance* EquipInstance : AllEquipmentInstances)
-	{
-		UnequipItem(EquipInstance);
-	}
-
 	Super::UninitializeComponent();
 }
 
-UKREquipmentInstance* UKREquipmentManagerComponent::GetFirstInstanceOfType(TSubclassOf<UKREquipmentInstance> InstanceType) const
+void UKREquipmentManagerComponent::AddEquip(UKRInventoryItemInstance* ItemInstance)
 {
-	for (const FKRAppliedEquipmentEntry& Entry : EquipmentList.Entries)
+	for (auto& EquipSlot : EquipSlotTagToEquipmentListMap)
 	{
-		if (UKREquipmentInstance* Instance = Entry.Instance)
+		if (EquipSlot.Key.MatchesTag(ItemInstance->GetItemTag()))
 		{
-			if (Instance->IsA(InstanceType))
+			if (UKRInventoryItemDefinition* ItemDefinition = ItemInstance->GetItemDef())
 			{
-				return Instance;
+				if (UInventoryFragment_EquippableItem* EquippableFragment
+					= Cast<UInventoryFragment_EquippableItem>(ItemDefinition->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_EQUIPPABLE)))
+				{
+					UKREquipmentInstance* NewEquipInstance = NewObject<UKREquipmentInstance>(this);
+					const FEquipDataStruct* EquipDataStruct = UKRDataTablesSubsystem::Get(this).GetData<FEquipDataStruct>(EGameDataType::EquipData, ItemInstance->GetItemTag());
+
+					NewEquipInstance->InitializeFromData(EquipDataStruct);
+
+					EquippableFragment->SetEquipInstance(NewEquipInstance);
+				}
 			}
+
+			break;
 		}
 	}
-
-	return nullptr;
 }
 
-TArray<UKREquipmentInstance*> UKREquipmentManagerComponent::GetEquipmentInstancesOfType(TSubclassOf<UKREquipmentInstance> InstanceType) const
+void UKREquipmentManagerComponent::SpawnActorInstances()
 {
-	TArray<UKREquipmentInstance*> Results;
-	for (const FKRAppliedEquipmentEntry& Entry : EquipmentList.Entries)
+	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
+	
+	if (MeleeActorClass)
 	{
-		if (UKREquipmentInstance* Instance = Entry.Instance)
+		AKRMeleeWeapon* MeleeActor = GetWorld()->SpawnActorDeferred<AKRMeleeWeapon>(MeleeActorClass, FTransform::Identity, GetOwner(), Character, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		if (MeleeActor)
 		{
-			if (Instance->IsA(InstanceType))
+			if (false == MeleeSocketName.IsNone())
 			{
-				Results.Add(Instance);
+				MeleeActor->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, MeleeSocketName);
+				MeleeActor->SetActorRelativeTransform(MeleeAttachTransform);
+
+				MeleeActorInstance = MeleeActor;
 			}
+			
+			MeleeActor->FinishSpawning(FTransform::Identity, true);
 		}
 	}
-	return Results;
-}
 
-// --------Debug--------
-
-void UKREquipmentManagerComponent::Debug_TestEquip(FGameplayTag InItemTag)
-{
-	if (!InItemTag.IsValid()) return;
-	
-	UKREquipmentInstance* NewInstance = NewObject<UKREquipmentInstance>(GetOwner(), UKREquipmentInstance::StaticClass());
-	
-	UGameInstance* GameInst = UGameplayStatics::GetGameInstance(this);
-	UKRDataTablesSubsystem* DataSubsystem = GameInst ? GameInst->GetSubsystem<UKRDataTablesSubsystem>() : nullptr;
-
-	if (DataSubsystem)
+	if (RangeActorClass)
 	{
-		const FEquipmentDataStruct* EquipmentData = DataSubsystem->GetData<FEquipmentDataStruct>(EGameDataType::EquipmentData, InItemTag);
-
-		if (EquipmentData)
+		AKRRangeWeapon* RangeActor = GetWorld()->SpawnActorDeferred<AKRRangeWeapon>(RangeActorClass, FTransform::Identity, GetOwner(), Character, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		if (RangeActor)
 		{
-			NewInstance->InitializeFromData(*EquipmentData);
-			
-			TArray<FKREquipmentActorToSpawn> DummySpawnInfo; 
-			NewInstance->OnEquipped(DummySpawnInfo); 
-			
-			FKRAppliedEquipmentEntry& Entry = EquipmentList.Entries.AddDefaulted_GetRef();
-			Entry.EquipmentDefinition = nullptr;
-			Entry.Instance = NewInstance;
+			if (false == RangeSocketName.IsNone())
+			{
+				RangeActor->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RangeSocketName);
+				RangeActor->SetActorRelativeTransform(RangeAttachTransform);
 
-			UE_LOG(LogTemp, Log, TEXT("[Debug] SUCCESS: Data Loaded & Equipped for Tag: %s"), *InItemTag.ToString());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("[Debug] FAIL: Data Not Found for Tag: %s"), *InItemTag.ToString());
+				RangeActorInstance = RangeActor;
+			}
+			
+			RangeActor->FinishSpawning(FTransform::Identity, true);
 		}
 	}
 }
+

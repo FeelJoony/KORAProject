@@ -1,6 +1,5 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_EnterCombat.h"
 #include "Equipment/KREquipmentManagerComponent.h"
-#include "Weapons/KRWeaponInstance.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Characters/KRBaseCharacter.h"
 #include "Player/KRPlayerController.h"
@@ -30,7 +29,7 @@ void UKRGA_EnterCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	FGameplayTag SwordTag = FGameplayTag::RequestGameplayTag("ItemType.Equip.Sword");
 	FGameplayTag GunTag = FGameplayTag::RequestGameplayTag("ItemType.Equip.Gun");
 
-	UKRWeaponInstance* SwordInst = nullptr;
+	/*UKRWeaponInstance* SwordInst = nullptr;
 	UKRWeaponInstance* GunInst = nullptr;
 
 	TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
@@ -57,7 +56,7 @@ void UKRGA_EnterCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	if (GunInst)
 	{
 		GunInst->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, false);
-	}
+	}*/
 	
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
 	KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);

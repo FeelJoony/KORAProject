@@ -6,12 +6,6 @@
 #include "GAS/AbilitySet/KRAbilitySet.h"
 #include "KRWeaponDefinition.generated.h"
 
-class UInputMappingContext;
-class UKRInventoryItemDefinition;
-class UKREquipmentDefinition;
-class UKRWeaponInstance;
-struct FWeaponDataStruct;
-struct FWeaponEnhanceDataStruct;
 
 /**
  * 무기 Definition (Melee / Range 공통)
@@ -21,34 +15,34 @@ class KORAPROJECT_API UKRWeaponDefinition : public UPrimaryDataAsset
 {
     GENERATED_BODY()
 
-public:
+/*public:
     UKRWeaponDefinition();
 
-    /** 무기 고유 ID (DataTable row) */
+    /** 무기 고유 ID (DataTable row) #1#
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
     FName WeaponID;
 
-    /** 무기 타입 (ex. Weapon.Type.Melee, Weapon.Type.Range) */
+    /** 무기 타입 (ex. Weapon.Type.Melee, Weapon.Type.Range) #1#
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
     FGameplayTag WeaponTypeTag;
 
-    /** 인스턴스 클래스 (ex. UKRMeleeWeaponInstance, UKRRangeWeaponInstance) */
+    /** 인스턴스 클래스 (ex. UKRMeleeWeaponInstance, UKRRangeWeaponInstance) #1#
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
     TSubclassOf<UKRWeaponInstance> WeaponInstanceClass;
 
-    /** 무기 Actor 클래스 (ex. AKRMeleeWeapon, AKRRangeWeapon) */
+    /** 무기 Actor 클래스 (ex. AKRMeleeWeapon, AKRRangeWeapon) #1#
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
     TSubclassOf<AActor> WeaponActorClass;
 
-    /** 장착 시스템 정보 */
+    /** 장착 시스템 정보 #1#
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
     TSubclassOf<UKREquipmentDefinition> EquipmentDefinition;
 
-    /** 장착 소켓 이름 (예: WeaponSocket) */
+    /** 장착 소켓 이름 (예: WeaponSocket) #1#
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
     FName AttachSocketName = "WeaponSocket";
 
-    /** 액터 스폰 위치/회전 보정값 */
+    /** 액터 스폰 위치/회전 보정값 #1#
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
     FTransform AttachTransform;
     
@@ -70,9 +64,9 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
     TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages;
     
-    /** 인벤토리 아이템 정의 생성 */
+    /** 인벤토리 아이템 정의 생성 #1#
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     UKRInventoryItemDefinition* CreateInventoryItemDefinition(const FWeaponDataStruct& WeaponData, const FWeaponEnhanceDataStruct& WeaponEnhanceData);
     
-    void AutoAssignAllClasses();
+    void AutoAssignAllClasses();*/
 };

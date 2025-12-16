@@ -19,7 +19,7 @@ UCLASS()
 class KORAPROJECT_API UKRWeaponAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
-
+/*
 public:
 	//UKRWeaponAttributeSet();
 
@@ -42,4 +42,5 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	FGameplayAttributeData AttackSpeed;
 	ATTRIBUTE_ACCESSORS(UKRWeaponAttributeSet, AttackSpeed)
+	*/
 };

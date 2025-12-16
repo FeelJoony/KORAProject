@@ -3,8 +3,11 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "GameplayTagContainer.h"
+#include "KREquipmentDefinition.h"
+#include "Data/EquipDataStruct.h"
 #include "KREquipmentInstance.generated.h"
 
+class UInventoryFragment_SetStats;
 class APawn;
 class AActor;
 struct FKREquipmentActorToSpawn;
@@ -21,66 +24,25 @@ class KORAPROJECT_API UKREquipmentInstance : public UObject
 
 public:
 	UKREquipmentInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	virtual UWorld* GetWorld() const override final;
-
+	
 	// Instigator (장착한 주체)
 	UFUNCTION(BlueprintPure, Category = Equipment)
 	UObject* GetInstigator() const { return Instigator; }
 
 	void SetInstigator(UObject* InInstigator) { Instigator = InInstigator; }
-
-	UFUNCTION(BlueprintPure, Category = Equipment)
-	APawn* GetPawn() const;
-
-	UFUNCTION(BlueprintPure, Category = Equipment)
-	APawn* GetTypedPawn(TSubclassOf<APawn> PawnType) const;
-
-	virtual void InitializeFromData(const FEquipmentDataStruct& InData);
-
-	UFUNCTION()
+	
+	virtual void InitializeFromData(const struct FEquipDataStruct* InData);
 	virtual void InitializeStats(const UInventoryFragment_SetStats* Stats) {}
 
-	UFUNCTION()
-	virtual void ApplyEnhanceLevel(int32 Level) {}
-	
-	// 장착된 Actor들
-	UFUNCTION(BlueprintPure, Category = Equipment)
-	TArray<AActor*> GetSpawnedActors() const { return SpawnedActors; }
+	bool operator==(const UKREquipmentInstance& Other) const { return Definition->GetEquipDataStruct()->EquipItemTag == Other.Definition->GetEquipDataStruct()->EquipItemTag; }
+	bool operator==(const FGameplayTag& Other) const { return Definition->GetEquipDataStruct()->EquipItemTag == Other; }
 
-	// Actor 스폰/제거
-	virtual void SpawnEquipmentActors(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn);
-	virtual void DestroyEquipmentActors();
-
-	// 장착/해제 이벤트
-	virtual void OnEquipped(const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn);
-	virtual void OnUnequipped();
+	FORCEINLINE const UKREquipmentDefinition* GetDefinition() const { return Definition; }
 
 protected:
 	UPROPERTY()
 	TObjectPtr<UObject> Instigator;
 
-	UPROPERTY()
-	TArray<TObjectPtr<AActor>> SpawnedActors;
-
-	//--------Config--------
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config")
-	FGameplayTag ItemTag;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config")
-	FGameplayTagContainer CompatibleModuleSlots;
-
-	//--------Visuals--------
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Visuals")
-	TSoftObjectPtr<UStreamableRenderAsset> CachedMeshAsset;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
-	FName AttachSocketName;
-
-private:
-	class UMeshComponent* CreateMeshComponent(AActor* InOwnerActor, UStreamableRenderAsset* InMeshAsset);
-
-	void SpawnFromDefinition(APawn* InPawn, USceneComponent* InAttachTarget, const TArray<FKREquipmentActorToSpawn>& ActorsToSpawn);
-	
-	void SpawnFromDataTable(APawn* InPawn, USceneComponent* InAttachTarget);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Definition")
+	TObjectPtr<class UKREquipmentDefinition> Definition;
 };

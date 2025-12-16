@@ -103,17 +103,15 @@ struct FKRInventoryList
 
 	void SetOwnerContext(UObject* InOwner) { OwnerContext = InOwner; }
 	
-	FKRInventoryEntry* CreateItem(FGameplayTag InTag);
-	void RemoveItem(FGameplayTag InTag);
-	const FKRInventoryEntry* AddItem(FGameplayTag InTag, int32 StackCount, bool& OutIsNew);
-	void SubtractItem(FGameplayTag InTag, int32 StackCount);
-	FKRInventoryEntry* GetItem(FGameplayTag InTag);
-	const FKRInventoryEntry* GetItem(FGameplayTag InTag) const;
+	FKRInventoryEntry* CreateItem(const FGameplayTag& InTag);
+	void RemoveItem(const FGameplayTag& InTag);
+	const FKRInventoryEntry* AddItem(const FGameplayTag& InTag, int32 StackCount, bool& OutIsNew);
+	void SubtractItem(const FGameplayTag& InTag, int32 StackCount);
+	FKRInventoryEntry* GetItem(const FGameplayTag& InTag);
+	const FKRInventoryEntry* GetItem(const FGameplayTag& InTag) const;
 	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
-	TArray<class UKRInventoryItemInstance*> FindAllItemsByTag(FGameplayTag FilterTag) const;
+	TArray<class UKRInventoryItemInstance*> FindAllItemsByTag(const FGameplayTag& FilterTag) const;
 	void Clear();
-
-	void AddEntryDirect(UKRInventoryItemInstance* NewInstance);
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -156,40 +154,40 @@ public:
 	virtual void Deinitialize() override;
 	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	TSubclassOf<class UKRInventoryItemFragment> GetFragmentClass(FGameplayTag Tag) const;
+	TSubclassOf<class UKRInventoryItemFragment> GetFragmentClass(const FGameplayTag& Tag) const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void AddFragment(FGameplayTag ItemTag, FGameplayTag FragmentTag);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	const class UKRInventoryItemDefinition* GetItemDefinition(FGameplayTag ItemTag) const;
+	const class UKRInventoryItemDefinition* GetItemDefinition(const FGameplayTag& ItemTag) const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	const class UKRInventoryItemFragment* GetItemFragment(FGameplayTag ItemTag, FGameplayTag FragmentTag) const;
+	const class UKRInventoryItemFragment* GetItemFragment(const FGameplayTag& ItemTag, FGameplayTag FragmentTag) const;
 	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	TArray<FGameplayTag> GetAllRegisteredItemTags() const;
 	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	class UKRInventoryItemInstance* AddItem(FGameplayTag ItemTag, int32 StackCount = 1);
+	class UKRInventoryItemInstance* AddItem(const FGameplayTag& ItemTag, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	void SubtractItem(FGameplayTag ItemTag, int32 StackCount = 1);
+	void SubtractItem(const FGameplayTag& ItemTag, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	void RemoveItem(FGameplayTag InTag);
+	void RemoveItem(const FGameplayTag& InTag);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	const UKRInventoryItemInstance* GetItem(FGameplayTag InTag);
+	const UKRInventoryItemInstance* GetItem(const FGameplayTag& InTag);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	int32 GetItemCountByTag(FGameplayTag InTag);
+	int32 GetItemCountByTag(const FGameplayTag& InTag);
 	
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	TArray<class UKRInventoryItemInstance*> FindItemsByTag(FGameplayTag ItemTag) const;
+	TArray<class UKRInventoryItemInstance*> FindItemsByTag(const FGameplayTag& ItemTag) const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void ClearInventory();
@@ -300,7 +298,6 @@ private:
 	void HandleAutoSelectSlotFirstRegisteredItem(FGameplayTag SlotTag, bool bHadAssignedBefore);
 	
 	int32 GetItemQuantity_Internal(const FGameplayTag& ItemTag) const;
-	int32 GetQuickSlotItemDisplayCount(const FGameplayTag& ItemTag) const;
 	int32 GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const;
 	
 	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);

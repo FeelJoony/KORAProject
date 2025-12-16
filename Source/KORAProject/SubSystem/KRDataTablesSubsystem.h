@@ -15,7 +15,10 @@ public:
 	UKRDataTablesSubsystem();
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
 
+	static UKRDataTablesSubsystem& Get(const UObject* WorldContextObject);
+	
 	UCacheDataTable* GetTable(EGameDataType InDataType);
 
 	template<typename TRow>

@@ -1,6 +1,10 @@
 #include "Item/Weapons/KRMeleeWeapon.h"
 #include "Components/BoxComponent.h"
 #include "Components/KRCombatComponent.h"
+#include "Equipment/KREquipmentInstance.h"
+#include "Equipment/KREquipmentDefinition.h"
+#include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
+#include "Inventory/Fragment/InventoryFragment_SetStats.h"
 
 AKRMeleeWeapon::AKRMeleeWeapon()
 {
@@ -17,11 +21,28 @@ void AKRMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//WeaponCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AKRMeleeWeapon::OnCollisionBoxBeginOverlap);
+	WeaponCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AKRMeleeWeapon::OnCollisionBoxBeginOverlap);
+}
+
+void AKRMeleeWeapon::ConfigureWeapon(const class UInventoryFragment_EquippableItem* Equippable,
+	const class UInventoryFragment_SetStats* SetStat)
+{
+	if (UKREquipmentInstance* EquipInstance = EquippableFragment->GetEquipInstance())
+	{
+		if (const UKREquipmentDefinition* EquipDefinition = EquipInstance->GetDefinition())
+		{
+			if (const FEquipDataStruct* EquipDataStruct = EquipDefinition->GetEquipDataStruct())
+			{
+				WeaponMesh->SetStaticMesh(EquipDataStruct->EquipmentMesh.LoadSynchronous());
+			}
+		}
+	}
+
+	// ToDo : Stat 적용 로직 구현
 }
 
 void AKRMeleeWeapon::OnCollisionBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AActor* WeaponOwner = GetOwner();
 	if (!WeaponOwner || !OtherActor || OtherActor == WeaponOwner) return;

@@ -25,15 +25,15 @@ void FKRAbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* AttributeSet)
 	GrantedAttributeSets.Add(AttributeSet);
 }
 
-void FKRAbilitySet_GrantedHandles::TakeFromAbilitySystem(UKRAbilitySystemComponent* KRASC)
+void FKRAbilitySet_GrantedHandles::TakeFromAbilitySystem(UAbilitySystemComponent* ASC)
 {
-	check(KRASC);
+	check(ASC);
 
 	for (const FGameplayAbilitySpecHandle& Handle : AbilitySpecHandles)
 	{
 		if (Handle.IsValid())
 		{
-			KRASC->ClearAbility(Handle);
+			ASC->ClearAbility(Handle);
 		}
 	}
 
@@ -41,13 +41,13 @@ void FKRAbilitySet_GrantedHandles::TakeFromAbilitySystem(UKRAbilitySystemCompone
 	{
 		if (Handle.IsValid())
 		{
-			KRASC->RemoveActiveGameplayEffect(Handle);
+			ASC->RemoveActiveGameplayEffect(Handle);
 		}
 	}
 
 	for (UAttributeSet* AttributeSet : GrantedAttributeSets)
 	{
-		KRASC->RemoveSpawnedAttribute(AttributeSet);
+		ASC->RemoveSpawnedAttribute(AttributeSet);
 	}
 
 	AbilitySpecHandles.Reset();

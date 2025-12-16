@@ -17,13 +17,9 @@ public:
 	AKRWeaponBase();
 
 	void SetWeaponVisibility(bool bVisible);
+
+	virtual void ConfigureWeapon(const class UInventoryFragment_EquippableItem* Equippable, const class UInventoryFragment_SetStats* SetStat) {}
 	
-	UFUNCTION(BlueprintCallable, Category="Weapon")
-	void SetWeaponInstance(UKRWeaponInstance* InInstance);
-
-	UFUNCTION(BlueprintPure, Category = "Weapon")
-	UKRWeaponInstance* GetWeaponInstance() const { return WeaponInstance; }
-
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) void PlayEquipEffect();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) void PlayUnequipEffect();
 
@@ -31,8 +27,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
-	TObjectPtr<UKRWeaponInstance> WeaponInstance;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	TObjectPtr<class UInventoryFragment_EquippableItem> EquippableFragment;
 
-	virtual void OnWeaponInstanceAssigned();
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	TObjectPtr<class UInventoryFragment_SetStats> SetStatFragment;
 };

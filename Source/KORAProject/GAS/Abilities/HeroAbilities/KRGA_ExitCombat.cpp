@@ -1,6 +1,5 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_ExitCombat.h"
 #include "Equipment/KREquipmentManagerComponent.h"
-#include "Weapons/KRWeaponInstance.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Characters/KRBaseCharacter.h"
 #include "Player/KRPlayerController.h"
@@ -21,7 +20,7 @@ void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
+	/*TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
 	bool bBroadcastDone = false;
 	for (UKREquipmentInstance* Equip : AllWeapons)
 	{
@@ -34,7 +33,7 @@ void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 				bBroadcastDone = true;
 			}
 		}
-	}
+	}*/
 
 	Character->GetMesh()->LinkAnimClassLayers(nullptr);
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);

@@ -6,5 +6,5 @@
 UKREquipmentDefinition::UKREquipmentDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	InstanceType = UKREquipmentInstance::StaticClass();
+	
 }

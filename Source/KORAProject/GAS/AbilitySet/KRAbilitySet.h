@@ -11,6 +11,7 @@
 class UKRGameplayAbility;
 class UGameplayEffect;
 class UAttributeSet;
+class UAbilitySystemComponent;
 class UKRAbilitySystemComponent;
 
 USTRUCT(BlueprintType)
@@ -53,7 +54,7 @@ public:
 	void AddAttributeSet(UAttributeSet* AttributeSet);
 
 	// ASC에서 Ability들 제거하는 함수
-	void TakeFromAbilitySystem(UKRAbilitySystemComponent* KRASC);
+	void TakeFromAbilitySystem(UAbilitySystemComponent* ASC);
 
 protected:
 	UPROPERTY()

@@ -1,5 +1,6 @@
-#include "KRWeaponDefinition.h"
 
+#include "KRWeaponDefinition.h"
+/*
 #include "KRWeaponInstance.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
@@ -90,3 +91,4 @@ void UKRWeaponDefinition::AutoAssignAllClasses()
         UE_LOG(LogTemp, Warning, TEXT("KRWeaponDefinition: Unknown WeaponTypeTag [%s]"), *WeaponTypeTag.ToString());
     }
 }
+*/
