@@ -4,68 +4,25 @@
 #include "Engine/Texture2D.h"
 #include "GameplayTagContainer.h"
 #include "GameplayTagsManager.h"
+#include "SEditorViewportToolBarMenu.h"
+
 #include "Data/ConsumeDataStruct.h"
 #include "Data/CurrencyDataStruct.h"
-#include "Data/SampleDataStruct.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
-#include "Data/WeaponDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/TutorialDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
 #include "Data/ShopItemDataStruct.h"
-#include "Data/EquipmentDataStruct.h"
+#include "Data/EquipAbilityDataStruct.h"
 #include "Data/EquipDataStruct.h"
+#include "Data/ModuleDataStruct.h"
 
 struct FConsumeDataStruct;
 
 UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 {
 
-}
-
-void UTableRowConvertFunctionContainer::CreateSampleData(UDataTable* OutDataTable, const FString& InCSVString)
-{
-    CreateData(InCSVString, FString(TEXT("SampleData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
-        {
-            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
-            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
-
-            for (int32 i = 0; i < Values.Num(); i++)
-            {
-                TArray<FString>& RowValue = Values[i];
-
-                int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
-                int32 SampleName_Index = GetHeaderIndex(Headers, TEXT("SampleName"));
-                int32 Width_Index = GetHeaderIndex(Headers, TEXT("Width"));
-                int32 Height_Index = GetHeaderIndex(Headers, TEXT("Height"));
-                int32 SampleEnum_Index = GetHeaderIndex(Headers, TEXT("SampleEnum"));
-                int32 MaxElementCount_Index = GetHeaderIndex(Headers, TEXT("MaxElementCount"));
-
-                FSampleDataStruct SampleData;
-                
-                SampleData.Index = ParseIntValue(RowValue[Index_Index]);
-                SampleData.SampleName = RowValue[SampleName_Index];
-                SampleData.Width = ParseFloatValue(RowValue[Width_Index]);
-                SampleData.Height = ParseFloatValue(RowValue[Height_Index]);
-                SampleData.SampleType = ParseEnumValue<ESampleType>(RowValue[SampleEnum_Index]);
-                
-                for (int32 j = 1; j <= MaxElementCount_Index; j++)
-                {
-
-                }
-
-                FName RowName = *FString::Printf(TEXT("Sample_%d"), i);
-                if (FSampleDataStruct* FindRow = OutDataTable->FindRow<FSampleDataStruct>(RowName, TEXT("")))
-                {
-                    *FindRow = SampleData;
-                }
-                else
-                {
-                    OutDataTable->AddRow(RowName, SampleData);
-                }
-            }
-        }));
 }
 
 void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString)
@@ -92,6 +49,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 int32 ConsumeID_Index = GetHeaderIndex(Headers, TEXT("ConsumeID"));
                 int32 MaterialID_Index = GetHeaderIndex(Headers, TEXT("MaterialID"));
                 int32 QuestID_Index = GetHeaderIndex(Headers, TEXT("QuestID"));
+            	int32 ModuleID_Index = GetHeaderIndex(Headers, TEXT("ModuleID"));
                 
                 FItemDataStruct ItemData;
 
@@ -107,6 +65,7 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
                 ItemData.ConsumeID = ParseIntValue(RowValue[ConsumeID_Index]);
                 ItemData.MaterialID = ParseIntValue(RowValue[MaterialID_Index]);
                 ItemData.QuestID = ParseIntValue(RowValue[QuestID_Index]);
+            	ItemData.ModuleID = ParseIntValue(RowValue[ModuleID_Index]);
 
                 TArray<FString> AbilityTagsStringValues = ParseArrayValue(RowValue[FragmentTags_Index]);
                 for (const FString& StringValue : AbilityTagsStringValues)
@@ -224,54 +183,6 @@ void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* Out
                     {
                         FindRow->EvalDatas.Add(EvalData);
                     }
-                }
-            }
-        }));
-}
-
-void UTableRowConvertFunctionContainer::CreateWeaponData(class UDataTable* OutDataTable, const FString& InCSVString)
-{
-    CreateData(InCSVString, FString(TEXT("WeaponData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
-        {
-            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
-            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
-
-            for (int32 i = 0; i < Values.Num(); i++)
-            {
-                TArray<FString>& RowValue = Values[i];
-
-                int32 GroupID_Index = GetHeaderIndex(Headers, TEXT("GroupID"));
-                int32 Atk_Index = GetHeaderIndex(Headers, TEXT("Atk"));
-                int32 CritChance_Index = GetHeaderIndex(Headers, TEXT("CritChance"));
-                int32 CritMulti_Index = GetHeaderIndex(Headers, TEXT("CritMulti"));
-                int32 Range_Index = GetHeaderIndex(Headers, TEXT("Range"));
-                int32 Accuracy_Index = GetHeaderIndex(Headers, TEXT("Accuracy"));
-                int32 Recoil_Index = GetHeaderIndex(Headers, TEXT("Recoil"));
-                int32 Capacity_Index = GetHeaderIndex(Headers, TEXT("Capacity"));
-                int32 ReloadTime_Index = GetHeaderIndex(Headers, TEXT("ReloadTime"));
-                int32 AttackSpeed_Index = GetHeaderIndex(Headers, TEXT("AttackSpeed"));
-                
-                FWeaponDataStruct WeaponData;
-
-                WeaponData.GroupID = ParseIntValue(RowValue[GroupID_Index]);
-                WeaponData.Atk = ParseIntValue(RowValue[Atk_Index]);
-                WeaponData.CritChance = ParseFloatValue(RowValue[CritChance_Index]);
-                WeaponData.CritMulti = ParseFloatValue(RowValue[CritMulti_Index]);
-                WeaponData.Range = ParseIntValue(RowValue[Range_Index]);
-                WeaponData.Accuracy = ParseIntValue(RowValue[Accuracy_Index]);
-                WeaponData.Recoil = ParseIntValue(RowValue[Recoil_Index]);
-                WeaponData.Capacity = ParseIntValue(RowValue[Capacity_Index]);
-                WeaponData.ReloadTime = ParseFloatValue(RowValue[ReloadTime_Index]);
-                WeaponData.AttackSpeed = ParseFloatValue(RowValue[AttackSpeed_Index]);
-                
-                FName RowName = *FString::Printf(TEXT("Weapon_%d"), i);
-                if (FWeaponDataStruct* FindRow = OutDataTable->FindRow<FWeaponDataStruct>(RowName, TEXT("")))
-                {
-                    *FindRow = WeaponData;
-                }
-                else
-                {
-                    OutDataTable->AddRow(RowName, WeaponData);
                 }
             }
         }));
@@ -397,65 +308,6 @@ void UTableRowConvertFunctionContainer::CreateShopItemData(class UDataTable* Out
                 else
                 {
                     OutDataTable->AddRow(RowName, ShopItemData);
-                }
-            }
-        }));
-}
-
-void UTableRowConvertFunctionContainer::CreateEquipmentData(class UDataTable* OutDataTable, const FString& InCSVString)
-{
-    CreateData(InCSVString, FString(TEXT("EquipmentData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
-        {
-            auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
-            auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
-
-            for (int32 i = 0; i < Values.Num(); i++)
-            {
-                TArray<FString>& RowValue = Values[i];
-
-                int32 ItemTag_Index = GetHeaderIndex(Headers, TEXT("ItemTag"));
-                int32 DisplayNameKey_Index = GetHeaderIndex(Headers, TEXT("DisplayNameKey"));
-                int32 EquipmentMesh_Index = GetHeaderIndex(Headers, TEXT("EquipmentMesh"));
-                int32 OverrideMaterials_Index = GetHeaderIndex(Headers, TEXT("OverrideMaterials"));
-                int32 Icon_Index = GetHeaderIndex(Headers, TEXT("Icon"));
-                int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("CompatibleModuleSlots"));
-                int32 DefaultModuleTags_Index = GetHeaderIndex(Headers, TEXT("DefaultModuleTags"));
-
-                FEquipmentDataStruct EquipmentData;
-
-                EquipmentData.ItemTag = ParseGameplayTagValue(RowValue[ItemTag_Index]);
-                EquipmentData.DisplayNameKey = ParseNameValue(RowValue[DisplayNameKey_Index]);
-                EquipmentData.EquipmentMesh = ParseSoftObjectValue<UStreamableRenderAsset>(RowValue[EquipmentMesh_Index]);
-                EquipmentData.Icon = ParseSoftObjectValue<UTexture2D>(RowValue[Icon_Index]);
-                
-                TArray<FString> MaterialPaths = ParseArrayValue(RowValue[OverrideMaterials_Index]);
-                for (const FString& PathString : MaterialPaths)
-                {
-                    EquipmentData.OverrideMaterials.Add(ParseSoftObjectValue<UMaterialInterface>(PathString));
-                }
-
-                TArray<FString> CompatibleSlotsStr = ParseArrayValue(RowValue[CompatibleModuleSlots_Index]);
-                for (const FString& SlotTagStr : CompatibleSlotsStr)
-                {
-                    FGameplayTag SlotTag = SlotTagStr != TEXT("None") ? FGameplayTag::RequestGameplayTag(FName(*SlotTagStr)) : FGameplayTag::EmptyTag;
-                    EquipmentData.CompatibleModuleSlots.AddTag(SlotTag);
-                }
-                
-                TArray<FString> DefaultModulesStr = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
-                for (const FString& ModuleTagStr : DefaultModulesStr)
-                {
-                    FGameplayTag ModuleTag = ModuleTagStr != TEXT("None") ? FGameplayTag::RequestGameplayTag(FName(*ModuleTagStr)) : FGameplayTag::EmptyTag;
-                    EquipmentData.DefaultModuleTags.Add(ModuleTag);
-                }
-                
-                FName RowName = *FString::Printf(TEXT("Equipment_%d"), i);
-                if (FEquipmentDataStruct* FindRow = OutDataTable->FindRow<FEquipmentDataStruct>(RowName, TEXT("")))
-                {
-                    *FindRow = EquipmentData;
-                }
-                else
-                {
-                    OutDataTable->AddRow(RowName, EquipmentData);
                 }
             }
         }));
@@ -696,7 +548,7 @@ void UTableRowConvertFunctionContainer::CreateCurrencyData(class UDataTable* Out
 
 void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
-	CreateData(InCSVString, FString(TEXT("ConsumeData")), FParseMethod::CreateLambda(
+	CreateData(InCSVString, FString(TEXT("EquipData")), FParseMethod::CreateLambda(
 		[&](FParseMethodParams Params)
 		{
 			auto& Headers = Params.Headers;
@@ -711,8 +563,9 @@ void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDat
 				int32 SlotTag_Index = GetHeaderIndex(Headers, TEXT("SlotTag"));
 				int32 EquipmentMesh_Index = GetHeaderIndex(Headers, TEXT("EquipmentMesh"));
 				int32 OverrideMaterials_Index = GetHeaderIndex(Headers, TEXT("OverrideMaterials"));
-				//int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("CompatibleModuleSlots"));
-				//int32 DefaultModuleTags_Index = GetHeaderIndex(Headers, TEXT("DefaultModuleTags"));
+				int32 CompatibleModuleSlots_Index = GetHeaderIndex(Headers, TEXT("CompatibleModuleSlots"));
+				int32 DefaultModuleTags_Index = GetHeaderIndex(Headers, TEXT("DefaultModuleTags"));
+				int32 EquipAbilityID_Index = GetHeaderIndex(Headers, TEXT("EquipAbilityID"));
 
 				FEquipDataStruct EquipData;
 
@@ -732,18 +585,121 @@ void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDat
 					EquipData.OverrideMaterials.Add(ParseSoftObjectValue<UMaterialInterface>(MaterialValueString));
 				}
 
-				// EquipData.CompatibleModuleSlots = ParseIntValue(RowValue[CompatibleModuleSlots_Index]);
-				//
-				// TArray<FString> ModuleTagValueStrings = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
-				// for (const FString& ModuleTagValueString : ModuleTagValueStrings)
-				// {
-				// 	if (ModuleTagValueString == TEXT("-1"))
-				// 	{
-				// 		break;
-				// 	}
-				// 	
-				// 	EquipData.DefaultModuleTags.Add(ParseGameplayTagValue(ModuleTagValueString));
-				// }
+				EquipData.CompatibleModuleSlots = ParseIntValue(RowValue[CompatibleModuleSlots_Index]);
+				
+				TArray<FString> ModuleTagValueStrings = ParseArrayValue(RowValue[DefaultModuleTags_Index]);
+				for (const FString& ModuleTagValueString : ModuleTagValueStrings)
+				{
+					if (ModuleTagValueString == TEXT("-1"))
+					{
+						break;
+					}
+					
+					EquipData.DefaultModuleTags.Add(ParseGameplayTagValue(ModuleTagValueString));
+				}
+
+				EquipData.EquipAbilityID = ParseIntValue(RowValue[EquipAbilityID_Index]);
+
+				FName RowName = *FString::Printf(TEXT("Equip_%d"), i);
+				if (FEquipDataStruct* FindRow = OutDataTable->FindRow<FEquipDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = EquipData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, EquipData);
+				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateEquipAbilityData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("EquipAbilityData")), FParseMethod::CreateLambda(
+		[&](FParseMethodParams Params)
+		{
+			auto& Headers = Params.Headers;
+			auto& Values = Params.Values;
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = const_cast<TArray<FString>&>(Values[i]);
+
+				int32 EquipAbilityID_Index = GetHeaderIndex(Headers, TEXT("EquipAbilityID"));
+				int32 AbilityCount_Index = GetHeaderIndex(Headers, TEXT("AbilityCount"));
+
+				FEquipAbilityDataStruct EquipAbilityData;
+				EquipAbilityData.EquipAbilityID = ParseIntValue(RowValue[EquipAbilityID_Index]);
+				EquipAbilityData.AbilityCount = ParseIntValue(RowValue[AbilityCount_Index]);
+				EquipAbilityData.AbilityModifiers.Reset();
+
+				const int32 Count = FMath::Clamp(EquipAbilityData.AbilityCount, 0, 9);
+
+				for (int32 j = 0; j < Count; j++)
+				{
+					int32 AbilityeTypeTag_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("AbilityTypeTag%d"), j + 1));
+					int32 BaseValue_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("BaseValue%d"), j + 1));
+					int32 IncValue_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("IncValue%d"), j + 1));
+
+					const FString TagStr = RowValue[AbilityeTypeTag_Index].TrimStartAndEnd();
+					if (TagStr.IsEmpty() || TagStr == TEXT("-1")) continue;
+
+					FKREquipAbilityModifierRow EquipAbilityModifierRow;
+					EquipAbilityModifierRow.AbilityTypeTag = ParseGameplayTagValue(RowValue[AbilityeTypeTag_Index]);
+					EquipAbilityModifierRow.BaseValue = ParseFloatValue(RowValue[BaseValue_Index]);
+					EquipAbilityModifierRow.IncValue = ParseFloatValue(RowValue[IncValue_Index]);
+
+					if (EquipAbilityModifierRow.AbilityTypeTag.IsValid())
+					{
+						EquipAbilityData.AbilityModifiers.Add(EquipAbilityModifierRow);
+					}
+				}
+				
+				FName RowName = *FString::Printf(TEXT("EquipAbility_%d"), i);
+				if (FEquipAbilityDataStruct* FindRow = OutDataTable->FindRow<FEquipAbilityDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = EquipAbilityData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, EquipAbilityData);
+				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateModuleData(class UDataTable* OutDataTable, const FString& InCSVString)
+{	CreateData(InCSVString, FString(TEXT("ModuleData")), FParseMethod::CreateLambda(
+		[&](FParseMethodParams Params)
+		{
+			auto& Headers = Params.Headers;
+			auto& Values = Params.Values;
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = const_cast<TArray<FString>&>(Values[i]);
+
+				int32 GroupID_Index = GetHeaderIndex(Headers, TEXT("GroupID"));
+				int32 ModuleItemTag_Index = GetHeaderIndex(Headers, TEXT("ModuleItemTag"));
+				int32 ModuleSlotBit_Index = GetHeaderIndex(Headers, TEXT("ModuleSlotBit"));
+				int32 EquipAbilityID_Index = GetHeaderIndex(Headers, TEXT("EquipAbilityID"));
+
+
+				FModuleDataStruct ModuleData;;
+				ModuleData.GroupID = ParseIntValue(RowValue[GroupID_Index]);
+				ModuleData.ModuleItemTag = ParseGameplayTagValue(RowValue[ModuleItemTag_Index]);
+				ModuleData.ModuleSlotBit = static_cast<EModuleSlotBit>(static_cast<uint8>(ParseIntValue(RowValue[ModuleSlotBit_Index])));
+				ModuleData.EquipAbilityID = ParseIntValue(RowValue[EquipAbilityID_Index]);
+				
+				FName RowName = *FString::Printf(TEXT("Module_%d"), i);
+				if (FModuleDataStruct* FindRow = OutDataTable->FindRow<FModuleDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = ModuleData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, ModuleData);
+				}
 			}
 		}));
 }

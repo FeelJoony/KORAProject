@@ -13,13 +13,14 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 
 	FItemDataStruct()
 			: Index(0)
+			, TypeTag(FGameplayTag())
 			, BasePrice(0.f)
 			, EquipID(-1)
 			, AbilityID(-1)
 			, ConsumeID(-1)
 			, MaterialID(-1)
 			, QuestID(-1)
-			, TypeTag(FGameplayTag())
+			, ModuleID(-1)
 			, RarityTag(FGameplayTag())
 			, DisplayNameKey(NAME_None)
 			, DescriptionKey(NAME_None)
@@ -52,6 +53,8 @@ struct KORAPROJECT_API FItemDataStruct : public FTableRowBase, public ITableKey
 	int32 MaterialID;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
 	int32 QuestID;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ItemData)
+	int32 ModuleID;
 
 	virtual uint32 GetKey() const override
 	{

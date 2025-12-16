@@ -2,7 +2,6 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Data/DataAssets/KRPawnData.h"
 #include "Components/GameFrameworkComponentManager.h"
-#include "Data/WeaponDataStruct.h"
 #include "Data/WeaponEnhanceDataStruct.h"
 #include "Equipment/KREquipmentManagerComponent.h"
 #include "GameFramework/Controller.h"

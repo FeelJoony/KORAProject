@@ -1,0 +1,11 @@
+GroupID,ModuleItemTag,ModuleSlotBit,EquipAbilityID
+2001,ItemType.Equip.SwordModule.FatalDA,1,2001
+2002,ItemType.Equip.SwordModule.PulseBM,1,2002
+2003,ItemType.Equip.SwordModule.DualPS,1,2003
+2004,ItemType.Equip.SwordModule.LightSM,1,2004
+2005,ItemType.Equip.GunModule.IonIC,2,2005
+2006,ItemType.Equip.GunModule.CounterRD,2,2006
+2007,ItemType.Equip.GunModule.OverloadCM,2,2007
+2008,ItemType.Equip.GunModule.ZeroKM,2,2008
+2009,ItemType.Equip.GunModule.MicroPB,2,2009
+2010,ItemType.Equip.GunModule.RapidTG,2,2010

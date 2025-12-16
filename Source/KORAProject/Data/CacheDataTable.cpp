@@ -1,19 +1,18 @@
 #include "Data/CacheDataTable.h"
 
-#include "EquipDataStruct.h"
 #include "QuestDataStruct.h"
 #include "SubQuestDataStruct.h"
+#include "TutorialDataStruct.h"
 
-#include "Data/SampleDataStruct.h"
-#include "Data/ItemDataStruct.h"
-#include "Data/WeaponDataStruct.h"
-#include "Data/WeaponEnhanceDataStruct.h"
-#include "Data/TutorialDataStruct.h"
-#include "Data/ShopItemDataStruct.h"
-#include "Data/EquipmentDataStruct.h"
-#include "Data/ConsumeDataStruct.h"
-#include "Data/QuestDataStruct.h"
-#include "Data/SubQuestDataStruct.h"
+#include "EquipDataStruct.h"
+#include "ModuleDataStruct.h"
+#include "EquipAbilityDataStruct.h"
+#include "WeaponEnhanceDataStruct.h"
+
+#include "ItemDataStruct.h"
+#include "ShopItemDataStruct.h"
+#include "ConsumeDataStruct.h"
+#include "CurrencyDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -21,24 +20,12 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 {
 	switch (InDataType)
 	{
-	case EGameDataType::SampleData:
-		{
-			InitKeyList<FSampleDataStruct>(NewDataTable);
-		}
-		break;
-
 	case EGameDataType::ItemData:
 		{
 			InitKeyList<FItemDataStruct>(NewDataTable);
 		}
 		break;
-
-	case EGameDataType::WeaponData:
-		{
-			InitKeyList<FWeaponDataStruct>(NewDataTable);
-		}
-		break;
-
+		
 	case EGameDataType::WeaponEnhanceData:
 		{
 			InitKeyList<FWeaponEnhanceDataStruct>(NewDataTable);
@@ -56,21 +43,13 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 			InitKeyList<FShopItemDataStruct>(NewDataTable);
 		}
 		break;
-
-	case EGameDataType::EquipmentData:
-		{
-			InitKeyList<FEquipmentDataStruct>(NewDataTable);
-		}
-		break;
-
-
+	
 	case EGameDataType::ConsumeData:
 		{
 			InitKeyList<FConsumeDataStruct>(NewDataTable);
 		}
 		break;
-
-
+	
 	case EGameDataType::QuestData:
 		{
 			InitKeyList<FQuestDataStruct>(NewDataTable);
@@ -86,6 +65,24 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 	case EGameDataType::EquipData:
 		{
 			InitKeyList<FEquipDataStruct>(NewDataTable);
+		}
+		break;
+
+	case EGameDataType::EquipAbilityData:
+		{
+			InitKeyList<FEquipAbilityDataStruct>(NewDataTable);
+		}
+		break;
+
+	case EGameDataType::ModuleData:
+		{
+			InitKeyList<FModuleDataStruct>(NewDataTable);
+		}
+		break;
+		
+	case EGameDataType::CurrencyData:
+		{
+			InitKeyList<FCurrencyDataStruct>(NewDataTable);
 		}
 		break;
 	}
