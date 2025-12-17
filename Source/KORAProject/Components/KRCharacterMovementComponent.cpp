@@ -1,9 +1,12 @@
 #include "Components/KRCharacterMovementComponent.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameplayTag/KRStateTag.h"
+#include "GameplayTag/KREventTag.h"
 #include "Interaction/KRLadderActor.h"
 
 float UKRCharacterMovementComponent::GetMaxSpeed() const
@@ -95,16 +98,22 @@ void UKRCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations
 
 void UKRCharacterMovementComponent::PhysLadder(float deltaTime, int32 Iterations)
 {
-	UE_LOG(LogTemp, Warning, TEXT("PhysLadder Running. bIsLadderMounting: %s"), bIsLadderMounting ? TEXT("TRUE") : TEXT("FALSE"));
-	
-	if (bIsLadderMounting)
-	{
-		return; 
-	}
-
 	if (!CurrentLadder)
 	{
 		StopClimbingLadder();
+		return;
+	}
+
+	if (bIsLadderMounting)
+	{
+		if (HasAnimRootMotion() || CurrentRootMotion.HasOverrideVelocity())
+		{
+			ApplyRootMotionToVelocity(deltaTime);
+			
+			FHitResult Hit(1.f);
+			SafeMoveUpdatedComponent(Velocity * deltaTime, CharacterOwner->GetActorRotation(), true, Hit);
+		}
+		
 		return;
 	}
 	
@@ -173,23 +182,30 @@ void UKRCharacterMovementComponent::CheckLadderExit(float ClimbDirection)
 	const float TopZ = CurrentLadder->GetTopLocation().Z;
 	const float BottomZ = CurrentLadder->GetBottomLocation().Z;
 	const float HalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-	
-	if (ClimbDirection > 0.f && (CharacterZ >= TopZ))
+	const float TopTriggerOffset = 45.0f; 
+
+	if (ClimbDirection > 0.f && (CharacterZ >= TopZ - TopTriggerOffset)) 
 	{
-		FVector ExitLoc = CurrentLadder->GetTopLocation() + (CurrentLadder->GetActorForwardVector() * 40.f);
-		ExitLoc.Z = TopZ + HalfHeight + 5.f; //사다리 위쪽 좌표 계산 지속적 값 체크 하여 수정 필요
+		FGameplayEventData Payload;
+		Payload.EventTag = KRTAG_EVENT_LADDER_TOP;
+		Payload.Instigator = CharacterOwner;
+		Payload.Target = CharacterOwner;
+
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(CharacterOwner, KRTAG_EVENT_LADDER_TOP, Payload);
 		
-		CharacterOwner->SetActorLocation(ExitLoc);
-		StopClimbingLadder();
+		Velocity = FVector::ZeroVector;
 	}
-	
+
 	else if (ClimbDirection < 0.f && (CharacterZ - HalfHeight <= BottomZ))
 	{
-		FVector ExitLoc = CharacterOwner->GetActorLocation();
-		ExitLoc.Z = BottomZ + HalfHeight + 5.f;
+		FGameplayEventData Payload;
+		Payload.EventTag = KRTAG_EVENT_LADDER_BOTTOM;
+		Payload.Instigator = CharacterOwner;
+		Payload.Target = CharacterOwner;
 
-		CharacterOwner->SetActorLocation(ExitLoc);
-		StopClimbingLadder(); // 사다리 하단 좌표 계산 지속적 값 체크 하여 수정 필요
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(CharacterOwner, KRTAG_EVENT_LADDER_BOTTOM, Payload);
+
+		Velocity = FVector::ZeroVector;
 	}
 }
 

@@ -54,9 +54,6 @@ FTransform AKRLadderActor::GetSnapTransform(const FVector& InActorLocation) cons
 	const float OffsetDistance = 65.f; 
 	FVector TargetLocation = ClosestPoint + (CorrectedForward * OffsetDistance);
 
-	DrawDebugDirectionalArrow(GetWorld(), ClosestPoint, TargetLocation, 
-		20.f, FColor::Red, false, 5.f, 0, 2.f);
-
 	return FTransform(TargetRotation, TargetLocation);
 }
 
@@ -74,14 +71,10 @@ void AKRLadderActor::OnAbilityActivated(UGameplayAbility* InAbility)
 {
 	Super::OnAbilityActivated(InAbility);
 
-	UE_LOG(LogTemp, Warning, TEXT("[Ladder] Ability Activated Callback Received."));
-
 	if (!InAbility || !InAbility->AbilityTags.HasTag(KRTAG_ABILITY_INTERACT)) { UE_LOG(LogTemp, Warning, TEXT("[Ladder] Ability Tag Mismatch. Needed: Ability.Interact"));
 		return; }
 
 	if (!ObservedASC) { return; }
-
-	UE_LOG(LogTemp, Warning, TEXT("[Ladder] Sending Gameplay Event: Ability.Ladder"));
 
 	FGameplayEventData PayLoad;
 	PayLoad.Instigator = this;
