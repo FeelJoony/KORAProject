@@ -1,0 +1,5 @@
+﻿#pragma once
+
+#include "NativeGameplayTags.h"
+
+KORAPROJECT_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(KRTAG_GAMEPLAYCUE_ITEM_LIGHT);
