@@ -43,6 +43,11 @@ void UKRItemSlotBase::ClearItemData()
 	if (ShopStock)			ShopStock->SetText(FText::GetEmpty());
 }
 
+void UKRItemSlotBase::SetHovered(bool bHovered)
+{
+	SetRenderOpacity(bHovered ? 0.8f : 1.0f);
+}
+
 void UKRItemSlotBase::ApplyFieldsVisibility(int32 Fields)
 {
 	SetWidgetVisible(ItemIcon, HasField(Fields, EKRItemField::Icon));

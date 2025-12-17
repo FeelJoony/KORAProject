@@ -91,6 +91,16 @@ bool UKRSlotGridBase::SelectIndexSafe(int32 Index)
 	return true;
 }
 
+bool UKRSlotGridBase::HoverIndexSafe(int32 Index)
+{
+	if (!Slots.IsValidIndex(Index)) return false;
+
+	HoveredIndex = Index;
+
+	OnHoverChanged.Broadcast(Index, Slots[Index]);
+	return true;
+}
+
 UWidget* UKRSlotGridBase::GetSelectedWidget() const
 {
 	return ButtonGroup ? ButtonGroup->GetSelectedButtonBase() : nullptr;
@@ -127,6 +137,13 @@ void UKRSlotGridBase::BindSlot(UKRItemSlotBase* CellWidget, int32 CellIndex)
 	{
 		ButtonGroup->AddWidget(CellWidget);
 	}
+
+	TWeakObjectPtr<UKRItemSlotBase> WeakSlot = CellWidget;
+
+	CellWidget->OnClicked().AddWeakLambda(this, [this, CellIndex, WeakSlot]()
+		{
+			OnSlotClicked.Broadcast();
+		});
 }
 
 void UKRSlotGridBase::ClearGrid()
@@ -149,14 +166,25 @@ void UKRSlotGridBase::HandleGroupSelectedChanged(UCommonButtonBase* Selected, in
 	OnSelectionChanged.Broadcast(SelectedIndex, ItemSlot);
 }
 
-void UKRSlotGridBase::HandleGroupHoveredChanged(UCommonButtonBase* Hovered, int32 HoveredIndex)
+void UKRSlotGridBase::HandleGroupHoveredChanged(UCommonButtonBase* Hovered, int32 InHoveredIndex)
 {
-	UKRItemSlotBase* ItemSlot = Cast<UKRItemSlotBase>(Hovered);
-
-	if (bSelectOnHover && ButtonGroup && HoveredIndex != INDEX_NONE)
+	if (Slots.IsValidIndex(LastHoveredIndex) && Slots[LastHoveredIndex])
 	{
-		ButtonGroup->SelectButtonAtIndex(HoveredIndex);
+		Slots[LastHoveredIndex]->SetHovered(false);
 	}
 
-	OnHoverChanged.Broadcast(HoveredIndex, ItemSlot);
+	if (Slots.IsValidIndex(InHoveredIndex) && Slots[InHoveredIndex])
+	{
+		Slots[InHoveredIndex]->SetHovered(true);
+	}
+
+	LastHoveredIndex = InHoveredIndex;
+	HoveredIndex = InHoveredIndex;
+
+	if (bSelectOnHover && ButtonGroup && InHoveredIndex != INDEX_NONE)
+	{
+		ButtonGroup->SelectButtonAtIndex(InHoveredIndex);
+	}
+
+	OnHoverChanged.Broadcast(InHoveredIndex, Cast<UKRItemSlotBase>(Hovered));
 }

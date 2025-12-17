@@ -3,15 +3,24 @@
 #pragma once
 
 #include "CommonActivatableWidget.h"
-#include "GameplayTagContainer.h"
 #include "UI/Data/KRItemUIData.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "KREquipmentMain.generated.h"
 
-class UUniformGridPanel;
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
-class UCommonButtonBase;
-class UCommonButtonGroupBase;
+class UKRItemSlotBase;
+
+UENUM(BlueprintType)
+enum class EFocusRegion : uint8
+{
+	Category,
+	Grid
+};
+
+UENUM()
+enum class ENavDir : uint8 { L, R, U, D };
 
 UCLASS()
 class KORAPROJECT_API UKREquipmentMain : public UCommonActivatableWidget
@@ -19,14 +28,8 @@ class KORAPROJECT_API UKREquipmentMain : public UCommonActivatableWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(meta = (BindWidget)) UCommonButtonBase* SwordModuleSelect;
-	UPROPERTY(meta = (BindWidget)) UCommonButtonBase* SwordSkinSelect;
-	UPROPERTY(meta = (BindWidget)) UCommonButtonBase* GunModuleSelect;
-	UPROPERTY(meta = (BindWidget)) UCommonButtonBase* GunSkinSelect;
-	UPROPERTY(meta = (BindWidget)) UCommonButtonBase* HeadColorSelect;
-	UPROPERTY(meta = (BindWidget)) UCommonButtonBase* DressColorSelect;
-
-	UPROPERTY(meta = (BindWidget)) UKRSlotGridBase* InventorySlot = nullptr;
+	UPROPERTY(meta = (BindWidget)) UKRSlotGridBase* EquipCategorySlot = nullptr;
+	UPROPERTY(meta = (BindWidget)) UKRSlotGridBase* EquipInventorySlot = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKRItemDescriptionBase* ModuleDescription = nullptr;
 
 protected:
@@ -37,45 +40,41 @@ protected:
 	virtual void NativeDestruct() override;
 
 private:
-	TArray<FKRItemUIData> CachedUIData;
-
-	enum class EFocusRegion : uint8 { Category, Grid };
+	UPROPERTY() TArray<FGameplayTag> CategorySlotOrder;
+	UPROPERTY() TArray<int32> LastInventoryIndexPerCategory;
+	UPROPERTY() int32 ActiveCategoryIndex = 0;
 	EFocusRegion FocusRegion = EFocusRegion::Category;
 
-	UPROPERTY() TObjectPtr<UCommonButtonGroupBase> CategoryGroup;
-	UPROPERTY() TArray<TObjectPtr<UCommonButtonBase>> CategoryOrder;
-	int32 LastCategoryIndex = 0;
+	TArray<FKRItemUIData> InventorySlotUIData;
+	FGameplayMessageListenerHandle EquipMessageHandle;
 
-	UFUNCTION() void OnClickSwordModule();
-	UFUNCTION() void OnClickSwordSkin();
-	UFUNCTION() void OnClickGunModule();
-	UFUNCTION() void OnClickGunSkin();
-	UFUNCTION() void OnClickHeadColor();
-	UFUNCTION() void OnClickDressColor();
-
-	struct FNavAdj { int32 L = -1, R = -1, U = -1, D = -1; };
-	TArray<FNavAdj> CategoryAdj;
-
-	void BuildCategoryGroup();
-	UFUNCTION() void HandleCategoryChanged(UCommonButtonBase* SelectedButton, int32 ButtonIndex);
-	void FocusCategory();
-	void FocusGrid(int32 PreferIndex = 0);
-
-	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
+	void InitializeCategoryOrder();
+	void RefreshEquippedCategoryIcons();
 	void FilterAndCacheItems(const FGameplayTag& FilterTag);
 	void RebuildInventoryUI(const FGameplayTag& FilterTag);
 	void UpdateDescriptionUI(int32 CellIndex);
+
+	void FocusCategory();
+	void FocusInventory(int32 PreferIndex = 0);
 
 	void HandleMoveLeft();
 	void HandleMoveRight();
 	void HandleMoveUp();
 	void HandleMoveDown();
-	void HandleMoveInternal(uint8 DirIdx); // 0:L,1:R,2:U,3:D
+	void HandleMoveInternal(ENavDir Dir);
 
 	void HandleSelect();
 	bool TryEquipSelectedItem();
+	void HandleEquipSlotChanged(FGameplayTag Channel, const FKRUIMessage_EquipSlot& Msg);
 
-	int32 StepCategory(int32 Cur, uint8 DirIdx) const;                    // 0:L,1:R,2:U,3:D
-	int32 StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const; // ∞¯≈Î Ω∫≈‹
-	bool  MoveGrid(uint8 DirIdx);
+	void OnCategorySelected(int32 Index, UKRItemSlotBase*);
+	void OnCategoryHovered(int32 Index, UKRItemSlotBase*);
+	void OnInventorySelected(int32 Index, UKRItemSlotBase*);
+	void OnInventoryHovered(int32 Index, UKRItemSlotBase*);
+
+	int32 StepGrid(int32 Cur, ENavDir Dir, int32 Cols, int32 Num) const;
+	bool MoveCategory(ENavDir Dir);
+	bool MoveInventory(ENavDir Dir);
+
+	void HighlightEquippedItemInInventory(bool bSelect);
 };

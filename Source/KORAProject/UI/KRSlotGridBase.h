@@ -12,6 +12,7 @@ class UKRItemSlotBase;
 class UCommonButtonGroupBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSlotIndexEvent, int32, Index, UKRItemSlotBase*, Slot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSlotClickedEvent);
 
 UCLASS()
 class KORAPROJECT_API UKRSlotGridBase : public UCommonUserWidget
@@ -26,6 +27,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotIndexEvent OnSelectionChanged;
 	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotIndexEvent OnHoverChanged;
+	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotClickedEvent OnSlotClicked;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slots") bool bSelectOnHover = true; // When Hovered == Selected
 
@@ -33,10 +35,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Slots") void BuildGrid();
 
 	UFUNCTION(BlueprintCallable, Category = "Slots") int32 GetSelectedIndex() const;
+	UFUNCTION(BlueprintPure, Category = "Slots") int32 GetHoveredIndex() const { return HoveredIndex; }
+
 	UFUNCTION(BlueprintPure, Category = "Slots") FORCEINLINE int32 GetNumCells()   const { return Slots.Num(); }
 	UFUNCTION(BlueprintPure, Category = "Slots") FORCEINLINE int32 GetRowCount()   const { return Rows; }
 	UFUNCTION(BlueprintPure, Category = "Slots") FORCEINLINE int32 GetColumnCount()const { return Columns; }
 	UFUNCTION(BlueprintCallable, Category = "Slots") bool SelectIndexSafe(int32 Index);
+	UFUNCTION(BlueprintCallable, Category = "Slots") bool HoverIndexSafe(int32 Index);
 	UFUNCTION(BlueprintPure, Category = "Slots") UWidget* GetSelectedWidget() const;
 protected:
 	virtual void NativeConstruct() override;
@@ -45,10 +50,12 @@ protected:
 private:
 	UPROPERTY() UCommonButtonGroupBase* ButtonGroup = nullptr;
 	UPROPERTY() TArray<TObjectPtr<UKRItemSlotBase>> Slots;
+	UPROPERTY() int32 HoveredIndex = INDEX_NONE;
+	UPROPERTY() int32 LastHoveredIndex = INDEX_NONE;
 
 	void BindSlot(UKRItemSlotBase* CellWidget, int32 CellIndex);
 	void ClearGrid();
 
 	UFUNCTION() void HandleGroupSelectedChanged(UCommonButtonBase* Selected, int32 SelectedIndex);
-	UFUNCTION() void HandleGroupHoveredChanged(UCommonButtonBase* Hovered, int32 HoveredIndex);
+	UFUNCTION() void HandleGroupHoveredChanged(UCommonButtonBase* Hovered, int32 InHoveredIndex);
 };
