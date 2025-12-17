@@ -620,7 +620,7 @@ void UTableRowConvertFunctionContainer::CreateEquipAbilityData(class UDataTable*
 				EquipAbilityData.AbilityCount = ParseIntValue(RowValue[AbilityCount_Index]);
 				EquipAbilityData.AbilityModifiers.Reset();
 
-				const int32 Count = FMath::Clamp(EquipAbilityData.AbilityCount, 0, 9);
+				const int32 Count = FMath::Clamp(EquipAbilityData.AbilityCount, 0, 7);
 
 				for (int32 j = 0; j < Count; j++)
 				{
