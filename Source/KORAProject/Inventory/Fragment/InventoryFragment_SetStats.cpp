@@ -1,73 +1,72 @@
 #include "InventoryFragment_SetStats.h"
+#include "Inventory/KRInventoryItemInstance.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "Data/EquipAbilityDataStruct.h"
+#include "Data/EquipDataStruct.h"
+#include "Data/ItemDataStruct.h"
+#include "GameplayTag/KRItemTypeTag.h"
+#include "GAS/AttributeSets/KRWeaponAttributeSet.h"
 
-FGameplayTag UInventoryFragment_SetStats::GetStaticFragmentTag()
+static FGameplayAttribute ConvertTagToWeaponAttribute(const FGameplayTag& Tag)
 {
-	// 프로젝트 태그에 맞게 바꿔줘
-	static FGameplayTag Tag = FGameplayTag::RequestGameplayTag(
-		TEXT("Ability.Item.SetStat")
-	);
-	return Tag;
-}
-
-void UInventoryFragment_SetStats::OnInstanceCreated(class UKRInventoryItemInstance* Instance)
-{
+	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_ATK)) return UKRWeaponAttributeSet::GetAttackPowerAttribute();
+	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_ATTACKSPEED)) return UKRWeaponAttributeSet::GetAttackSpeedAttribute();
+	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_RANGE)) return UKRWeaponAttributeSet::GetRangeAttribute();
+	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_CRITCHACNE)) return UKRWeaponAttributeSet::GetCritChanceAttribute();
+	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_CRITMULTI)) return UKRWeaponAttributeSet::GetCritMultiAttribute();
+	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_CAPACITY)) return UKRWeaponAttributeSet::GetCapacityAttribute();
+	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_RELOADTIME)) return UKRWeaponAttributeSet::GetReloadTimeAttribute();
 	
+	return FGameplayAttribute();
 }
 
-void UInventoryFragment_SetStats::InitStat(FGameplayTag StatTag, double StatValue)
+
+void UInventoryFragment_SetStats::OnInstanceCreated(UKRInventoryItemInstance* Instance)
 {
-	if (!Stats.Contains(StatTag))
+	if (Instance)
 	{
+		InitializeWeaponStats(Instance->GetItemTag());
+	}
+}
+
+void UInventoryFragment_SetStats::InitializeWeaponStats(const FGameplayTag& ItemTag)
+{
+	if (!WeaponAttributeSet)
+	{
+		WeaponAttributeSet = NewObject<UKRWeaponAttributeSet>(this);
+	}
+
+	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
+
+	const FItemDataStruct* ItemData = DataTablesSubsystem.GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	if (!ItemData)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ItemData Missing"));
 		return;
 	}
 
-	Stats.Add(StatTag, StatValue);
-}
-
-void UInventoryFragment_SetStats::AddStat(FGameplayTag StatTag, double StatValue)
-{
-	if (!Stats.Contains(StatTag))
+	const FEquipDataStruct* EquipData = DataTablesSubsystem.GetData<FEquipDataStruct>(EGameDataType::EquipData, ItemData->EquipID);
+	if (!EquipData)
 	{
+		UE_LOG(LogTemp, Error, TEXT("EquipData Missing"));
 		return;
 	}
 
-	Stats[StatTag] += StatValue;
+	const FEquipAbilityDataStruct* AbilityData = DataTablesSubsystem.GetData<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, EquipData->EquipAbilityID);
+
+	if (AbilityData)
+	{
+		for (const FKREquipAbilityModifierRow& Row : AbilityData->AbilityModifiers)
+		{
+			FGameplayAttribute Attribute = ConvertTagToWeaponAttribute(Row.AbilityTypeTag);
+
+			if (Attribute.IsValid())
+			{
+				float FinalValue = Row.BaseValue + Row.IncValue;
+
+				Attribute.SetNumericValueChecked(FinalValue, WeaponAttributeSet);
+			}
+		}
+	}
 }
 
-void UInventoryFragment_SetStats::SubtractStat(FGameplayTag StatTag, double StatValue)
-{
-	if (!Stats.Contains(StatTag))
-	{
-		return;
-	}
-
-	double& ContainStat = Stats[StatTag];
-	if (ContainStat < StatValue)
-	{
-		Stats[StatTag] = 0.0;
-		
-		return;
-	}
-
-	Stats[StatTag] -= StatValue;
-}
-
-void UInventoryFragment_SetStats::ClearStat(FGameplayTag StatTag)
-{
-	if (!Stats.Contains(StatTag))
-	{
-		return;
-	}
-
-	Stats.Remove(StatTag);
-}
-
-double UInventoryFragment_SetStats::GetStatByTag(FGameplayTag StatTag) const
-{
-	if (const double* StatPtr = Stats.Find(StatTag))
-	{
-		return *StatPtr;
-	}
-
-	return 0;
-}

@@ -4,6 +4,8 @@
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "InventoryFragment_SetStats.generated.h"
 
+class UKRWeaponAttributeSet;
+
 UCLASS()
 class KORAPROJECT_API UInventoryFragment_SetStats : public UKRInventoryItemFragment
 {
@@ -11,21 +13,15 @@ class KORAPROJECT_API UInventoryFragment_SetStats : public UKRInventoryItemFragm
 
 public:
 	virtual void OnInstanceCreated(class UKRInventoryItemInstance* Instance) override;
-
-	void InitStat(FGameplayTag StatTag, double StatValue);
-	void AddStat(FGameplayTag StatTag, double StatValue);
-	void SubtractStat(FGameplayTag StatTag, double StatValue);
-	void ClearStat(FGameplayTag StatTag);
-	FORCEINLINE double GetStatByTag(FGameplayTag StatTag) const;
-
-	static FGameplayTag GetStaticFragmentTag();
 	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.SetStat"); }
+
+protected:
+	void InitializeWeaponStats(const FGameplayTag& ItemTag);
 	
 private:
-	UPROPERTY(EditDefaultsOnly)
-	TMap<FGameplayTag, double> Stats;
+	UPROPERTY()
+	TObjectPtr<class UKRWeaponAttributeSet> WeaponAttributeSet;
 
-	// TODO : 우리는 나중에 GAS를 사용하기 때문에 이 AttributeSet으로 Stat을 정의해야 된다.
-	// UPROPERTY(EditDefaultsOnly)
-	// TObjectPtr<class UKRAttributeSet> StatAttributeSet;
+public:
+	FORCEINLINE const UKRWeaponAttributeSet* GetWeaponAttributeSet() const { return WeaponAttributeSet; }
 };
