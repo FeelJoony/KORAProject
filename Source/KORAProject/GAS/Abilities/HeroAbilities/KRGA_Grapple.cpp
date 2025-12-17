@@ -88,6 +88,7 @@ void UKRGA_Grapple::PerformLineTrace()
     FVector StartLocation = Camera->GetComponentLocation();
     FRotator StartRotation = Camera->GetComponentRotation();
     FVector EndLocation = StartLocation + (StartRotation.Vector() * TraceRange);
+	CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 200.f);
 
     FHitResult HitResult;
     FCollisionQueryParams Params;
@@ -413,6 +414,7 @@ void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 		if (!TargetCapsuleComp)
 		{
 			HitState = EGrappleState::Default;
+			return;;
 		}
 		CachedTargetPawn = TargetEnemy;
 		
@@ -434,6 +436,13 @@ void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 		if (ReturnGrapplePointLocation() == FVector::ZeroVector)
 		{
 			HitState = EGrappleState::Default;
+			
+			UCameraComponent* Camera = CachedPlayerCharacter->GetComponentByClass<UCameraComponent>();
+			if (!Camera) return;
+
+			FVector StartLocation = Camera->GetComponentLocation();
+			FRotator StartRotation = Camera->GetComponentRotation();
+			CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 200.f);
 		}
 		else
 		{
