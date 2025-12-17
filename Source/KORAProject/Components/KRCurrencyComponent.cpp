@@ -1,15 +1,14 @@
 #include "KRCurrencyComponent.h"
-
 #include "Data/CurrencyDataStruct.h"
 #include "Data/GameDataType.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Player/KRPlayerState.h"
 #include "GameplayTag/KRShopTag.h"
 #include "GameplayTag/KRStateTag.h"
-
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Item/Drop/LostCurrencyDrop.h"
 #include "Subsystem/KRDataTablesSubsystem.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
@@ -117,6 +116,46 @@ bool UKRCurrencyComponent::IsLostOnDeath(const FGameplayTag& CurrencyTag) const
 	}
 	
 	return false;
+}
+
+void UKRCurrencyComponent::SpawnLostCurrencyDrop()
+{
+	if (!GetOwner() || !LostCurrencyDropClass)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		const float ForwardOffset = 80.f;
+		const float UpOffset      = 60.f;
+
+		const FVector OwnerLoc = GetOwner()->GetActorLocation();
+		const FVector Forward  = GetOwner()->GetActorForwardVector();
+
+		const FVector SpawnLocation = OwnerLoc + Forward * ForwardOffset + FVector(0.f, 0.f, UpOffset);
+		const FRotator SpawnRotation = FRotator::ZeroRotator;
+
+		FActorSpawnParameters Params;
+		Params.Owner = GetOwner();
+		Params.SpawnCollisionHandlingOverride =
+			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		World->SpawnActor<ALostCurrencyDrop>(LostCurrencyDropClass, SpawnLocation, SpawnRotation, Params);
+	}
+}
+
+void UKRCurrencyComponent::ReclaimLostCurrency()
+{
+	const int32 RecoverAmount = DeltaGearing;
+	if (RecoverAmount <= 0)
+	{
+		return;
+	}
+	
+	DeltaGearing = 0;
+	
+	AddCurrency(KRTAG_CURRENCY_PURCHASE_GEARING, RecoverAmount);
 }
 
 int32 UKRCurrencyComponent::GetCurrency(const FGameplayTag& CurrencyTag) const
@@ -231,6 +270,11 @@ void UKRCurrencyComponent::HandleDeath()
 
 	ApplyCurrencyChange_Internal(GearingTag, KeepAmount);
 	ConsumeInsuranceEffects();
+
+	if (LostAmount > 0)
+	{
+		SpawnLostCurrencyDrop();
+	}
 }
 
 void UKRCurrencyComponent::ApplyCurrencyChange_Internal(const FGameplayTag& CurrencyTag, int32 NewValue)

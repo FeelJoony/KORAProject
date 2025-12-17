@@ -50,38 +50,32 @@ void UInventoryFragment_ConsumableItem::OnInstanceCreated(UKRInventoryItemInstan
 bool UInventoryFragment_ConsumableItem::UseConsumable(UAbilitySystemComponent* ASC)
 {
 	if (!ASC) return false;
-	
+
 	if (IsOnCooldown(ASC)) return false;
-
-	if (!CanApplyMoreStacks(ASC)) return false;
 	
-	float EffectDuration = 0.f;
-	if (!ApplyMainEffect(ASC, EffectDuration)) return false;
-	
-	ApplyCooldown(ASC);
+	static const FGameplayTag LightInUseTag =
+		FGameplayTag::RequestGameplayTag(TEXT("Status.Item.InUse.Light"), /*ErrorIfNotFound*/ false);
 
-	if (EffectConfig.EffectType == EConsumableEffectType::Infinite)
+	const bool bIsLight = LightInUseTag.IsValid() && InUseTags.HasTagExact(LightInUseTag);
+
+	if (!bIsLight)
 	{
-		if (!ASC) return true;
-		
-		
-		AActor* Avatar = ASC->GetAvatarActor();
-		if (!Avatar) return true;
-		
-
-		APawn* Pawn = Cast<APawn>(Avatar);
-		if (!Pawn) return true;
-		
-		
-		if (AKRPlayerState* KRPS = Pawn->GetPlayerState<AKRPlayerState>())
+		if (!CanApplyMoreStacks(ASC)) return false;
+	}
+	else
+	{
+		if (InUseTags.Num() > 0)
 		{
-			if (UKRCurrencyComponent* Currency = KRPS->GetCurrencyComponentSet())
-			{
-				Currency->SetInsuranceKeepRate(EffectConfig.Power);
-			}
+			FGameplayEffectQuery Q = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(InUseTags);
+			ASC->RemoveActiveEffects(Q);
 		}
 	}
-	
+
+	float EffectDuration = 0.f;
+	if (!ApplyMainEffect(ASC, EffectDuration)) return false;
+
+	ApplyCooldown(ASC);
+
 	return true;
 }
 
@@ -188,11 +182,13 @@ bool UInventoryFragment_ConsumableItem::ApplyMainEffect(UAbilitySystemComponent*
 	}
 
 	const FGameplayTag InsuranceActiveTag =
-			FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"));
+	FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"), /*ErrorIfNotFound*/ false);
 
 	const bool bIsInsuranceConsumable =
+		InsuranceActiveTag.IsValid() &&
 		(EffectConfig.EffectType == EConsumableEffectType::Infinite) &&
 		InUseTags.HasTag(InsuranceActiveTag);
+
 
 	if (bIsInsuranceConsumable)
 	{
@@ -292,8 +288,11 @@ bool UInventoryFragment_ConsumableItem::CanApplyMoreStacks(UAbilitySystemCompone
 	if (!ASC) { return false; }
 	
 	if (EffectConfig.EffectType == EConsumableEffectType::Instant) { return true; }
-	
 	if (EffectConfig.StackMax <= 0) { return true; }
+
+	static const FGameplayTag LightActiveTag = FGameplayTag::RequestGameplayTag(TEXT("Status.Item.InUse.Light"));
+
+	if (InUseTags.HasTagExact(LightActiveTag)) return true;
 
 	const int32 CurrentStacks = GetCurrentStacks(ASC);
 	const int32 MaxStacks     = FMath::Max(EffectConfig.StackMax, 1);

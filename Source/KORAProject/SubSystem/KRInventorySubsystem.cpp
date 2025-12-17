@@ -476,16 +476,28 @@ UAbilitySystemComponent* UKRInventorySubsystem::GetPlayerASC() const
 
 bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 {
-    if (!IsValidQuickSlot(SlotTag)) { return false; }
+	if (!IsValidQuickSlot(SlotTag))
+	{
+		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: invalid slot %s"), *SlotTag.ToString());
+		return false;
+	}
 
-    const FGameplayTag ItemTag = GetQuickSlotItemTag(SlotTag);
-    if (!ItemTag.IsValid()) { return false; }
+	const FGameplayTag ItemTag = GetQuickSlotItemTag(SlotTag);
+	if (!ItemTag.IsValid())
+	{
+		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: slot has no item %s"), *SlotTag.ToString());
+		return false;
+	}
 	
-    int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag);
-    if (!SlotCountPtr || *SlotCountPtr <= 0)
-    {
-        return false;
-    }
+	int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag);
+	if (!SlotCountPtr || *SlotCountPtr <= 0)
+	{
+		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: SlotCount<=0 Slot=%s Item=%s Stored=%d ActualInv=%d"),
+			*SlotTag.ToString(), *ItemTag.ToString(),
+			SlotCountPtr ? *SlotCountPtr : -1,
+			GetItemQuantity_Internal(ItemTag));
+		return false;
+	}
     int32& SlotCount = *SlotCountPtr;
 	
     int32 CurrentCount = GetItemQuantity_Internal(ItemTag);
@@ -505,6 +517,10 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
     {
         return false;
     }
+
+    const FGameplayTag ConsumableFragTag =
+        FGameplayTag::RequestGameplayTag(TEXT("Fragment.Item.Consumable"));
+
     const UInventoryFragment_ConsumableItem* ConsumableFragConst =
         Cast<UInventoryFragment_ConsumableItem>(Instance->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_CONSUMABLE));
 
