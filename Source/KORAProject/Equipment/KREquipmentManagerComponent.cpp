@@ -14,6 +14,8 @@
 #include "Item/Weapons/KRMeleeWeapon.h"
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
+#include "GAS/AttributeSets/KRCombatCommonSet.h"
+#include "GAS/AttributeSets/KRWeaponAttributeSet.h"
 #include "Components/SkeletalMeshComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
@@ -352,6 +354,22 @@ void UKREquipmentManagerComponent::ApplyStatsToASC(const class UInventoryFragmen
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	if (!ASC) return;
+
+	const UKRWeaponAttributeSet* SourceWeaponStats = SetStatsFragment->GetWeaponAttributeSet();
+	if (!SourceWeaponStats) return;
+
+	auto ApplyValue = [&](FGameplayAttribute TargetAttribute, float SourceValue)
+	{
+		if (TargetAttribute.IsValid())
+		{
+			float CurrentBase = ASC->GetNumericAttributeBase(TargetAttribute);
+			float NewBase = bAdd ? (CurrentBase + SourceValue) : (CurrentBase - SourceValue);
+
+			ASC->SetNumericAttributeBase(TargetAttribute, NewBase);
+		}
+	};
+
+	ApplyValue(UKRCombatCommonSet::GetAttackPowerAttribute(), SourceWeaponStats->GetAttackPower());
 	
 }
 
