@@ -37,6 +37,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Slot") void SetItemData(const FKRItemUIData& InData, int32 OverrideFields = -1);
 	UFUNCTION(BlueprintCallable, Category = "Slot") void ClearItemData();
+	UFUNCTION(BlueprintCallable) void SetHovered(bool bHovered);
 
 protected:
 	static const FName ItemStringTableId;
