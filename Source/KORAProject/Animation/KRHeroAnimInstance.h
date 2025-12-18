@@ -16,6 +16,9 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimData|Ladder")
+	bool bStartFromTop = false;
+
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|References")
 	TObjectPtr<AKRHeroCharacter> OwningHeroCharacter;
@@ -34,12 +37,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|Ladder")
 	float ClimbVelocityZ;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AnimData|Ladder")
-	bool bShouldEnterLadderRelaxState;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimData|Ladder")
-	float EnterLadderRelaxStateTime = 5.f;
 	
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
 	//bool bIsLockOn; //태그 관리 고려
@@ -49,8 +46,6 @@ protected:
 	
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
 	//float LockOnSpeed;
-	
-	float LadderIdleElapsedTime;
 	
 	float IdleElapsedTime;
 };

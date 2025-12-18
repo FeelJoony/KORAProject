@@ -25,19 +25,22 @@ protected:
 	TSubclassOf<UKRCameraMode> LadderCameraMode;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ladder")
-	TObjectPtr<UAnimMontage> MountTopMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Ladder")
 	TObjectPtr<UAnimMontage> DismountTopMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ladder")
-	TObjectPtr<UAnimMontage> DismountBottomMontage;
+	TObjectPtr<UAnimMontage> MountTopMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ladder")
 	TSubclassOf<UAnimInstance> LadderAnimInstanceClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ladder")
 	float LadderTopHandOffset = 60.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ladder")
+	float CheckGroundForwardDistance = 60.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ladder")
+	float TopWarpZOffset = 0.0f;
 	
 	UPROPERTY()
 	TSubclassOf<UAnimInstance> SavedPrevAnimInstanceClass;

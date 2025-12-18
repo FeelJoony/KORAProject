@@ -3,6 +3,7 @@
 #include "Components/KRCharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "KismetAnimationLibrary.h"
+#include "Interaction/KRLadderActor.h"
 
 void UKRHeroAnimInstance::NativeInitializeAnimation()
 {
@@ -43,26 +44,6 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		{
 			bIsClimbingLadder = true;
 			ClimbVelocityZ = CachedKRCMC->Velocity.Z;
-			
-			if (FMath::IsNearlyZero(ClimbVelocityZ))
-			{
-				LadderIdleElapsedTime += DeltaSeconds;
-				
-				if (LadderIdleElapsedTime >= EnterLadderRelaxStateTime)
-				{
-					bShouldEnterLadderRelaxState = true;
-				}
-			}
-			else
-			{
-				LadderIdleElapsedTime = 0.f;
-				bShouldEnterLadderRelaxState = false;
-			}
-		}
-		else
-		{
-			LadderIdleElapsedTime = 0.f;
-			bShouldEnterLadderRelaxState = false;
 		}
 	}
 		

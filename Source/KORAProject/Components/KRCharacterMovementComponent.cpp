@@ -49,13 +49,10 @@ void UKRCharacterMovementComponent::StartClimbingLadder(const AKRLadderActor* Ne
 
 	CurrentLadder = NewLadder;
 	SetMovementMode(MOVE_Custom, (uint8)EKRMovementMode::Ladder);
-	bIsLadderMounting = true;
+	bIsLadderMounting = true; 
 	
 	if (CharacterOwner)
 	{
-		FTransform SnapTransform = NewLadder->GetSnapTransform(CharacterOwner->GetActorLocation());
-		CharacterOwner->SetActorLocationAndRotation(SnapTransform.GetLocation(), SnapTransform.GetRotation());
- 
 		bOrientRotationToMovement = false; 
 		CharacterOwner->bUseControllerRotationYaw = false;
 
@@ -111,7 +108,7 @@ void UKRCharacterMovementComponent::PhysLadder(float deltaTime, int32 Iterations
 			ApplyRootMotionToVelocity(deltaTime);
 			
 			FHitResult Hit(1.f);
-			SafeMoveUpdatedComponent(Velocity * deltaTime, CharacterOwner->GetActorRotation(), true, Hit);
+			SafeMoveUpdatedComponent(Velocity * deltaTime, CharacterOwner->GetActorRotation(), false, Hit);
 		}
 		
 		return;

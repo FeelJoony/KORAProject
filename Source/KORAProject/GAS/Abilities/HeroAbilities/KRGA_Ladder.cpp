@@ -1,15 +1,14 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_Ladder.h"
-
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Camera/KRCameraMode.h"
-#include "Characters/KRHeroCharacter.h"
 #include "Components/KRCameraComponent.h"
 #include "Components/KRCharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "Interaction/KRLadderActor.h"
 #include "Components/SkeletalMeshComponent.h" 
 #include "GameplayTag/KREventTag.h"
+#include "MotionWarpingComponent.h"
 
 UKRGA_Ladder::UKRGA_Ladder(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -47,20 +46,62 @@ void UKRGA_Ladder::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		}
 	}
 	
-	bool bEnterFromTop = (Character->GetActorLocation().Z > TargetLadder->GetTopLocation().Z - 50.f);
+	USkeletalMeshComponent* Mesh = Character->GetMesh();
+	if (Mesh)
+	{
+		SavedPrevAnimInstanceClass = Mesh->GetAnimClass();
+		if (LadderAnimInstanceClass)
+		{
+			Mesh->SetAnimInstanceClass(LadderAnimInstanceClass);
+		}
+	}
+
+	FVector CharLoc = Character->GetActorLocation();
+	FVector TopLoc = TargetLadder->GetTopLocation();
+	FVector BottomLoc = TargetLadder->GetBottomLocation(); 
+	
+	float DistToTop = FVector::DistSquared(CharLoc, TopLoc);
+	float DistToBottom = FVector::DistSquared(CharLoc, BottomLoc);
+	
+	bool bEnterFromTop = (DistToTop < DistToBottom);
 
 	if (bEnterFromTop)
 	{
-		FVector MountLoc = TargetLadder->GetTopLocation() + (TargetLadder->GetActorForwardVector() * 50.f);
-		FRotator MountRot = (-TargetLadder->GetActorForwardVector()).Rotation();
-		Character->SetActorLocationAndRotation(MountLoc, MountRot);
-		
 		KRCMC->StartClimbingLadder(TargetLadder);
 		KRCMC->SetLadderMounting(true);
+    
+		if (TargetLadder)
+		{
+			FVector BaseForward = TargetLadder->GetActorForwardVector();
+			FVector CorrectedForward = BaseForward.RotateAngleAxis(TargetLadder->LadderYawOffset, FVector::UpVector);
+			FRotator FaceLadderRot = CorrectedForward.Rotation();
+			FaceLadderRot.Yaw += 180.f; 
+
+			FVector OrangeCirclePos = TargetLadder->GetTopLocation();
+			
+			OrangeCirclePos.Z += TopWarpZOffset; 
+			OrangeCirclePos += (CorrectedForward * 45.0f); 
+			
+			if (UMotionWarpingComponent* MWComp = Character->FindComponentByClass<UMotionWarpingComponent>())
+			{
+				MWComp->AddOrUpdateWarpTargetFromLocationAndRotation(
+					FName("LadderTopEntry"), 
+					OrangeCirclePos, 
+					FaceLadderRot
+				);
+				
+				DrawDebugSphere(GetWorld(), OrangeCirclePos, 15.f, 12, FColor::Blue, false, 5.f);
+			}
+		}
 		
 		if (MountTopMontage)
 		{
-			UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, MountTopMontage);
+			UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+				this, 
+				NAME_None, 
+				MountTopMontage
+			);
+			
 			Task->OnBlendOut.AddDynamic(this, &ThisClass::OnMontageFinished);
 			Task->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageFinished);
 			Task->ReadyForActivation();
@@ -71,20 +112,16 @@ void UKRGA_Ladder::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 			KRCMC->SetLadderMounting(false);
 		}
 	}
+	
 	else
 	{
+		FTransform SnapTransform = TargetLadder->GetSnapTransform(Character->GetActorLocation());
+		Character->SetActorLocationAndRotation(SnapTransform.GetLocation(), SnapTransform.GetRotation());
+
 		KRCMC->StartClimbingLadder(TargetLadder);
+		KRCMC->SetLadderMounting(false);
 	}
-	
-	if (USkeletalMeshComponent* Mesh = Character->GetMesh())
-	{
-		SavedPrevAnimInstanceClass = Mesh->GetAnimClass();
-		if (LadderAnimInstanceClass)
-		{
-			Mesh->SetAnimInstanceClass(LadderAnimInstanceClass);
-		}
-	}
-	
+
 	UAbilityTask_WaitGameplayEvent* WaitTopTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, KRTAG_EVENT_LADDER_TOP);
 	WaitTopTask->EventReceived.AddDynamic(this, &ThisClass::OnReachedTop);
 	WaitTopTask->ReadyForActivation();
@@ -151,55 +188,75 @@ void UKRGA_Ladder::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void UKRGA_Ladder::OnReachedTop(FGameplayEventData Payload)
 {
-	if (DismountTopMontage)
-	{
-		ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-		UKRCharacterMovementComponent* KRCMC = Character ? Cast<UKRCharacterMovementComponent>(Character->GetCharacterMovement()) : nullptr;
-		
-		if (Character && KRCMC)
-		{
-			KRCMC->SetLadderMounting(true);
-			
-			if (const AKRLadderActor* Ladder = KRCMC->GetCurrentLadder())
-			{
-				FVector CorrectLoc = Character->GetActorLocation();
-				float IdealZ = Ladder->GetTopLocation().Z - LadderTopHandOffset; 
-				CorrectLoc.Z = IdealZ;
+    if (DismountTopMontage)
+    {
+        ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+        UKRCharacterMovementComponent* KRCMC = Character ? Cast<UKRCharacterMovementComponent>(Character->GetCharacterMovement()) : nullptr;
+        
+        if (Character && KRCMC)
+        {
+            KRCMC->SetLadderMounting(true);
+            
+            if (const AKRLadderActor* Ladder = KRCMC->GetCurrentLadder())
+            {
+                FVector CorrectLoc = Character->GetActorLocation();
+                float IdealZ = Ladder->GetTopLocation().Z - LadderTopHandOffset; 
+                CorrectLoc.Z = IdealZ;
+                Character->SetActorLocation(CorrectLoc);
+            	
+                FVector StartBaseLoc = FVector(CorrectLoc.X, CorrectLoc.Y, Ladder->GetTopLocation().Z);
+                FVector CharacterForward = Character->GetActorForwardVector();
+                CharacterForward.Z = 0.f;
+                CharacterForward.Normalize();
+            	
+                FVector LandLocation = StartBaseLoc + (CharacterForward * CheckGroundForwardDistance);
+            	
+                FHitResult HitResult;
+                FVector CheckStart = LandLocation + FVector(0.f, 0.f, 100.f);
+                FVector CheckEnd = LandLocation - FVector(0.f, 0.f, 100.f);
+            	
+                FCollisionQueryParams QueryParams;
+            	
+                QueryParams.AddIgnoredActor(Character);
+                QueryParams.AddIgnoredActor(Ladder);
 
-				Character->SetActorLocation(CorrectLoc);
-			}
-		}
-
-		UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, DismountTopMontage);
-		Task->OnBlendOut.AddDynamic(this, &ThisClass::K2_EndAbility);
-		Task->OnInterrupted.AddDynamic(this, &ThisClass::K2_EndAbility);
-		Task->ReadyForActivation();
-	}
-	else
-	{
-		K2_EndAbility();
-	}
+                if (GetWorld()->LineTraceSingleByChannel(HitResult, CheckStart, CheckEnd, ECC_Visibility, QueryParams))
+                {
+                    LandLocation.Z = HitResult.Location.Z;
+                }
+            	
+                FRotator LandRotation = Character->GetActorRotation();
+                LandRotation.Pitch = 0.f;
+                LandRotation.Roll = 0.f;
+            	
+                if (UMotionWarpingComponent* MWComp = Character->FindComponentByClass<UMotionWarpingComponent>())
+                {
+                    MWComp->AddOrUpdateWarpTargetFromLocationAndRotation(
+                        FName("LadderTopExit"), 
+                        LandLocation, 
+                        LandRotation
+                    );
+                	
+                    DrawDebugSphere(GetWorld(), LandLocation, 15.f, 12, FColor::Green, false, 5.f);
+                }
+            }
+        }
+    	
+        UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, DismountTopMontage);
+        Task->OnBlendOut.AddDynamic(this, &ThisClass::K2_EndAbility);
+        Task->OnInterrupted.AddDynamic(this, &ThisClass::K2_EndAbility);
+        Task->ReadyForActivation();
+    }
+	
+    else
+    {
+        K2_EndAbility();
+    }
 }
 
 void UKRGA_Ladder::OnReachedBottom(FGameplayEventData Payload)
 {
-	if (DismountBottomMontage)
-	{
-		ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-		if (UKRCharacterMovementComponent* KRCMC = Character ? Cast<UKRCharacterMovementComponent>(Character->GetCharacterMovement()) : nullptr)
-		{
-			KRCMC->SetLadderMounting(true);
-		}
-
-		UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, DismountBottomMontage);
-		Task->OnBlendOut.AddDynamic(this, &ThisClass::K2_EndAbility);
-		Task->OnInterrupted.AddDynamic(this, &ThisClass::K2_EndAbility);
-		Task->ReadyForActivation();
-	}
-	else
-	{
-		K2_EndAbility();
-	}
+	K2_EndAbility();
 }
 
 void UKRGA_Ladder::OnMontageFinished()
