@@ -119,7 +119,7 @@ void UKRGA_Ladder::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		Character->SetActorLocationAndRotation(SnapTransform.GetLocation(), SnapTransform.GetRotation());
 
 		KRCMC->StartClimbingLadder(TargetLadder);
-		KRCMC->SetLadderMounting(false);
+		KRCMC->SetLadderMounting(true);
 	}
 
 	UAbilityTask_WaitGameplayEvent* WaitTopTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, KRTAG_EVENT_LADDER_TOP);

@@ -1,9 +1,6 @@
 #include "Animation/KRHeroAnimInstance.h"
 #include "Characters/KRHeroCharacter.h"
 #include "Components/KRCharacterMovementComponent.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "KismetAnimationLibrary.h"
-#include "Interaction/KRLadderActor.h"
 
 void UKRHeroAnimInstance::NativeInitializeAnimation()
 {
