@@ -8,6 +8,7 @@
 #include "Interaction/KRLadderActor.h"
 #include "Components/SkeletalMeshComponent.h" 
 #include "GameplayTag/KREventTag.h"
+#include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
 
 UKRGA_Ladder::UKRGA_Ladder(const FObjectInitializer& ObjectInitializer)
@@ -69,19 +70,22 @@ void UKRGA_Ladder::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		KRCMC->StartClimbingLadder(TargetLadder);
 		KRCMC->SetLadderMounting(true);
-    
+
 		if (TargetLadder)
 		{
 			FVector BaseForward = TargetLadder->GetActorForwardVector();
 			FVector CorrectedForward = BaseForward.RotateAngleAxis(TargetLadder->LadderYawOffset, FVector::UpVector);
-			FRotator FaceLadderRot = CorrectedForward.Rotation();
+			FRotator FaceAwayRot = CorrectedForward.Rotation();
+			FRotator FaceLadderRot = FaceAwayRot;
 			FaceLadderRot.Yaw += 180.f; 
-
+			
 			FVector OrangeCirclePos = TargetLadder->GetTopLocation();
-			
-			OrangeCirclePos.Z += TopWarpZOffset; 
-			OrangeCirclePos += (CorrectedForward * 45.0f); 
-			
+			float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+			OrangeCirclePos.Z += CapsuleHalfHeight;
+			OrangeCirclePos.Z += TopWarpZOffset;
+
+			Character->SetActorLocationAndRotation(OrangeCirclePos, FaceAwayRot);
+
 			if (UMotionWarpingComponent* MWComp = Character->FindComponentByClass<UMotionWarpingComponent>())
 			{
 				MWComp->AddOrUpdateWarpTargetFromLocationAndRotation(
@@ -89,7 +93,7 @@ void UKRGA_Ladder::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 					OrangeCirclePos, 
 					FaceLadderRot
 				);
-				
+            
 				DrawDebugSphere(GetWorld(), OrangeCirclePos, 15.f, 12, FColor::Blue, false, 5.f);
 			}
 		}
