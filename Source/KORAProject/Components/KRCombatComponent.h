@@ -2,31 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Components/PawnComponent.h"
-#include "GameplayTagContainer.h"
 #include "KRCombatComponent.generated.h"
 
 class UKRAbilitySystemComponent;
-class UKRWeaponInstance;
-class UKRRangeWeaponInstance;
+class UKREquipmentManagerComponent;
 class AKRWeaponBase;
-class AKRMeleeWeapon;
-
-UENUM(BlueprintType)
-enum class EToggleDamageType : uint8
-{
-	CurrentEquippedWeapon,
-	Body
-};
-
-UENUM(BlueprintType)
-enum class EWeaponSlot : uint8
-{
-	RightHand,
-	LeftHand,
-	AllHands,
-	Ranged,
-	Tail, // etc... Enemy 쪽에서 필요하다면 넣기 
-};
 
 UCLASS()
 class KORAPROJECT_API UKRCombatComponent : public UPawnComponent
@@ -36,67 +16,24 @@ class KORAPROJECT_API UKRCombatComponent : public UPawnComponent
 public:
 	UKRCombatComponent(const FObjectInitializer& ObjectInitializer);
 
-protected:
 	virtual void BeginPlay() override;
+	
+	// [New] 현재 장착된 무기를 EquipmentManager를 통해 가져옴
+	AKRWeaponBase* GetCurrentActiveWeapon() const;
 
-	UPROPERTY()
-	TMap<EWeaponSlot, TObjectPtr<AKRWeaponBase>> SlotToWeaponMap;
+	// 근접 공격 히트 처리 (MeleeWeapon에서 호출)
+	void HandleMeleeHit(AActor* HitActor, const FHitResult& Hit);
+	
+	// 원거리 발사 (GA에서 호출 -> EquipmentManager의 RangeWeapon에게 전달)
+	bool FireRangedWeapon();
+    
+	// [Refactoring] 데미지 적용 (GAS Event 전송)
+	void ApplyDamageToTarget(AActor* TargetActor, float BaseDamage, bool bIsCritical, const FHitResult* HitResult);
 
-	UPROPERTY()
-	TMap<FGameplayTag, TObjectPtr<AKRWeaponBase>> CharacterCarriedWeaponMap;
-
-	UPROPERTY()
-	FGameplayTag CurrentEquippedWeaponTag;
-
-	// 현재 장착 중인 WeaponInstance / Actor
-	UPROPERTY()
-	TObjectPtr<UKRWeaponInstance> CurrentWeaponInstance;
-
-	UPROPERTY()
-	TObjectPtr<AKRWeaponBase> CurrentWeaponActor;
-
+protected:
 	UPROPERTY()
 	TObjectPtr<UKRAbilitySystemComponent> ASC;
 
 	UPROPERTY()
-	TArray<TWeakObjectPtr<AActor>> OverlappedActors;
-
-	UPROPERTY(EditDefaultsOnly, Category = "KR|Combat|Config")
-	FName RightHandSocketName = FName("WeaponSocket");
-
-	UPROPERTY(EditDefaultsOnly, Category = "KR|Combat|Config")
-	FName LeftHandSocketName = FName("WeaponSocket_L");
-
-	void TryRecoveryWeaponFromSlot(EWeaponSlot Slot);
-
-public:
-	void RegisterSpawnedWeapon(FGameplayTag InWeaponTagToRegister,
-							   AKRWeaponBase* InWeaponToRegister,
-							   EWeaponSlot InSlot,
-							   bool bRegisterAsEquippedWeapon);
-
-	// Set Instance / Weapon Actor
-	void SetCurrentWeapon(UKRWeaponInstance* InInstance, AKRWeaponBase* InActor);
-
-	AKRWeaponBase* GetCharacterCarriedWeaponByTag(FGameplayTag InWeaponTagToGet) const;
-	AKRWeaponBase* GetCharacterCurrentEquippedWeapon() const;
-	AKRWeaponBase* GetWeaponBySlot(EWeaponSlot InSlot) const;
-
-	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
-	void ToggleWeaponCollision(bool bShouldEnable,
-							   EToggleDamageType ToggleDamageType,
-							   EWeaponSlot WeaponSlot = EWeaponSlot::AllHands);
-
-	void HandleMeleeHit(AActor* HitActor, const FHitResult& Hit);
-	bool FireRangedWeapon();
-	
-	void OnHitTargetActor(AActor* HitActor, const FHitResult& HitResult);
-	void OnWeaponPulledFromTargetActor(AActor* InteractedActor, const FHitResult& HitResult);
-
-private:
-	void ApplyDamageToTarget(AActor* TargetActor, float BaseDamage, bool bIsCritical, const FHitResult* HitResult);
-
-public:
-	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
-	UKRWeaponInstance* GetCurrentWeaponInstance();
+	TObjectPtr<UKREquipmentManagerComponent> EquipmentManager;
 };

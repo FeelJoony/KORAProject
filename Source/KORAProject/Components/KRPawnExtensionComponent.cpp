@@ -2,16 +2,13 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Data/DataAssets/KRPawnData.h"
 #include "Components/GameFrameworkComponentManager.h"
-#include "Data/WeaponEnhanceDataStruct.h"
 #include "Equipment/KREquipmentManagerComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "GameplayTag/KRStateTag.h"
-#include "Inventory/KRInventoryItemInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/KRPlayerState.h"
 #include "SubSystem/KRInventorySubsystem.h"
-#include "Weapons/KRWeaponDefinition.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRPawnExtensionComponent)
 
@@ -277,43 +274,29 @@ void UKRPawnExtensionComponent::OnRep_PawnData()
 
 void UKRPawnExtensionComponent::InitializeInventory()
 {
-	if (!PawnData)
-	{
-		return;
-	}
+	if (!PawnData) return;
+	if (GetOwner()->GetLocalRole() != ROLE_Authority) return;
 	
-	APawn* Pawn = GetPawnChecked<APawn>();
+	if (bInventoryInitialized) return;
+	
 	UWorld* World = GetWorld();
 	if (!World) return;
-
+	
 	UGameInstance* GI = World->GetGameInstance();
 	UKRInventorySubsystem* InvSubSystem = GI ? GI->GetSubsystem<UKRInventorySubsystem>() : nullptr;
-	UKREquipmentManagerComponent* EquipComp = Pawn->FindComponentByClass<UKREquipmentManagerComponent>();
 
 	if (!InvSubSystem)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[KRPawnExtension] InventorySubsystem Not Found!"));
 		return;
 	}
-	
-	/*for (const UKRWeaponDefinition* WeaponDef : PawnData->DefaultEquipWeapons)
+
+	for (const FGameplayTag& ItemTag : PawnData->DefaultInventoryItemTags)
 	{
-		if (!WeaponDef) continue;
-		FWeaponDataStruct DummyData;
-		FWeaponEnhanceDataStruct DummyEnhance;
-
-		UKRInventoryItemDefinition* NewItemDef =const_cast<UKRWeaponDefinition*>(WeaponDef)->CreateInventoryItemDefinition(DummyData, DummyEnhance);
-
-		if (!NewItemDef) continue;
-
-		UKRInventoryItemInstance* NewInst = UKRInventoryItemInstance::CreateItemInstance();
-		NewInst->SetItemDef(NewItemDef);
-		NewInst->SetItemTag(WeaponDef->WeaponTypeTag);
-		InvSubSystem->AddItemInstance(NewInst);
-
-		/*if (EquipComp)
+		if (ItemTag.IsValid())
 		{
-			EquipComp->EquipFromInventory(NewInst);
-		}#1#
-	}*/
+			InvSubSystem->AddItem(ItemTag, 1);
+		}
+	}
+	bInventoryInitialized = true;
 }
