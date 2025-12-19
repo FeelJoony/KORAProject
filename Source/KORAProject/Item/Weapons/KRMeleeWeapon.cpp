@@ -12,8 +12,7 @@ AKRMeleeWeapon::AKRMeleeWeapon()
 	WeaponCollisionBox->SetupAttachment(GetRootComponent());
 	WeaponCollisionBox->SetBoxExtent(FVector(20.f));
 	WeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponCollisionBox->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnCollisionBoxBeginOverlap);
-	WeaponCollisionBox->OnComponentEndOverlap.AddUniqueDynamic(this, &ThisClass::OnCollisionBoxEndOverlap);
+	// 델리게이트 바인딩은 BeginPlay에서 수행 (CDO 문제 방지)
 	WeaponCollisionBox->SetGenerateOverlapEvents(false);
 }
 
@@ -21,7 +20,9 @@ void AKRMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	WeaponCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AKRMeleeWeapon::OnCollisionBoxBeginOverlap);
+	// BeginPlay에서 델리게이트 바인딩 (AddUniqueDynamic으로 안전성 확보)
+	WeaponCollisionBox->OnComponentBeginOverlap.AddUniqueDynamic(this, &AKRMeleeWeapon::OnCollisionBoxBeginOverlap);
+	WeaponCollisionBox->OnComponentEndOverlap.AddUniqueDynamic(this, &AKRMeleeWeapon::OnCollisionBoxEndOverlap);
 }
 
 void AKRMeleeWeapon::ConfigureWeapon(UKRInventoryItemInstance* InInstance)
