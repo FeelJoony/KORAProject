@@ -116,6 +116,7 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	virtual void BeginPlay() override;
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 
@@ -139,7 +140,27 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	UKRInventoryItemInstance* GetEquippedItemInstanceBySlotTag(const FGameplayTag& SlotTag) const;
-	
+
+	// 무기 액터를 캐릭터 소켓에 Attach (숨김 상태로)
+	UFUNCTION(BlueprintCallable, Category = "Equipment|Weapon")
+	void AttachWeaponsToCharacter();
+
+	// 전투 모드 활성화 - GA 부여, IMC 추가, AnimLayer 변경, 무기 가시성 활성화
+	UFUNCTION(BlueprintCallable, Category = "Equipment|Combat")
+	bool ActivateCombatMode(const FGameplayTag& WeaponTypeTag);
+
+	// 전투 모드 비활성화 - GA 제거, IMC 제거, AnimLayer 복원, 무기 가시성 비활성화
+	UFUNCTION(BlueprintCallable, Category = "Equipment|Combat")
+	void DeactivateCombatMode();
+
+	// 현재 전투 모드가 활성화되어 있는지
+	UFUNCTION(BlueprintCallable, Category = "Equipment|Combat")
+	bool IsCombatModeActive() const { return bCombatModeActive; }
+
+	// 현재 활성화된 무기 타입 태그
+	UFUNCTION(BlueprintCallable, Category = "Equipment|Combat")
+	FGameplayTag GetActiveWeaponTypeTag() const { return ActiveWeaponTypeTag; }
+
 	FORCEINLINE class AKRMeleeWeapon* GetMeleeActorInstance() { return MeleeActorInstance; }
 	FORCEINLINE class AKRRangeWeapon* GetRangeActorInstance() { return RangeActorInstance; }
 	
@@ -156,6 +177,11 @@ protected:
 	void ApplyStatsToASC(const class UInventoryFragment_SetStats* SetStatsFragment, bool bAdd);
 	
 private:
+	void OnAbilitySystemInitialized();
+
+	// ASC 초기화 콜백 중복 호출 방지 플래그
+	bool bASCInitCallbackProcessed = false;
+
 	UPROPERTY()
 	TObjectPtr<class AKRMeleeWeapon> MeleeActorInstance;
 
@@ -164,5 +190,11 @@ private:
 
 	UPROPERTY()
 	FKRAbilitySet_GrantedHandles GrantedHandles;
-	
+
+	// 전투 모드 상태 추적
+	bool bCombatModeActive = false;
+	FGameplayTag ActiveWeaponTypeTag;
+	FKRAbilitySet_GrantedHandles CombatModeGrantedHandles;
+	TSubclassOf<class UAnimInstance> ActiveAnimLayer;
+	TObjectPtr<class UInputMappingContext> ActiveIMC;
 };
