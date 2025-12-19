@@ -10,6 +10,9 @@ UKRGA_ExitCombat::UKRGA_ExitCombat(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
+	// 이미 Base 모드면 발동 차단
+	ActivationBlockedTags.AddTag(KRTAG_PLAYER_MODE_BASE);
 }
 
 void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -21,7 +24,7 @@ void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
+
 	AKRBaseCharacter* Character = Cast<AKRBaseCharacter>(ActorInfo->AvatarActor.Get());
 	UKREquipmentManagerComponent* EquipComp = Character ? Character->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
 	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
@@ -32,16 +35,10 @@ void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	if (AKRMeleeWeapon* MeleeWeapon = EquipComp->GetMeleeActorInstance())
-	{
-		MeleeWeapon->PlayUnequipEffect();
-	}
+	// 전투 모드 비활성화 (GA 제거, IMC 제거, AnimLayer 복원, 무기 가시성 비활성화)
+	EquipComp->DeactivateCombatMode();
 
-	if (AKRRangeWeapon* RangeWeapon = EquipComp->GetRangeActorInstance())
-	{
-		RangeWeapon->PlayUnequipEffect();
-	}
-	
+	// 태그 변경
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
 
@@ -49,7 +46,8 @@ void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
 	}
-	
+
+	UE_LOG(LogTemp, Log, TEXT("ExitCombat: Successfully exited combat mode"));
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
