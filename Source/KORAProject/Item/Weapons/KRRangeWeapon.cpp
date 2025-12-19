@@ -11,20 +11,12 @@ AKRRangeWeapon::AKRRangeWeapon()
 	MuzzlePoint->SetupAttachment(GetRootComponent());
 }
 
-void AKRRangeWeapon::ConfigureWeapon(const UInventoryFragment_EquippableItem* Equippable, const UInventoryFragment_SetStats* SetStat)
+void AKRRangeWeapon::ConfigureWeapon(UKRInventoryItemInstance* InInstance)
 {
-	if (UKREquipmentInstance* EquipInstance = EquippableFragment->GetEquipInstance())
-	{
-		if (const UKREquipmentDefinition* EquipDefinition = EquipInstance->GetDefinition())
-		{
-			if (const FEquipDataStruct* EquipDataStruct = EquipDefinition->GetEquipDataStruct())
-			{
-				WeaponMesh->SetMaterial(0, EquipDataStruct->OverrideMaterials[0].LoadSynchronous());
-			}
-		}
-	}
+	Super::ConfigureWeapon(InInstance);
 
-	// ToDo : Stat 적용 로직 구현
+	
+	
 }
 
 void AKRRangeWeapon::FireProjectile()
