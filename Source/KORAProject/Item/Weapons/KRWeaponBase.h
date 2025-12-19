@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
 #include "KRWeaponBase.generated.h"
 
 class UStaticMeshComponent;
-class UKRWeaponInstance;
+class UKRInventoryItemInstance;
 class UNiagaraSystem;
 
 UCLASS()
@@ -18,18 +19,22 @@ public:
 
 	void SetWeaponVisibility(bool bVisible);
 
-	virtual void ConfigureWeapon(const class UInventoryFragment_EquippableItem* Equippable, const class UInventoryFragment_SetStats* SetStat) {}
+	virtual void ConfigureWeapon(UKRInventoryItemInstance* InInstance);
 	
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) void PlayEquipEffect();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) void PlayUnequipEffect();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void PlayEquipEffect();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void PlayUnequipEffect();
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	FGameplayTag GetWeaponItemTag() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	TObjectPtr<class UInventoryFragment_EquippableItem> EquippableFragment;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	TObjectPtr<class UInventoryFragment_SetStats> SetStatFragment;
+	TObjectPtr<UKRInventoryItemInstance> ItemInstance;
+	
 };

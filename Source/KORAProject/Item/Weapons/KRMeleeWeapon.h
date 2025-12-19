@@ -16,7 +16,7 @@ public:
 
 	virtual void BeginPlay() override; 
 
-	virtual void ConfigureWeapon(const class UInventoryFragment_EquippableItem* Equippable, const class UInventoryFragment_SetStats* SetStat) override;
+	virtual void ConfigureWeapon(UKRInventoryItemInstance* InInstance) override;
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")

@@ -18,7 +18,7 @@ class KORAPROJECT_API AKRRangeWeapon : public AKRWeaponBase
 public:
 	AKRRangeWeapon();
 	
-	virtual void ConfigureWeapon(const class UInventoryFragment_EquippableItem* Equippable, const class UInventoryFragment_SetStats* SetStat) override;
+	virtual void ConfigureWeapon(UKRInventoryItemInstance* InInstance) override;
 
 	/** 발사 함수 (Projectile 또는 트레이스 기반) */
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Range")
