@@ -14,6 +14,7 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag ItemLog() { return KRTAG_UI_MESSAGE_ITEMLOG; }
 	static const FGameplayTag Weapon() { return KRTAG_UI_MESSAGE_WEAPON; }
 	static const FGameplayTag QuickSlot() { return KRTAG_UI_MESSAGE_QUICKSLOT; }
+	static const FGameplayTag EquipSlot() { return KRTAG_UI_MESSAGE_EQUIPSLOT; }
 	static const FGameplayTag Quest() { return KRTAG_UI_MESSAGE_QUEST; }
 	static const FGameplayTag Currency() { return KRTAG_UI_MESSAGE_CURRENCY; }
 	static const FGameplayTag ShopStockUpdated() { return KRTAG_UI_MESSAGE_SHOPSTOCKUPDATED; }
@@ -106,6 +107,21 @@ struct KORAPROJECT_API FKRUIMessage_QuickSlot
 
 	UPROPERTY(BlueprintReadOnly) FGameplayTag CurrentlySelectedSlot = FKRUIMessageTags::QuickSlot_North();
 	UPROPERTY(BlueprintReadOnly) TSoftObjectPtr<UTexture2D> ItemIcon;
+};
+
+// -----  Equipslot -----
+
+USTRUCT(BlueprintType)
+struct KORAPROJECT_API FKRUIMessage_EquipSlot
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag SlotTag;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<class UKRInventoryItemInstance> ItemInstance;
 };
 
 // -----  Quest -----

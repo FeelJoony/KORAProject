@@ -7,6 +7,7 @@
 #include "SubSystem/KRShopSubsystem.h"
 #include "Inventory/Fragment/InventoryFragment_DisplayUI.h"
 #include "GameplayTag/KRItemTypeTag.h"
+#include "Equipment/KREquipmentManagerComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Engine/GameInstance.h"
@@ -114,5 +115,66 @@ void UKRUIAdapterLibrary::GetShopUIData(UObject* WorldContextObject, TArray<FKRI
             }
         }
     }
+}
+
+void UKRUIAdapterLibrary::GetEquippedCategoryUIData(UObject* WorldContextObject, const TArray<FGameplayTag>& SlotTagOrder, TArray<FKRItemUIData>& Out)
+{
+    Out.Reset();
+    if (!WorldContextObject) return;
+    UWorld* World = WorldContextObject->GetWorld();
+    if (!World) return;
+
+    APlayerController* PC = UGameplayStatics::GetPlayerController(WorldContextObject, 0);
+    APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+    UKREquipmentManagerComponent* EquipMgr = Pawn ? Pawn->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
+
+    Out.SetNum(SlotTagOrder.Num());
+
+    for (int32 i = 0; i < SlotTagOrder.Num(); ++i)
+    {
+        const FGameplayTag SlotTag = SlotTagOrder[i];
+
+        FKRItemUIData UIData;
+        if (EquipMgr)
+        {
+            if (UKRInventoryItemInstance* Inst = EquipMgr->GetEquippedItemInstanceBySlotTag(SlotTag))
+            {
+                MakeUIDataFromItemInstance(Inst, UIData);
+                UIData.ItemNameKey = NAME_None;
+                UIData.ItemDescriptionKey = NAME_None;
+                UIData.Quantity = 0;
+                UIData.Price = -1;
+                UIData.ShopStock = 0;
+            }
+        }
+
+        Out[i] = UIData;
+    }
+}
+
+bool UKRUIAdapterLibrary::GetEquippedSlotUIData(UObject* WorldContextObject, const FGameplayTag& SlotTag, FKRItemUIData& Out)
+{
+    if (!WorldContextObject) return false;
+    UWorld* World = WorldContextObject->GetWorld();
+    if (!World) return false;
+
+    APlayerController* PC = UGameplayStatics::GetPlayerController(WorldContextObject, 0);
+    APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+    UKREquipmentManagerComponent* EquipMgr = Pawn ? Pawn->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
+
+    if (UKRInventoryItemInstance* Inst = EquipMgr->GetEquippedItemInstanceBySlotTag(SlotTag))
+    {
+        FKRItemUIData UIData;
+        if (MakeUIDataFromItemInstance(Inst, UIData))
+        {
+            UIData.ItemNameKey = NAME_None;
+            UIData.ItemDescriptionKey = NAME_None;
+            UIData.Quantity = 0;
+            UIData.Price = -1;
+            UIData.ShopStock = 0;
+            return true;
+        }
+    }
+    return false;
 }
 

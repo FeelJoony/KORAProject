@@ -28,4 +28,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "KR|UI|Shop", meta = (WorldContext = "WorldContextObject"))
 	static void GetShopUIData(UObject* WorldContextObject, TArray<FKRItemUIData>& Out);
+
+	UFUNCTION(BlueprintCallable, Category = "UIAdapter|Equipment", meta = (WorldContext = "WorldContextObject"))
+	static void GetEquippedCategoryUIData(UObject* WorldContextObject, const TArray<FGameplayTag>& SlotTagOrder, TArray<FKRItemUIData>& Out);
+
+    UFUNCTION(BlueprintCallable, Category = "UIAdapter|Equipment", meta = (WorldContext = "WorldContextObject"))
+    static bool GetEquippedSlotUIData(UObject* WorldContextObject, const FGameplayTag& SlotTag, FKRItemUIData& Out);
 };
