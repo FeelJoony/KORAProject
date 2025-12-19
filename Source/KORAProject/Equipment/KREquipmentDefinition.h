@@ -7,7 +7,7 @@
 #include "KREquipmentDefinition.generated.h"
 
 
-UCLASS(Blueprintable, BlueprintType, Abstract)
+UCLASS(Blueprintable, BlueprintType)
 class KORAPROJECT_API UKREquipmentDefinition : public UObject
 {
 	GENERATED_BODY()
