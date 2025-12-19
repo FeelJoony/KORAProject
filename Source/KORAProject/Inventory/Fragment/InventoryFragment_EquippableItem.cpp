@@ -21,7 +21,10 @@ void UInventoryFragment_EquippableItem::OnInstanceCreated(UKRInventoryItemInstan
 
 void UInventoryFragment_EquippableItem::LoadFromDataTable(UKRInventoryItemInstance* Instance)
 {
-	APlayerState* PS = UGameplayStatics::GetPlayerState(GetWorld(), 0);
+	UObject* ContextObj = Instance ? Instance->GetOwnerContext() : nullptr;
+	if (!ContextObj) { return; }
+	
+	APlayerState* PS = UGameplayStatics::GetPlayerState(ContextObj, 0);
 	if (PS)
 	{
 		APawn* Pawn = PS->GetPawn();
@@ -35,10 +38,7 @@ void UInventoryFragment_EquippableItem::LoadFromDataTable(UKRInventoryItemInstan
 		}
 	}
 	
-	UObject* ContextObj = Instance->GetOwnerContext();
-	if (!ContextObj) { return; }
-
-	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
+	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
 	
 	const FGameplayTag ItemTag = Instance->GetItemTag();
 	FItemDataStruct* ItemRow = DataTablesSubsystem.GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);

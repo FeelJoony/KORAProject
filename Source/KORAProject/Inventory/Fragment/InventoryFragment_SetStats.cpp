@@ -25,20 +25,23 @@ void UInventoryFragment_SetStats::OnInstanceCreated(UKRInventoryItemInstance* In
 {
 	if (Instance)
 	{
-		InitializeWeaponStats(Instance->GetItemTag());
+		InitializeWeaponStats(Instance);
 	}
 }
 
-void UInventoryFragment_SetStats::InitializeWeaponStats(const FGameplayTag& ItemTag)
+void UInventoryFragment_SetStats::InitializeWeaponStats(class UKRInventoryItemInstance* Instance)
 {
 	if (!WeaponAttributeSet)
 	{
 		WeaponAttributeSet = NewObject<UKRWeaponAttributeSet>(this);
 	}
 
-	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
+	UObject* ContextObj = Instance->GetOwnerContext();
+	if (!ContextObj) return;
+	
+	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
 
-	const FItemDataStruct* ItemData = DataTablesSubsystem.GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	const FItemDataStruct* ItemData = DataTablesSubsystem.GetData<FItemDataStruct>(EGameDataType::ItemData, Instance->GetItemTag());
 	if (!ItemData)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ItemData Missing"));

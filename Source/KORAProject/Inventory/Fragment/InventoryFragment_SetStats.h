@@ -16,7 +16,7 @@ public:
 	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.SetStat"); }
 
 protected:
-	void InitializeWeaponStats(const FGameplayTag& ItemTag);
+	void InitializeWeaponStats(class UKRInventoryItemInstance* Instance);
 	
 private:
 	UPROPERTY()
