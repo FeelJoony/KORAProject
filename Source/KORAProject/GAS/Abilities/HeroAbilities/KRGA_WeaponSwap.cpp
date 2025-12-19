@@ -5,11 +5,20 @@
 #include "Player/KRPlayerController.h"
 #include "GameplayTag/KRItemTypeTag.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "GameplayTag/KRPlayerTag.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
+#include "Item/Weapons/KRRangeWeapon.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
+UKRGA_WeaponSwap::UKRGA_WeaponSwap(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;	
+}
+
 void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                       const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                       const FGameplayEventData* TriggerEventData)
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -18,71 +27,62 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	AKRBaseCharacter* Character = Cast<AKRBaseCharacter>(ActorInfo->AvatarActor.Get());
-	AKRPlayerController* PC = Cast<AKRPlayerController>(ActorInfo->PlayerController.Get());
 	UKREquipmentManagerComponent* EquipComp = Character ? Character->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
 	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
 
-	if (!Character || !PC || !EquipComp || !KRASC)
+	if (!Character || !EquipComp || !KRASC)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	FGameplayTag SwordTag = KRTAG_ITEMTYPE_EQUIP_SWORD;
-	FGameplayTag GunTag = KRTAG_ITEMTYPE_EQUIP_GUN;
-
-	/*UKRWeaponInstance* SwordInst = nullptr;
-	UKRWeaponInstance* GunInst = nullptr;
-
-	TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
-	for (UKREquipmentInstance* Equip : AllWeapons)
-	{
-		if (UKRWeaponInstance* Weapon = Cast<UKRWeaponInstance>(Equip))
-		{
-			if (Weapon->WeaponType.MatchesTag(SwordTag))
-			{
-				SwordInst = Weapon;
-			}
-			else if (Weapon->WeaponType.MatchesTag(GunTag))
-			{
-				GunInst = Weapon;
-			}
-		}
-	}
+	AKRMeleeWeapon* MeleeWeapon = EquipComp->GetMeleeActorInstance();
+	AKRRangeWeapon* RangeWeapon = EquipComp->GetRangeActorInstance();
 
 	if (KRASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_SWORD))
 	{
-		if (GunInst)
+		if (RangeWeapon)
 		{
-			if (SwordInst) SwordInst->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, false);
-
-			GunInst->ActivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Switched, true);
+			if (MeleeWeapon)
+			{
+				MeleeWeapon->PlayUnequipEffect();
+			}
+			
+			RangeWeapon->PlayEquipEffect();
 
 			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
 			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("WeaponSwap: Cannot switch to Gun (Not Equipped)"));
+		}
 	}
 	else if (KRASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_GUN))
 	{
-		if (SwordInst)
+		if (MeleeWeapon)
 		{
-			if (GunInst) GunInst->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, false);
-
-			SwordInst->ActivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Switched, true);
+			if (RangeWeapon)
+			{
+				RangeWeapon->PlayUnequipEffect();
+			}
+			MeleeWeapon->PlayEquipEffect();
 
 			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
 			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
 		}
-	}
-	else
-	{
-		if (SwordInst)
+		else
 		{
-			SwordInst->ActivateWeapon(Character, PC, KRASC);
-
-			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
-			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
+			UE_LOG(LogTemp, Warning, TEXT("WeaponSwap: Cannot switch to Sword (Not Equipped)"));
 		}
-	}*/
+	}
+
+	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+void UKRGA_WeaponSwap::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
