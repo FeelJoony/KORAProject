@@ -1,13 +1,22 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_EnterCombat.h"
 #include "Equipment/KREquipmentManagerComponent.h"
+#include "Components/KRCombatComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Characters/KRBaseCharacter.h"
-#include "Player/KRPlayerController.h"
 #include "GameplayTag/KRPlayerTag.h"
+#include "Item/Weapons/KRWeaponBase.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
+#include "Item/Weapons/KRRangeWeapon.h"
+
+UKRGA_EnterCombat::UKRGA_EnterCombat(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+}
 
 void UKRGA_EnterCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                        const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                        const FGameplayEventData* TriggerEventData)
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -16,50 +25,42 @@ void UKRGA_EnterCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	AKRBaseCharacter* Character = Cast<AKRBaseCharacter>(ActorInfo->AvatarActor.Get());
-	AKRPlayerController* PC = Cast<AKRPlayerController>(ActorInfo->PlayerController.Get());
 	UKREquipmentManagerComponent* EquipComp = Character ? Character->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
 	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
 
-	if (!Character || !PC || !EquipComp || !KRASC)
+	if (!Character || !EquipComp || !KRASC)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	FGameplayTag SwordTag = FGameplayTag::RequestGameplayTag("ItemType.Equip.Sword");
-	FGameplayTag GunTag = FGameplayTag::RequestGameplayTag("ItemType.Equip.Gun");
-
-	/*UKRWeaponInstance* SwordInst = nullptr;
-	UKRWeaponInstance* GunInst = nullptr;
-
-	TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
-	for (UKREquipmentInstance* Equip : AllWeapons)
+	AKRRangeWeapon* RangeWeapon = EquipComp->GetRangeActorInstance();
+	if (RangeWeapon)
 	{
-		if (UKRWeaponInstance* Weapon = Cast<UKRWeaponInstance>(Equip))
+		if (AKRMeleeWeapon* MeleeWeapon = EquipComp->GetMeleeActorInstance())
 		{
-			if (Weapon->WeaponType.MatchesTag(SwordTag))
-			{
-				SwordInst = Weapon;
-			}
-			else if (Weapon->WeaponType.MatchesTag(GunTag))
-			{
-				GunInst = Weapon;
-			}
+			MeleeWeapon->PlayUnequipEffect();
 		}
+
+		RangeWeapon->PlayEquipEffect();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EnterCombat: Gun instance not found via EquipmentManager!"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
-	if (SwordInst)
-	{
-		SwordInst->ActivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Equipped, true);
-	}
-
-	if (GunInst)
-	{
-		GunInst->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, false);
-	}*/
-	
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
-	KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
+	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
+
+	KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
 	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+void UKRGA_EnterCombat::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

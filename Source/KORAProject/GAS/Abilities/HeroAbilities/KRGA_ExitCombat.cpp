@@ -2,43 +2,59 @@
 #include "Equipment/KREquipmentManagerComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Characters/KRBaseCharacter.h"
-#include "Player/KRPlayerController.h"
+#include "Item/Weapons/KRMeleeWeapon.h"
+#include "Item/Weapons/KRRangeWeapon.h"
 #include "GameplayTag/KRPlayerTag.h"
 
-void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+UKRGA_ExitCombat::UKRGA_ExitCombat(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+}
+
+void UKRGA_ExitCombat::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+                                       const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                       const FGameplayEventData* TriggerEventData)
+{
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+	
 	AKRBaseCharacter* Character = Cast<AKRBaseCharacter>(ActorInfo->AvatarActor.Get());
-	AKRPlayerController* PC = Cast<AKRPlayerController>(ActorInfo->PlayerController.Get());
 	UKREquipmentManagerComponent* EquipComp = Character ? Character->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
 	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
 
-	if (!Character || !PC || !EquipComp || !KRASC)
+	if (!Character || !EquipComp || !KRASC)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	/*TArray<UKREquipmentInstance*> AllWeapons = EquipComp->GetEquipmentInstancesOfType(UKRWeaponInstance::StaticClass());
-	bool bBroadcastDone = false;
-	for (UKREquipmentInstance* Equip : AllWeapons)
+	if (AKRMeleeWeapon* MeleeWeapon = EquipComp->GetMeleeActorInstance())
 	{
-		if (UKRWeaponInstance* Weapon = Cast<UKRWeaponInstance>(Equip))
-		{
-			const bool bBroadcast = !bBroadcastDone;
-			Weapon->DeactivateWeapon(Character, PC, KRASC, EWeaponMessageAction::Unequipped, !bBroadcastDone);
-			if (bBroadcast)
-			{
-				bBroadcastDone = true;
-			}
-		}
-	}*/
+		MeleeWeapon->PlayUnequipEffect();
+	}
 
-	Character->GetMesh()->LinkAnimClassLayers(nullptr);
+	if (AKRRangeWeapon* RangeWeapon = EquipComp->GetRangeActorInstance())
+	{
+		RangeWeapon->PlayUnequipEffect();
+	}
+	
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
 	KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
-	KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
 
+	if (!KRASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_BASE))
+	{
+		KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_BASE);
+	}
+	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+void UKRGA_ExitCombat::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
