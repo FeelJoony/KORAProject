@@ -21,64 +21,62 @@ void UKRGA_WeaponSwap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                        const FGameplayEventData* TriggerEventData)
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-	
-	AKRBaseCharacter* Character = Cast<AKRBaseCharacter>(ActorInfo->AvatarActor.Get());
-	UKREquipmentManagerComponent* EquipComp = Character ? Character->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
-	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
 
-	if (!Character || !EquipComp || !KRASC)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
+    AKRBaseCharacter* Character = Cast<AKRBaseCharacter>(ActorInfo->AvatarActor.Get());
+    UKREquipmentManagerComponent* EquipComp = Character ? Character->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
+    UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
 
-	AKRMeleeWeapon* MeleeWeapon = EquipComp->GetMeleeActorInstance();
-	AKRRangeWeapon* RangeWeapon = EquipComp->GetRangeActorInstance();
+    if (!Character || !EquipComp || !KRASC)
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
 
-	if (KRASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_SWORD))
-	{
-		if (RangeWeapon)
-		{
-			if (MeleeWeapon)
-			{
-				MeleeWeapon->PlayUnequipEffect();
-			}
-			
-			RangeWeapon->PlayEquipEffect();
+    // 1. 현재 활성화된 모드 확인
+    FGameplayTag CurrentModeTag = FGameplayTag::EmptyTag;
+    FGameplayTag NewModeTag = FGameplayTag::EmptyTag;
+    FGameplayTag NewWeaponType = FGameplayTag::EmptyTag;
 
-			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
-			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("WeaponSwap: Cannot switch to Gun (Not Equipped)"));
-		}
-	}
-	else if (KRASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_GUN))
-	{
-		if (MeleeWeapon)
-		{
-			if (RangeWeapon)
-			{
-				RangeWeapon->PlayUnequipEffect();
-			}
-			MeleeWeapon->PlayEquipEffect();
+    if (KRASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_GUN))
+    {
+        // 현재 총 -> 검으로 변경
+        CurrentModeTag = KRTAG_PLAYER_MODE_GUN;
+        NewModeTag = KRTAG_PLAYER_MODE_SWORD;
+        NewWeaponType = KRTAG_ITEMTYPE_EQUIP_SWORD;
+    }
+    else if (KRASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_SWORD))
+    {
+        // 현재 검 -> 총으로 변경
+        CurrentModeTag = KRTAG_PLAYER_MODE_SWORD;
+        NewModeTag = KRTAG_PLAYER_MODE_GUN;
+        NewWeaponType = KRTAG_ITEMTYPE_EQUIP_GUN;
+    }
+    else
+    {
+        // 전투 모드가 아님 -> 스왑 불가 (혹은 기본 무기 장착)
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
 
-			KRASC->RemoveLooseGameplayTag(KRTAG_PLAYER_MODE_GUN);
-			KRASC->AddLooseGameplayTag(KRTAG_PLAYER_MODE_SWORD);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("WeaponSwap: Cannot switch to Sword (Not Equipped)"));
-		}
-	}
+    // 2. 장비 매니저를 통해 전투 모드 전환 (ActivateCombatMode 내부에서 Deactivate -> Activate 자동 수행)
+    if (!EquipComp->ActivateCombatMode(NewWeaponType))
+    {
+        // 전환 실패 (해당 무기가 없거나 등)
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
 
-	
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+    // 3. 태그 교체
+    KRASC->RemoveLooseGameplayTag(CurrentModeTag);
+    KRASC->AddLooseGameplayTag(NewModeTag);
+
+    UE_LOG(LogTemp, Log, TEXT("WeaponSwap: Swapped from [%s] to [%s]"), *CurrentModeTag.ToString(), *NewModeTag.ToString());
+
+    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 void UKRGA_WeaponSwap::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
