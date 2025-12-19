@@ -13,11 +13,11 @@ void UKRAnimNotifyState_EnemySlash::NotifyBegin(USkeletalMeshComponent* MeshComp
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(MeshComp->GetOwner());
 	if (!IsValid(Enemy)) return;
 
-	UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
+	/*UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
 	if (EnemyCombatComp)
 	{
 		EnemyCombatComp->ToggleWeaponCollision(true, EToggleDamageType::CurrentEquippedWeapon, EWeaponSlot::RightHand);
-	}
+	}*/
 }
 
 void UKRAnimNotifyState_EnemySlash::NotifyEnd(USkeletalMeshComponent* MeshComp, 
@@ -27,9 +27,9 @@ void UKRAnimNotifyState_EnemySlash::NotifyEnd(USkeletalMeshComponent* MeshComp,
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(MeshComp->GetOwner());
 	if (!IsValid(Enemy)) return;
 
-	UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
+	/*UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
 	if (EnemyCombatComp)
 	{
 		EnemyCombatComp->ToggleWeaponCollision(false, EToggleDamageType::CurrentEquippedWeapon, EWeaponSlot::RightHand);
-	}
+	}*/
 }

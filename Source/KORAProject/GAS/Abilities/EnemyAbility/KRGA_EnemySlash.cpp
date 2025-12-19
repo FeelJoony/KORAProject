@@ -26,7 +26,7 @@ void UKRGA_EnemySlash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	UKRWeaponInstance* Weapon = nullptr;
+	/*UKRWeaponInstance* Weapon = nullptr;
 	if (UKRCombatComponent* CombatComp = GetCombatComponentFromActorInfo())
 	{
 		Weapon = CombatComp->GetCurrentWeaponInstance();
@@ -36,7 +36,7 @@ void UKRGA_EnemySlash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
-	}
+	}*/
 
 	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Enemy))

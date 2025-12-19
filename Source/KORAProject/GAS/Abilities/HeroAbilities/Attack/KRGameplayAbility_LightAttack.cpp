@@ -22,7 +22,7 @@ void UKRGameplayAbility_LightAttack::ActivateAbility(const FGameplayAbilitySpecH
 		return;
 	}
 
-	UKRWeaponInstance* Weapon = nullptr;
+	/*UKRWeaponInstance* Weapon = nullptr;
 	if (UKRCombatComponent* CombatComp = GetCombatComponentFromActorInfo())
 	{
 		Weapon = CombatComp->GetCurrentWeaponInstance();
@@ -32,7 +32,7 @@ void UKRGameplayAbility_LightAttack::ActivateAbility(const FGameplayAbilitySpecH
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
-	}
+	}*/
 
 	/*UAnimMontage* MontageToPlay = Weapon->GetLightAttackMontage(CurrentComboIndex);
 

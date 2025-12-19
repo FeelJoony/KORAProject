@@ -38,7 +38,7 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 		return;
 	}
 
-	UKRWeaponInstance* Weapon = nullptr;
+	/*UKRWeaponInstance* Weapon = nullptr;
 	if (UKRCombatComponent* CombatComp = GetCombatComponentFromActorInfo())
 	{
 		Weapon = CombatComp->GetCurrentWeaponInstance();
@@ -48,7 +48,7 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(const FGameplayAbilitySpec
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
-	}
+	}*/
 
 	/*UAnimMontage* MontageToPlay = Weapon->GetChargeAttackMontage(CurrentComboIndex);
 
