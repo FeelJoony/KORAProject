@@ -4,6 +4,7 @@
 #include "Weapons/KRWeaponInstance.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "IDetailTreeNode.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
@@ -11,6 +12,7 @@
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "GameFramework/Character.h"
 #include "GameplayTag/KRItemTypeTag.h"
+#include "Item/Weapons/KRWeaponBase.h"
 #include "Item/Weapons/KRMeleeWeapon.h"
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
@@ -85,7 +87,7 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 	{
 		return;
 	}
-
+	
 	const UInventoryFragment_EquippableItem* EquippableFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_EquippableItem>();
 	if (EquippableFragment == nullptr)
 	{
@@ -93,8 +95,6 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 		
 		return;
 	}
-	
-	const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
 	
 	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
 	const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
@@ -107,7 +107,8 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
 	APlayerController* PC = CastChecked<APlayerController>(Character->GetController());
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-
+	
+	const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
 	// Init Stats
 	if (SetStatFragment)
 	{
@@ -177,7 +178,7 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 			TargetWeapon->SetActorRelativeTransform(Entry.AttachTransform);
 		}
 
-		TargetWeapon->ConfigureWeapon(EquippableFragment, SetStatFragment);
+		TargetWeapon->ConfigureWeapon(ItemInstance);
 		TargetWeapon->SetWeaponVisibility(true);
 		TargetWeapon->PlayEquipEffect();
 	}

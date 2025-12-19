@@ -32,6 +32,9 @@ struct FKRAppliedEquipmentEntry
 
 	static FKRAppliedEquipmentEntry Invalid_Entry;
 
+	const TArray<TObjectPtr<UAnimMontage>>& GetLightAttackMontages() const { return LightAttackMontages; }
+	const TArray<TObjectPtr<UAnimMontage>>& GetChargeAttackMontages() const { return ChargeAttackMontages; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
 	FGameplayTag TypeTag;
