@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "UI/HUD/Modules/KRQuickSlotWidget.h"
 #include "UI/HUD/Modules/KRQuickSlotButtonBase.h"
 #include "UI/Data/KRItemUIData.h"
@@ -188,4 +186,24 @@ void UKRQuickSlotWidget::UpdateSlotQuantity(FGameplayTag Direction, int32 NewQua
 			Selected->BP_SetHighlight(QuantityZeroSlotOpacity);
 		}
 	}
+}
+
+FGameplayTag UKRQuickSlotWidget::GetHoveredSlot() const
+{
+	TArray<TPair<FGameplayTag, UKRQuickSlotButtonBase*>> Slots = {
+		{ FKRUIMessageTags::QuickSlot_North(), NorthQuickSlot },
+		{ FKRUIMessageTags::QuickSlot_East(), EastQuickSlot },
+		{ FKRUIMessageTags::QuickSlot_South(), SouthQuickSlot },
+		{ FKRUIMessageTags::QuickSlot_West(), WestQuickSlot }
+	};
+
+	for (const auto& Pair : Slots)
+	{
+		if (Pair.Value && Pair.Value->IsHovered())
+		{
+			return Pair.Key;
+		}
+	}
+
+	return FGameplayTag();
 }

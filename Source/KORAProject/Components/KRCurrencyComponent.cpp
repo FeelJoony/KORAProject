@@ -127,8 +127,8 @@ void UKRCurrencyComponent::SpawnLostCurrencyDrop()
 
 	if (UWorld* World = GetWorld())
 	{
-		const float ForwardOffset = 80.f;
-		const float UpOffset      = 60.f;
+		const float ForwardOffset = 120.f;
+		const float UpOffset      = 80.f;
 
 		const FVector OwnerLoc = GetOwner()->GetActorLocation();
 		const FVector Forward  = GetOwner()->GetActorForwardVector();

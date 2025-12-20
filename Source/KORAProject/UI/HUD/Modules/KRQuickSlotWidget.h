@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CommonUserWidget.h"
@@ -20,7 +18,7 @@ public:
 
 	void RefreshFromInventory();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuickSlot") // true for HUD, false for Quickslot
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuickSlot")
 	bool bListenGameplayMessages = true;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKRQuickSlotHovered, FGameplayTag, SlotDirection);
@@ -29,6 +27,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "QuickSlot") FKRQuickSlotClicked OnSlotClicked;
 	void NotifySlotHovered(FGameplayTag SlotDir);
 	void NotifySlotClicked();
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot") FGameplayTag GetHoveredSlot() const;
 
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);

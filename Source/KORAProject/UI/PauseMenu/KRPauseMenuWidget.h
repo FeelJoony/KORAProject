@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CommonActivatableWidget.h"
@@ -57,10 +55,14 @@ private:
 	void HandleMoveUp();
 	void HandleMoveDown();
 
+	void ResetQuickSlotAssignState(bool bAlsoCloseUI);
+
 	EKRSlotNameContext CurrentSlotContext = EKRSlotNameContext::Menu;
 	FName CurrentMenuRouteName;
 	FGameplayTag CurrentQuickSlotDir;
 	
 	bool bQuickSlotInventoryOpen = false;
-	TArray<FKRItemUIData> QuickSlotInventoryItemList; // From Inventory
+	TArray<FKRItemUIData> QuickSlotInventoryItemList;
+	
+	uint64 LastSelectHandledFrame = 0;
 };

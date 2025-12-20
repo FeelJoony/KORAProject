@@ -5,10 +5,11 @@
 #include "Subsystem/KRDataTablesSubsystem.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/ConsumeDataStruct.h"
-#include "UObject/ConstructorHelpers.h" 
+#include "UObject/ConstructorHelpers.h"
 
 #include "GameplayTag/KRSetByCallerTag.h"
 #include "Player/KRPlayerState.h"
+#include "Components/KRCurrencyComponent.h"
 
 class AKRPlayerState;
 
@@ -52,18 +53,37 @@ bool UInventoryFragment_ConsumableItem::UseConsumable(UAbilitySystemComponent* A
 	if (!ASC) return false;
 
 	if (IsOnCooldown(ASC)) return false;
-	
+
 	static const FGameplayTag LightInUseTag =
 		FGameplayTag::RequestGameplayTag(TEXT("Status.Item.InUse.Light"), /*ErrorIfNotFound*/ false);
+	static const FGameplayTag InsuranceActiveTag =
+		FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"), /*ErrorIfNotFound*/ false);
 
 	const bool bIsLight = LightInUseTag.IsValid() && InUseTags.HasTagExact(LightInUseTag);
+	const bool bIsInsurance = InsuranceActiveTag.IsValid() &&
+		(EffectConfig.EffectType == EConsumableEffectType::Infinite) &&
+		InUseTags.HasTag(InsuranceActiveTag);
 
-	if (!bIsLight)
+	if (!bIsLight && !bIsInsurance)
 	{
 		if (!CanApplyMoreStacks(ASC)) return false;
 	}
-	else
+	else if (bIsLight)
 	{
+		if (InUseTags.Num() > 0)
+		{
+			FGameplayEffectQuery Q = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(InUseTags);
+			ASC->RemoveActiveEffects(Q);
+		}
+	}
+	else if (bIsInsurance)
+	{
+		if (!CanUpgradeInsurance(ASC, EffectConfig.Power))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Consumable] Insurance upgrade blocked: Current rate >= New rate (%.1f%%)"), EffectConfig.Power * 100.f);
+			return false;
+		}
+		
 		if (InUseTags.Num() > 0)
 		{
 			FGameplayEffectQuery Q = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(InUseTags);
@@ -182,7 +202,7 @@ bool UInventoryFragment_ConsumableItem::ApplyMainEffect(UAbilitySystemComponent*
 	}
 
 	const FGameplayTag InsuranceActiveTag =
-	FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"), /*ErrorIfNotFound*/ false);
+	FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"), false);
 
 	const bool bIsInsuranceConsumable =
 		InsuranceActiveTag.IsValid() &&
@@ -210,12 +230,10 @@ bool UInventoryFragment_ConsumableItem::ApplyMainEffect(UAbilitySystemComponent*
 		OutDuration = 0.f;
 		return true;
 	}
-	else
-	{
-		FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
-		OutDuration = EffectConfig.Duration;
-		return Handle.IsValid();
-	}
+	
+	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+	OutDuration = EffectConfig.Duration;
+	return Handle.IsValid();
 }
 
 bool UInventoryFragment_ConsumableItem::ApplyCooldown(UAbilitySystemComponent* ASC) const
@@ -282,11 +300,10 @@ int32 UInventoryFragment_ConsumableItem::GetCurrentStacks(UAbilitySystemComponen
 	return TotalStacks;
 }
 
-
 bool UInventoryFragment_ConsumableItem::CanApplyMoreStacks(UAbilitySystemComponent* ASC) const
 {
 	if (!ASC) { return false; }
-	
+
 	if (EffectConfig.EffectType == EConsumableEffectType::Instant) { return true; }
 	if (EffectConfig.StackMax <= 0) { return true; }
 
@@ -298,4 +315,45 @@ bool UInventoryFragment_ConsumableItem::CanApplyMoreStacks(UAbilitySystemCompone
 	const int32 MaxStacks     = FMath::Max(EffectConfig.StackMax, 1);
 
 	return CurrentStacks < MaxStacks;
+}
+
+bool UInventoryFragment_ConsumableItem::CanUpgradeInsurance(UAbilitySystemComponent* ASC, float NewInsuranceRate) const
+{
+	if (!ASC) { return false; }
+	
+	static const FGameplayTag InsuranceActiveTag =
+		FGameplayTag::RequestGameplayTag(TEXT("Status.Item.Insurance.Currency"), false);
+
+	if (!InsuranceActiveTag.IsValid() || !InUseTags.HasTag(InsuranceActiveTag))
+	{
+		return false;
+	}
+	
+	AActor* OwnerActor = ASC->GetOwnerActor();
+	if (!OwnerActor) { return true; }
+
+	AKRPlayerState* KRPS = Cast<AKRPlayerState>(OwnerActor);
+	if (!KRPS) { return true; }
+
+	UKRCurrencyComponent* CurComp = KRPS->GetCurrencyComponentSet();
+	if (!CurComp) { return true; }
+	
+	const float CurrentInsuranceRate = CurComp->InsuranceKeepRate;
+	
+	const bool bCanUpgrade = NewInsuranceRate > CurrentInsuranceRate;
+
+	if (!bCanUpgrade)
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[Insurance] Upgrade blocked: Current %.1f%% >= New %.1f%%"),
+			CurrentInsuranceRate * 100.f, NewInsuranceRate * 100.f);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log,
+			TEXT("[Insurance] Upgrade allowed: Current %.1f%% < New %.1f%%"),
+			CurrentInsuranceRate * 100.f, NewInsuranceRate * 100.f);
+	}
+
+	return bCanUpgrade;
 }
