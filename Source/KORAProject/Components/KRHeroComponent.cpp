@@ -20,6 +20,8 @@
 
 const FName UKRHeroComponent::NAME_ActorFeatureName("Hero");
 
+const FName UKRHeroComponent::NAME_BindInputsNow("BindInputsNow");
+
 UKRHeroComponent::UKRHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -194,13 +196,15 @@ void UKRHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompone
 
 				UKRInputComponent* KRIC = CastChecked<UKRInputComponent>(PlayerInputComponent);
 
-				KRIC->BindNativeInputAction(InputConfig, KRTAG_INPUT_MOVE,ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
-				KRIC->BindNativeInputAction(InputConfig, KRTAG_INPUT_LOOK,ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
+				KRIC->BindNativeInputAction(InputConfig, KRTAG_INPUT_MOVE, ETriggerEvent::Triggered, this, &ThisClass::Input_Move);
+				KRIC->BindNativeInputAction(InputConfig, KRTAG_INPUT_LOOK, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
 
 				KRIC->BindAbilityInputAction(InputConfig, this, &ThisClass::Input_AbilityInputPressed, &UKRHeroComponent::Input_AbilityInputReleased);
 			}
 		}
 	}
+
+	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow); 
 }
 
 void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)

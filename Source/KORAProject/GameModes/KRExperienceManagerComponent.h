@@ -2,12 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "Components/GameStateComponent.h"
+#include "GameFeaturePluginOperationResult.h"
 #include "KRExperienceManagerComponent.generated.h"
 
 enum class EKRExperienceLoadState
 {
 	Unloaded,
 	Loading,
+	LoadingGameFeatures,
+	ExecutingActions,
 	Loaded,
 	Deactivating,
 };
@@ -25,6 +28,9 @@ public:
 
 	EKRExperienceLoadState LoadState = EKRExperienceLoadState::Unloaded;
 	FOnKRExperienceLoaded OnExperienceLoaded;
+
+	int32 NumGameFeaturePluginsLoading = 0;
+	TArray<FString> GameFeaturePluginURLs;
 	
 	bool IsExperienceLoaded() { return (LoadState == EKRExperienceLoadState::Loaded) && (CurrentExperience != nullptr); }
 
@@ -33,6 +39,7 @@ public:
 	void SetCurrentExperience(FPrimaryAssetId ExperienceId);
 	void StartExperienceLoad();
 	void OnExperienceLoadComplete();
+	void OnGameFeaturePluginLoadComplete(const UE::GameFeatures::FResult& Result);
 	void OnExperienceFullLoadComplete();
 	const class UKRExperienceDefinition* GetCurrentExperienceChecked() const;
 };

@@ -9,6 +9,7 @@
 #include "Characters/KRHeroCharacter.h"
 #include "Data/DataAssets/KRPawnData.h"
 #include "Components/KRPawnExtensionComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Player/KRPlayerController.h"
 #include "Player/KRPlayerState.h"
 
@@ -91,9 +92,15 @@ void AKRBaseGameMode::HandleMatchAssignmentIfNotExpectionOne()
 
 	UWorld* World = GetWorld();
 
+	if (!ExperienceId.IsValid() && UGameplayStatics::HasOption(OptionsString, TEXT("Experience")))
+	{
+		const FString ExperienceFromOptions = UGameplayStatics::ParseOption(OptionsString, TEXT("Experience"));
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType(UKRExperienceDefinition::StaticClass()->GetFName()), FName(*ExperienceFromOptions)));
+	}
+	
 	if (!ExperienceId.IsValid())
 	{
-		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("/Game/GameModes/DA_KRDefaultExperience")));
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("BP_KRDefaultExperienceDefinition")));
 	}
 
 	OnMatchAssignmentGiven(ExperienceId);
