@@ -12,11 +12,15 @@ class KORAPROJECT_API UKRExperienceDefinition : public UPrimaryDataAsset
 public:
 	UKRExperienceDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
-	
 	UPROPERTY(EditDefaultsOnly, Category = Experience)
 	TObjectPtr<class UKRPawnData> DefaultPawnData;
 
 	UPROPERTY(EditDefaultsOnly, Category = Experience)
 	TArray<FString> GameFeaturesToEnable;
+
+	UPROPERTY(EditDefaultsOnly, Category = Experience)
+	TArray<TObjectPtr<class UKRExperienceActionSet>> ActionSets;
+
+	UPROPERTY(EditDefaultsOnly, Category = Experience)
+	TArray<TObjectPtr<class UGameFeatureAction>> Actions;
 };

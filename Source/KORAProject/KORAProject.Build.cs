@@ -24,6 +24,7 @@ public class KORAProject : ModuleRules
 			"SlateCore",
 			"CommonUI",
 			"CommonInput",
+			"CommonUser",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"ModularGameplay",
