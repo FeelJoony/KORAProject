@@ -9,13 +9,13 @@
 
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
-//struct FKRItemUIData;
+class UKRItemSlotBase;
 
 UCLASS()
 class KORAPROJECT_API UKRWeaponUpgradePage : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
-	
+
 public:
 	UPROPERTY(meta = (BindWidget)) UKRSlotGridBase* WeeaponSlot = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKRItemDescriptionBase* WeaponDescriptionWidget = nullptr;
@@ -24,15 +24,22 @@ public:
 protected:
 	virtual void NativeOnActivated() override;
 	virtual void NativeOnDeactivated() override;
+	virtual void NativeConstruct() override;
 
 private:
+	UPROPERTY() TArray<FGameplayTag> WeaponSlotOrder;
+	UPROPERTY() int32 SelectedWeaponIndex = 0;
+
 	TArray<FKRItemUIData> CachedUIData;
 
-	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
+	void InitializeWeaponSlotOrder();
+	void RefreshWeaponSlots();
 
-	void FilterAndCacheWeapons(const FGameplayTag& FilterTag);
+	//UFUNCTION() void OnWeaponSlotSelected(int32 CellIndex, UKRItemSlotBase* Slot);
+	//UFUNCTION() void OnWeaponSlotHovered(int32 CellIndex, UKRItemSlotBase* Slot);
 
 	void UpdateDescriptionUI(int32 CellIndex);
+	void UpdateWeaponInfoUI(int32 CellIndex);
 
 	void HandleSelect();
 	void HandleNext();

@@ -61,11 +61,13 @@ void UKREquipmentMain::NativeConstruct()
 	}
 
 	RefreshEquippedCategoryIcons();
-	ActiveCategoryIndex = 0;
+
+	// Find first non-empty slot for initial selection
+	ActiveCategoryIndex = FindFirstNonEmptySlot();
 
 	if (EquipCategorySlot)
 	{
-		EquipCategorySlot->SelectIndexSafe(0);
+		EquipCategorySlot->SelectIndexSafe(ActiveCategoryIndex);
 	}
 	FocusCategory();
 
@@ -288,7 +290,7 @@ void UKREquipmentMain::HandleEquipSlotChanged(FGameplayTag Channel, const FKRUIM
 	}
 }
 
-void UKREquipmentMain::OnCategorySelected(int32 Index, UKRItemSlotBase*)
+void UKREquipmentMain::OnCategorySelected(int32 Index, UKRItemSlotBase* SlotBase)
 {
 	ActiveCategoryIndex = Index;
 	RebuildInventoryUI(CategorySlotOrder[Index]);
@@ -296,11 +298,11 @@ void UKREquipmentMain::OnCategorySelected(int32 Index, UKRItemSlotBase*)
 	HighlightEquippedItemInInventory(true);
 }
 
-void UKREquipmentMain::OnCategoryHovered(int32 Index, UKRItemSlotBase*)
+void UKREquipmentMain::OnCategoryHovered(int32 Index, UKRItemSlotBase* SlotBase )
 {
 }
 
-void UKREquipmentMain::OnInventorySelected(int32 Index, UKRItemSlotBase*)
+void UKREquipmentMain::OnInventorySelected(int32 Index, UKRItemSlotBase* SlotBase)
 {
 	UpdateDescriptionUI(Index);
 
@@ -310,7 +312,7 @@ void UKREquipmentMain::OnInventorySelected(int32 Index, UKRItemSlotBase*)
 	}
 }
 
-void UKREquipmentMain::OnInventoryHovered(int32 Index, UKRItemSlotBase*)
+void UKREquipmentMain::OnInventoryHovered(int32 Index, UKRItemSlotBase* SlotBase)
 {
 	UpdateDescriptionUI(Index);
 }
@@ -338,11 +340,10 @@ bool UKREquipmentMain::MoveCategory(ENavDir Dir)
 	if (!EquipCategorySlot) return false;
 
 	const int32 CurHover = EquipCategorySlot->GetHoveredIndex();
-	const int32 Cols = EquipCategorySlot->GetColumnCount();
-	const int32 Num = EquipCategorySlot->GetNumCells();
-
 	const int32 Start = (CurHover == INDEX_NONE) ? ActiveCategoryIndex : CurHover;
-	const int32 Next = StepGrid(Start, Dir, Cols, Num);
+
+	// Find next non-empty slot, skipping empty ones
+	const int32 Next = FindNextNonEmptySlot(Start, Dir);
 
 	if (Next != Start)
 	{
@@ -405,4 +406,69 @@ void UKREquipmentMain::HighlightEquippedItemInInventory(bool bSelect)
 		}
 		EquipInventorySlot->HoverIndexSafe(Found);
 	}
+}
+
+bool UKREquipmentMain::IsCategorySlotEmpty(int32 Index) const
+{
+	if (!CategorySlotOrder.IsValidIndex(Index)) return true;
+
+	FKRItemUIData UIData;
+	return !UKRUIAdapterLibrary::GetEquippedSlotUIData(const_cast<UKREquipmentMain*>(this), CategorySlotOrder[Index], UIData);
+}
+
+int32 UKREquipmentMain::FindFirstNonEmptySlot() const
+{
+	for (int32 i = 0; i < CategorySlotOrder.Num(); ++i)
+	{
+		if (!IsCategorySlotEmpty(i))
+		{
+			return i;
+		}
+	}
+	return 0;
+}
+
+int32 UKREquipmentMain::FindNextNonEmptySlot(int32 Current, ENavDir Dir) const
+{
+	if (!EquipCategorySlot) return Current;
+
+	const int32 Cols = EquipCategorySlot->GetColumnCount();
+	const int32 Num = EquipCategorySlot->GetNumCells();
+	if (Cols <= 0 || Num <= 0) return Current;
+
+	int32 Next = StepGrid(Current, Dir, Cols, Num);
+
+	// If no movement, return current
+	if (Next == Current) return Current;
+
+	// If the next slot is not empty, return it
+	if (!IsCategorySlotEmpty(Next))
+	{
+		return Next;
+	}
+
+	// Find the next non-empty slot in the same direction
+	int32 SearchIdx = Next;
+	const int32 MaxIterations = Num;
+
+	for (int32 i = 0; i < MaxIterations; ++i)
+	{
+		int32 TryNext = StepGrid(SearchIdx, Dir, Cols, Num);
+
+		// No more movement possible in this direction
+		if (TryNext == SearchIdx)
+		{
+			break;
+		}
+
+		SearchIdx = TryNext;
+
+		if (!IsCategorySlotEmpty(SearchIdx))
+		{
+			return SearchIdx;
+		}
+	}
+
+	// No non-empty slot found, stay at current
+	return Current;
 }
