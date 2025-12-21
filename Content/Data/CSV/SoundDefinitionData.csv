@@ -1,0 +1,19 @@
+SoundTag,SoundDefinition,Description,bEnabled
+Sound.Movement.Footstep.Run.Default,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Run_Default.DA_Sound_Footstep_Run_Default,Run Default,TRUE
+Sound.Movement.Footstep.Run.Dirt,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Run_Dirt.DA_Sound_Footstep_Run_Dirt,RunDirt,TRUE
+Sound.Movement.Footstep.Run.Grass,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Run_Grass.DA_Sound_Footstep_Run_Grass,Run Grass,TRUE
+Sound.Movement.Footstep.Run.Metal,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Run_Metal.DA_Sound_Footstep_Run_Metal,Run Metal,TRUE
+Sound.Movement.Footstep.Run.Sand,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Run_Sand.DA_Sound_Footstep_Run_Sand,Run Sand,TRUE
+Sound.Movement.Footstep.Run.Stone,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Run_Stone.DA_Sound_Footstep_Run_Stone,Run Stone,TRUE
+Sound.Movement.Footstep.Run.Wood,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Run_Wood.DA_Sound_Footstep_Run_Wood,Run Wood,TRUE
+Sound.Movement.Footstep.Walk.Default,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Walk_Default.DA_Sound_Footstep_Walk_Default,Walk Default,TRUE
+Sound.Movement.Footstep.Walk.Dirt,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Walk_Dirt.DA_Sound_Footstep_Walk_Dirt,Walk Dirt,TRUE
+Sound.Movement.Footstep.Walk.Grass,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Walk_Grass.DA_Sound_Footstep_Walk_Grass,Walk Grass,TRUE
+Sound.Movement.Footstep.Walk.Metal,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Walk_Metal.DA_Sound_Footstep_Walk_Metal,Walk Metal,TRUE
+Sound.Movement.Footstep.Walk.Sand,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Walk_Sand.DA_Sound_Footstep_Walk_Sand,Walk Sand,TRUE
+Sound.Movement.Footstep.Walk.Stone,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Walk_Stone.DA_Sound_Footstep_Walk_Stone,Walk Stone,TRUE
+Sound.Movement.Footstep.Walk.Wood,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Footstep_Walk_Wood.DA_Sound_Footstep_Walk_Wood,Walk Wood,TRUE
+Sound.Combat.Sword.Attack,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Hit_Voice01.DA_Sound_Hit_Voice01,Combat Attack,TRUE
+Sound.Combat.Sword.Attack.Light,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Hit_Voice02.DA_Sound_Hit_Voice02,Combat Attack Light,TRUE
+Sound.Combat.Sword.Charge.QuickAttack,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Hit_Voice03.DA_Sound_Hit_Voice03,Combat Charge Attack,TRUE
+Sound.Mobility.Jump.Voice,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Jump_Voice.DA_Sound_Jump_Voice,Jump Up,TRUE

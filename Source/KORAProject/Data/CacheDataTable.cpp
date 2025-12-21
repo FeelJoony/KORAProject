@@ -14,6 +14,8 @@
 #include "ConsumeDataStruct.h"
 #include "CurrencyDataStruct.h"
 
+#include "KRDataAssetTableRows.h"
+
 struct FConsumeDataStruct;
 
 void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
@@ -83,6 +85,24 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 	case EGameDataType::CurrencyData:
 		{
 			InitKeyList<FCurrencyDataStruct>(NewDataTable);
+		}
+		break;
+		
+	case EGameDataType::SoundDefinitionData:
+		{
+			InitKeyList<FSoundDefinitionDataStruct>(NewDataTable);
+		}
+		break;
+
+	case EGameDataType::EffectDefinitionData:
+		{
+			InitKeyList<FEffectDefinitionDataStruct>(NewDataTable);
+		}
+		break;
+
+	case EGameDataType::WorldEventData:
+		{
+			InitKeyList<FWorldEventDataStruct>(NewDataTable);
 		}
 		break;
 	}

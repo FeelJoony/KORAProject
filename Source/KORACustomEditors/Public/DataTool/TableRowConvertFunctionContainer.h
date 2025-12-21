@@ -46,7 +46,13 @@ public:
 	void CreateEquipAbilityData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateModuleData(class UDataTable* OutDataTable, const FString& InCSVString);
-	
+	UFUNCTION()
+	void CreateSoundDefinitionData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateEffectDefinitionData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateWorldEventData(class UDataTable* OutDataTable, const FString& InCSVString);
+
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);
 	void CreateData(const FString& InCSVString, const FString& CSVFileName, FParseMethod ParseMethodDelegate);

@@ -29,6 +29,16 @@ public:
 		return KeyList[GetTypeHash(InKey)];
 	}
 
+	FORCEINLINE bool ContainsKey(uint32 InKey) const
+	{
+		return KeyList.Contains(InKey);
+	}
+
+	FORCEINLINE bool ContainsKey(FGameplayTag InKey) const
+	{
+		return KeyList.Contains(GetTypeHash(InKey));
+	}
+
 	template<typename TRow>
 	TRow* FindRow(uint32 InKey, const FString& ContextString, bool bWarnIfRowMissing)
 	{
@@ -38,6 +48,16 @@ public:
 	template<typename TRow>
 	TRow* FindRow(FGameplayTag InKey, const FString& ContextString, bool bWarnIfRowMissing)
 	{
+		return CachedDataTable->FindRow<TRow>(KeyList[GetTypeHash(InKey)], ContextString, bWarnIfRowMissing);
+	}
+
+	template<typename TRow>
+	TRow* FindRowSafe(FGameplayTag InKey, const FString& ContextString, bool bWarnIfRowMissing)
+	{
+		if (!ContainsKey(InKey))
+		{
+			return nullptr;
+		}
 		return CachedDataTable->FindRow<TRow>(KeyList[GetTypeHash(InKey)], ContextString, bWarnIfRowMissing);
 	}
 

@@ -1,0 +1,16 @@
+EffectTag,EffectDefinition,Description,bEnabled
+Effect.Movement.Footstep.Run.Default,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Run_Default.DA_Effect_Footstep_Run_Default,Run Default,TRUE
+Effect.Movement.Footstep.Run.Dirt,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Run_Dirt.DA_Effect_Footstep_Run_Dirt,RunDirt,TRUE
+Effect.Movement.Footstep.Run.Grass,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Run_Grass.DA_Effect_Footstep_Run_Grass,Run Grass,TRUE
+Effect.Movement.Footstep.Run.Metal,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Run_Metal.DA_Effect_Footstep_Run_Metal,Run Metal,TRUE
+Effect.Movement.Footstep.Run.Sand,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Run_Sand.DA_Effect_Footstep_Run_Sand,Run Sand,TRUE
+Effect.Movement.Footstep.Run.Stone,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Run_Stone.DA_Effect_Footstep_Run_Stone,Run Stone,TRUE
+Effect.Movement.Footstep.Run.Wood,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Run_Wood.DA_Effect_Footstep_Run_Wood,Run Wood,TRUE
+Effect.Movement.Footstep.Walk.Default,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Default.DA_Effect_Footstep_Walk_Default,Walk Default,TRUE
+Effect.Movement.Footstep.Walk.Dirt,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Dirt.DA_Effect_Footstep_Walk_Dirt,Walk Dirt,TRUE
+Effect.Movement.Footstep.Walk.Grass,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Grass.DA_Effect_Footstep_Walk_Grass,Walk Grass,TRUE
+Effect.Movement.Footstep.Walk.Metal,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Metal.DA_Effect_Footstep_Walk_Metal,Walk Metal,TRUE
+Effect.Movement.Footstep.Walk.Sand,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Sand.DA_Effect_Footstep_Walk_Sand,Walk Sand,TRUE
+Effect.Movement.Footstep.Walk.Stone,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Stone.DA_Effect_Footstep_Walk_Stone,Walk Stone,TRUE
+Effect.Movement.Footstep.Walk.Wood,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Wood.DA_Effect_Footstep_Walk_Wood,Walk Wood,TRUE
+Effect.Combat.Sword.Attack,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Trail.DA_Effect_Combat_Sword_Trail,Sword Trail,TRUE
