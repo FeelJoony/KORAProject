@@ -29,6 +29,7 @@ void UKRSlotGridBase::InitializeItemGrid(const TArray<FKRItemUIData>& InData)
 			else
 			{
 				Cell->SetItemData(FKRItemUIData{});
+				Cell->SetIsEnabled(false);
 			}
 		}
 	}
@@ -65,6 +66,11 @@ void UKRSlotGridBase::BuildGrid()
 		}
 		BindSlot(Cell, i);
 		Slots.Add(Cell);
+	}
+
+	if (ButtonGroup && Slots.Num() > 0)
+	{
+		ButtonGroup->SelectButtonAtIndex(0);
 	}
 }
 
@@ -119,6 +125,29 @@ void UKRSlotGridBase::NativeConstruct()
 	}
 }
 
+void UKRSlotGridBase::RebindButtonGroup()
+{
+    if (ButtonGroup)
+    {
+        ButtonGroup->OnSelectedButtonBaseChanged.RemoveAll(this);
+        ButtonGroup->OnHoveredButtonBaseChanged.RemoveAll(this);
+    }
+
+    ButtonGroup = NewObject<UCommonButtonGroupBase>(this);
+    ButtonGroup->SetSelectionRequired(true);
+
+    ButtonGroup->OnHoveredButtonBaseChanged.AddDynamic(this, &ThisClass::HandleGroupHoveredChanged);
+    ButtonGroup->OnSelectedButtonBaseChanged.AddDynamic(this, &ThisClass::HandleGroupSelectedChanged);
+
+    for (UKRItemSlotBase* ItemSlot : Slots)
+    {
+        if (ItemSlot)
+        {
+            ButtonGroup->AddWidget(ItemSlot);
+        }
+    }
+}
+
 void UKRSlotGridBase::NativeDestruct()
 {
 	if (ButtonGroup)
@@ -140,24 +169,37 @@ void UKRSlotGridBase::BindSlot(UKRItemSlotBase* CellWidget, int32 CellIndex)
 
 	TWeakObjectPtr<UKRItemSlotBase> WeakSlot = CellWidget;
 
-	CellWidget->OnClicked().AddWeakLambda(this, [this, CellIndex, WeakSlot]()
-		{
-			OnSlotClicked.Broadcast();
-		});
+    CellWidget->OnClicked().AddWeakLambda(this, [this, CellIndex]()
+    {
+        if (!bSelectOnHover && ButtonGroup)
+        {
+            ButtonGroup->SelectButtonAtIndex(CellIndex);
+        }
+
+        OnSlotClicked.Broadcast();
+    });
 }
 
 void UKRSlotGridBase::ClearGrid()
 {
+	if (ButtonGroup)
+	{
+		for (UKRItemSlotBase* SlotBase : Slots)
+		{
+			if (SlotBase)
+			{
+				ButtonGroup->RemoveWidget(SlotBase);
+			}
+		}
+	}
+
 	if (SlotGrid)
 	{
 		SlotGrid->ClearChildren();
 	}
 	Slots.Reset();
-
-	if (ButtonGroup)
-	{
-		ButtonGroup->DeselectAll();
-	}
+	HoveredIndex = INDEX_NONE;
+	LastHoveredIndex = INDEX_NONE;
 }
 
 void UKRSlotGridBase::HandleGroupSelectedChanged(UCommonButtonBase* Selected, int32 SelectedIndex)

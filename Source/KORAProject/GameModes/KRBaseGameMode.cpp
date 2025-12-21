@@ -9,8 +9,10 @@
 #include "Characters/KRHeroCharacter.h"
 #include "Data/DataAssets/KRPawnData.h"
 #include "Components/KRPawnExtensionComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Player/KRPlayerController.h"
 #include "Player/KRPlayerState.h"
+#include "SubSystem/KRDataAssetRegistry.h"
 
 AKRBaseGameMode::AKRBaseGameMode()
 {
@@ -48,6 +50,54 @@ UClass* AKRBaseGameMode::GetDefaultPawnClassForController_Implementation(AContro
 	}
 	
 	return Super::GetDefaultPawnClassForController_Implementation(InController);
+}
+
+const UKRPawnData* AKRBaseGameMode::GetPawnDataForController(const AController* Controller) const
+{
+	if (Controller)
+	{
+		if (const AKRPlayerState* KRPS = Controller->GetPlayerState<AKRPlayerState>())
+		{
+			if (const UKRPawnData* PawnData = KRPS->GetPawnData<UKRPawnData>())
+			{
+				return PawnData;
+			}
+		}
+	}
+
+	check(GameState);
+	UKRExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UKRExperienceManagerComponent>();
+	check(ExperienceManagerComponent);
+
+	if (ExperienceManagerComponent->IsExperienceLoaded())
+	{
+		const UKRExperienceDefinition* Experience = ExperienceManagerComponent->GetCurrentExperienceChecked();
+		if (Experience->DefaultPawnData)
+		{
+			return Experience->DefaultPawnData;
+		}
+	}
+
+	return nullptr;
+}
+
+void AKRBaseGameMode::RegisterDataAssets()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	if (!GameInstance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[KRBaseGameMode] Failed to get GameInstance for DataAsset registration"));
+		return;
+	}
+
+	UKRDataAssetRegistry* Registry = GameInstance->GetSubsystem<UKRDataAssetRegistry>();
+	if (!Registry)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[KRBaseGameMode] Failed to get KRDataAssetRegistry subsystem"));
+		return;
+	}
+	
+	FKRDataAssetRegistrationResult Result = Registry->RegisterAllFromDataTablesSubsystem();
 }
 
 void AKRBaseGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
@@ -91,9 +141,15 @@ void AKRBaseGameMode::HandleMatchAssignmentIfNotExpectionOne()
 
 	UWorld* World = GetWorld();
 
+	if (!ExperienceId.IsValid() && UGameplayStatics::HasOption(OptionsString, TEXT("Experience")))
+	{
+		const FString ExperienceFromOptions = UGameplayStatics::ParseOption(OptionsString, TEXT("Experience"));
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType(UKRExperienceDefinition::StaticClass()->GetFName()), FName(*ExperienceFromOptions)));
+	}
+	
 	if (!ExperienceId.IsValid())
 	{
-		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("/Game/GameModes/DA_KRDefaultExperience")));
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("BP_KRDefaultExperienceDefinition")));
 	}
 
 	OnMatchAssignmentGiven(ExperienceId);
@@ -119,6 +175,8 @@ bool AKRBaseGameMode::IsExperienceLoaded() const
 
 void AKRBaseGameMode::OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience)
 {
+	RegisterDataAssets();
+
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 	{
 		APlayerController* PC = Cast<APlayerController>(*Iterator);
@@ -131,33 +189,4 @@ void AKRBaseGameMode::OnExperienceLoaded(const class UKRExperienceDefinition* Cu
 			}
 		}
 	}
-}
-
-const UKRPawnData* AKRBaseGameMode::GetPawnDataForController(const AController* Controller) const
-{
-	if (Controller)
-	{
-		if (const AKRPlayerState* KRPS = Controller->GetPlayerState<AKRPlayerState>())
-		{
-			if (const UKRPawnData* PawnData = KRPS->GetPawnData<UKRPawnData>())
-			{
-				return PawnData;
-			}
-		}
-	}
-
-	check(GameState);
-	UKRExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UKRExperienceManagerComponent>();
-	check(ExperienceManagerComponent);
-
-	if (ExperienceManagerComponent->IsExperienceLoaded())
-	{
-		const UKRExperienceDefinition* Experience = ExperienceManagerComponent->GetCurrentExperienceChecked();
-		if (Experience->DefaultPawnData)
-		{
-			return Experience->DefaultPawnData;
-		}
-	}
-
-	return nullptr;
-}
+} 

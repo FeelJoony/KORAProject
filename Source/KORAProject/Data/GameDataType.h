@@ -16,4 +16,7 @@ enum class EGameDataType : uint8
 	EquipAbilityData,
 	ModuleData,
 	CurrencyData,
+	SoundDefinitionData,
+	EffectDefinitionData,
+	WorldEventData,
 };

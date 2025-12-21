@@ -162,6 +162,8 @@ bool UKRUIAdapterLibrary::GetEquippedSlotUIData(UObject* WorldContextObject, con
     APawn* Pawn = PC ? PC->GetPawn() : nullptr;
     UKREquipmentManagerComponent* EquipMgr = Pawn ? Pawn->FindComponentByClass<UKREquipmentManagerComponent>() : nullptr;
 
+    if (!EquipMgr) return false;
+    
     if (UKRInventoryItemInstance* Inst = EquipMgr->GetEquippedItemInstanceBySlotTag(SlotTag))
     {
         FKRItemUIData UIData;
@@ -172,6 +174,7 @@ bool UKRUIAdapterLibrary::GetEquippedSlotUIData(UObject* WorldContextObject, con
             UIData.Quantity = 0;
             UIData.Price = -1;
             UIData.ShopStock = 0;
+            Out = UIData;
             return true;
         }
     }

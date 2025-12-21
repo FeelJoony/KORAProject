@@ -5,17 +5,28 @@
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
-//#include "UI/Data/KRItemUIData.h"
 #include "SubSystem/KRUIInputSubsystem.h"
+#include "GameplayTag/KRItemTypeTag.h"
 
-/*
-#include "Inventory/KRInventoryComponent.h"   // 인벤토리 컴포넌트 받고 수정
-#include "Item/KRBaseItem.h"                 // 아이템 받고 수정
-*/
+void UKRWeaponUpgradePage::NativeConstruct()
+{
+	Super::NativeConstruct();
 
-// 필요 함수 리스트 !! 
-/* 현재 위젯 소유자 Pawn에서 인벤토리 컴포넌트 가져오는 함수 */
-/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+	InitializeWeaponSlotOrder();
+
+	//if (WeeaponSlot)
+	//{
+	//	WeeaponSlot->OnSelectionChanged.AddDynamic(this, &ThisClass::OnWeaponSlotSelected);
+	//	WeeaponSlot->OnHoverChanged.AddDynamic(this, &ThisClass::OnWeaponSlotHovered);
+	//}
+
+	RefreshWeaponSlots();
+
+	if (WeeaponSlot && CachedUIData.Num() > 0)
+	{
+		WeeaponSlot->SelectIndexSafe(0);
+	}
+}
 
 void UKRWeaponUpgradePage::NativeOnActivated()
 {
@@ -30,54 +41,128 @@ void UKRWeaponUpgradePage::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Next"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleNext));
 		InputSubsys->BindRow(this, TEXT("Prev"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandlePrev));
 	}
+
+	RefreshWeaponSlots();
+
+	if (WeeaponSlot)
+	{
+		const int32 Safe = FMath::Clamp(SelectedWeaponIndex, 0, CachedUIData.Num() - 1);
+		WeeaponSlot->SelectIndexSafe(Safe);
+	}
 }
 
 void UKRWeaponUpgradePage::NativeOnDeactivated()
 {
-	//if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
-	//{
-	//	InputSubsys->UnbindAll(this);
-	//}
 	Super::NativeOnDeactivated();
 }
 
-void UKRWeaponUpgradePage::OnGridSlotSelected(int32 CellIndex)
+void UKRWeaponUpgradePage::InitializeWeaponSlotOrder()
 {
-	UpdateDescriptionUI(CellIndex);
+	WeaponSlotOrder = {
+		KRTAG_ITEMTYPE_EQUIP_GUN,
+		KRTAG_ITEMTYPE_EQUIP_SWORD
+	};
 }
 
-void UKRWeaponUpgradePage::FilterAndCacheWeapons(const FGameplayTag& FilterTag)
+void UKRWeaponUpgradePage::RefreshWeaponSlots()
 {
-	/* 테그 매칭으로 아이템 가져와서 UIData로 변환하는 함수*/
+	CachedUIData.Empty();
+	
+	for (const FGameplayTag& SlotTag : WeaponSlotOrder)
+	{
+		FKRItemUIData UIData;
+		if (UKRUIAdapterLibrary::GetEquippedSlotUIData(this, SlotTag, UIData))
+		{
+			CachedUIData.Add(UIData);
+		}
+		else
+		{
+			CachedUIData.Add(FKRItemUIData());
+		}
+	}
+
+	if (WeeaponSlot)
+	{
+		WeeaponSlot->InitializeItemGrid(CachedUIData);
+	}
+	
+	if (CachedUIData.Num() > 0)
+	{
+		UpdateDescriptionUI(0);
+		UpdateWeaponInfoUI(0);
+	}
 }
+
+//void UKRWeaponUpgradePage::OnWeaponSlotSelected(int32 CellIndex, UKRItemSlotBase* Slot)
+//{
+//	SelectedWeaponIndex = CellIndex;
+//	UpdateDescriptionUI(CellIndex);
+//	UpdateWeaponInfoUI(CellIndex);
+//}
+//
+//void UKRWeaponUpgradePage::OnWeaponSlotHovered(int32 CellIndex, UKRItemSlotBase* Slot)
+//{
+//	UpdateDescriptionUI(CellIndex);
+//	UpdateWeaponInfoUI(CellIndex);
+//}
 
 void UKRWeaponUpgradePage::UpdateDescriptionUI(int32 CellIndex)
 {
 	if (!WeaponDescriptionWidget) return;
-	if (!WeaponInfoSlot) return;
 
-	if (CachedUIData.IsValidIndex(CellIndex))
+	if (CachedUIData.IsValidIndex(CellIndex) && CachedUIData[CellIndex].ItemTag.IsValid())
 	{
 		WeaponDescriptionWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		const FKRItemUIData& D = CachedUIData[CellIndex];
 		WeaponDescriptionWidget->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon);
-		WeaponInfoSlot->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon, D.UpgradeLevel);
 	}
 	else
 	{
 		WeaponDescriptionWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void UKRWeaponUpgradePage::UpdateWeaponInfoUI(int32 CellIndex)
+{
+	if (!WeaponInfoSlot) return;
+
+	if (CachedUIData.IsValidIndex(CellIndex) && CachedUIData[CellIndex].ItemTag.IsValid())
+	{
+		WeaponInfoSlot->SetVisibility(ESlateVisibility::HitTestInvisible);
+		const FKRItemUIData& D = CachedUIData[CellIndex];
+		
+		const int32 DisplayLevel = D.UpgradeLevel > 0 ? D.UpgradeLevel : 1;
+		WeaponInfoSlot->UpdateItemInfo(D.ItemNameKey, D.ItemDescriptionKey, D.ItemIcon, DisplayLevel);
+	}
+	else
+	{
 		WeaponInfoSlot->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
 void UKRWeaponUpgradePage::HandleSelect()
 {
+	// Weapon Upgrade Logic Here
 }
 
 void UKRWeaponUpgradePage::HandleNext()
 {
+	if (!WeeaponSlot) return;
+
+	const int32 Num = WeeaponSlot->GetNumCells();
+	if (Num <= 0) return;
+
+	const int32 Next = (SelectedWeaponIndex + 1) % Num;
+	WeeaponSlot->SelectIndexSafe(Next);
 }
 
 void UKRWeaponUpgradePage::HandlePrev()
 {
+	if (!WeeaponSlot) return;
+
+	const int32 Num = WeeaponSlot->GetNumCells();
+	if (Num <= 0) return;
+
+	const int32 Prev = (SelectedWeaponIndex - 1 + Num) % Num;
+	WeeaponSlot->SelectIndexSafe(Prev);
 }

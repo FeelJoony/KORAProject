@@ -114,6 +114,10 @@
 		{
 			"Name": "MassEntity",
 			"Enabled": true
+		},
+		{
+			"Name": "DefaultFeature",
+			"Enabled": true
 		}
 	]
 }

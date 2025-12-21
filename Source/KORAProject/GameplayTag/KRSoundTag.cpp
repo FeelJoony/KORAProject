@@ -1,0 +1,148 @@
+
+#include "KRSoundTag.h"
+
+// ============================================================
+// SOUND TAGS - Movement
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_WALK_DEFAULT, "Sound.Movement.Footstep.Walk.Default");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_WALK_STONE, "Sound.Movement.Footstep.Walk.Stone");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_WALK_DIRT, "Sound.Movement.Footstep.Walk.Dirt");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_WALK_GRASS, "Sound.Movement.Footstep.Walk.Grass");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_WALK_SAND, "Sound.Movement.Footstep.Walk.Sand");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_WALK_METAL, "Sound.Movement.Footstep.Walk.Metal");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_WALK_WOOD, "Sound.Movement.Footstep.Walk.Wood");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_RUN_DEFAULT, "Sound.Movement.Footstep.Run.Default");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_RUN_STONE, "Sound.Movement.Footstep.Run.Stone");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_RUN_DIRT, "Sound.Movement.Footstep.Run.Dirt");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_RUN_GRASS, "Sound.Movement.Footstep.Run.Grass");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_RUN_SAND, "Sound.Movement.Footstep.Run.Sand");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_RUN_METAL, "Sound.Movement.Footstep.Run.Metal");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_FOOTSTEP_RUN_WOOD, "Sound.Movement.Footstep.Run.Wood");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_LANDING_NORMAL, "Sound.Movement.Landing.Normal");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_LANDING_HEAVY, "Sound.Movement.Landing.Heavy");
+
+// ============================================================
+// SOUND TAGS - Mobility
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_DODGE, "Sound.Mobility.Dodge");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_ROLL_START, "Sound.Mobility.Roll.Start");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_ROLL_END, "Sound.Mobility.Roll.End");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_JUMP_VOICE, "Sound.Mobility.Jump.Voice");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_JUMP_UP, "Sound.Mobility.Jump.UP");
+
+// ============================================================
+// SOUND TAGS - Stealth
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_STEALTH_ENTER, "Sound.Stealth.Enter");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_STEALTH_EXIT, "Sound.Stealth.Exit");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_STEALTH_KILL, "Sound.Stealth.Kill");
+
+// ============================================================
+// SOUND TAGS - Combat Sword
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_EQUIP, "Sound.Combat.Sword.Equip");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_HOLSTER, "Sound.Combat.Sword.Holster");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_ATTACK_LIGHT, "Sound.Combat.Sword.Attack.Light");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_WHOOSH, "Sound.Combat.Sword.Whoosh");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_CHARGE_START, "Sound.Combat.Sword.Charge.Start");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_CHARGE_LOOP, "Sound.Combat.Sword.Charge.Loop");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_CHARGE_RELEASE, "Sound.Combat.Sword.Charge.Release");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_SWORD_CHARGE_QUICKATTACK, "Sound.Combat.Sword.Charge.QuickAttack");
+
+// ============================================================
+// SOUND TAGS - Combat Gun
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_EQUIP, "Sound.Combat.Gun.Equip");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_HOLSTER, "Sound.Combat.Gun.Holster");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_FIRE_NORMAL, "Sound.Combat.Gun.Fire.Normal");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_FIRE_AUTO, "Sound.Combat.Gun.Fire.Auto");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_RELOAD_START, "Sound.Combat.Gun.Reload.Start");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_RELOAD_LOOP, "Sound.Combat.Gun.Reload.Loop");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_RELOAD_END, "Sound.Combat.Gun.Reload.End");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_DRYFIRE, "Sound.Combat.Gun.DryFire");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_RICOCHET, "Sound.Combat.Gun.Ricochet");
+
+// ============================================================
+// SOUND TAGS - Defense
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DEFENSE_GUARD_START, "Sound.Defense.Guard.Start");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DEFENSE_GUARD_LOOP, "Sound.Defense.Guard.Loop");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DEFENSE_GUARD_IMPACT, "Sound.Defense.Guard.Impact");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DEFENSE_GUARD_DEFLECT, "Sound.Defense.Guard.Deflect");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DEFENSE_PARRY_ATTEMPT, "Sound.Defense.Parry.Attempt");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DEFENSE_PARRY_SUCCESS, "Sound.Defense.Parry.Success");
+
+// ============================================================
+// SOUND TAGS - Damage & Impact
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_PLAYER_LIGHT, "Sound.Damage.Hit.Player.Light");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_PLAYER_MEDIUM, "Sound.Damage.Hit.Player.Medium");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_PLAYER_HEAVY, "Sound.Damage.Hit.Player.Heavy");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_PLAYER_DEATH, "Sound.Damage.Player.Death");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_HUMAN_LIGHT, "Sound.Damage.Hit.Enemy.Human.Light");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_HUMAN_MEDIUM, "Sound.Damage.Hit.Enemy.Human.Medium");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_HUMAN_HEAVY, "Sound.Damage.Hit.Enemy.Human.Heavy");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_MONSTER_LIGHT, "Sound.Damage.Hit.Enemy.Monster.Light");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_MONSTER_MEDIUM, "Sound.Damage.Hit.Enemy.Monster.Medium");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_MONSTER_HEAVY, "Sound.Damage.Hit.Enemy.Monster.Heavy");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_SEMIBOSS_LIGHT, "Sound.Damage.Hit.Enemy.SemiBoss.Light");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_SEMIBOSS_MEDIUM, "Sound.Damage.Hit.Enemy.SemiBoss.Medium");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_SEMIBOSS_HEAVY, "Sound.Damage.Hit.Enemy.SemiBoss.Heavy");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_SWORD_ENEMY_HUMAN, "Sound.Impact.Sword.Enemy.Human");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_SWORD_ENEMY_MONSTER, "Sound.Impact.Sword.Enemy.Monster");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_SWORD_ENEMY_SEMIBOSS, "Sound.Impact.Sword.Enemy.SemiBoss");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_SWORD_ENVIRONMENT, "Sound.Impact.Sword.Environment");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_GUN_ENEMY_HUMAN, "Sound.Impact.Gun.Enemy.Human");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_GUN_ENEMY_MONSTER, "Sound.Impact.Gun.Enemy.Monster");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_GUN_ENEMY_SEMIBOSS, "Sound.Impact.Gun.Enemy.SemiBoss");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_IMPACT_GUN_ENVIRONMENT, "Sound.Impact.Gun.Environment");
+
+// ============================================================
+// SOUND TAGS - UI & Resources
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_UI_WEAPONSLOT, "Sound.UI.WeaponSlot");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_UI_STAMINA_CONSUME, "Sound.UI.Stamina.Consume");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_UI_STAMINA_DEPLETED, "Sound.UI.Stamina.Depleted");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_UI_COREDRIVE_CHARGE1, "Sound.UI.CoreDrive.Charge1");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_UI_COREDRIVE_CHARGEFULL, "Sound.UI.CoreDrive.ChargeFull");
+
+// ============================================================
+// SOUND TAGS - Interaction
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_PICKUP, "Sound.Interaction.Pickup");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_CHEST_OPEN, "Sound.Interaction.Chest.Open");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_CHEST_COMPLETE, "Sound.Interaction.Chest.Complete");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_LADDER_ENTER, "Sound.Interaction.Ladder.Enter");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_LADDER_CLIMB, "Sound.Interaction.Ladder.Climb");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_LADDER_DESCEND, "Sound.Interaction.Ladder.Descend");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_LADDER_EXIT, "Sound.Interaction.Ladder.Exit");
+
+// ============================================================
+// SOUND TAGS - Boss
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_INTRO, "Sound.Boss.Intro");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_AURA_LOOP, "Sound.Boss.Aura.Loop");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_PHASETRANSITION, "Sound.Boss.PhaseTransition");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_ATTACKTELEGRAPH, "Sound.Boss.AttackTelegraph");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_AREAATTACK, "Sound.Boss.AreaAttack");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_ROAR, "Sound.Boss.Roar");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_DEATH, "Sound.Boss.Death");
+
+// ============================================================
+// SOUND TAGS - Category (for filtering/volume control)
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_FOLEY, "Sound.Category.Foley");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_MAINWEAPON, "Sound.Category.MainWeapon");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_IMPACT, "Sound.Category.Impact");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_UI, "Sound.Category.UI");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_VOICE, "Sound.Category.Voice");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_AMBIENTLOOP, "Sound.Category.AmbientLoop");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_PLAYER, "Sound.Category.Player");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_ENEMY, "Sound.Category.Enemy");

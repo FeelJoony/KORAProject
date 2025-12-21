@@ -33,6 +33,17 @@ public:
 		return GetTable(InType)->FindRow<TRow>(KeyTag, StringContext, bWarnIfRowMissing);
 	}
 
+	template<typename TRow>
+	TRow* GetDataSafe(EGameDataType InType, FGameplayTag KeyTag, const FString& StringContext = FString(TEXT("")), bool bWarnIfRowMissing = false)
+	{
+		UCacheDataTable* Table = GetTable(InType);
+		if (!Table || !Table->ContainsKey(KeyTag))
+		{
+			return nullptr;
+		}
+		return Table->FindRow<TRow>(KeyTag, StringContext, bWarnIfRowMissing);
+	}
+
 private:
 	UPROPERTY()
 	TMap<EGameDataType, TSoftObjectPtr<UCacheDataTable>> DataTables;

@@ -24,6 +24,7 @@ public class KORAProject : ModuleRules
 			"SlateCore",
 			"CommonUI",
 			"CommonInput",
+			"CommonUser",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"ModularGameplay",
@@ -41,6 +42,7 @@ public class KORAProject : ModuleRules
             "MassNavigation",
             "MassRepresentation",
 			"ZoneGraph",
+			"MotionWarping"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[]

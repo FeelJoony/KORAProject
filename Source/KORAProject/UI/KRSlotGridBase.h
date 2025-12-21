@@ -43,6 +43,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Slots") bool SelectIndexSafe(int32 Index);
 	UFUNCTION(BlueprintCallable, Category = "Slots") bool HoverIndexSafe(int32 Index);
 	UFUNCTION(BlueprintPure, Category = "Slots") UWidget* GetSelectedWidget() const;
+	
+	UFUNCTION(BlueprintCallable, Category="Slots") void RebindButtonGroup();
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;

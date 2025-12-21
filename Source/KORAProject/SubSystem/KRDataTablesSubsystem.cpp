@@ -10,7 +10,7 @@ UKRDataTablesSubsystem::UKRDataTablesSubsystem()
 void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	
+
 	AddDataTable(EGameDataType::ItemData, FString(TEXT("ItemData")));
 	AddDataTable(EGameDataType::WeaponEnhanceData, FString(TEXT("WeaponEnhanceData")));
 	AddDataTable(EGameDataType::TutorialData, FString(TEXT("TutorialData")));
@@ -22,6 +22,9 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	AddDataTable(EGameDataType::EquipAbilityData, FString(TEXT("EquipAbilityData")));
 	AddDataTable(EGameDataType::ModuleData, FString(TEXT("ModuleData")));
 	AddDataTable(EGameDataType::CurrencyData, FString(TEXT("CurrencyData")));
+	AddDataTable(EGameDataType::SoundDefinitionData, FString(TEXT("SoundDefinitionData")));
+	AddDataTable(EGameDataType::EffectDefinitionData, FString(TEXT("EffectDefinitionData")));
+	AddDataTable(EGameDataType::WorldEventData, FString(TEXT("WorldEventData")));
 }
 
 void UKRDataTablesSubsystem::Deinitialize()

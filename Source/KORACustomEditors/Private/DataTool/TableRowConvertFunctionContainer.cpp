@@ -17,6 +17,7 @@
 #include "Data/EquipAbilityDataStruct.h"
 #include "Data/EquipDataStruct.h"
 #include "Data/ModuleDataStruct.h"
+#include "Data/KRDataAssetTableRows.h"
 
 struct FConsumeDataStruct;
 
@@ -686,6 +687,117 @@ void UTableRowConvertFunctionContainer::CreateModuleData(class UDataTable* OutDa
 				else
 				{
 					OutDataTable->AddRow(RowName, ModuleData);
+				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateSoundDefinitionData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("SoundDefinitionData")), FParseMethod::CreateLambda(
+		[&](FParseMethodParams Params)
+		{
+			auto& Headers = Params.Headers;
+			auto& Values = Params.Values;
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = const_cast<TArray<FString>&>(Values[i]);
+
+				int32 SoundTag_Index = GetHeaderIndex(Headers, TEXT("SoundTag"));
+				int32 SoundDefinition_Index = GetHeaderIndex(Headers, TEXT("SoundDefinition"));
+				int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+				int32 bEnabled_Index = GetHeaderIndex(Headers, TEXT("bEnabled"));
+
+				FSoundDefinitionDataStruct SoundDefRow;
+
+				SoundDefRow.SoundTag = ParseGameplayTagValue(RowValue[SoundTag_Index]);
+				SoundDefRow.SoundDefinition = ParseSoftObjectValue<UKRSoundDefinition>(RowValue[SoundDefinition_Index]);
+				SoundDefRow.Description = RowValue[Description_Index];
+				SoundDefRow.bEnabled = ParseBoolValue(RowValue[bEnabled_Index]);
+
+				FName RowName = *FString::Printf(TEXT("Sound_%d"), i);
+				if (FSoundDefinitionDataStruct* FindRow = OutDataTable->FindRow<FSoundDefinitionDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = SoundDefRow;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, SoundDefRow);
+				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateEffectDefinitionData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("EffectDefinitionData")), FParseMethod::CreateLambda(
+		[&](FParseMethodParams Params)
+		{
+			auto& Headers = Params.Headers;
+			auto& Values = Params.Values;
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = const_cast<TArray<FString>&>(Values[i]);
+
+				int32 EffectTag_Index = GetHeaderIndex(Headers, TEXT("EffectTag"));
+				int32 EffectDefinition_Index = GetHeaderIndex(Headers, TEXT("EffectDefinition"));
+				int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+				int32 bEnabled_Index = GetHeaderIndex(Headers, TEXT("bEnabled"));
+
+				FEffectDefinitionDataStruct EffectDefRow;
+
+				EffectDefRow.EffectTag = ParseGameplayTagValue(RowValue[EffectTag_Index]);
+				EffectDefRow.EffectDefinition = ParseSoftObjectValue<UKREffectDefinition>(RowValue[EffectDefinition_Index]);
+				EffectDefRow.Description = RowValue[Description_Index];
+				EffectDefRow.bEnabled = ParseBoolValue(RowValue[bEnabled_Index]);
+
+				FName RowName = *FString::Printf(TEXT("Effect_%d"), i);
+				if (FEffectDefinitionDataStruct* FindRow = OutDataTable->FindRow<FEffectDefinitionDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = EffectDefRow;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, EffectDefRow);
+				}
+			}
+		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateWorldEventData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("WorldEventData")), FParseMethod::CreateLambda(
+		[&](FParseMethodParams Params)
+		{
+			auto& Headers = Params.Headers;
+			auto& Values = Params.Values;
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = const_cast<TArray<FString>&>(Values[i]);
+
+				int32 EventTag_Index = GetHeaderIndex(Headers, TEXT("EventTag"));
+				int32 WorldEventData_Index = GetHeaderIndex(Headers, TEXT("WorldEventData"));
+				int32 Description_Index = GetHeaderIndex(Headers, TEXT("Description"));
+				int32 bEnabled_Index = GetHeaderIndex(Headers, TEXT("bEnabled"));
+
+				FWorldEventDataStruct WorldEventRow;
+
+				WorldEventRow.EventTag = ParseGameplayTagValue(RowValue[EventTag_Index]);
+				WorldEventRow.WorldEventData = ParseSoftObjectValue<UKRWorldEventData>(RowValue[WorldEventData_Index]);
+				WorldEventRow.Description = RowValue[Description_Index];
+				WorldEventRow.bEnabled = ParseBoolValue(RowValue[bEnabled_Index]);
+
+				FName RowName = *FString::Printf(TEXT("WorldEvent_%d"), i);
+				if (FWorldEventDataStruct* FindRow = OutDataTable->FindRow<FWorldEventDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = WorldEventRow;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, WorldEventRow);
 				}
 			}
 		}));

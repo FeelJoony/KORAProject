@@ -67,14 +67,20 @@ private:
 	bool TryEquipSelectedItem();
 	void HandleEquipSlotChanged(FGameplayTag Channel, const FKRUIMessage_EquipSlot& Msg);
 
-	void OnCategorySelected(int32 Index, UKRItemSlotBase*);
-	void OnCategoryHovered(int32 Index, UKRItemSlotBase*);
-	void OnInventorySelected(int32 Index, UKRItemSlotBase*);
-	void OnInventoryHovered(int32 Index, UKRItemSlotBase*);
+
+	UFUNCTION() void OnCategorySelected(int32 Index, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnCategoryHovered(int32 Index, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnInventorySelected(int32 Index, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnInventoryHovered(int32 Index, UKRItemSlotBase* SlotBase);
 
 	int32 StepGrid(int32 Cur, ENavDir Dir, int32 Cols, int32 Num) const;
 	bool MoveCategory(ENavDir Dir);
 	bool MoveInventory(ENavDir Dir);
 
 	void HighlightEquippedItemInInventory(bool bSelect);
+
+	// Empty slot handling
+	bool IsCategorySlotEmpty(int32 Index) const;
+	int32 FindFirstNonEmptySlot() const;
+	int32 FindNextNonEmptySlot(int32 Current, ENavDir Dir) const;
 };
