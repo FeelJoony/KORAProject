@@ -14,6 +14,8 @@ enum class EKRHitDirection : uint8
 	Back,
 	Left,
 	Right,
+	Up,
+	Down,
 	Any
 };
 

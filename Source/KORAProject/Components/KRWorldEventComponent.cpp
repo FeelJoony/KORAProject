@@ -12,13 +12,6 @@ UKRWorldEventComponent::UKRWorldEventComponent(const FObjectInitializer& ObjectI
 void UKRWorldEventComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		SoundSubsystem = World->GetSubsystem<UKRSoundSubsystem>();
-		EffectSubsystem = World->GetSubsystem<UKREffectSubsystem>();
-	}
 }
 
 bool UKRWorldEventComponent::TriggerWorldEvent(const FGameplayTag& EventTag, AActor* Instigator)
@@ -190,7 +183,7 @@ void UKRWorldEventComponent::PlayEventEffects(const UKRWorldEventData* EventData
 	const FKRWorldEventEffects& Effects = EventData->Effects;
 	FVector Location = Owner->GetActorLocation();
 	
-	if (SoundSubsystem && Effects.SoundTag.IsValid())
+	if (UKRSoundSubsystem* SoundSubsystem = GetSoundSubsystem(); SoundSubsystem && Effects.SoundTag.IsValid())
 	{
 		UAudioComponent* AudioComp = SoundSubsystem->PlaySoundByTag(Effects.SoundTag, Location, Owner, !Effects.bLoopSound);
 
@@ -200,7 +193,7 @@ void UKRWorldEventComponent::PlayEventEffects(const UKRWorldEventData* EventData
 		}
 	}
 	
-	if (EffectSubsystem && Effects.EffectTag.IsValid())
+	if (UKREffectSubsystem* EffectSubsystem = GetEffectSubsystem(); EffectSubsystem && Effects.EffectTag.IsValid())
 	{
 		FTransform SpawnTransform = Owner->GetActorTransform();
 		EffectSubsystem->SpawnEffectByTag(Effects.EffectTag, SpawnTransform, Owner);
