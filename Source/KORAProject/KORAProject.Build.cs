@@ -42,6 +42,7 @@ public class KORAProject : ModuleRules
             "MassNavigation",
             "MassRepresentation",
 			"ZoneGraph",
+			"MotionWarping"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[]
