@@ -52,6 +52,16 @@ public:
 	}
 
 	template<typename TRow>
+	TRow* FindRowSafe(uint32 InKey, const FString& ContextString, bool bWarnIfRowMissing)
+	{
+		if (!ContainsKey(InKey))
+		{
+			return nullptr;
+		}
+		return CachedDataTable->FindRow<TRow>(KeyList[InKey], ContextString, bWarnIfRowMissing);
+	}
+
+	template<typename TRow>
 	TRow* FindRowSafe(FGameplayTag InKey, const FString& ContextString, bool bWarnIfRowMissing)
 	{
 		if (!ContainsKey(InKey))

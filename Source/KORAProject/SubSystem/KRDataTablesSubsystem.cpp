@@ -1,6 +1,12 @@
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/CacheDataTable.h"
 #include "Data/GameDataType.h"
+#include "Data/EquipDataStruct.h"
+#include "Data/ModuleDataStruct.h"
+#include "Data/EquipAbilityDataStruct.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogDataTablesSubsystem, Log, All);
+DEFINE_LOG_CATEGORY(LogDataTablesSubsystem);
 
 UKRDataTablesSubsystem::UKRDataTablesSubsystem()
 {
@@ -25,6 +31,10 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	AddDataTable(EGameDataType::SoundDefinitionData, FString(TEXT("SoundDefinitionData")));
 	AddDataTable(EGameDataType::EffectDefinitionData, FString(TEXT("EffectDefinitionData")));
 	AddDataTable(EGameDataType::WorldEventData, FString(TEXT("WorldEventData")));
+
+#if !UE_BUILD_SHIPPING
+	ValidateDataReferences();
+#endif
 }
 
 void UKRDataTablesSubsystem::Deinitialize()
@@ -65,4 +75,89 @@ void UKRDataTablesSubsystem::AddDataTable(EGameDataType InType, const FString& T
 	CacheTable->Init(InType, DataTable);
 
 	DataTables.Add(InType, CacheTable);
+}
+
+void UKRDataTablesSubsystem::ValidateDataReferences()
+{
+	int32 ErrorCount = 0;
+
+	UCacheDataTable* EquipTable = GetTable(EGameDataType::EquipData);
+	UCacheDataTable* ModuleTable = GetTable(EGameDataType::ModuleData);
+	UCacheDataTable* AbilityTable = GetTable(EGameDataType::EquipAbilityData);
+
+	if (!AbilityTable)
+	{
+		UE_LOG(LogDataTablesSubsystem, Error, TEXT("[Validation] EquipAbilityData table not found!"));
+		return;
+	}
+
+	if (EquipTable)
+	{
+		UDataTable* DT = EquipTable->GetTable();
+		if (!DT)
+		{
+			UE_LOG(LogDataTablesSubsystem, Error, TEXT("[Validation] EquipData table is null!"));
+			return;
+		}
+
+		TArray<FEquipDataStruct*> EquipRows;
+		DT->GetAllRows(TEXT("Validation"), EquipRows);
+
+		for (const FEquipDataStruct* Row : EquipRows)
+		{
+			if (!Row) continue;
+
+			if (Row->EquipAbilityID > 0)
+			{
+				const FEquipAbilityDataStruct* AbilityData = AbilityTable->FindRowSafe<FEquipAbilityDataStruct>(
+						static_cast<uint32>(Row->EquipAbilityID),
+						TEXT("Validation"),
+						false);
+
+				if (!AbilityData)
+				{
+					ErrorCount++;
+				}
+			}
+		}
+	}
+
+	if (ModuleTable)
+	{
+		UDataTable* DT = ModuleTable->GetTable();
+		if (!DT)
+		{
+			UE_LOG(LogDataTablesSubsystem, Error, TEXT("[Validation] ModuleData table is null!"));
+			return;
+		}
+
+		TArray<FModuleDataStruct*> ModuleRows;
+		DT->GetAllRows(TEXT("Validation"), ModuleRows);
+
+		for (const FModuleDataStruct* Row : ModuleRows)
+		{
+			if (!Row) continue;
+
+			if (Row->EquipAbilityID > 0)
+			{
+				const FEquipAbilityDataStruct* AbilityData = AbilityTable->FindRowSafe<FEquipAbilityDataStruct>(
+						static_cast<uint32>(Row->EquipAbilityID),
+						TEXT("Validation"),
+						false);
+
+				if (!AbilityData)
+				{
+					ErrorCount++;
+				}
+			}
+		}
+	}
+	if (ErrorCount > 0)
+	{
+		UE_LOG(LogDataTablesSubsystem, Error, TEXT("[Validation] Found %d missing EquipAbilityID references!"), ErrorCount);
+	}
+	else
+	{
+		UE_LOG(LogDataTablesSubsystem, Log, TEXT("[Validation] All EquipAbilityID references are valid."));
+	}
 }

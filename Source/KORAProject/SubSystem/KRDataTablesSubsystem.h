@@ -44,6 +44,9 @@ public:
 		return Table->FindRow<TRow>(KeyTag, StringContext, bWarnIfRowMissing);
 	}
 
+	UFUNCTION(BlueprintCallable, Category = "DataTables|Validation")
+	void ValidateDataReferences();
+
 private:
 	UPROPERTY()
 	TMap<EGameDataType, TSoftObjectPtr<UCacheDataTable>> DataTables;
