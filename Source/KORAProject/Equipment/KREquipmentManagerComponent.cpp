@@ -130,6 +130,12 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 		return;
 	}
 
+	// EquipInstance가 없으면 Manager가 생성 (Fragment→Manager 역방향 의존성 제거)
+	if (!EquippableFragment->GetEquipInstance())
+	{
+		EnsureEquipInstanceCreated(ItemInstance);
+	}
+
 	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
 	const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
 	if (!Entry.IsValid())
@@ -351,8 +357,6 @@ void UKREquipmentManagerComponent::ApplyStatsToASC(const class UInventoryFragmen
 void UKREquipmentManagerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	//AddEquip();
 }
 
 void UKREquipmentManagerComponent::UninitializeComponent()
@@ -360,8 +364,10 @@ void UKREquipmentManagerComponent::UninitializeComponent()
 	Super::UninitializeComponent();
 }
 
-void UKREquipmentManagerComponent::AddEquip(UKRInventoryItemInstance* ItemInstance)
+void UKREquipmentManagerComponent::EnsureEquipInstanceCreated(UKRInventoryItemInstance* ItemInstance)
 {
+	if (!ItemInstance) { return; }
+
 	for (auto& EquipSlot : EquipSlotTagToEquipmentListMap)
 	{
 		if (EquipSlot.Key.MatchesTag(ItemInstance->GetItemTag()))
@@ -371,12 +377,20 @@ void UKREquipmentManagerComponent::AddEquip(UKRInventoryItemInstance* ItemInstan
 				if (UInventoryFragment_EquippableItem* EquippableFragment
 					= Cast<UInventoryFragment_EquippableItem>(ItemDefinition->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_EQUIPPABLE)))
 				{
+					// EquipInstance가 이미 있으면 생성하지 않음
+					if (EquippableFragment->GetEquipInstance())
+					{
+						return;
+					}
+
 					UKREquipmentInstance* NewEquipInstance = NewObject<UKREquipmentInstance>(this);
 					const FEquipDataStruct* EquipDataStruct = UKRDataTablesSubsystem::Get(this).GetData<FEquipDataStruct>(EGameDataType::EquipData, ItemInstance->GetItemTag());
 
 					NewEquipInstance->InitializeFromData(EquipDataStruct);
 
 					EquippableFragment->SetEquipInstance(NewEquipInstance);
+
+					UE_LOG(LogEquipmentManagerComponent, Log, TEXT("EnsureEquipInstanceCreated: Created EquipInstance for ItemTag [%s]"), *ItemInstance->GetItemTag().ToString());
 				}
 			}
 

@@ -121,9 +121,6 @@ public:
 	virtual void UninitializeComponent() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void AddEquip(class UKRInventoryItemInstance* ItemInstance);
-
-	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void SpawnActorInstances();
 	
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
@@ -178,6 +175,10 @@ protected:
 	
 private:
 	void OnAbilitySystemInitialized();
+
+	// EquipItem 호출 시 EquipInstance가 없으면 생성
+	// Fragment가 Manager를 호출하는 역방향 의존성 제거를 위해 Manager가 주도권을 가짐
+	void EnsureEquipInstanceCreated(class UKRInventoryItemInstance* ItemInstance);
 
 	// ASC 초기화 콜백 중복 호출 방지 플래그
 	bool bASCInitCallbackProcessed = false;
