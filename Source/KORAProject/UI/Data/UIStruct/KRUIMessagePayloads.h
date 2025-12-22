@@ -35,8 +35,8 @@ struct KORAPROJECT_API FKRUIMessage_Guard
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite) TWeakObjectPtr<AActor> TargetActor;
-	UPROPERTY(BlueprintReadWrite) bool bGuardSuccess;
-	UPROPERTY(BlueprintReadWrite) bool bPerfectGuard;
+	UPROPERTY(BlueprintReadWrite) bool bGuardSuccess = false;
+	UPROPERTY(BlueprintReadWrite) bool bPerfectGuard = false;
 };
 
 // -----  Weapon  -----

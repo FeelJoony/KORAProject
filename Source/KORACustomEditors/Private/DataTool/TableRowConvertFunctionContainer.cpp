@@ -587,7 +587,7 @@ void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDat
 
 					EquipData.OverrideMaterials.Add(ParseSoftObjectValue<UMaterialInterface>(MaterialValueString));
 				}
-
+				
 				EquipData.ModuleSlotTag = ParseGameplayTagValue(RowValue[CompatibleModuleSlots_Index]);
 				EquipData.EquipAbilityID = ParseIntValue(RowValue[EquipAbilityID_Index]);
 

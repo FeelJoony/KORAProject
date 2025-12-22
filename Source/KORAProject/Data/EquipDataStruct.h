@@ -17,6 +17,7 @@ struct KORAPROJECT_API FEquipDataStruct : public FTableRowBase, public ITableKey
 		, EquipmentMesh(nullptr)
 		, OverrideMaterials({})
 		, ModuleSlotTag(FGameplayTag())
+		, EquipAbilityID(-1)
 	{
 	}
 

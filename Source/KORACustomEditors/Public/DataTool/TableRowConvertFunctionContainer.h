@@ -110,6 +110,10 @@ private:
 
 	FGameplayTag ParseGameplayTagValue(const FString& ValueString) const
 	{
+		if (ValueString == TEXT("-1"))
+		{
+			return FGameplayTag();
+		}
 		return FGameplayTag::RequestGameplayTag(FName(*ValueString));
 	}
 

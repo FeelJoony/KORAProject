@@ -29,7 +29,7 @@ struct FAddItemMessage
 	FGameplayTag ItemTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Message)
-	int32 StackCount;
+	int32 StackCount = 0;
 };
 
 USTRUCT(BlueprintType)
