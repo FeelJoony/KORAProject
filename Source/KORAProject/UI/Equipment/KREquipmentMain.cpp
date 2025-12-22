@@ -24,16 +24,8 @@ void UKREquipmentMain::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveDown));
 	}
 
-	if (FocusRegion == EFocusRegion::Grid)
-	{
-		const int32 Last = LastInventoryIndexPerCategory.IsValidIndex(ActiveCategoryIndex)
-			? LastInventoryIndexPerCategory[ActiveCategoryIndex] : 0;
-		FocusInventory(Last);
-	}
-	else
-	{
-		FocusCategory();
-	}
+	RefreshEquippedCategoryIcons();
+	FocusCategory();
 }
 
 void UKREquipmentMain::NativeOnDeactivated()
@@ -50,14 +42,16 @@ void UKREquipmentMain::NativeConstruct()
 
 	if (EquipCategorySlot)
 	{
-		EquipCategorySlot->bSelectOnHover = false;
+		EquipCategorySlot->bSelectOnHover = true;
 		EquipCategorySlot->OnHoverChanged.AddDynamic(this, &ThisClass::OnCategoryHovered);
 		EquipCategorySlot->OnSelectionChanged.AddDynamic(this, &ThisClass::OnCategorySelected);
+		EquipCategorySlot->OnSlotClicked.AddDynamic(this, &ThisClass::OnCategoryClicked);
 	}
 	if (EquipInventorySlot)
 	{
 		EquipInventorySlot->OnHoverChanged.AddDynamic(this, &ThisClass::OnInventoryHovered);
 		EquipInventorySlot->OnSelectionChanged.AddDynamic(this, &ThisClass::OnInventorySelected);
+		EquipInventorySlot->OnSlotClicked.AddDynamic(this, &ThisClass::OnInventoryClicked);
 	}
 
 	RefreshEquippedCategoryIcons();
@@ -70,11 +64,18 @@ void UKREquipmentMain::NativeConstruct()
 		EquipCategorySlot->SelectIndexSafe(ActiveCategoryIndex);
 	}
 	FocusCategory();
+	
+	HideInventorySlot();
 
 	EquipMessageHandle = UGameplayMessageSubsystem::Get(this).RegisterListener(
 			FKRUIMessageTags::EquipSlot(),
 			this,
 			&ThisClass::HandleEquipSlotChanged);
+
+	ConfirmMessageHandle = UGameplayMessageSubsystem::Get(this).RegisterListener(
+			FKRUIMessageTags::Confirm(),
+			this,
+			&ThisClass::HandleConfirmResult);
 }
 
 void UKREquipmentMain::NativeDestruct()
@@ -83,14 +84,17 @@ void UKREquipmentMain::NativeDestruct()
 	{
 		EquipCategorySlot->OnSelectionChanged.RemoveAll(this);
 		EquipCategorySlot->OnHoverChanged.RemoveAll(this);
+		EquipCategorySlot->OnSlotClicked.RemoveAll(this);
 	}
 	if (EquipInventorySlot)
 	{
 		EquipInventorySlot->OnSelectionChanged.RemoveAll(this);
 		EquipInventorySlot->OnHoverChanged.RemoveAll(this);
+		EquipInventorySlot->OnSlotClicked.RemoveAll(this);
 	}
 
 	UGameplayMessageSubsystem::Get(this).UnregisterListener(EquipMessageHandle);
+	UGameplayMessageSubsystem::Get(this).UnregisterListener(ConfirmMessageHandle);
 
 	Super::NativeDestruct();
 }
@@ -132,6 +136,7 @@ void UKREquipmentMain::RebuildInventoryUI(const FGameplayTag& FilterTag)
 	FilterAndCacheItems(FilterTag);
 	if (!EquipInventorySlot)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[Equipment] RebuildInventoryUI - EquipInventorySlot is NULL!"));
 		UpdateDescriptionUI(INDEX_NONE);
 		return;
 	}
@@ -160,13 +165,36 @@ void UKREquipmentMain::UpdateDescriptionUI(int32 CellIndex)
 	}
 }
 
+void UKREquipmentMain::UpdateCategoryDescriptionUI(int32 CategoryIndex)
+{
+	if (!ModuleDescription) return;
+
+	if (!CategorySlotOrder.IsValidIndex(CategoryIndex))
+	{
+		ModuleDescription->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+	
+	FKRItemUIData UIData;
+	if (UKRUIAdapterLibrary::GetEquippedSlotUIData(this, CategorySlotOrder[CategoryIndex], UIData))
+	{
+		ModuleDescription->SetVisibility(ESlateVisibility::HitTestInvisible);
+		ModuleDescription->UpdateItemInfo(UIData.ItemNameKey, UIData.ItemDescriptionKey, UIData.ItemIcon);
+		return;
+	}
+
+	ModuleDescription->SetVisibility(ESlateVisibility::Collapsed);
+}
+
 void UKREquipmentMain::FocusCategory()
 {
 	FocusRegion = EFocusRegion::Category;
 	if (!EquipCategorySlot) return;
 
+	HideInventorySlot();
+
 	const int32 Safe = FMath::Clamp(ActiveCategoryIndex, 0, CategorySlotOrder.Num() - 1);
-	EquipCategorySlot->SelectIndexSafe(Safe);
+	EquipCategorySlot->HoverIndexSafe(Safe);
 
 	if (UWidget* W = EquipCategorySlot->GetSelectedWidget())
 	{
@@ -180,6 +208,7 @@ void UKREquipmentMain::FocusInventory(int32 PreferIndex)
 
 	if (!EquipInventorySlot)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[Equipment] FocusInventory - EquipInventorySlot is NULL!"));
 		FocusCategory();
 		return;
 	}
@@ -190,6 +219,7 @@ void UKREquipmentMain::FocusInventory(int32 PreferIndex)
 		FocusCategory();
 		return;
 	}
+	ShowInventorySlot();
 
 	const int32 Safe = FMath::Clamp(PreferIndex, 0, Num - 1);
 	EquipInventorySlot->SelectIndexSafe(Safe);
@@ -197,6 +227,30 @@ void UKREquipmentMain::FocusInventory(int32 PreferIndex)
 	if (UWidget* W = EquipInventorySlot->GetSelectedWidget())
 	{
 		W->SetFocus();
+	}
+}
+
+void UKREquipmentMain::ShowInventorySlot()
+{
+	if (EquipInventorySlot)
+	{
+		EquipInventorySlot->SetVisibility(ESlateVisibility::Visible);
+	}
+	if (EquipCategorySlot)
+	{
+		EquipCategorySlot->SetIsEnabled(false);
+	}
+}
+
+void UKREquipmentMain::HideInventorySlot()
+{
+	if (EquipInventorySlot)
+	{
+		EquipInventorySlot->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	if (EquipCategorySlot)
+	{
+		EquipCategorySlot->SetIsEnabled(true);
 	}
 }
 void UKREquipmentMain::HandleMoveLeft() { HandleMoveInternal(ENavDir::L); }
@@ -221,10 +275,21 @@ void UKREquipmentMain::HandleSelect()
 	if (FocusRegion == EFocusRegion::Category)
 	{
 		const int32 HoverIdx = EquipCategorySlot ? EquipCategorySlot->GetHoveredIndex() : ActiveCategoryIndex;
-		if (EquipCategorySlot && HoverIdx != INDEX_NONE)
+
+		if (!CategorySlotOrder.IsValidIndex(HoverIdx))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[Equipment] HandleSelect - Invalid HoverIdx!"));
+			return;
+		}
+		
+		ActiveCategoryIndex = HoverIdx;
+
+		if (EquipCategorySlot)
 		{
 			EquipCategorySlot->SelectIndexSafe(HoverIdx);
 		}
+		
+		RebuildInventoryUI(CategorySlotOrder[ActiveCategoryIndex]);
 
 		const int32 Prefer = LastInventoryIndexPerCategory.IsValidIndex(ActiveCategoryIndex) ? LastInventoryIndexPerCategory[ActiveCategoryIndex] : 0;
 		FocusInventory(Prefer);
@@ -281,7 +346,6 @@ void UKREquipmentMain::HandleEquipSlotChanged(FGameplayTag Channel, const FKRUIM
 	FKRItemUIData UI;
 	if (UKRUIAdapterLibrary::GetEquippedSlotUIData(this, Msg.SlotTag, UI))
 	{
-		//EquipCategorySlot->SetItemAt(Index, UI); change to this after Merge
 		RefreshEquippedCategoryIcons();
 	}
 	if (Index == ActiveCategoryIndex)
@@ -290,12 +354,27 @@ void UKREquipmentMain::HandleEquipSlotChanged(FGameplayTag Channel, const FKRUIM
 	}
 }
 
+void UKREquipmentMain::HandleConfirmResult(FGameplayTag Channel, const FKRUIMessage_Confirm& Msg)
+{
+	if (Msg.Context != EConfirmContext::Equipment) return;
+	
+	HideInventorySlot();
+	FocusCategory();
+	if (Msg.Result == EConfirmResult::Yes)
+	{
+		RefreshEquippedCategoryIcons();
+	}
+}
+
 void UKREquipmentMain::OnCategorySelected(int32 Index, UKRItemSlotBase* SlotBase)
 {
-	ActiveCategoryIndex = Index;
-	RebuildInventoryUI(CategorySlotOrder[Index]);
+	if (FocusRegion != EFocusRegion::Category)
+	{
+		return;
+	}
 
-	HighlightEquippedItemInInventory(true);
+	ActiveCategoryIndex = Index;
+	UpdateCategoryDescriptionUI(Index);
 }
 
 void UKREquipmentMain::OnCategoryHovered(int32 Index, UKRItemSlotBase* SlotBase )
@@ -315,6 +394,22 @@ void UKREquipmentMain::OnInventorySelected(int32 Index, UKRItemSlotBase* SlotBas
 void UKREquipmentMain::OnInventoryHovered(int32 Index, UKRItemSlotBase* SlotBase)
 {
 	UpdateDescriptionUI(Index);
+}
+
+void UKREquipmentMain::OnCategoryClicked()
+{
+	if (FocusRegion == EFocusRegion::Category)
+	{
+		HandleSelect();
+	}
+}
+
+void UKREquipmentMain::OnInventoryClicked()
+{
+	if (FocusRegion == EFocusRegion::Grid)
+	{
+		HandleSelect();
+	}
 }
 
 int32 UKREquipmentMain::StepGrid(int32 Cur, ENavDir Dir, int32 Cols, int32 Num) const
@@ -339,15 +434,17 @@ bool UKREquipmentMain::MoveCategory(ENavDir Dir)
 {
 	if (!EquipCategorySlot) return false;
 
-	const int32 CurHover = EquipCategorySlot->GetHoveredIndex();
-	const int32 Start = (CurHover == INDEX_NONE) ? ActiveCategoryIndex : CurHover;
+	const int32 Cols = EquipCategorySlot->GetColumnCount();
+	const int32 Num = EquipCategorySlot->GetNumCells();
+	const int32 Start = ActiveCategoryIndex;
 
-	// Find next non-empty slot, skipping empty ones
-	const int32 Next = FindNextNonEmptySlot(Start, Dir);
-
+	const int32 Next = StepGrid(Start, Dir, Cols, Num);
 	if (Next != Start)
 	{
+		ActiveCategoryIndex = Next;
+		EquipCategorySlot->SelectIndexSafe(Next);
 		EquipCategorySlot->HoverIndexSafe(Next);
+		UpdateCategoryDescriptionUI(Next);
 		return true;
 	}
 	return false;

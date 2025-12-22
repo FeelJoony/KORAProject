@@ -20,7 +20,11 @@ bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInsta
 
     const UKRInventoryItemFragment* RawFrag = Instance->FindFragmentByTag(KRTAG_ABILITY_ITEM_DISPLAYUI);
     const UInventoryFragment_DisplayUI* UI = Cast<UInventoryFragment_DisplayUI>(RawFrag);
-    if (!UI) return false;
+    if (!UI)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[UIAdapter] No DisplayUI fragment found for item: %s"), *Instance->GetItemTag().ToString());
+        return false;
+    }
 
     Out.ItemNameKey = UI->DisplayNameKey;
     Out.ItemDescriptionKey = UI->DescriptionKey;
@@ -29,7 +33,8 @@ bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInsta
     Out.UpgradeLevel = UI->WeaponLevel;
 	Out.ItemTag = Instance->GetItemTag();
 
-    if (UGameInstance* GI = UGameplayStatics::GetGameInstance(Instance))
+    UObject* OwnerContext = Instance->GetOwnerContext();
+    if (UGameInstance* GI = OwnerContext ? Cast<UGameInstance>(OwnerContext) : nullptr)
     {
         if (UKRInventorySubsystem* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
         {
@@ -37,7 +42,7 @@ bool UKRUIAdapterLibrary::MakeUIDataFromItemInstance(const UKRInventoryItemInsta
             Out.Quantity = Inv->GetItemCountByTag(ItemTag);
         }
     }
-    
+
     return true;
 }
 
@@ -140,11 +145,6 @@ void UKRUIAdapterLibrary::GetEquippedCategoryUIData(UObject* WorldContextObject,
             if (UKRInventoryItemInstance* Inst = EquipMgr->GetEquippedItemInstanceBySlotTag(SlotTag))
             {
                 MakeUIDataFromItemInstance(Inst, UIData);
-                UIData.ItemNameKey = NAME_None;
-                UIData.ItemDescriptionKey = NAME_None;
-                UIData.Quantity = 0;
-                UIData.Price = -1;
-                UIData.ShopStock = 0;
             }
         }
 
@@ -169,11 +169,6 @@ bool UKRUIAdapterLibrary::GetEquippedSlotUIData(UObject* WorldContextObject, con
         FKRItemUIData UIData;
         if (MakeUIDataFromItemInstance(Inst, UIData))
         {
-            UIData.ItemNameKey = NAME_None;
-            UIData.ItemDescriptionKey = NAME_None;
-            UIData.Quantity = 0;
-            UIData.Price = -1;
-            UIData.ShopStock = 0;
             Out = UIData;
             return true;
         }

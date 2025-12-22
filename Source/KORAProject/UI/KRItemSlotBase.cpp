@@ -5,8 +5,9 @@
 #include "CommonLazyImage.h"
 #include "CommonTextBlock.h"
 #include "CommonNumericTextBlock.h"
+#include "Internationalization/StringTableRegistry.h"
 
-const FName UKRItemSlotBase::ItemStringTableId(TEXT("/Game/UI/StringTable/ST_ItemList"));
+const FName UKRItemSlotBase::ItemStringTableId(TEXT("ST_ItemList"));
 
 void UKRItemSlotBase::SetItemData(const FKRItemUIData& InData, int32 OverrideFields)
 {
@@ -83,5 +84,21 @@ FText UKRItemSlotBase::GetSourceStringFromTable(const FName& InKey)
 	{
 		return FText::GetEmpty();
 	}
-	return FText::FromStringTable(ItemStringTableId, InKey.ToString());
+	
+	FStringTableConstPtr StringTable = FStringTableRegistry::Get().FindStringTable(ItemStringTableId);
+	if (!StringTable.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ItemSlot] StringTable not loaded - TableId: %s, Key: %s"),*ItemStringTableId.ToString(), *InKey.ToString());
+		return FText::FromName(InKey);
+	}
+
+	FText Result = FText::FromStringTable(ItemStringTableId, InKey.ToString());
+	
+	if (Result.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ItemSlot] StringTable entry empty - TableId: %s, Key: %s"),*ItemStringTableId.ToString(), *InKey.ToString());
+		return FText::FromName(InKey);
+	}
+
+	return Result;
 }

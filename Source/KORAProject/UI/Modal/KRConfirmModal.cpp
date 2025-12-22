@@ -98,6 +98,21 @@ void UKRConfirmModal::HandleYes()
 
 void UKRConfirmModal::HandleNo()
 {
+    if (UWorld* World = GetWorld())
+    {
+        FKRUIMessage_Confirm Msg;
+        Msg.Context = Context;
+        Msg.Result = EConfirmResult::No;
+        Msg.ItemTag = ItemTag;
+        Msg.SlotTag = QuickSlotTag;
+        Msg.Quantity = 0;
+
+        UGameplayMessageSubsystem::Get(World).BroadcastMessage(
+            FKRUIMessageTags::Confirm(),
+            Msg
+        );
+    }
+
     if (UGameInstance* GI = GetGameInstance())
     {
         if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
