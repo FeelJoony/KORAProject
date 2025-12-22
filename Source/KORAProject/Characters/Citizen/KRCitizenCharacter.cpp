@@ -56,29 +56,32 @@ UGroomComponent* AKRCitizenCharacter::GetGroomComponent(ECitizenGroomSlot Slot) 
 	}
 }
 
-void AKRCitizenCharacter::ApplyAppearanceFromRow(const FKRCitizenAppearanceDataStruct& Row)
+void AKRCitizenCharacter::ApplyAppearanceFromRow(const FCitizenDataStruct& Row)
 {
 	if (Body && Row.BodyMesh.IsValid())
 	{
-		if (USkeletalMesh* BodyMesh = Row.BodyMesh.Get()) // LoadSynchronous()
+		if (USkeletalMesh* BodyMesh = Row.BodyMesh.LoadSynchronous()) // LoadSynchronous()
 		{
 			Body->SetSkeletalMesh(BodyMesh);
+			Body->SetForcedLOD(1);
 		}
 	}
 
 	if (CitizenClothes && Row.ClothMesh.IsValid())
 	{
-		if (USkeletalMesh* ClothMesh = Row.ClothMesh.Get())
+		if (USkeletalMesh* ClothMesh = Row.ClothMesh.LoadSynchronous())
 		{
 			CitizenClothes->SetSkeletalMesh(ClothMesh);
+			CitizenClothes->SetForcedLOD(1);
 		}
 	}
 
 	if (Face && Row.FaceMesh.IsValid())
 	{
-		if (USkeletalMesh* FaceMesh = Row.FaceMesh.Get())
+		if (USkeletalMesh* FaceMesh = Row.FaceMesh.LoadSynchronous())
 		{
 			Face->SetSkeletalMesh(FaceMesh);
+			Face->SetForcedLOD(1);
 		}
 	}
 
@@ -93,6 +96,7 @@ void AKRCitizenCharacter::ApplyAppearanceFromRow(const FKRCitizenAppearanceDataS
 
 	if (CitizenClothes)
 	{
+		ApplyClavicleOffsets(CitizenClothes);
 		RandomizeClothingColors(CitizenClothes);
 	}
 }
@@ -103,7 +107,7 @@ void AKRCitizenCharacter::BeginPlay()
 
 	if (MHAppearanceTable && !AppearanceCharacterRowID.IsNone())
 	{
-		if (const FKRCitizenAppearanceDataStruct* Row = MHAppearanceTable->FindRow<FKRCitizenAppearanceDataStruct>(AppearanceCharacterRowID, TEXT("KRCitizen (BeginPlay)")))
+		if (const FCitizenDataStruct* Row = MHAppearanceTable->FindRow<FCitizenDataStruct>(AppearanceCharacterRowID, TEXT("KRCitizen (BeginPlay)")))
 		{
 			ApplyAppearanceFromRow(*Row);
 		}
@@ -206,7 +210,7 @@ void AKRCitizenCharacter::SetAnimInstanceVectorProperty(UAnimInstance* AnimInsta
 	}
 }
 
-void AKRCitizenCharacter::ApplyGroomSlots(const FKRCitizenAppearanceDataStruct& Row)
+void AKRCitizenCharacter::ApplyGroomSlots(const FCitizenDataStruct& Row)
 {
 	for (const FCitizenGroomSlotData& SlotData : Row.GroomSlots)
 	{
@@ -218,6 +222,7 @@ void AKRCitizenCharacter::ApplyGroomSlots(const FKRCitizenAppearanceDataStruct& 
 			if (UGroomAsset* Groom = SlotData.GroomAsset.LoadSynchronous())
 			{
 				GroomComp->SetGroomAsset(Groom);
+				GroomComp->SetForcedLOD(1);
 			}
 		}
 

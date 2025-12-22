@@ -15,18 +15,18 @@ void UKRCitizenStreamingSubsystem::Initialize(FSubsystemCollectionBase& Collecti
 	CachedRowNames.Reset();
 	PreloadAssetList.Reset();
 
-	//if (!MHCitizenAppearanceTable && MHCitizenAppearanceTablePath.IsValid())
-	//{
-	//	UObject* Loaded = MHCitizenAppearanceTablePath.TryLoad();
-	//	MHCitizenAppearanceTable = Cast<UDataTable>(Loaded);
+	if (!MHCitizenAppearanceTable && MHCitizenAppearanceTablePath.IsValid())
+	{
+		UObject* Loaded = MHCitizenAppearanceTablePath.TryLoad();
+		MHCitizenAppearanceTable = Cast<UDataTable>(Loaded);
 
-	//	if (!MHCitizenAppearanceTable)
-	//	{
-	//		UE_LOG(LogTemp, Warning,
-	//			TEXT("KRCitizenStreamingSubsystem: Failed to load DataTable from %s"),
-	//			*MHCitizenAppearanceTablePath.ToString());
-	//	}
-	//}
+		if (!MHCitizenAppearanceTable)
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("KRCitizenStreamingSubsystem: Failed to load DataTable from %s"),
+				*MHCitizenAppearanceTablePath.ToString());
+		}
+	}
 }
 
 void UKRCitizenStreamingSubsystem::Deinitialize()
@@ -48,14 +48,14 @@ void UKRCitizenStreamingSubsystem::SetAppearanceTable(UDataTable* InTable, bool 
 	}
 }
 
-const FKRCitizenAppearanceDataStruct* UKRCitizenStreamingSubsystem::GetAppearanceRow(FName RowName) const
+const FCitizenDataStruct* UKRCitizenStreamingSubsystem::GetAppearanceRow(FName RowName) const
 {
-	if (const FKRCitizenAppearanceDataStruct* const* Found = CachedRows.Find(RowName))
+	if (const FCitizenDataStruct* const* Found = CachedRows.Find(RowName))
 	{
 		return *Found;
 	}
 
-	return MHCitizenAppearanceTable ? MHCitizenAppearanceTable->FindRow<FKRCitizenAppearanceDataStruct>(RowName, TEXT("GetAppearanceRow")) : nullptr;
+	return MHCitizenAppearanceTable ? MHCitizenAppearanceTable->FindRow<FCitizenDataStruct>(RowName, TEXT("GetAppearanceRow")) : nullptr;
 }
 
 FName UKRCitizenStreamingSubsystem::GetRandomRowName() const
@@ -99,7 +99,7 @@ void UKRCitizenStreamingSubsystem::PreloadAppearances()
 
 	for (const FName& RowName : RowNames)
 	{
-		if (const FKRCitizenAppearanceDataStruct* Row = MHCitizenAppearanceTable->FindRow<FKRCitizenAppearanceDataStruct>(RowName, TEXT("PreloadAppearances")))
+		if (const FCitizenDataStruct* Row = MHCitizenAppearanceTable->FindRow<FCitizenDataStruct>(RowName, TEXT("PreloadAppearances")))
 		{
 			CachedRows.Add(RowName, Row);
 			CachedRowNames.Add(RowName);

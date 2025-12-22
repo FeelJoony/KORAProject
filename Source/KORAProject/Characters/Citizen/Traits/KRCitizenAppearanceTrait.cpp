@@ -12,13 +12,7 @@ void UKRCitizenAppearanceTrait::BuildTemplate(FMassEntityTemplateBuildContext& B
     FKRCitizenAppearanceFragment& AppearanceFragment = BuildContext.AddFragment_GetRef<FKRCitizenAppearanceFragment>();
 
     FName ChosenRowName = NAME_None;
-    if (UGameInstance* GI = World.GetGameInstance())
-    {
-        if (UKRCitizenStreamingSubsystem* StreamSubsystem = GI->GetSubsystem<UKRCitizenStreamingSubsystem>())
-        {
-            ChosenRowName = StreamSubsystem->GetRandomRowName();
-        }
-    }
 
+    AppearanceFragment.bInitialized = false;
     AppearanceFragment.AppearanceRowName = ChosenRowName;
 }

@@ -59,13 +59,18 @@ void UKRCitizenAppearanceProcessor::Execute(FMassEntityManager& EntityManager, F
 				FKRCitizenAppearanceFragment& Appearance = AppearanceList[i];
 				FMassActorFragment& ActorFragment = ActorList[i];
 
+				if (Appearance.AppearanceRowName.IsNone())
+				{
+					Appearance.AppearanceRowName = StreamSubsystem->GetRandomRowName();
+				}
+
 				if (Appearance.bInitialized) continue;
 
 				AActor* Actor = ActorFragment.GetMutable();
 				AKRCitizenCharacter* Citizen = Cast<AKRCitizenCharacter>(Actor);
 				if (!Citizen) continue;
 
-				const FKRCitizenAppearanceDataStruct* Row = StreamSubsystem->GetAppearanceRow(Appearance.AppearanceRowName);
+				const FCitizenDataStruct* Row = StreamSubsystem->GetAppearanceRow(Appearance.AppearanceRowName);
 				if (!Row)
 				{
 					UE_LOG(LogTemp, Error, TEXT("[CitizenProcessor] Row NOT FOUND: %s"), *Appearance.AppearanceRowName.ToString());

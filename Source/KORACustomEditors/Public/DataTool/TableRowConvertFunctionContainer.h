@@ -52,6 +52,8 @@ public:
 	void CreateEffectDefinitionData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateWorldEventData(class UDataTable* OutDataTable, const FString& InCSVString);
+	UFUNCTION()
+	void CreateCitizenData(class UDataTable* OutDataTable, const FString& InCSVString);
 
 private:
 	void OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName);
@@ -137,5 +139,23 @@ private:
 		
 		return ValueArray;
 	}
+
+	FVector ParseVectorValue(const FString& ValueString)
+	{
+		TArray<FString> ValueArray;
+		ValueString.ParseIntoArray(ValueArray, TEXT("|"));
+
+		if (ValueArray.Num() != 3)
+		{
+			return FVector::ZeroVector;
+		}
+
+		return FVector(
+			FCString::Atof(*ValueArray[0]),
+			FCString::Atof(*ValueArray[1]),
+			FCString::Atof(*ValueArray[2])
+		);
+	}
+
 };
 

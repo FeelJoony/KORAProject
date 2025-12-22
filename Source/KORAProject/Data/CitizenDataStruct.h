@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
-#include "KRCitizenAppearanceDataStruct.generated.h"
+#include "Interface/TableKey.h"
+#include "CitizenDataStruct.generated.h"
 
 UENUM(BlueprintType)
 enum class ECitizenGroomSlot : uint8
@@ -36,9 +37,23 @@ struct FCitizenGroomSlotData
 };
 
 USTRUCT(BlueprintType)
-struct FKRCitizenAppearanceDataStruct : public FTableRowBase
+struct FCitizenDataStruct : public FTableRowBase, public ITableKey
 {
     GENERATED_BODY();
+
+    FCitizenDataStruct()
+        :Index(0)
+        ,BodyMesh()
+        ,ClothMesh()
+        ,FaceMesh()
+        ,GroomSlots()
+        ,ClavicleRightOffset(0, 0, 0)
+        ,ClavicleLeftOffset(0, 0, 0)
+    {
+    }
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Index;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<USkeletalMesh> BodyMesh;
@@ -55,4 +70,9 @@ struct FKRCitizenAppearanceDataStruct : public FTableRowBase
     FVector ClavicleRightOffset = FVector::ZeroVector;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Clavicle", meta = (EditCondition = "bOverrideClavicleOffsets"))
     FVector ClavicleLeftOffset = FVector::ZeroVector;
+
+    virtual uint32 GetKey() const override
+    {
+        return Index;
+    }
 };

@@ -5,6 +5,8 @@
 #include "GameplayTagContainer.h"
 #include "GameplayTagsManager.h"
 #include "SEditorViewportToolBarMenu.h"
+#include "GroomAsset.h"
+#include "GroomBindingAsset.h"
 
 #include "Data/ConsumeDataStruct.h"
 #include "Data/CurrencyDataStruct.h"
@@ -18,6 +20,7 @@
 #include "Data/EquipDataStruct.h"
 #include "Data/ModuleDataStruct.h"
 #include "Data/KRDataAssetTableRows.h"
+#include "Data/CitizenDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -801,6 +804,79 @@ void UTableRowConvertFunctionContainer::CreateWorldEventData(class UDataTable* O
 				}
 			}
 		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateCitizenData(UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("CitizenData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+				int32 BodyMesh_Index = GetHeaderIndex(Headers, TEXT("BodyMesh"));
+				int32 ClothMesh_Index = GetHeaderIndex(Headers, TEXT("ClothMesh"));
+				int32 FaceMesh_Index = GetHeaderIndex(Headers, TEXT("FaceMesh"));
+				int32 GroomSlots_Index = GetHeaderIndex(Headers, TEXT("GroomSlots"));
+				int32 ClavicleRightOffset_Index = GetHeaderIndex(Headers, TEXT("ClavicleRightOffset"));
+				int32 ClavicleLeftOffset_Index = GetHeaderIndex(Headers, TEXT("ClavicleLeftOffset"));
+
+				FCitizenDataStruct CitizenData;
+
+				CitizenData.Index = ParseIntValue(RowValue[Index_Index]);
+				CitizenData.BodyMesh = ParseSoftObjectValue<USkeletalMesh>(RowValue[BodyMesh_Index]);
+				CitizenData.ClothMesh = ParseSoftObjectValue<USkeletalMesh>(RowValue[ClothMesh_Index]);
+				CitizenData.FaceMesh = ParseSoftObjectValue<USkeletalMesh>(RowValue[FaceMesh_Index]);
+
+				TArray<FString> GroomMesh = ParseArrayValue(RowValue[GroomSlots_Index]);
+				FCitizenGroomSlotData SlotData;
+				int32 ParseStep = 0;
+				for (const FString& Value : GroomMesh)
+				{
+					switch (ParseStep)
+					{
+					case 0:
+					{
+						SlotData = FCitizenGroomSlotData();
+						SlotData.Slot = ParseEnumValue<ECitizenGroomSlot>(Value);
+						ParseStep = 1;
+						break;
+					}
+					case 1:
+					{
+						SlotData.GroomAsset = ParseSoftObjectValue<UGroomAsset>(Value);
+						ParseStep = 2;
+						break;
+					}
+					case 2:
+					{
+						SlotData.BindingAsset = ParseSoftObjectValue<UGroomBindingAsset>(Value);
+						CitizenData.GroomSlots.Add(SlotData);
+						ParseStep = 0;
+						break;
+					}
+					}
+				}
+				CitizenData.ClavicleRightOffset = ParseVectorValue(RowValue[ClavicleRightOffset_Index]);
+				CitizenData.ClavicleLeftOffset = ParseVectorValue(RowValue[ClavicleLeftOffset_Index]);
+
+
+				FName RowName = *FString::Printf(TEXT("Citizen_%d"), i);
+				if (FCitizenDataStruct* FindRow = OutDataTable->FindRow<FCitizenDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = CitizenData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, CitizenData);
+				}
+			}
+		}));
+
 }
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)

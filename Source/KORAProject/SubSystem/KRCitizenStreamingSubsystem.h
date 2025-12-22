@@ -5,12 +5,11 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Engine/DataTable.h"
-#include "Data/KRCitizenAppearanceDataStruct.h"
+#include "Data/CitizenDataStruct.h"
 #include "KRCitizenStreamingSubsystem.generated.h"
 
 
-//UCLASS(Config = Game, DefaultConfig)
-UCLASS()
+UCLASS(Config = Game, DefaultConfig)
 class KORAPROJECT_API UKRCitizenStreamingSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
@@ -19,8 +18,8 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	//UPROPERTY(EditDefaultsOnly, Config, Category = "Citizen|Appearance", meta = (AllowedClasses = "DataTable"))
-	//FSoftObjectPath MHCitizenAppearanceTablePath; DT넣고 config로 설정해야함 
+	UPROPERTY(EditDefaultsOnly, Config, Category = "Citizen|Appearance", meta = (AllowedClasses = "DataTable"))
+	FSoftObjectPath MHCitizenAppearanceTablePath; //DT넣고 config로 설정해야함 
 
 	UPROPERTY(Transient)
 	UDataTable* MHCitizenAppearanceTable = nullptr;
@@ -28,7 +27,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Citizen|Appearance")
 	void SetAppearanceTable(UDataTable* InTable, bool bPreload = true);
 
-	const FKRCitizenAppearanceDataStruct* GetAppearanceRow(FName RowName) const;
+	const FCitizenDataStruct* GetAppearanceRow(FName RowName) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Citizen|Appearance")	FName GetRandomRowName() const;
 	UFUNCTION(BlueprintPure, Category = "Citizen|Appearance")		bool IsPreloadCompleted() const { return bPreloadCompleted; }
@@ -39,7 +38,7 @@ private:
 
 	bool bPreloadCompleted = false;
 
-	TMap<FName, const FKRCitizenAppearanceDataStruct*> CachedRows;
+	TMap<FName, const FCitizenDataStruct*> CachedRows;
 	TArray<FName> CachedRowNames;
 	TArray<FSoftObjectPath> PreloadAssetList;
 };

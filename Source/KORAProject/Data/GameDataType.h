@@ -19,4 +19,5 @@ enum class EGameDataType : uint8
 	SoundDefinitionData,
 	EffectDefinitionData,
 	WorldEventData,
+	CitizenData,
 };
