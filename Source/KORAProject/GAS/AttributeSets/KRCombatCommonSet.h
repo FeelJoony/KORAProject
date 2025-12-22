@@ -46,6 +46,22 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat")
 	FGameplayAttributeData DamageTaken;
 	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, DamageTaken)
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat|Weapon")
+	FGameplayAttributeData AttackSpeed;
+	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, AttackSpeed)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat|Weapon")
+	FGameplayAttributeData CritChance;
+	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, CritChance)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat|Weapon")
+	FGameplayAttributeData CritMulti;
+	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, CritMulti)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat|Weapon")
+	FGameplayAttributeData WeaponRange;
+	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, WeaponRange)
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;

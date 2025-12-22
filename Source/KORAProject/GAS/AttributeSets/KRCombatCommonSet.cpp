@@ -13,6 +13,10 @@ UKRCombatCommonSet::UKRCombatCommonSet()
 	InitDealDamageMult(1.f);
 	InitTakeDamageMult(1.f);
 	InitDamageTaken(0.f);
+	InitAttackSpeed(1.f);
+	InitCritChance(0.f);
+	InitCritMulti(1.5f);
+	InitWeaponRange(200.f);
 }
 
 void UKRCombatCommonSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
