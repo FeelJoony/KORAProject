@@ -15,4 +15,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Experience, meta=(AllowedTypes="KRExperienceDefinition"))
 	FPrimaryAssetId ExperienceID;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure = false)
+	class UCommonSession_HostSessionRequest* CreateHostingRequest() const;
 };

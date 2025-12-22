@@ -45,6 +45,8 @@ bool UKRPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManage
 
 	APawn* Pawn = GetPawn<APawn>();
 
+	
+
 	if (!CurrentState.IsValid() && DesiredState == KRTAG_STATE_INIT_SPAWNED)
 	{
 		if (Pawn) return true;

@@ -1,7 +1,10 @@
 #include "GameModes/KRExperienceManagerComponent.h"
 #include "GameFeaturesSubsystemSettings.h"
-#include "System/KRAssetManager.h"
 #include "GameModes/KRExperienceDefinition.h"
+#include "GameFeaturesSubsystem.h"
+#include "GameFeatureAction.h"
+#include "KRExperienceActionSet.h"
+#include "System/KRAssetManager.h"
 
 void UKRExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FOnKRExperienceLoaded::FDelegate&& Delegate)
 {
@@ -18,32 +21,15 @@ void UKRExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FOnKRExper
 void UKRExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId ExperienceId)
 {
 	UKRAssetManager& AssetManager = UKRAssetManager::Get();
-	FSoftObjectPath AssetPath = AssetManager.GetPrimaryAssetPath(ExperienceId);
 
-	UObject* LoadedAsset = AssetPath.TryLoad();
-	if (!LoadedAsset)
+	TSubclassOf<UKRExperienceDefinition> AssetClass;
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to load asset for ExperienceId: %s"), *ExperienceId.ToString());
-		return;
-	}
-
-	const UKRExperienceDefinition* Experience = nullptr;
-	
-	if (UClass* LoadedClass = Cast<UClass>(LoadedAsset))
-	{
-		Experience = GetDefault<UKRExperienceDefinition>(LoadedClass);
-	}
-	else
-	{
-		Experience = Cast<UKRExperienceDefinition>(LoadedAsset);
+		FSoftObjectPath AssetPath = AssetManager.GetPrimaryAssetPath(ExperienceId);
+		AssetClass = Cast<UClass>(AssetPath.TryLoad());
 	}
 	
-	if (!Experience)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to resolve Experience! LoadedAsset is not a valid Definition. Id: %s"), *ExperienceId.ToString());
-		return;
-	}
-
+	const UKRExperienceDefinition* Experience = GetDefault<UKRExperienceDefinition>(AssetClass);
+	check(Experience != nullptr);
 	check(CurrentExperience == nullptr);
 	{
 		CurrentExperience = Experience;
@@ -98,18 +84,93 @@ void UKRExperienceManagerComponent::StartExperienceLoad()
 			OnAssetsLoadedDelegate.ExecuteIfBound();
 		}));
 	}
+
+	static int32 StartExperienceLoad_FrameNumber = GFrameNumber;
 }
 
 void UKRExperienceManagerComponent::OnExperienceLoadComplete()
 {
-	static int32 OnExperienceLoadComplete_FrameNumber = 0;
+	static int32 OnExperienceLoadComplete_FrameNumber = GFrameNumber;
 
-	OnExperienceFullLoadComplete();
+	check(LoadState == EKRExperienceLoadState::Loading);
+	check(CurrentExperience);
+
+	GameFeaturePluginURLs.Reset();
+
+	auto CollectGameFeaturePluginURLs = [This = this](const UPrimaryDataAsset* Context, const TArray<FString>& FeaturePluginList)
+	{
+		for (const FString& PluginName : FeaturePluginList)
+		{
+			FString PluginURL;
+			if (UGameFeaturesSubsystem::Get().GetPluginURLByName(PluginName, PluginURL))
+			{
+				This->GameFeaturePluginURLs.AddUnique(PluginURL);
+			}
+		}
+	};
+
+	CollectGameFeaturePluginURLs(CurrentExperience, CurrentExperience->GameFeaturesToEnable);
+
+	NumGameFeaturePluginsLoading = GameFeaturePluginURLs.Num();
+	if (NumGameFeaturePluginsLoading)
+	{
+		LoadState = EKRExperienceLoadState::LoadingGameFeatures;
+		for (const FString& PluginURL : GameFeaturePluginURLs)
+		{
+			UGameFeaturesSubsystem::Get().LoadAndActivateGameFeaturePlugin(PluginURL, FGameFeaturePluginLoadComplete::CreateUObject(this, &ThisClass::OnGameFeaturePluginLoadComplete));
+		}
+	}
+	else
+	{
+		OnExperienceFullLoadComplete();
+	}
+}
+
+void UKRExperienceManagerComponent::OnGameFeaturePluginLoadComplete(const UE::GameFeatures::FResult& Result)
+{
+	NumGameFeaturePluginsLoading--;
+	if (NumGameFeaturePluginsLoading == 0)
+	{
+		OnExperienceFullLoadComplete();
+	}
 }
 
 void UKRExperienceManagerComponent::OnExperienceFullLoadComplete()
 {
 	check(LoadState != EKRExperienceLoadState::Loaded);
+
+	{
+		LoadState = EKRExperienceLoadState::ExecutingActions;
+
+		FGameFeatureActivatingContext Context;
+		{
+			const FWorldContext* ExistingWorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
+			if (ExistingWorldContext)
+			{
+				Context.SetRequiredWorldContextHandle(ExistingWorldContext->ContextHandle);
+			}
+		}
+
+		auto ActivateListOfActions = [&Context](const TArray<UGameFeatureAction*>& ActionList)
+		{
+			for (UGameFeatureAction* Action : ActionList)
+			{
+				if (Action)
+				{
+					Action->OnGameFeatureRegistering();
+					Action->OnGameFeatureLoading();
+					Action->OnGameFeatureActivating(Context);
+				}
+			}
+		};
+
+		ActivateListOfActions(CurrentExperience->Actions);
+
+		for (const TObjectPtr<UKRExperienceActionSet>& ActionSet : CurrentExperience->ActionSets)
+		{
+			ActivateListOfActions(ActionSet->Actions);
+		}
+	}
 
 	LoadState = EKRExperienceLoadState::Loaded;
 	OnExperienceLoaded.Broadcast(CurrentExperience);
