@@ -37,4 +37,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Inventory")
 	TArray<FGameplayTag> DefaultInventoryItemTags;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Inventory")
+	TArray<FGameplayTag> DefaultEquipItemTags;
 };
