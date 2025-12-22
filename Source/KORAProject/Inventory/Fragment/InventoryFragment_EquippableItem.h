@@ -33,9 +33,7 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<class UKREquipmentDefinition> EquipmentDefinition;
-	
-	void LoadFromDataTable(UKRInventoryItemInstance* Instance);
-	
+
 private:
 	UPROPERTY()
 	TObjectPtr<class UKREquipmentInstance> EquipInstance;
