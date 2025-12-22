@@ -4,20 +4,23 @@
 #include "GameFramework/Pawn.h"
 #include "Components/PawnComponent.h"
 #include "AbilitySystemInterface.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "Abilities/GameplayAbilityTypes.h"
 #include "GAS/AbilitySet/KRAbilitySet.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
+#include "Equipment/KRWeaponStatsCache.h"
 
 #include "KREquipmentManagerComponent.generated.h"
 
 class UActorComponent;
-class UKREquipmentDefinition;
 class UKREquipmentInstance;
 class UKREquipmentManagerComponent;
 class UObject;
 class UAbilitySystemComponent;
-class UKRInventoryItemInstance; // Debug로 잠시 전방 선언
+class UGameplayEffect;
+class UKRInventoryItemInstance;
 struct FGameplayAbilitySpecHandle;
-struct FFrame;
 struct FKREquipmentList;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogEquipmentManagerComponent, Log, All);
@@ -30,8 +33,8 @@ struct FKRAppliedEquipmentEntry
 	FKRAppliedEquipmentEntry()
 	{}
 
-	static FKRAppliedEquipmentEntry Invalid_Entry;
-
+	// Public accessors
+	bool IsValid() const;
 	const TArray<TObjectPtr<UAnimMontage>>& GetLightAttackMontages() const { return LightAttackMontages; }
 	const TArray<TObjectPtr<UAnimMontage>>& GetChargeAttackMontages() const { return ChargeAttackMontages; }
 
@@ -59,18 +62,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
 	FName SocketName;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Entry", meta = (AllowPrivateAccess = "true"))
 	FTransform AttachTransform;
 
-	bool IsValid() const;
-	
 private:
 	friend FKREquipmentList;
 	friend UKREquipmentManagerComponent;
-
-	UPROPERTY()
-	mutable TObjectPtr<class UKRInventoryItemInstance> ItemInstance;
 	
 	UPROPERTY()
 	mutable FKRAbilitySet_GrantedHandles GrantedHandles;
@@ -92,8 +90,8 @@ struct FKREquipmentList
 	}
 
 
-	FKRAppliedEquipmentEntry& FindEntryByItemTag(FGameplayTag InTypeTag);
-	const FKRAppliedEquipmentEntry& FindEntryByItemTag(FGameplayTag InTypeTag) const;
+	FKRAppliedEquipmentEntry& FindEntryByTagMatch(FGameplayTag InItemTag);
+	const FKRAppliedEquipmentEntry& FindEntryByTagMatch(FGameplayTag InItemTag) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EntryList", meta = (AllowPrivateAccess = "true"))
@@ -117,8 +115,12 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void AddEquip(class UKRInventoryItemInstance* ItemInstance);
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void SpawnActorInstances();
@@ -168,19 +170,33 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Equip|Actor", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AKRRangeWeapon> RangeActorClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equip|Entry", meta = (AllowPrivateAccess = "true"))
-	TMap<FGameplayTag, FKREquipmentList> EquipSlotTagToEquipmentListMap;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equip|Weapon", meta = (AllowPrivateAccess = "true"))
+	TMap<FGameplayTag, FKREquipmentList> WeaponEquipmentMap;
+	UPROPERTY()
+	TMap<FGameplayTag, TObjectPtr<UKRInventoryItemInstance>> EquippedItemMap;
+	
+	FActiveGameplayEffectHandle ApplyEquipmentStats(const FWeaponStatsCache& Stats, const FGameplayTag& SlotTag);
+	void RemoveEquipmentStats(const FGameplayTag& SlotTag);
 
-	void ApplyStatsToASC(const class UInventoryFragment_SetStats* SetStatsFragment, bool bAdd);
+	void ApplyModuleStats(UKRInventoryItemInstance* ModuleInstance);
+	void RemoveModuleStats(UKRInventoryItemInstance* ModuleInstance);
+	
+	static FWeaponStatsCache ConvertModifiersToStatsCache(const TArray<struct FKREquipAbilityModifierRow>& Modifiers);
+	
+	UPROPERTY() TMap<FGameplayTag, FActiveGameplayEffectHandle> EquipmentGEHandles;
+	UPROPERTY() TMap<FGameplayTag, TObjectPtr<UGameplayEffect>> EquipmentGEObjects; // GC
 	
 private:
+	bool IsWeaponSlot(const FGameplayTag& SlotTag) const;
+	bool IsModuleSlot(const FGameplayTag& SlotTag) const;
+
 	void OnAbilitySystemInitialized();
 
-	// EquipItem 호출 시 EquipInstance가 없으면 생성
-	// Fragment가 Manager를 호출하는 역방향 의존성 제거를 위해 Manager가 주도권을 가짐
-	void EnsureEquipInstanceCreated(class UKRInventoryItemInstance* ItemInstance);
-
-	// ASC 초기화 콜백 중복 호출 방지 플래그
+	// UI 
+	void OnEquipmentConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload);
+	void BroadcastEquipSlotMessage(const FGameplayTag& SlotTag, UKRInventoryItemInstance* ItemInstance);
+	FGameplayMessageListenerHandle ConfirmMessageHandle;
+	
 	bool bASCInitCallbackProcessed = false;
 
 	UPROPERTY()

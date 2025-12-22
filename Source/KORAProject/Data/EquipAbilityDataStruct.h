@@ -8,6 +8,14 @@
 #include "Interface/TableKey.h"
 #include "EquipAbilityDataStruct.generated.h"
 
+UENUM(BlueprintType)
+enum class EModifierOp : uint8
+{
+	Absolute		UMETA(DisplayName = "Absolute (Override)"),
+	AdditiveDelta	UMETA(DisplayName = "Additive Delta"),
+	Multiplier		UMETA(DisplayName = "Multiplier")
+};
+
 USTRUCT(BlueprintType)
 struct FKREquipAbilityModifierRow
 {
@@ -17,10 +25,15 @@ struct FKREquipAbilityModifierRow
 	FGameplayTag AbilityTypeTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EModifierOp Op = EModifierOp::AdditiveDelta;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float BaseValue = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float IncValue = 0.f;
+	
+	float GetFinalValue() const { return BaseValue + IncValue; }
 };
 
 USTRUCT(BlueprintType)

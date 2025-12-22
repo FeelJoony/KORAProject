@@ -7,6 +7,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KRItemTypeTag.h"
+#include "GameplayTag/KRPlayerTag.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/KRPlayerState.h"
 #include "SubSystem/KRInventorySubsystem.h"
@@ -42,8 +43,6 @@ bool UKRPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManage
 	check(Manager);
 
 	APawn* Pawn = GetPawn<APawn>();
-
-	
 
 	if (!CurrentState.IsValid() && DesiredState == KRTAG_STATE_INIT_SPAWNED)
 	{
@@ -113,15 +112,6 @@ void UKRPawnExtensionComponent::CheckDefaultInitialization()
 					SetPawnData(PlayerPawnData);
 				}
 			}
-		}
-	}
-
-	if (PawnData && !bInventoryInitialized)
-	{
-		if (GetOwner()->HasAuthority())
-		{
-			InitializeInventory();
-			bInventoryInitialized = true;
 		}
 	}
 	
@@ -203,6 +193,11 @@ void UKRPawnExtensionComponent::InitializeAbilitySystem(UKRAbilitySystemComponen
 		}
 	}
 	OnAbilitySystemInitialized.Broadcast();
+	
+	if (PawnData && !bInventoryInitialized && GetOwner()->HasAuthority())
+	{
+		InitializeInventory();
+	}
 }
 
 void UKRPawnExtensionComponent::UninitializeAbilitySystem()
@@ -295,34 +290,55 @@ void UKRPawnExtensionComponent::InitializeInventory()
 		return;
 	}
 
-	// EquipmentManager 가져오기
 	UKREquipmentManagerComponent* EquipComp = GetOwner()->FindComponentByClass<UKREquipmentManagerComponent>();
 
+	for (const FGameplayTag& EquipTag : PawnData->DefaultEquipItemTags)
+	{
+		if (!EquipTag.IsValid()) continue;
+
+		UKRInventoryItemInstance* ItemInstance = InvSubSystem->AddItem(EquipTag, 1);
+		if (EquipComp && ItemInstance)
+		{
+			if (!ItemInstance->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_EQUIPPABLE))
+			{
+				InvSubSystem->AddFragment(EquipTag, KRTAG_FRAGMENT_ITEM_EQUIPPABLE);
+			}
+			EquipComp->AddEquip(ItemInstance);
+			EquipComp->EquipItem(ItemInstance);
+		}
+	}
+	
 	for (const FGameplayTag& ItemTag : PawnData->DefaultInventoryItemTags)
 	{
 		if (ItemTag.IsValid())
 		{
-			UKRInventoryItemInstance* ItemInstance = InvSubSystem->AddItem(ItemTag, 1);
-
-			// 장비 아이템이면 자동 장착
-			if (EquipComp && ItemInstance)
+			if (PawnData->DefaultEquipItemTags.Contains(ItemTag))
 			{
-				const bool bIsEquipItem = ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD) ||
-				                          ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN) ||
-				                          ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_HEAD) ||
-				                          ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_COSTUME);
-				if (bIsEquipItem)
-				{
-					// Equippable Fragment가 없으면 추가
-					if (!ItemInstance->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_EQUIPPABLE))
-					{
-						InvSubSystem->AddFragment(ItemTag, KRTAG_FRAGMENT_ITEM_EQUIPPABLE);
-					}
+				continue;
+			}
+			InvSubSystem->AddItem(ItemTag, 1);
+		}
+	}
+	
+	if (EquipComp)
+	{
+		bool bHasGun = EquipComp->GetEquippedItemInstanceBySlotTag(KRTAG_ITEMTYPE_EQUIP_GUN) != nullptr;
+		bool bHasSword = EquipComp->GetEquippedItemInstanceBySlotTag(KRTAG_ITEMTYPE_EQUIP_SWORD) != nullptr;
 
-					EquipComp->EquipItem(ItemInstance);
+		if (bHasGun || bHasSword)
+		{
+			FGameplayTag InitialWeaponType = bHasGun ? KRTAG_ITEMTYPE_EQUIP_GUN : KRTAG_ITEMTYPE_EQUIP_SWORD;
+			FGameplayTag InitialModeTag = bHasGun ? KRTAG_PLAYER_MODE_GUN : KRTAG_PLAYER_MODE_SWORD;
+
+			if (EquipComp->ActivateCombatMode(InitialWeaponType))
+			{
+				if (UKRAbilitySystemComponent* ASC = GetKRAbilitySystemComponent())
+				{
+					ASC->AddLooseGameplayTag(InitialModeTag);
 				}
 			}
 		}
 	}
+
 	bInventoryInitialized = true;
 }

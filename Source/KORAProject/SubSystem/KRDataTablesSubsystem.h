@@ -18,6 +18,7 @@ public:
 	virtual void Deinitialize() override;
 
 	static UKRDataTablesSubsystem& Get(const UObject* WorldContextObject);
+	static UKRDataTablesSubsystem* GetSafe();
 	
 	UCacheDataTable* GetTable(EGameDataType InDataType);
 
@@ -44,8 +45,22 @@ public:
 		return Table->FindRow<TRow>(KeyTag, StringContext, bWarnIfRowMissing);
 	}
 
+	template<typename TRow>
+	TRow* GetDataSafe(EGameDataType InType, uint32 InKey, const FString& StringContext = FString(TEXT("")), bool bWarnIfRowMissing = false)
+	{
+		UCacheDataTable* Table = GetTable(InType);
+		if (!Table || !Table->ContainsKey(InKey))
+		{
+			return nullptr;
+		}
+		return Table->FindRow<TRow>(InKey, StringContext, bWarnIfRowMissing);
+	}
+
 	UFUNCTION(BlueprintCallable, Category = "DataTables|Validation")
 	void ValidateDataReferences();
+	
+	const struct FEquipDataStruct* GetEquipDataByItemTag(const FGameplayTag& ItemTag);
+	const struct FModuleDataStruct* GetModuleDataByItemTag(const FGameplayTag& ItemTag);
 
 private:
 	UPROPERTY()

@@ -1,6 +1,7 @@
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/CacheDataTable.h"
 #include "Data/GameDataType.h"
+#include "Data/ItemDataStruct.h"
 #include "Data/EquipDataStruct.h"
 #include "Data/ModuleDataStruct.h"
 #include "Data/EquipAbilityDataStruct.h"
@@ -52,6 +53,23 @@ UKRDataTablesSubsystem& UKRDataTablesSubsystem::Get(const UObject* WorldContextO
 	return *DataTablesSubsystem;
 }
 
+UKRDataTablesSubsystem* UKRDataTablesSubsystem::GetSafe()
+{
+	UWorld* World = GEngine ? GEngine->GetCurrentPlayWorld() : nullptr;
+	if (!World)
+	{
+		return nullptr;
+	}
+
+	UGameInstance* GameInstance = World->GetGameInstance();
+	if (!GameInstance)
+	{
+		return nullptr;
+	}
+
+	return GameInstance->GetSubsystem<UKRDataTablesSubsystem>();
+}
+
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
 {
 	TSoftObjectPtr<UCacheDataTable>& CacheDataTable = DataTables[InDataType];
@@ -70,9 +88,15 @@ UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
 
 void UKRDataTablesSubsystem::AddDataTable(EGameDataType InType, const FString& TableName)
 {
-	UCacheDataTable* CacheTable = NewObject<UCacheDataTable>(this);
 	UDataTable* DataTable = Cast<class UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *FPaths::Combine(*TablePath, *FString::Printf(TEXT("%s.%s"), *TableName, *TableName))));
 
+	if (!DataTable)
+	{
+		UE_LOG(LogDataTablesSubsystem, Warning, TEXT("DataTable not found: %s"), *TableName);
+		return;
+	}
+
+	UCacheDataTable* CacheTable = NewObject<UCacheDataTable>(this);
 	CacheTable->Init(InType, DataTable);
 
 	DataTables.Add(InType, CacheTable);
@@ -161,4 +185,26 @@ void UKRDataTablesSubsystem::ValidateDataReferences()
 	{
 		UE_LOG(LogDataTablesSubsystem, Log, TEXT("[Validation] All EquipAbilityID references are valid."));
 	}
+}
+
+const FEquipDataStruct* UKRDataTablesSubsystem::GetEquipDataByItemTag(const FGameplayTag& ItemTag)
+{
+	const FItemDataStruct* ItemData = GetDataSafe<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	if (!ItemData)
+	{
+		return nullptr;
+	}
+
+	return GetDataSafe<FEquipDataStruct>(EGameDataType::EquipData, static_cast<uint32>(ItemData->EquipID), TEXT(""), false);
+}
+
+const FModuleDataStruct* UKRDataTablesSubsystem::GetModuleDataByItemTag(const FGameplayTag& ItemTag)
+{
+	const FItemDataStruct* ItemData = GetDataSafe<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	if (!ItemData)
+	{
+		return nullptr;
+	}
+
+	return GetDataSafe<FModuleDataStruct>(EGameDataType::ModuleData, static_cast<uint32>(ItemData->ModuleID), TEXT(""), false);
 }

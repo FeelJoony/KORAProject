@@ -37,6 +37,6 @@ public:
 public:
 	virtual uint32 GetKey() const override
 	{
-		return GroupID;
+		return GetTypeHash(ModuleItemTag);
 	}
 };

@@ -3,11 +3,8 @@
 #include "CoreMinimal.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "GameplayTagContainer.h"
-#include "GAS/AbilitySet/KRAbilitySet.h"
+#include "Equipment/KREquipmentInstance.h"
 #include "InventoryFragment_EquippableItem.generated.h"
-
-class UInputMappingContext;
-class UKREquipmentDefinition;
 
 UCLASS()
 class KORAPROJECT_API UInventoryFragment_EquippableItem : public UKRInventoryItemFragment
@@ -16,27 +13,19 @@ class KORAPROJECT_API UInventoryFragment_EquippableItem : public UKRInventoryIte
 
 public:
 	virtual void OnInstanceCreated(UKRInventoryItemInstance* Instance) override;
-	
-	FORCEINLINE class UKREquipmentInstance* GetEquipInstance() const
-	{
-		return EquipInstance;
-	}
 
-	FORCEINLINE void SetEquipInstance(class UKREquipmentInstance* NewInstance)
-	{
-		this->EquipInstance = NewInstance;
-	}
+	UFUNCTION(BlueprintPure, Category = "Equipment")
+	class UKREquipmentInstance* GetEquipInstance() const { return EquipInstance; }
+
+	UFUNCTION(BlueprintPure, Category = "Equipment")
+	bool IsInitialized() const { return EquipInstance != nullptr && EquipInstance->IsValid(); }
 
 	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Fragment.Item.Equippable"); }
 
-	
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	TObjectPtr<class UKREquipmentDefinition> EquipmentDefinition;
+	void InitializeEquipInstance(UKRInventoryItemInstance* Instance);
 
 private:
 	UPROPERTY()
 	TObjectPtr<class UKREquipmentInstance> EquipInstance;
-
-	
 };

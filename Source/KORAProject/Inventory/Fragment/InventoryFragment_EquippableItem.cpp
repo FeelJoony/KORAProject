@@ -1,15 +1,32 @@
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Equipment/KREquipmentInstance.h"
-#include "Equipment/KREquipmentDefinition.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "Data/EquipDataStruct.h"
 
 void UInventoryFragment_EquippableItem::OnInstanceCreated(UKRInventoryItemInstance* Instance)
 {
 	Super::OnInstanceCreated(Instance);
+	
+	InitializeEquipInstance(Instance);
+}
 
-	if (!Instance) { return; }
+void UInventoryFragment_EquippableItem::InitializeEquipInstance(UKRInventoryItemInstance* Instance)
+{
+	if (!Instance) return;
+	if (EquipInstance && EquipInstance->IsValid()) return;
 
-	// Fragment는 순수 데이터 컨테이너 역할만 수행
-	// EquipmentManager가 EquipItem() 호출 시 EquipInstance를 생성함
-	EquipmentDefinition = NewObject<UKREquipmentDefinition>(this);
+	UKRDataTablesSubsystem* DataTablesSubsystem = UKRDataTablesSubsystem::GetSafe();
+	if (!DataTablesSubsystem)
+	{
+		return;
+	}
+
+	const FEquipDataStruct* EquipData = DataTablesSubsystem->GetEquipDataByItemTag(Instance->GetItemTag());
+	if (!EquipData)
+	{
+		return;
+	}
+	EquipInstance = NewObject<UKREquipmentInstance>(Instance);
+	EquipInstance->InitializeFromData(EquipData);
 }

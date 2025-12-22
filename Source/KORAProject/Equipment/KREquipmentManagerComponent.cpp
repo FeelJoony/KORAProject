@@ -1,16 +1,15 @@
 #include "KREquipmentManagerComponent.h"
-#include "KREquipmentDefinition.h"
 #include "KREquipmentInstance.h"
-#include "Weapons/KRWeaponInstance.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "IDetailTreeNode.h"
 #include "Components/KRPawnExtensionComponent.h"
 #include "Inventory/KRInventoryItemDefinition.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
+#include "Inventory/Fragment/InventoryFragment_ModuleItem.h"
 #include "SubSystem/KRDataTablesSubsystem.h"
+#include "SubSystem/KRInventorySubsystem.h"
 #include "GameFramework/Character.h"
 #include "GameplayTag/KRItemTypeTag.h"
 #include "Item/Weapons/KRWeaponBase.h"
@@ -18,54 +17,65 @@
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
-#include "GAS/AttributeSets/KRWeaponAttributeSet.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Data/EquipAbilityDataStruct.h"
+#include "Data/ModuleDataStruct.h"
+#include "Data/ItemDataStruct.h"
+#include "GameplayEffect.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
 DEFINE_LOG_CATEGORY(LogEquipmentManagerComponent);
 
-struct FAttributeMappingPair
-{
-	FGameplayAttribute WeaponAttribute; // 장비 데이터 (Source)
-	FGameplayAttribute PlayerAttribute; // 플레이어 적용 대상 (Target)
-};
+static FGameplayTag GetSlotTagFromItemTag(const FGameplayTag& ItemTag);
 
-static FKRAppliedEquipmentEntry Invalid_Entry = FKRAppliedEquipmentEntry();
+static FKRAppliedEquipmentEntry& GetInvalidEntry() // To prevent ODR
+{
+	static FKRAppliedEquipmentEntry Invalid_Entry;
+	return Invalid_Entry;
+}
 
 bool FKRAppliedEquipmentEntry::IsValid() const
 {
 	return TypeTag.IsValid();
 }
 
-FKRAppliedEquipmentEntry& FKREquipmentList::FindEntryByItemTag(FGameplayTag InTypeTag)
+FKRAppliedEquipmentEntry& FKREquipmentList::FindEntryByTagMatch(FGameplayTag InItemTag)
 {
 	for (FKRAppliedEquipmentEntry& Entry : Entries)
 	{
-		if (Entry.TypeTag == InTypeTag)
+		if (InItemTag.MatchesTag(Entry.TypeTag))
 		{
 			return Entry;
 		}
 	}
 
-	UE_LOG(LogEquipmentManagerComponent, Error, TEXT("Invalid ItemTag: %s"), *InTypeTag.ToString());
-
-	return Invalid_Entry;
+	return GetInvalidEntry();
 }
 
-const FKRAppliedEquipmentEntry& FKREquipmentList::FindEntryByItemTag(FGameplayTag InTypeTag) const
+const FKRAppliedEquipmentEntry& FKREquipmentList::FindEntryByTagMatch(FGameplayTag InItemTag) const
 {
 	for (const FKRAppliedEquipmentEntry& Entry : Entries)
 	{
-		if (Entry.TypeTag == InTypeTag)
+		if (InItemTag.MatchesTag(Entry.TypeTag))
 		{
 			return Entry;
 		}
 	}
 
-	UE_LOG(LogEquipmentManagerComponent, Error, TEXT("Invalid ItemTag: %s"), *InTypeTag.ToString());
+	return GetInvalidEntry();
+}
 
-	return Invalid_Entry;
+FGameplayTag GetSlotTagFromItemTag(const FGameplayTag& ItemTag)
+{
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD)) return KRTAG_ITEMTYPE_EQUIP_SWORD;
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN)) return KRTAG_ITEMTYPE_EQUIP_GUN;
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_HEAD)) return KRTAG_ITEMTYPE_EQUIP_HEAD;
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_COSTUME)) return KRTAG_ITEMTYPE_EQUIP_COSTUME;
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORDMODULE)) return KRTAG_ITEMTYPE_EQUIP_SWORDMODULE;
+	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUNMODULE)) return KRTAG_ITEMTYPE_EQUIP_GUNMODULE;
+	return FGameplayTag();
 }
 
 UKREquipmentManagerComponent::UKREquipmentManagerComponent(const FObjectInitializer& ObjectInitializer)
@@ -102,256 +112,17 @@ void UKREquipmentManagerComponent::BeginPlay()
 			OnAbilitySystemInitialized();
 		}
 	}
+
+	ConfirmMessageHandle = UGameplayMessageSubsystem::Get(this).RegisterListener(
+		FKRUIMessageTags::Confirm(),
+		this,
+		&UKREquipmentManagerComponent::OnEquipmentConfirmMessage);
 }
 
-void UKREquipmentManagerComponent::OnAbilitySystemInitialized()
+void UKREquipmentManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// 중복 호출 방지
-	if (bASCInitCallbackProcessed)
-	{
-		return;
-	}
-	bASCInitCallbackProcessed = true;
-
-	SpawnActorInstances();
-}
-
-void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInstance)
-{
-	if (ItemInstance == nullptr)
-	{
-		return;
-	}
-
-	const UInventoryFragment_EquippableItem* EquippableFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_EquippableItem>();
-	if (EquippableFragment == nullptr)
-	{
-		UE_LOG(LogEquipmentManagerComponent, Error, TEXT("This Item [%s] not equippable - EquippableFragment not found"), *ItemInstance->GetItemTag().ToString());
-		return;
-	}
-
-	// EquipInstance가 없으면 Manager가 생성 (Fragment→Manager 역방향 의존성 제거)
-	if (!EquippableFragment->GetEquipInstance())
-	{
-		EnsureEquipInstanceCreated(ItemInstance);
-	}
-
-	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
-	const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
-	if (!Entry.IsValid())
-	{
-		return;
-	}
-	Entry.ItemInstance = ItemInstance;
-
-	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
-
-	// 스탯 적용
-	const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
-	if (SetStatFragment)
-	{
-		ApplyStatsToASC(SetStatFragment, true);
-	}
-
-	// 무기 아이템인 경우: 무기 액터에 아이템 인스턴스 연결 (GA/IMC/AnimLayer는 ActivateCombatMode에서 처리)
-	AKRWeaponBase* TargetWeapon = nullptr;
-	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
-	{
-		TargetWeapon = MeleeActorInstance;
-	}
-	else if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
-	{
-		TargetWeapon = RangeActorInstance;
-	}
-
-	if (TargetWeapon)
-	{
-		TargetWeapon->ConfigureWeapon(ItemInstance);
-		UE_LOG(LogEquipmentManagerComponent, Log, TEXT("EquipItem: Configured weapon for ItemTag [%s]"), *ItemTag.ToString());
-	}
-
-	// 코스튬 장비 처리
-	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_COSTUME))
-	{
-		if (USkeletalMeshComponent* SKMeshComp = Character->GetMesh())
-		{
-			static FName CostumeSlotName1 = FName("MAT_CB_DRESS1");
-			static FName CostumeSlotName2 = FName("MAT_CB_SHOES");
-			static FName CostumeSlotName3 = FName("MAT_CB_ARM");
-				
-			int32 CostumeIndex1 = SKMeshComp->GetMaterialIndex(CostumeSlotName1);
-			int32 CostumeIndex2 = SKMeshComp->GetMaterialIndex(CostumeSlotName2);
-			int32 CostumeIndex3 = SKMeshComp->GetMaterialIndex(CostumeSlotName3);
-
-			if (UKREquipmentInstance* Instance = EquippableFragment->GetEquipInstance())
-			{
-				if (const UKREquipmentDefinition* Definition = Instance->GetDefinition())
-				{
-					if (const FEquipDataStruct* EquipDataStruct = Definition->GetEquipDataStruct())
-					{
-						SKMeshComp->SetMaterial(CostumeIndex1, EquipDataStruct->OverrideMaterials[0].LoadSynchronous());
-						SKMeshComp->SetMaterial(CostumeIndex2, EquipDataStruct->OverrideMaterials[1].LoadSynchronous());
-						SKMeshComp->SetMaterial(CostumeIndex3, EquipDataStruct->OverrideMaterials[2].LoadSynchronous());
-					}
-				}
-			}
-		}
-	}
-
-	if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_HEAD))
-	{
-		if (USkeletalMeshComponent* SKMeshComp = Character->GetMesh())
-		{
-			static FName HeadSlotName = FName("MAT_CB_EARS_SOC");
-				
-			int32 HeadIndex = SKMeshComp->GetMaterialIndex(HeadSlotName);
-
-			if (UKREquipmentInstance* Instance = EquippableFragment->GetEquipInstance())
-			{
-				if (const UKREquipmentDefinition* Definition = Instance->GetDefinition())
-				{
-					if (const FEquipDataStruct* EquipDataStruct = Definition->GetEquipDataStruct())
-					{
-						SKMeshComp->SetMaterial(HeadIndex, EquipDataStruct->OverrideMaterials[0].LoadSynchronous());
-					}
-				}
-			}
-		}
-	}
-
-	//BroadcastWeaponMessage();
-}
-
-void UKREquipmentManagerComponent::UnequipItem(UKRInventoryItemInstance* ItemInstance)
-{
-	if (ItemInstance == nullptr)
-	{
-		return;
-	}
-
-	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
-	const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
-	if (!Entry.IsValid())
-	{
-		return;
-	}
-
-	// 스탯 제거
-	const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
-	if (SetStatFragment)
-	{
-		ApplyStatsToASC(SetStatFragment, false);
-	}
-
-	// 현재 활성화된 무기가 이 아이템이라면 전투 모드 비활성화
-	if (bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(ItemTag))
-	{
-		DeactivateCombatMode();
-	}
-
-	Entry.ItemInstance = nullptr;
-	UE_LOG(LogEquipmentManagerComponent, Log, TEXT("UnequipItem: Unequipped ItemTag [%s]"), *ItemTag.ToString());
-}
-
-void UKREquipmentManagerComponent::ChangeEquipment(class UKRInventoryItemInstance* OldItem,
-	class UKRInventoryItemInstance* NewItem)
-{
-	if (OldItem)
-	{
-		UnequipItem(OldItem);
-	}
-	if (NewItem)
-	{
-		EquipItem(NewItem);
-	}
-}
-
-const FKRAppliedEquipmentEntry& UKREquipmentManagerComponent::FindEntryByTag(const FGameplayTag& ItemTag) const
-{
-	for (const auto& EntryListPair : EquipSlotTagToEquipmentListMap)
-	{
-		if (EntryListPair.Key.MatchesTag(ItemTag))
-		{
-			const FKREquipmentList& EquipmentList = EntryListPair.Value;
-			const FKRAppliedEquipmentEntry& Entry = EquipmentList.FindEntryByItemTag(ItemTag);
-
-			return Entry;
-		}
-	}
-
-	return Invalid_Entry;
-}
-
-UKRInventoryItemInstance* UKREquipmentManagerComponent::GetEquippedItemInstanceBySlotTag(
-	const FGameplayTag& SlotTag) const
-{
-	const FKREquipmentList* EquipmentList = EquipSlotTagToEquipmentListMap.Find(SlotTag);
-	if (!EquipmentList)
-	{
-		return nullptr;
-	}
-	
-	for (const FKRAppliedEquipmentEntry& Entry : EquipmentList->Entries)
-	{
-		if (Entry.IsValid() && Entry.ItemInstance)
-		{
-			return Entry.ItemInstance;
-		}
-	}
-
-	return nullptr;
-}
-
-void UKREquipmentManagerComponent::ApplyStatsToASC(const class UInventoryFragment_SetStats* SetStatsFragment, bool bAdd)
-{
-	if (!SetStatsFragment) return;
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (!ASC) return;
-
-	// Fragment가 들고 있는 무기 스탯 데이터셋 가져오기
-	const UKRWeaponAttributeSet* SourceWeaponStats = SetStatsFragment->GetWeaponAttributeSet();
-	if (!SourceWeaponStats) return;
-
-	static const TArray<FAttributeMappingPair> StatMappings = {
-		// 1. 공격력 (매핑 가능)
-		{ UKRWeaponAttributeSet::GetAttackPowerAttribute(), UKRCombatCommonSet::GetAttackPowerAttribute() },
-
-		// [확장 가이드] KRCombatCommonSet에 해당 스탯들을 추가한 뒤 아래 주석을 해제
-		/*
-		{ UKRWeaponAttributeSet::GetDefensePowerAttribute(), UKRCombatCommonSet::GetDefensePowerAttribute() }, // 방어력
-		{ UKRWeaponAttributeSet::GetAttackSpeedAttribute(), UKRCombatCommonSet::GetAttackSpeedAttribute() },   // 공격 속도
-		{ UKRWeaponAttributeSet::GetCritChanceAttribute(), UKRCombatCommonSet::GetCritChanceAttribute() },     // 치명타 확률
-		{ UKRWeaponAttributeSet::GetCritMultiAttribute(), UKRCombatCommonSet::GetCritMultiAttribute() },       // 치명타 배율
-		*/
-	};
-
-	// [Loop Logic] 정의된 매핑 테이블을 순회하며 스탯 자동 적용
-	for (const FAttributeMappingPair& Pair : StatMappings)
-	{
-		// 1. 유효성 검사: 무기 스탯과 플레이어 스탯 속성이 모두 유효해야 함
-		if (Pair.WeaponAttribute.IsValid() && Pair.PlayerAttribute.IsValid())
-		{
-			// 2. 무기 데이터에서 값 추출 (Source)
-			float StatValue = Pair.WeaponAttribute.GetNumericValue(SourceWeaponStats);
-
-			// 값이 0에 가까우면 연산 생략 (최적화)
-			if (FMath::IsNearlyZero(StatValue))
-			{
-				continue;
-			}
-
-			// 3. 플레이어 ASC의 기본값(Base) 수정 (Target)
-			// 참고: 다이어그램의 ApplyMod(Modifier) 대신 현재 구조에 맞춰 SetBase 사용
-			float CurrentBase = ASC->GetNumericAttributeBase(Pair.PlayerAttribute);
-			float NewBase = bAdd ? (CurrentBase + StatValue) : (CurrentBase - StatValue);
-
-			ASC->SetNumericAttributeBase(Pair.PlayerAttribute, NewBase);
-
-			// 로그 (디버깅용)
-			UE_LOG(LogEquipmentManagerComponent, Verbose, TEXT("Applied Stat: %s -> Value: %f (Add: %d)"), *Pair.PlayerAttribute.GetName(), StatValue, bAdd);
-		}
-	}
+	UGameplayMessageSubsystem::Get(this).UnregisterListener(ConfirmMessageHandle);
+	Super::EndPlay(EndPlayReason);
 }
 
 void UKREquipmentManagerComponent::InitializeComponent()
@@ -364,44 +135,53 @@ void UKREquipmentManagerComponent::UninitializeComponent()
 	Super::UninitializeComponent();
 }
 
-void UKREquipmentManagerComponent::EnsureEquipInstanceCreated(UKRInventoryItemInstance* ItemInstance)
+void UKREquipmentManagerComponent::AddEquip(UKRInventoryItemInstance* ItemInstance)
 {
-	if (!ItemInstance) { return; }
+	if (!ItemInstance) return;
 
-	for (auto& EquipSlot : EquipSlotTagToEquipmentListMap)
+	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
+	const FGameplayTag SlotTag = GetSlotTagFromItemTag(ItemTag);
+	if (!SlotTag.IsValid()) return;
+	
+	if (IsWeaponSlot(SlotTag) || SlotTag == KRTAG_ITEMTYPE_EQUIP_HEAD || SlotTag == KRTAG_ITEMTYPE_EQUIP_COSTUME)
 	{
-		if (EquipSlot.Key.MatchesTag(ItemInstance->GetItemTag()))
+		UInventoryFragment_EquippableItem* EquippableFragment = ItemInstance->FindInstanceFragmentByClass<UInventoryFragment_EquippableItem>();
+		if (!EquippableFragment)
 		{
-			if (UKRInventoryItemDefinition* ItemDefinition = ItemInstance->GetItemDef())
-			{
-				if (UInventoryFragment_EquippableItem* EquippableFragment
-					= Cast<UInventoryFragment_EquippableItem>(ItemDefinition->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_EQUIPPABLE)))
-				{
-					// EquipInstance가 이미 있으면 생성하지 않음
-					if (EquippableFragment->GetEquipInstance())
-					{
-						return;
-					}
+			UE_LOG(LogEquipmentManagerComponent, Warning, TEXT("AddEquip: EquippableFragment not found for [%s]"), *ItemTag.ToString());
+			return;
+		}
+		
+		if (!EquippableFragment->IsInitialized())
+		{
+			EquippableFragment->OnInstanceCreated(ItemInstance);
+		}
+		
+		if (!EquippableFragment->IsInitialized())
+		{
+			UE_LOG(LogEquipmentManagerComponent, Warning, TEXT("AddEquip: Failed to initialize EquippableFragment for [%s]"), *ItemTag.ToString());
+			return;
+		}
+	}
+	else if (IsModuleSlot(SlotTag))
+	{
+		UInventoryFragment_ModuleItem* ModuleFragment = ItemInstance->FindInstanceFragmentByClass<UInventoryFragment_ModuleItem>();
 
-					UKREquipmentInstance* NewEquipInstance = NewObject<UKREquipmentInstance>(this);
-					const FEquipDataStruct* EquipDataStruct = UKRDataTablesSubsystem::Get(this).GetData<FEquipDataStruct>(EGameDataType::EquipData, ItemInstance->GetItemTag());
-
-					NewEquipInstance->InitializeFromData(EquipDataStruct);
-
-					EquippableFragment->SetEquipInstance(NewEquipInstance);
-
-					UE_LOG(LogEquipmentManagerComponent, Log, TEXT("EnsureEquipInstanceCreated: Created EquipInstance for ItemTag [%s]"), *ItemInstance->GetItemTag().ToString());
-				}
-			}
-
-			break;
+		if (!ModuleFragment)
+		{
+			ModuleFragment = NewObject<UInventoryFragment_ModuleItem>(ItemInstance);
+			ItemInstance->AddInstanceFragment(KRTAG_FRAGMENT_ITEM_MODULE, ModuleFragment);
+			ModuleFragment->OnInstanceCreated(ItemInstance);
+		}
+		else if (!ModuleFragment->IsInitialized())
+		{
+			ModuleFragment->OnInstanceCreated(ItemInstance);
 		}
 	}
 }
 
 void UKREquipmentManagerComponent::SpawnActorInstances()
 {
-	// 이미 스폰되었다면 중복 호출 방지
 	if (MeleeActorInstance || RangeActorInstance)
 	{
 		return;
@@ -430,9 +210,203 @@ void UKREquipmentManagerComponent::SpawnActorInstances()
 			RangeActor->SetActorHiddenInGame(true);
 		}
 	}
-
-	// 스폰 후 캐릭터에 Attach
 	AttachWeaponsToCharacter();
+}
+
+void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInstance)
+{
+	if (ItemInstance == nullptr)
+	{
+		return;
+	}
+
+	const UInventoryFragment_EquippableItem* EquippableFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_EquippableItem>();
+	if (EquippableFragment == nullptr)
+	{
+		UE_LOG(LogEquipmentManagerComponent, Error, TEXT("This Item [%s] not equippable - EquippableFragment not found"), *ItemInstance->GetItemTag().ToString());
+		return;
+	}
+
+	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
+	const FGameplayTag SlotTag = GetSlotTagFromItemTag(ItemTag);
+	if (!SlotTag.IsValid())
+	{
+		UE_LOG(LogEquipmentManagerComponent, Error, TEXT("EquipItem: Invalid SlotTag for ItemTag [%s]"), *ItemTag.ToString());
+		return;
+	}
+
+	ACharacter* Character = CastChecked<ACharacter>(GetOwner());
+	if (IsWeaponSlot(SlotTag))
+	{
+		const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
+		if (!Entry.IsValid())
+		{
+			UE_LOG(LogEquipmentManagerComponent, Error, TEXT("EquipItem: No valid Entry for weapon [%s]"), *ItemTag.ToString());
+			return;
+		}
+		EquippedItemMap.Add(SlotTag, ItemInstance);
+
+		const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
+		if (SetStatFragment && SetStatFragment->IsInitialized())
+		{
+			const FWeaponStatsCache& Stats = SetStatFragment->GetWeaponStats();
+			ApplyEquipmentStats(Stats, SlotTag);
+		}
+
+		AKRWeaponBase* TargetWeapon = nullptr;
+		if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
+		{
+			TargetWeapon = MeleeActorInstance;
+		}
+		else if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+		{
+			TargetWeapon = RangeActorInstance;
+		}
+
+		if (TargetWeapon)
+		{
+			TargetWeapon->ConfigureWeapon(ItemInstance);
+		}
+
+		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+	}
+	else if (SlotTag == KRTAG_ITEMTYPE_EQUIP_COSTUME)
+	{
+		EquippedItemMap.Add(SlotTag, ItemInstance);
+
+		if (USkeletalMeshComponent* SKMeshComp = Character->GetMesh())
+		{
+			static FName CostumeSlotName1 = FName("MAT_CB_ARM");
+			static FName CostumeSlotName2 = FName("MAT_CB_DRESS1");
+			static FName CostumeSlotName3 = FName("MAT_CB_SHOES");
+
+			int32 CostumeIndex1 = SKMeshComp->GetMaterialIndex(CostumeSlotName1);
+			int32 CostumeIndex2 = SKMeshComp->GetMaterialIndex(CostumeSlotName2);
+			int32 CostumeIndex3 = SKMeshComp->GetMaterialIndex(CostumeSlotName3);
+
+			if (const UKREquipmentInstance* Instance = EquippableFragment->GetEquipInstance())
+			{
+				if (Instance->IsValid())
+				{
+					const FEquipDataStruct& EquipData = Instance->GetEquipData();
+					if (EquipData.OverrideMaterials.Num() >= 3)
+					{
+						SKMeshComp->SetMaterial(CostumeIndex1, EquipData.OverrideMaterials[0].LoadSynchronous());
+						SKMeshComp->SetMaterial(CostumeIndex2, EquipData.OverrideMaterials[1].LoadSynchronous());
+						SKMeshComp->SetMaterial(CostumeIndex3, EquipData.OverrideMaterials[2].LoadSynchronous());
+					}
+				}
+			}
+		}
+		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+	}
+	else if (SlotTag == KRTAG_ITEMTYPE_EQUIP_HEAD)
+	{
+		EquippedItemMap.Add(SlotTag, ItemInstance);
+
+		if (USkeletalMeshComponent* SKMeshComp = Character->GetMesh())
+		{
+			static FName HeadSlotName = FName("MAT_CB_EARS_SOCK");
+			int32 HeadIndex = SKMeshComp->GetMaterialIndex(HeadSlotName);
+
+			if (const UKREquipmentInstance* Instance = EquippableFragment->GetEquipInstance())
+			{
+				if (Instance->IsValid())
+				{
+					const FEquipDataStruct& EquipData = Instance->GetEquipData();
+					if (EquipData.OverrideMaterials.Num() >= 1)
+					{
+						SKMeshComp->SetMaterial(HeadIndex, EquipData.OverrideMaterials[0].LoadSynchronous());
+					}
+				}
+			}
+		}
+		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+	}
+	else if (IsModuleSlot(SlotTag))
+	{
+		EquippedItemMap.Add(SlotTag, ItemInstance);
+		ApplyModuleStats(ItemInstance);
+		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+	}
+}
+
+void UKREquipmentManagerComponent::UnequipItem(UKRInventoryItemInstance* ItemInstance)
+{
+	if (ItemInstance == nullptr)
+	{
+		return;
+	}
+
+	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
+	const FGameplayTag SlotTag = GetSlotTagFromItemTag(ItemTag);
+
+	if (IsWeaponSlot(SlotTag))
+	{
+		const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(ItemTag);
+		if (!Entry.IsValid())
+		{
+			return;
+		}
+		
+		RemoveEquipmentStats(SlotTag);
+		if (bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(ItemTag))
+		{
+			DeactivateCombatMode();
+		}
+		EquippedItemMap.Remove(SlotTag);
+	}
+
+	else if (SlotTag == KRTAG_ITEMTYPE_EQUIP_HEAD || SlotTag == KRTAG_ITEMTYPE_EQUIP_COSTUME)
+	{
+		EquippedItemMap.Remove(SlotTag);
+	}
+
+	else if (IsModuleSlot(SlotTag))
+	{
+		RemoveModuleStats(ItemInstance);
+		EquippedItemMap.Remove(SlotTag);
+	}
+}
+
+void UKREquipmentManagerComponent::ChangeEquipment(class UKRInventoryItemInstance* OldItem,
+	class UKRInventoryItemInstance* NewItem)
+{
+	if (OldItem)
+	{
+		UnequipItem(OldItem);
+	}
+	if (NewItem)
+	{
+		EquipItem(NewItem);
+	}
+}
+
+const FKRAppliedEquipmentEntry& UKREquipmentManagerComponent::FindEntryByTag(const FGameplayTag& ItemTag) const
+{
+	for (const auto& EntryListPair : WeaponEquipmentMap)
+	{
+		if (ItemTag.MatchesTag(EntryListPair.Key))
+		{
+			const FKREquipmentList& EquipmentList = EntryListPair.Value;
+			const FKRAppliedEquipmentEntry& Entry = EquipmentList.FindEntryByTagMatch(ItemTag);
+
+			return Entry;
+		}
+	}
+
+	return GetInvalidEntry();
+}
+
+UKRInventoryItemInstance* UKREquipmentManagerComponent::GetEquippedItemInstanceBySlotTag(
+	const FGameplayTag& SlotTag) const
+{
+	if (const TObjectPtr<UKRInventoryItemInstance>* Found = EquippedItemMap.Find(SlotTag))
+	{
+		return *Found;
+	}
+
+	return nullptr;
 }
 
 void UKREquipmentManagerComponent::AttachWeaponsToCharacter()
@@ -462,10 +436,9 @@ void UKREquipmentManagerComponent::AttachWeaponsToCharacter()
 			);
 			MeleeActorInstance->SetActorRelativeTransform(MeleeEntry.AttachTransform);
 
-			// 이미 장착된 아이템이 있으면 ConfigureWeapon 호출 (초기화 순서 문제 해결)
-			if (MeleeEntry.ItemInstance)
+			if (UKRInventoryItemInstance* MeleeItemInstance = GetEquippedItemInstanceBySlotTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
 			{
-				MeleeActorInstance->ConfigureWeapon(MeleeEntry.ItemInstance);
+				MeleeActorInstance->ConfigureWeapon(MeleeItemInstance);
 			}
 		}
 		MeleeActorInstance->SetWeaponVisibility(false);
@@ -485,10 +458,9 @@ void UKREquipmentManagerComponent::AttachWeaponsToCharacter()
 			);
 			RangeActorInstance->SetActorRelativeTransform(RangeEntry.AttachTransform);
 
-			// 이미 장착된 아이템이 있으면 ConfigureWeapon 호출 (초기화 순서 문제 해결)
-			if (RangeEntry.ItemInstance)
+			if (UKRInventoryItemInstance* RangeItemInstance = GetEquippedItemInstanceBySlotTag(KRTAG_ITEMTYPE_EQUIP_GUN))
 			{
-				RangeActorInstance->ConfigureWeapon(RangeEntry.ItemInstance);
+				RangeActorInstance->ConfigureWeapon(RangeItemInstance);
 			}
 		}
 		RangeActorInstance->SetWeaponVisibility(false);
@@ -667,5 +639,263 @@ void UKREquipmentManagerComponent::DeactivateCombatMode()
 	ActiveWeaponTypeTag = FGameplayTag();
 
 	UE_LOG(LogEquipmentManagerComponent, Log, TEXT("DeactivateCombatMode: Combat mode deactivated"));
+}
+
+FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(const FWeaponStatsCache& Stats, const FGameplayTag& SlotTag)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC || !Stats.HasAnyModifier())
+	{
+		return FActiveGameplayEffectHandle();
+	}
+	
+	RemoveEquipmentStats(SlotTag);
+	
+	FString GEName = FString::Printf(TEXT("GE_Equip_%s"), *SlotTag.ToString().Replace(TEXT("."), TEXT("_")));
+	UGameplayEffect* GE = NewObject<UGameplayEffect>(this, FName(*GEName));
+	GE->DurationPolicy = EGameplayEffectDurationType::Infinite;
+	
+	EquipmentGEObjects.Add(SlotTag, GE); // GC
+
+	int32 Idx = 0;
+	const float AttackPowerDelta = Stats.AttackPower - FWeaponStatsCache::DefaultAttackPower;
+	if (!FMath::IsNearlyZero(AttackPowerDelta))
+	{
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetAttackPowerAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(AttackPowerDelta));
+		Idx++;
+	}
+
+	const float AttackSpeedDelta = Stats.AttackSpeed - FWeaponStatsCache::DefaultAttackSpeed;
+	if (!FMath::IsNearlyZero(AttackSpeedDelta))
+	{
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetAttackSpeedAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(AttackSpeedDelta));
+		Idx++;
+	}
+
+	const float CritChanceDelta = Stats.CritChance - FWeaponStatsCache::DefaultCritChance;
+	if (!FMath::IsNearlyZero(CritChanceDelta))
+	{
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetCritChanceAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(CritChanceDelta));
+		Idx++;
+	}
+
+	const float CritMultiDelta = Stats.CritMulti - FWeaponStatsCache::DefaultCritMulti;
+	if (!FMath::IsNearlyZero(CritMultiDelta))
+	{
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetCritMultiAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(CritMultiDelta));
+		Idx++;
+	}
+
+	const float RangeDelta = Stats.Range - FWeaponStatsCache::DefaultRange;
+	if (!FMath::IsNearlyZero(RangeDelta))
+	{
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetWeaponRangeAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(RangeDelta));
+		Idx++;
+	}
+	
+	if (Idx == 0)
+	{
+		return FActiveGameplayEffectHandle();
+	}
+
+	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+	Context.AddSourceObject(this);
+	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectToSelf(GE, 1.0f, Context);
+	
+	if (Handle.IsValid())
+	{
+		EquipmentGEHandles.Add(SlotTag, Handle);
+	}
+
+	UE_LOG(LogEquipmentManagerComponent, Log, TEXT("ApplyEquipmentStats [%s]: Applied GE with ATK=%.1f, Speed=%.2f, Crit=%.2f"),
+		*SlotTag.ToString(), Stats.AttackPower, Stats.AttackSpeed, Stats.CritChance);
+
+	return Handle;
+}
+
+void UKREquipmentManagerComponent::RemoveEquipmentStats(const FGameplayTag& SlotTag)
+{
+	FActiveGameplayEffectHandle* HandlePtr = EquipmentGEHandles.Find(SlotTag);
+	if (HandlePtr && HandlePtr->IsValid())
+	{
+		UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+		if (ASC)
+		{
+			ASC->RemoveActiveGameplayEffect(*HandlePtr);
+		}
+		EquipmentGEHandles.Remove(SlotTag);
+	}
+	
+	EquipmentGEObjects.Remove(SlotTag);
+}
+
+void UKREquipmentManagerComponent::ApplyModuleStats(UKRInventoryItemInstance* ModuleInstance)
+{
+	if (!ModuleInstance)
+	{
+		return;
+	}
+
+	// 모듈은 ItemTag를 키로 사용 (SlotTag 사용 시 동일 슬롯 모듈끼리 GE가 덮어씌워짐)
+	const FGameplayTag& ItemTag = ModuleInstance->GetItemTag();
+	if (!ItemTag.IsValid())
+	{
+		return;
+	}
+
+	const UInventoryFragment_ModuleItem* ModuleFragment = ModuleInstance->FindFragmentByClass<UInventoryFragment_ModuleItem>();
+	if (!ModuleFragment || !ModuleFragment->IsInitialized())
+	{
+		return;
+	}
+
+	const TArray<FKREquipAbilityModifierRow>& Modifiers = ModuleFragment->GetStatModifiers();
+	FWeaponStatsCache Stats = ConvertModifiersToStatsCache(Modifiers);
+
+	ApplyEquipmentStats(Stats, ItemTag);
+}
+
+void UKREquipmentManagerComponent::RemoveModuleStats(UKRInventoryItemInstance* ModuleInstance)
+{
+	if (!ModuleInstance)
+	{
+		return;
+	}
+	const FGameplayTag& ItemTag = ModuleInstance->GetItemTag();
+	if (!ItemTag.IsValid())
+	{
+		return;
+	}
+
+	RemoveEquipmentStats(ItemTag);
+}
+
+FWeaponStatsCache UKREquipmentManagerComponent::ConvertModifiersToStatsCache(const TArray<FKREquipAbilityModifierRow>& Modifiers)
+{
+	FWeaponStatsCache Stats;
+
+	for (const FKREquipAbilityModifierRow& Modifier : Modifiers)
+	{
+		if (!Modifier.AbilityTypeTag.IsValid())
+		{
+			continue;
+		}
+
+		const float Value = Modifier.GetFinalValue();
+		auto ApplyModifier = [&Modifier, Value](float& StatValue)
+		{
+			switch (Modifier.Op)
+			{
+			case EModifierOp::Absolute:
+				StatValue = Value;
+				break;
+			case EModifierOp::AdditiveDelta:
+				StatValue += Value;
+				break;
+			case EModifierOp::Multiplier:
+				StatValue *= Value;
+				break;
+			}
+		};
+
+		if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATK))
+		{
+			ApplyModifier(Stats.AttackPower);
+		}
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATTACKSPEED))
+		{
+			ApplyModifier(Stats.AttackSpeed);
+		}
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITCHANCE))
+		{
+			ApplyModifier(Stats.CritChance);
+		}
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITMULTI))
+		{
+			ApplyModifier(Stats.CritMulti);
+		}
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_RANGE))
+		{
+			ApplyModifier(Stats.Range);
+		}
+	}
+
+	Stats.MarkInitialized();
+	return Stats;
+}
+
+bool UKREquipmentManagerComponent::IsWeaponSlot(const FGameplayTag& SlotTag) const
+{
+	return SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD) || SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN);
+}
+
+bool UKREquipmentManagerComponent::IsModuleSlot(const FGameplayTag& SlotTag) const
+{
+	return SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORDMODULE) || SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUNMODULE);
+}
+
+void UKREquipmentManagerComponent::OnAbilitySystemInitialized()
+{
+	if (bASCInitCallbackProcessed)
+	{
+		return;
+	}
+	bASCInitCallbackProcessed = true;
+
+	SpawnActorInstances();
+}
+
+void UKREquipmentManagerComponent::OnEquipmentConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload)
+{
+	if (Payload.Context != EConfirmContext::Equipment || Payload.Result != EConfirmResult::Yes) return;
+	if (!Payload.ItemTag.IsValid())
+	{
+		UE_LOG(LogEquipmentManagerComponent, Warning, TEXT("OnEquipmentConfirmMessage: Invalid ItemTag"));
+		return;
+	}
+
+	UGameInstance* GI = UGameplayStatics::GetGameInstance(this);
+	if (!GI) return;
+	UKRInventorySubsystem* InvSubsystem = GI->GetSubsystem<UKRInventorySubsystem>();
+	if (!InvSubsystem) return;
+
+	TArray<UKRInventoryItemInstance*> FoundItems = InvSubsystem->FindItemsByTag(Payload.ItemTag);
+	UKRInventoryItemInstance* NewItemInstance = FoundItems.Num() > 0 ? FoundItems[0] : nullptr;
+
+	if (!NewItemInstance)
+	{
+		UE_LOG(LogEquipmentManagerComponent, Warning, TEXT("OnEquipmentConfirmMessage: Item [%s] not found in inventory"), *Payload.ItemTag.ToString());
+		return;
+	}
+	
+	const FGameplayTag SlotTag = GetSlotTagFromItemTag(Payload.ItemTag);
+	UKRInventoryItemInstance* OldItemInstance = GetEquippedItemInstanceBySlotTag(SlotTag);
+
+	AddEquip(NewItemInstance);
+	ChangeEquipment(OldItemInstance, NewItemInstance);
+}
+
+void UKREquipmentManagerComponent::BroadcastEquipSlotMessage(const FGameplayTag& SlotTag, UKRInventoryItemInstance* ItemInstance)
+{
+	FKRUIMessage_EquipSlot Msg;
+	Msg.SlotTag = SlotTag;
+	Msg.ItemInstance = ItemInstance;
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipSlot(), Msg);
 }
 

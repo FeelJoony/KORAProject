@@ -1,10 +1,9 @@
 #include "Item/Weapons/KRWeaponBase.h"
 
-#include "IDetailTreeNode.h"
-#include "Weapons/KRWeaponInstance.h"
 #include "Components/StaticMeshComponent.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
+#include "Equipment/KREquipmentInstance.h"
 
 AKRWeaponBase::AKRWeaponBase()
 {
@@ -33,22 +32,42 @@ void AKRWeaponBase::SetWeaponVisibility(bool bVisible)
 void AKRWeaponBase::ConfigureWeapon(UKRInventoryItemInstance* InInstance)
 {
 	ItemInstance = InInstance;
-	if (ItemInstance)
+	if (!ItemInstance)
 	{
-		const UInventoryFragment_EquippableItem* Equippable = ItemInstance->FindFragmentByClass<UInventoryFragment_EquippableItem>();
-		if (Equippable)
+		return;
+	}
+
+	const UInventoryFragment_EquippableItem* Equippable = ItemInstance->FindFragmentByClass<UInventoryFragment_EquippableItem>();
+	if (!Equippable)
+	{
+		return;
+	}
+
+	const UKREquipmentInstance* EquipInst = Equippable->GetEquipInstance();
+	if (!EquipInst || !EquipInst->IsValid())
+	{
+		return;
+	}
+
+	const FEquipDataStruct& Data = EquipInst->GetEquipData();
+	if (!Data.EquipmentMesh.IsNull())
+	{
+		UStaticMesh* LoadedMesh = Data.EquipmentMesh.LoadSynchronous();
+		if (LoadedMesh && WeaponMesh)
 		{
-			if (const UKREquipmentInstance* EquipInst = Equippable->GetEquipInstance())
+			WeaponMesh->SetStaticMesh(LoadedMesh);
+		}
+	}
+	if (WeaponMesh)
+	{
+		for (int32 i = 0; i < Data.OverrideMaterials.Num(); ++i)
+		{
+			if (!Data.OverrideMaterials[i].IsNull())
 			{
-				if (const UKREquipmentDefinition* Def = EquipInst->GetDefinition())
+				UMaterialInterface* LoadedMaterial = Data.OverrideMaterials[i].LoadSynchronous();
+				if (LoadedMaterial)
 				{
-					if (const FEquipDataStruct* Data = Def->GetEquipDataStruct())
-					{
-						if (Data->OverrideMaterials.IsValidIndex(0))
-						{
-							WeaponMesh->SetMaterial(0, Data->OverrideMaterials[0].LoadSynchronous());
-						}
-					}
+					WeaponMesh->SetMaterial(i, LoadedMaterial);
 				}
 			}
 		}

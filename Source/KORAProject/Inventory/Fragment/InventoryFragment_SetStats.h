@@ -2,9 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Inventory/KRInventoryItemDefinition.h"
+#include "Equipment/KRWeaponStatsCache.h"
 #include "InventoryFragment_SetStats.generated.h"
-
-class UKRWeaponAttributeSet;
 
 UCLASS()
 class KORAPROJECT_API UInventoryFragment_SetStats : public UKRInventoryItemFragment
@@ -14,14 +13,17 @@ class KORAPROJECT_API UInventoryFragment_SetStats : public UKRInventoryItemFragm
 public:
 	virtual void OnInstanceCreated(class UKRInventoryItemInstance* Instance) override;
 	virtual FGameplayTag GetFragmentTag() const override { return FGameplayTag::RequestGameplayTag("Ability.Item.SetStat"); }
+	
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	const FWeaponStatsCache& GetWeaponStats() const { return CachedStats; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	bool IsInitialized() const { return bIsInitialized; }
 
 protected:
 	void InitializeWeaponStats(class UKRInventoryItemInstance* Instance);
 	
 private:
-	UPROPERTY()
-	TObjectPtr<class UKRWeaponAttributeSet> WeaponAttributeSet;
-
-public:
-	FORCEINLINE const UKRWeaponAttributeSet* GetWeaponAttributeSet() const { return WeaponAttributeSet; }
+	UPROPERTY() FWeaponStatsCache CachedStats;
+	bool bIsInitialized = false;
 };

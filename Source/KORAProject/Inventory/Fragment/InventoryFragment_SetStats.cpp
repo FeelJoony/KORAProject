@@ -1,41 +1,28 @@
 #include "InventoryFragment_SetStats.h"
+
 #include "Inventory/KRInventoryItemInstance.h"
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/EquipAbilityDataStruct.h"
 #include "Data/EquipDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "GameplayTag/KRItemTypeTag.h"
-#include "GAS/AttributeSets/KRWeaponAttributeSet.h"
-
-static FGameplayAttribute ConvertTagToWeaponAttribute(const FGameplayTag& Tag)
-{
-	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_ATK)) return UKRWeaponAttributeSet::GetAttackPowerAttribute();
-	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_ATTACKSPEED)) return UKRWeaponAttributeSet::GetAttackSpeedAttribute();
-	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_RANGE)) return UKRWeaponAttributeSet::GetRangeAttribute();
-	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_CRITCHACNE)) return UKRWeaponAttributeSet::GetCritChanceAttribute();
-	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_CRITMULTI)) return UKRWeaponAttributeSet::GetCritMultiAttribute();
-	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_CAPACITY)) return UKRWeaponAttributeSet::GetCapacityAttribute();
-	if (Tag.MatchesTag(KRTAG_WEAPON_STAT_RELOADTIME)) return UKRWeaponAttributeSet::GetReloadTimeAttribute();
-	
-	return FGameplayAttribute();
-}
-
 
 void UInventoryFragment_SetStats::OnInstanceCreated(UKRInventoryItemInstance* Instance)
 {
-	if (Instance)
+	if (!Instance) return;
+
+	const FGameplayTag EquipTag = Instance->GetItemTag();
+	if (!EquipTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD) && !EquipTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
 	{
-		InitializeWeaponStats(Instance);
+		return;
 	}
+
+	InitializeWeaponStats(Instance);
 }
 
-void UInventoryFragment_SetStats::InitializeWeaponStats(class UKRInventoryItemInstance* Instance)
+void UInventoryFragment_SetStats::InitializeWeaponStats(UKRInventoryItemInstance* Instance)
 {
-	if (!WeaponAttributeSet)
-	{
-		WeaponAttributeSet = NewObject<UKRWeaponAttributeSet>(this);
-	}
-
+	if (!Instance) return;
 	UObject* ContextObj = Instance->GetOwnerContext();
 	if (!ContextObj) return;
 	
@@ -47,29 +34,87 @@ void UInventoryFragment_SetStats::InitializeWeaponStats(class UKRInventoryItemIn
 		UE_LOG(LogTemp, Error, TEXT("ItemData Missing"));
 		return;
 	}
-
 	const FEquipDataStruct* EquipData = DataTablesSubsystem.GetData<FEquipDataStruct>(EGameDataType::EquipData, ItemData->EquipID);
 	if (!EquipData)
 	{
 		UE_LOG(LogTemp, Error, TEXT("EquipData Missing"));
 		return;
 	}
-
 	const FEquipAbilityDataStruct* AbilityData = DataTablesSubsystem.GetData<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, EquipData->EquipAbilityID);
-
-	if (AbilityData)
+	if (!AbilityData)
 	{
-		for (const FKREquipAbilityModifierRow& Row : AbilityData->AbilityModifiers)
+		UE_LOG(LogTemp, Error, TEXT("EquipAbilityData Missing"));
+		return;
+	}
+	
+	CachedStats.Reset();
+	auto ApplyModifier = [](float& StatValue, const FKREquipAbilityModifierRow& Row)
+	{
+		const float Value = Row.GetFinalValue();
+		switch (Row.Op)
 		{
-			FGameplayAttribute Attribute = ConvertTagToWeaponAttribute(Row.AbilityTypeTag);
+		case EModifierOp::Absolute:
+			StatValue = Value;
+			break;
+		case EModifierOp::AdditiveDelta:
+			StatValue += Value;
+			break;
+		case EModifierOp::Multiplier:
+			StatValue *= Value;
+			break;
+		}
+	};
+	
+	for (const FKREquipAbilityModifierRow& Row : AbilityData->AbilityModifiers)
+	{
+		if (!Row.AbilityTypeTag.IsValid())
+		{
+			continue;
+		}
 
-			if (Attribute.IsValid())
+		if (Row.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATK))
+		{
+			ApplyModifier(CachedStats.AttackPower, Row);
+		}
+		else if (Row.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATTACKSPEED))
+		{
+			ApplyModifier(CachedStats.AttackSpeed, Row);
+		}
+		else if (Row.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_RANGE))
+		{
+			ApplyModifier(CachedStats.Range, Row);
+		}
+		else if (Row.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITCHANCE))
+		{
+			ApplyModifier(CachedStats.CritChance, Row);
+		}
+		else if (Row.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITMULTI))
+		{
+			ApplyModifier(CachedStats.CritMulti, Row);
+		}
+		else if (Row.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CAPACITY))
+		{
+			const float Value = Row.GetFinalValue();
+			switch (Row.Op)
 			{
-				float FinalValue = Row.BaseValue + Row.IncValue;
-
-				Attribute.SetNumericValueChecked(FinalValue, WeaponAttributeSet);
+			case EModifierOp::Absolute:
+				CachedStats.Capacity = static_cast<int32>(Value);
+				break;
+			case EModifierOp::AdditiveDelta:
+				CachedStats.Capacity += static_cast<int32>(Value);
+				break;
+			case EModifierOp::Multiplier:
+				CachedStats.Capacity = static_cast<int32>(CachedStats.Capacity * Value);
+				break;
 			}
 		}
+		else if (Row.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_RELOADTIME))
+		{
+			ApplyModifier(CachedStats.ReloadTime, Row);
+		}
 	}
+
+	CachedStats.MarkInitialized();
+	bIsInitialized = true;
 }
 
