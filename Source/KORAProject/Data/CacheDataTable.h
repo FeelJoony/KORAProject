@@ -89,6 +89,11 @@ private:
 
 		CachedDataTable = NewDataTable;
 
+		if (!NewDataTable)
+		{
+			return;
+		}
+
 		const TArray<FName>& RowNames = NewDataTable->GetRowNames();
 		for (const auto& RowName : RowNames)
 		{

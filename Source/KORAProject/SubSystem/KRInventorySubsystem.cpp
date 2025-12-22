@@ -9,6 +9,9 @@
 #include "Data/ItemDataStruct.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "GameFramework/AsyncAction_ListenForGameplayMessage.h"
+#include "GameplayTag/KRAbilityTag.h"
+#include "GameplayTag/KRItemTypeTag.h"
+#include "GameplayTag/KRPlayerTag.h"
 #include "GAS/KRAbilitySystemComponent.h"
 
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
@@ -18,6 +21,7 @@
 #include "Inventory/Fragment/InventoryFragment_ConsumableItem.h"
 #include "Inventory/Fragment/InventoryFragment_EnhanceableItem.h"
 #include "Inventory/Fragment/InventoryFragment_QuickSlot.h"
+#include "Inventory/Fragment/InventoryFragment_ModuleItem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRInventorySubsystem)
 
@@ -61,12 +65,9 @@ namespace
 
 		const UKRInventoryItemInstance* ItemInstance = Entry->GetItemInstance();
 		if (!ItemInstance || !ItemInstance->GetItemDef()) { return nullptr; }
-
-		const FGameplayTag ConsumableFragTag =
-			FGameplayTag::RequestGameplayTag(TEXT("Fragment.Item.Consumable"));
-
+		
 		const UKRInventoryItemFragment* BaseFrag =
-			ItemInstance->GetItemDef()->FindFragmentByTag(ConsumableFragTag);
+			ItemInstance->GetItemDef()->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_CONSUMABLE);
 
 		return Cast<UInventoryFragment_ConsumableItem>(BaseFrag);
 	}
@@ -191,15 +192,19 @@ TArray<UKRInventoryItemInstance*> FKRInventoryList::GetAllItems() const
 TArray<UKRInventoryItemInstance*> FKRInventoryList::FindAllItemsByTag(const FGameplayTag& FilterTag) const
 {
 	TArray<UKRInventoryItemInstance*> FindInstances;
-	if (!ItemTagContainer.IsValid()) { return FindInstances; }
-
-	FGameplayTagContainer FilterTagContainer(FilterTag);
-	const FGameplayTagContainer& ResultTagContainer = ItemTagContainer.Filter(FilterTagContainer);
-	for (const FGameplayTag& ItemTag : ResultTagContainer.GetGameplayTagArray())
+	if (!FilterTag.IsValid()) { return FindInstances; }
+	
+	for (const FGameplayTag& ItemTag : ItemTagContainer.GetGameplayTagArray())
 	{
-		if (UKRInventoryItemInstance* FindInstance = Entries[ItemTag].GetItemInstance())
+		if (ItemTag.MatchesTag(FilterTag))
 		{
-			FindInstances.Add(FindInstance);
+			if (const FKRInventoryEntry* Entry = Entries.Find(ItemTag))
+			{
+				if (UKRInventoryItemInstance* FindInstance = Entry->GetItemInstance())
+				{
+					FindInstances.Add(FindInstance);
+				}
+			}
 		}
 	}
 
@@ -241,17 +246,17 @@ void UKRInventorySubsystem::AddFragment(FGameplayTag ItemTag, FGameplayTag Fragm
 {
 	TSubclassOf<UKRInventoryItemFragment> FragmentClass = FragmentRegistry[FragmentTag];
 	if (!FragmentClass) return;
-	
+
 	FKRInventoryEntry* Entry = GetInventory().GetItem(ItemTag);
 	if (!Entry) return;
-	
+
 	UKRInventoryItemInstance* Instance = Entry->GetItemInstance();
 	if (!Instance) return;
 	
 	UKRInventoryItemFragment* NewFragment = NewObject<UKRInventoryItemFragment>(Instance, FragmentClass);
-	
-	Instance->GetItemDef()->AddFragment(FragmentTag, NewFragment);
-	
+
+	Instance->AddInstanceFragment(FragmentTag, NewFragment);
+
 	NewFragment->OnInstanceCreated(Instance);
 }
 
@@ -297,19 +302,17 @@ UKRInventoryItemInstance* UKRInventorySubsystem::AddItem(const FGameplayTag& Ite
 	FAddItemMessage AddItemMessage;
 	AddItemMessage.ItemTag   = ItemTag;
 	AddItemMessage.StackCount= StackCount;
-	
-	FGameplayTag AddItemTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.AddItem"));
-	
-	UGameplayMessageSubsystem::Get(this).BroadcastMessage<FAddItemMessage>(AddItemTag, AddItemMessage);
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage<FAddItemMessage>(KRTAG_PLAYER_ACTION_ADDITEM, AddItemMessage);
 
 	FGameplayMessageListenerHandle ListenerHandle = UGameplayMessageSubsystem::Get(this).RegisterListener(
-		AddItemTag,
+		KRTAG_PLAYER_ACTION_ADDITEM,
 		this,
 		&UKRInventorySubsystem::OnMessageReceived);
 
 	UGameplayMessageSubsystem::Get(this).UnregisterListener(ListenerHandle);
 	
-	UAsyncAction_ListenForGameplayMessage::ListenForGameplayMessages(this, AddItemTag, FAddItemMessage::StaticStruct());
+	UAsyncAction_ListenForGameplayMessage::ListenForGameplayMessages(this, KRTAG_PLAYER_ACTION_ADDITEM, FAddItemMessage::StaticStruct());
 	
 	NotifyQuickSlotQuantityChanged(ItemTag);
 
@@ -324,10 +327,8 @@ void UKRInventorySubsystem::SubtractItem(const FGameplayTag& ItemTag, int32 Stac
 
 void UKRInventorySubsystem::RemoveItem(const FGameplayTag& InTag)
 {
-	FGameplayTag RemoveItemTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.RemoveItem"));
-	
 	FGameplayMessageListenerHandle ListenerHandle = UGameplayMessageSubsystem::Get(this).RegisterListener(
-			RemoveItemTag,
+			KRTAG_PLAYER_ACTION_REMOVEITEM,
 			this,
 			&UKRInventorySubsystem::OnMessageReceived);
 
@@ -476,17 +477,14 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 
     const FGameplayTag ItemTag = GetQuickSlotItemTag(SlotTag);
     if (!ItemTag.IsValid()) { return false; }
-
-    // ✅ 슬롯 스택 체크
+	
     int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag);
     if (!SlotCountPtr || *SlotCountPtr <= 0)
     {
-        // 슬롯에 더 이상 쓸 스택이 없음
         return false;
     }
     int32& SlotCount = *SlotCountPtr;
-
-    // 인벤토리 스택 (실제 수량)도 확인
+	
     int32 CurrentCount = GetItemQuantity_Internal(ItemTag);
     if (CurrentCount <= 0) { return false; }
 
@@ -507,12 +505,8 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
             TEXT("UseQuickSlotItem blocked: %s"), *Reason.ToString());
         return false;
     }
-
-    const FGameplayTag ConsumableFragTag =
-        FGameplayTag::RequestGameplayTag(TEXT("Fragment.Item.Consumable"));
-
     const UInventoryFragment_ConsumableItem* ConsumableFragConst =
-        Cast<UInventoryFragment_ConsumableItem>(Instance->FindFragmentByTag(ConsumableFragTag));
+        Cast<UInventoryFragment_ConsumableItem>(Instance->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_CONSUMABLE));
 
     if (!ConsumableFragConst)
     {
@@ -523,30 +517,23 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 
     UInventoryFragment_ConsumableItem* ConsumableFrag =
         const_cast<UInventoryFragment_ConsumableItem*>(ConsumableFragConst);
-
-    // 4) 실제 사용
+	
     if (!ConsumableFrag->UseConsumable(ASC))
     {
         return false;
     }
-
-    // ✅ 5-1) 퀵슬롯 스택 감소
+	
     SlotCount = FMath::Max(0, SlotCount - 1);
-
-    // ✅ 5-2) 인벤토리 수량 감소 (이 함수는 NotifyQuickSlotQuantityChanged도 호출)
     SubtractItem(ItemTag, 1);
 
-    // 인벤토리 새로운 수량
     const int32 ActualQuantityAfter = GetItemQuantity_Internal(ItemTag);
-
-    // 6) UI 메시지 (퀵슬롯 스택 기준으로 보냄)
     const float TimeForUI = GetConsumableUITime(ConsumableFrag);
 
     SendQuickSlotMessage(
         EQuickSlotAction::ItemUsed,
         SlotTag,
         ItemTag,
-        SlotCount,      // ✅ 퀵슬롯 남은 스택
+        SlotCount,
         TimeForUI
     );
 
@@ -691,13 +678,10 @@ bool UKRInventorySubsystem::UseConsumableItem(FGameplayTag ItemTag, UAbilitySyst
 		return false;
 	}
 
-	const FGameplayTag ConsumableFragTag =
-		FGameplayTag::RequestGameplayTag(TEXT("Fragment.Item.Consumable"));
-
 	UInventoryFragment_ConsumableItem* ConsumableFrag =
 		const_cast<UInventoryFragment_ConsumableItem*>(
 			Cast<UInventoryFragment_ConsumableItem>(
-				ItemInstance->GetItemDef()->FindFragmentByTag(ConsumableFragTag)));
+				ItemInstance->GetItemDef()->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_CONSUMABLE)));
 
 	if (!ConsumableFrag)
 	{
@@ -771,7 +755,7 @@ void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 void UKRInventorySubsystem::InitializeItemDefinitionFragments()
 {
 	FragmentRegistry.Empty();
-	
+
 	InitialFragmentType(UInventoryFragment_EquippableItem::StaticClass());
 	InitialFragmentType(UInventoryFragment_SetStats::StaticClass());
 	InitialFragmentType(UInventoryFragment_QuickSlot::StaticClass());
@@ -779,6 +763,7 @@ void UKRInventorySubsystem::InitializeItemDefinitionFragments()
 	InitialFragmentType(UInventoryFragment_EnhanceableItem::StaticClass());
 	InitialFragmentType(UKRInventoryFragment_SellableItem::StaticClass());
 	InitialFragmentType(UInventoryFragment_ConsumableItem::StaticClass());
+	InitialFragmentType(UInventoryFragment_ModuleItem::StaticClass());
 }
 
 void UKRInventorySubsystem::InitialFragmentType(TSubclassOf<UKRInventoryItemFragment> FragmentClass)
@@ -795,14 +780,7 @@ void UKRInventorySubsystem::InitialFragmentType(TSubclassOf<UKRInventoryItemFrag
 bool UKRInventorySubsystem::IsPersistentQuickSlotItem(const FGameplayTag& ItemTag) const
 {
 	if (!ItemTag.IsValid()) { return false; }
-	
-	static const FGameplayTag Tag_FirstAid    = FGameplayTag::RequestGameplayTag(TEXT("ItemType.Consume.Potion.FirstAid"));
-	static const FGameplayTag Tag_Stamina     = FGameplayTag::RequestGameplayTag(TEXT("ItemType.Consume.Potion.Stamina"));
-	static const FGameplayTag Tag_CoreBattery = FGameplayTag::RequestGameplayTag(TEXT("ItemType.Consume.Potion.CoreBattery"));
-
-	const bool bPersistent = ItemTag.MatchesTagExact(Tag_FirstAid) || ItemTag.MatchesTagExact(Tag_Stamina) || ItemTag.MatchesTagExact(Tag_CoreBattery);
-
-	return bPersistent;
+	return ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_FIRSTAID) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_STAMINA) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_COREBATTERY);
 }
 
 bool UKRInventorySubsystem::IsAssignedQuickSlot() const
@@ -935,11 +913,8 @@ void UKRInventorySubsystem::SendQuickSlotMessage(
 		{
 			if (UKRInventoryItemInstance* Instance = Entry->GetItemInstance())
 			{
-				const FGameplayTag DisplayUITag =
-					FGameplayTag::RequestGameplayTag("Ability.Item.DisplayUI");
-
 				const UKRInventoryItemFragment* DisplayFragBase =
-					Instance->FindFragmentByTag(DisplayUITag);
+					Instance->FindFragmentByTag(KRTAG_ABILITY_ITEM_DISPLAYUI);
 
 				if (const UInventoryFragment_DisplayUI* DisplayFrag =
 					Cast<UInventoryFragment_DisplayUI>(DisplayFragBase))
@@ -1004,11 +979,8 @@ void UKRInventorySubsystem::NotifyQuickSlotQuantityChanged(const FGameplayTag& I
             {
                 SlotWithThisItem = SlotTag;
             }
-
-            // ✅ 슬롯 스택 가져와서 인벤토리와 동기화
+        	
             int32& SlotCount = PlayerQuickSlotStacks.FindOrAdd(SlotTag);
-
-            // StackMax 기준으로 다시 클램프
             int32 StackMax = GetConsumableStackMaxForItem(ItemTag);
             int32 MaxAllowedByInventory = NewInventoryQuantity;
 
@@ -1034,7 +1006,7 @@ void UKRInventorySubsystem::NotifyQuickSlotQuantityChanged(const FGameplayTag& I
                 EQuickSlotAction::QuantityUpdated,
                 SlotTag,
                 ItemTag,
-                SlotCount          // ✅ 퀵슬롯 스택 기준
+                SlotCount
             );
         });
 
@@ -1075,11 +1047,7 @@ bool UKRInventorySubsystem::HasQuickSlotItemFragment(FGameplayTag ItemTag, UKRIn
 	OutInstance = FindInstanceByItemTag(ItemTag);
 	if (!OutInstance)
 		return false;
-	
-	const FGameplayTag QuickSlotFragTag = 
-		FGameplayTag::RequestGameplayTag("Ability.Item.QuickSlot");
-
-	return OutInstance->FindFragmentByTag(QuickSlotFragTag) != nullptr;
+	return OutInstance->FindFragmentByTag(KRTAG_ABILITY_ITEM_QUICKSLOT) != nullptr;
 }
 
 const FKRInventoryEntry* UKRInventorySubsystem::FindEntryByItemTag(const FGameplayTag& ItemTag) const

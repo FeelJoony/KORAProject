@@ -1,24 +1,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-//#include "System/GameplayTagStack.h"
 #include "GameplayTagContainer.h"
 #include "Templates/SubclassOf.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "KRInventoryItemInstance.generated.h"
 
-class FLifetimeProperty;
-
 class UKRInventoryItemDefinition;
 class UKRInventoryItemFragment;
-struct FFrame;
 struct FGameplayTag;
 
 UCLASS()
 class KORAPROJECT_API UKRInventoryItemInstance : public UObject
 {
 	GENERATED_BODY()
-	
+
 public:
 	UKRInventoryItemInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
@@ -26,31 +22,36 @@ public:
 	{
 		return NewObject<UKRInventoryItemInstance>();
 	}
-	
+
 	FORCEINLINE void SetItemTag(FGameplayTag InTag) { ItemTag = InTag; }
 	FORCEINLINE FGameplayTag GetItemTag() const { return ItemTag; }
 
 	void SetOwnerContext(UObject* InOwner) { OwnerContext = InOwner; }
 	UObject* GetOwnerContext() const { return OwnerContext; }
-	
-	class UKRInventoryItemDefinition* GetItemDef() const
-	{
-		return ItemDef;
-	}
+
+	UKRInventoryItemDefinition* GetItemDef() const { return ItemDef; }
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	UKRInventoryItemInstance* CreateItemDefinition();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure=false, meta=(DeterminesOutputType=FragmentClass))
-	const class UKRInventoryItemFragment* FindFragmentByClass(TSubclassOf<class UKRInventoryItemFragment> FragmentClass) const;
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))
+	const UKRInventoryItemFragment* FindFragmentByClass(TSubclassOf<UKRInventoryItemFragment> FragmentClass) const;
+	
+	UKRInventoryItemFragment* FindInstanceFragmentByClass(TSubclassOf<UKRInventoryItemFragment> FragmentClass);
+
 	template <typename ResultClass>
 	const ResultClass* FindFragmentByClass() const
 	{
 		return Cast<ResultClass>(FindFragmentByClass(ResultClass::StaticClass()));
 	}
-	
-	const class UKRInventoryItemFragment* FindFragmentByTag(FGameplayTag Tag) const;
+
+	template <typename ResultClass>
+	ResultClass* FindInstanceFragmentByClass()
+	{
+		return Cast<ResultClass>(FindInstanceFragmentByClass(ResultClass::StaticClass()));
+	}
+
+	const UKRInventoryItemFragment* FindFragmentByTag(FGameplayTag Tag) const;
 
 	template <typename ResultClass>
 	const ResultClass* FindFragmentByTag(FGameplayTag Tag) const
@@ -60,15 +61,17 @@ public:
 
 	TArray<FGameplayTag> GetAllFragmentTags() const;
 
-	void SetItemDef(class UKRInventoryItemDefinition* InDef);
+	void SetItemDef(UKRInventoryItemDefinition* InDef);
+	
+	void AddInstanceFragment(FGameplayTag Tag, UKRInventoryItemFragment* Fragment);
+
 private:
 	friend struct FKRInventoryList;
 	friend class UKRInventorySubsystem;
+	
+	void DuplicateFragmentsFromDefinition();
 
 private:
-	//UPROPERTY()
-	//FGameplayTagStackContainer StatTags;
-
 	UPROPERTY()
 	FGameplayTag ItemTag;
 
@@ -76,6 +79,9 @@ private:
 	TObjectPtr<UObject> OwnerContext;
 	
 	UPROPERTY()
-	TObjectPtr<class UKRInventoryItemDefinition> ItemDef;
+	TObjectPtr<UKRInventoryItemDefinition> ItemDef;
+	
+	UPROPERTY()
+	TMap<FGameplayTag, TObjectPtr<UKRInventoryItemFragment>> InstanceFragments;
 };
 
