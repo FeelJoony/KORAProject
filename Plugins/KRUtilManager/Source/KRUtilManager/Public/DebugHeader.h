@@ -6,7 +6,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTool, Log, All);
 
-class FDebugHeader
+class KRUTILMANAGER_API FDebugHeader
 {
 public:
 	static void Print(const FString& Message, const FColor& Color);
