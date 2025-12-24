@@ -222,7 +222,7 @@ APawn* UKRGA_Grapple::SearchLockOnTarget()
             UKRGA_LockOn* LockOnGAInstance = Cast<UKRGA_LockOn>(FoundAbility);
             if (!LockOnGAInstance) return nullptr;
 
-			AActor* Actor = LockOnGAInstance->GetTarget();
+			AActor* Actor = LockOnGAInstance->GetLockedTarget();
 			CachedTargetPawn = Cast<APawn>(Actor);
 			if (!CachedTargetPawn) return nullptr;
 
