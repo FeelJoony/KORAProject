@@ -211,7 +211,19 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
 	APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn) return;
-	
+
+	// 이동 제한 태그 확인
+	if (AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
+	{
+		if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
+		{
+			if (ASC->HasMatchingGameplayTag(KRTAG_STATE_RESTRICT_MOVEMENT))
+			{
+				return;
+			}
+		}
+	}
+
 	AController* PC = Pawn->GetController();
 
 	if (PC)
