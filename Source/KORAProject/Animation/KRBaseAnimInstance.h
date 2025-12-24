@@ -41,5 +41,5 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> CachedMoveComponent = nullptr;
 
-	void RecacheOwner();
+	virtual void RecacheOwner();
 };
