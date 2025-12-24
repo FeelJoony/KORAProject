@@ -13,6 +13,7 @@ bool UKRUIRouterSubsystem::TryParseLayer(FName Name, EKRUILayer& OutLayer) const
 	if (Name == "Menu" || Name == "Layer.Menu" || Name == "MainMenu") { OutLayer = EKRUILayer::Menu;     return true; }
 	if (Name == "Modal" || Name == "Layer.Modal" || Name == "Popup" || Name == "Dialog") { OutLayer = EKRUILayer::Modal;    return true; }
 	if (Name == "GamePopup" || Name == "Layer.GamePopup" || Name == "ItemGain" || Name == "InteractUI") { OutLayer = EKRUILayer::GamePopup; return true; }
+	if (Name == "Cinematic" || Name == "Layer.Cinematic" || Name == "Cutscene") { OutLayer = EKRUILayer::Cinematic; return true; }
 	return false;
 }
 
@@ -90,13 +91,17 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 		}
 
 		ActiveWidgets.Add(Route, W);
-		if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileOpen)
+		if (Spec->Layer == EKRUILayer::Cinematic)
+		{
+			UpdateCinematicState(W->GetWorld());
+		}
+		else if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileOpen)
 		{
 			UpdateGameStopState(W->GetWorld());
 		};
 		BindLifecycle(Route, W, *Spec);
 
-		if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileTop)
+		if (Spec->Layer != EKRUILayer::Cinematic && Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileTop)
 		{
 			if (W->IsActivated() || (Stack->GetActiveWidget() == W))
 			{
@@ -144,8 +149,12 @@ bool UKRUIRouterSubsystem::CloseRoute(FName Route)
 			if (UCommonActivatableWidget* W = WPtr->Get())
 			{
 				W->DeactivateWidget();
-
-				if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileOpen)
+				if (Spec->Layer == EKRUILayer::Cinematic)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[Router] %s Route=%s Ref=%d"), TEXT("Open/Close"), *Route.ToString(), RouteRefCounts.FindOrAdd(Route));
+					ReleaseCinematicState(W->GetWorld());
+				}
+				else if (Spec->GameStopPolicy == EKRUIGameStopPolicy::PauseWhileOpen)
 				{
 					ReleaseGameStopState(W->GetWorld());
 				}
@@ -216,6 +225,7 @@ void UKRUIRouterSubsystem::ReleaseGameStopState(UWorld* World)
 void UKRUIRouterSubsystem::BindLifecycle(FName Route, UCommonActivatableWidget* W, const FKRRouteSpec& Spec)
 {
 	if (!W) return;
+	if (Spec.Layer == EKRUILayer::Cinematic) return;
 
 	if (Spec.GameStopPolicy == EKRUIGameStopPolicy::PauseWhileTop)
 	{
@@ -227,5 +237,33 @@ void UKRUIRouterSubsystem::BindLifecycle(FName Route, UCommonActivatableWidget* 
 			{
 				ReleaseGameStopState(W->GetWorld());
 			});
+	}
+}
+
+void UKRUIRouterSubsystem::UpdateCinematicState(UWorld* World)
+{
+	++GlobalCinematicRefCount;
+	UE_LOG(LogTemp, Warning, TEXT("[Cine] ReleaseCinematicState: GlobalCinematicRefCount=%d"), GlobalCinematicRefCount);
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+	{
+		// bInCinematicMode, bHidePlayer, bHideHUD, bDisableMovement, bDisableTurning
+		PC->SetCinematicMode(true, false, true, true, true);
+	}
+}
+
+void UKRUIRouterSubsystem::ReleaseCinematicState(UWorld* World)
+{
+	GlobalCinematicRefCount = FMath::Max(0, GlobalCinematicRefCount - 1);
+	UE_LOG(LogTemp, Warning, TEXT("[Cine] ReleaseCinematicState: GlobalCinematicRefCount=%d"), GlobalCinematicRefCount);
+	if (GlobalCinematicRefCount != 0) return;
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+	{
+		PC->SetCinematicMode(false, false, false, false, false);
+		PC->SetIgnoreMoveInput(false);
+		PC->SetIgnoreLookInput(false);
+		PC->SetInputMode(FInputModeGameOnly());
+		PC->bShowMouseCursor = false;
 	}
 }
