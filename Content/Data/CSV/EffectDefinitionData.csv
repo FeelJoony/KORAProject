@@ -13,4 +13,11 @@ Effect.Movement.Footstep.Walk.Metal,/Game/Data/DataAssets/Effect/Movement/DA_Eff
 Effect.Movement.Footstep.Walk.Sand,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Sand.DA_Effect_Footstep_Walk_Sand,Walk Sand,TRUE
 Effect.Movement.Footstep.Walk.Stone,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Stone.DA_Effect_Footstep_Walk_Stone,Walk Stone,TRUE
 Effect.Movement.Footstep.Walk.Wood,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Footstep_Walk_Wood.DA_Effect_Footstep_Walk_Wood,Walk Wood,TRUE
-Effect.Combat.Sword.Attack,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Trail.DA_Effect_Combat_Sword_Trail,Sword Trail,TRUE
+Effect.Movement.Landing.Normal.Default,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Normal_Default.DA_Effect_Landing_Normal_Default,Landing Normal Default,TRUE
+Effect.Movement.Landing.Normal.Concrete,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Normal_Concrete.DA_Effect_Landing_Normal_Concrete,Landing Normal Concrete,TRUE
+Effect.Movement.Landing.Normal.Dirt,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Normal_Dirt.DA_Effect_Landing_Normal_Dirt,Landing Normal Dirt,TRUE
+Effect.Movement.Landing.Normal.Wood,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Normal_Wood.DA_Effect_Landing_Normal_Wood,Landing Normal Wood,TRUE
+Effect.Movement.Landing.Heavy.Default,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Default.DA_Effect_Landing_Heavy_Default,Landing Heavy Default,TRUE
+Effect.Movement.Landing.Heavy.Concrete,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Concrete.DA_Effect_Landing_Heavy_Concrete,Landing Heavy Concrete,TRUE
+Effect.Movement.Landing.Heavy.Dirt,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Dirt.DA_Effect_Landing_Heavy_Dirt,Landing Heavy Dirt,TRUE
+Effect.Movement.Landing.Heavy.Wood,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Wood.DA_Effect_Landing_Heavy_Wood,Landing Heavy Wood,TRUE

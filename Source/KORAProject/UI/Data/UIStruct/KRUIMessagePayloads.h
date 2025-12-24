@@ -20,6 +20,7 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag ShopStockUpdated() { return KRTAG_UI_MESSAGE_SHOPSTOCKUPDATED; }
 	static const FGameplayTag Confirm() { return KRTAG_UI_MESSAGE_CONFIRM; }
 	static const FGameplayTag Tutorial() { return KRTAG_UI_MESSAGE_TUTORIAL; }
+	static const FGameplayTag EquipmentUI() { return KRTAG_UI_MESSAGE_EQUIPMENTUI; }
 
 	static const FGameplayTag QuickSlot_North() { return KRTAG_UI_QUICKSLOT_NORTH; }
 	static const FGameplayTag QuickSlot_East() { return KRTAG_UI_QUICKSLOT_EAST; }
@@ -35,8 +36,8 @@ struct KORAPROJECT_API FKRUIMessage_Guard
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite) TWeakObjectPtr<AActor> TargetActor;
-	UPROPERTY(BlueprintReadWrite) bool bGuardSuccess;
-	UPROPERTY(BlueprintReadWrite) bool bPerfectGuard;
+	UPROPERTY(BlueprintReadWrite) bool bGuardSuccess = false;
+	UPROPERTY(BlueprintReadWrite) bool bPerfectGuard = false;
 };
 
 // -----  Weapon  -----
@@ -201,5 +202,14 @@ struct KORAPROJECT_API FKRUIMessage_Tutorial
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite) FName TutorialDTRowName;
+};
+
+// ----- Equipment UI -----
+USTRUCT(BlueprintType)
+struct KORAPROJECT_API FKRUIMessage_EquipmentUI
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly) bool bIsOpen = false;
 };
 

@@ -192,9 +192,10 @@ private:
 
 	void OnAbilitySystemInitialized();
 
-	// UI 
+	// UI
 	void OnEquipmentConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload);
 	void BroadcastEquipSlotMessage(const FGameplayTag& SlotTag, UKRInventoryItemInstance* ItemInstance);
+	void BroadcastWeaponMessage(EWeaponMessageAction Action, const FGameplayTag& WeaponTypeTag = FGameplayTag());
 	FGameplayMessageListenerHandle ConfirmMessageHandle;
 	
 	bool bASCInitCallbackProcessed = false;

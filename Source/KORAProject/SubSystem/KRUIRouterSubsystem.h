@@ -11,7 +11,7 @@ class UCommonActivatableWidgetStack;
 UENUM(BlueprintType)
 enum class EKRUILayer : uint8 // Priority
 {
-	Game = 0, GamePopup = 1, GameMenu = 2, Menu = 3, Modal = 4
+	Game = 0, GamePopup = 1, GameMenu = 2, Menu = 3, Modal = 4, Cinematic = 5
 };
 
 UENUM(BlueprintType)
@@ -66,8 +66,12 @@ private:
 	UPROPERTY() TMap<FName, TWeakObjectPtr<UCommonActivatableWidget>> ActiveWidgets;
 
 	int32 GlobalStopGameRefCount = 0;
+	int32 GlobalCinematicRefCount = 0;
 
 	void UpdateGameStopState(UWorld* World);
 	void ReleaseGameStopState(UWorld* World);
 	void BindLifecycle(FName Route, UCommonActivatableWidget* W, const FKRRouteSpec& Spec);
+
+	void UpdateCinematicState(UWorld* World);
+	void ReleaseCinematicState(UWorld* World);
 };

@@ -25,7 +25,7 @@ void UKRAnimNotify_Footstep::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	UPhysicalMaterial* PhysMat = DetectGroundSurface(MeshComp, FootSocketName);
 	FGameplayTag SoundTag = GetSoundTagForSurface(PhysMat, FootstepType);
 	FGameplayTag EffectTag = GetEffectTagForSurface(PhysMat, FootstepType);
-	FVector FootLocation = MeshComp->GetSocketLocation(FootSocketName);
+  	FVector FootLocation = MeshComp->GetSocketLocation(FootSocketName);
 
 	UKRSoundSubsystem* SoundSubsystem = World->GetSubsystem<UKRSoundSubsystem>();
 	if (SoundSubsystem && SoundTag.IsValid())
@@ -101,7 +101,17 @@ FGameplayTag UKRAnimNotify_Footstep::GetSoundTagForSurface(UPhysicalMaterial* Ph
 		default: SurfaceName = "Default"; break;
 		}
 	}
-	FString TagString = FString::Printf(TEXT("Sound.Movement.Footstep.%s.%s"), *Type.ToString(), *SurfaceName);
+
+	FString TagString = "";
+	if (Type == "Walk")
+	{
+		TagString = FString::Printf(TEXT("Sound.Movement.Footstep.%s.%s"), *Type.ToString(), *SurfaceName);
+	}
+	else if (Type == "Normal")
+	{
+		TagString = FString::Printf(TEXT("Sound.Movement.Landing.%s.%s"), *Type.ToString(), *SurfaceName);
+	}
+
 	return FGameplayTag::RequestGameplayTag(FName(*TagString), false);
 }
 
@@ -124,7 +134,17 @@ FGameplayTag UKRAnimNotify_Footstep::GetEffectTagForSurface(UPhysicalMaterial* P
 		default: SurfaceName = "Default"; break;
 		}
 	}
-	FString TagString = FString::Printf(TEXT("Effect.Movement.Footstep.%s.%s"), *Type.ToString(), *SurfaceName);
+
+	FString TagString = "";
+	if (Type == "Walk")
+	{
+		TagString = FString::Printf(TEXT("Effect.Movement.Footstep.%s.%s"), *Type.ToString(), *SurfaceName);
+	}
+	else if (Type == "Normal")
+	{
+		TagString = FString::Printf(TEXT("Effect.Movement.Landing.%s.%s"), *Type.ToString(), *SurfaceName);
+	}
+
 	return FGameplayTag::RequestGameplayTag(FName(*TagString), false);
 }
 

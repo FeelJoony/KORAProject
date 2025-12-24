@@ -26,10 +26,17 @@ void UKREquipmentMain::NativeOnActivated()
 
 	RefreshEquippedCategoryIcons();
 	FocusCategory();
+
+	FKRUIMessage_EquipmentUI Msg;
+	Msg.bIsOpen = true;
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipmentUI(), Msg);
 }
 
 void UKREquipmentMain::NativeOnDeactivated()
 {
+	FKRUIMessage_EquipmentUI Msg;
+	Msg.bIsOpen = false;
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipmentUI(), Msg);
 
 	Super::NativeOnDeactivated();
 }
@@ -330,7 +337,7 @@ bool UKREquipmentMain::TryEquipSelectedItem()
 			{
 				if (UKRConfirmModal* ConfirmModal = Cast<UKRConfirmModal>(Widget))
 				{
-					ConfirmModal->SetupConfirm(TEXT("Modal_EquipConfirm"), EConfirmContext::Equipment, Data.ItemTag);
+					ConfirmModal->SetupConfirm(TEXT("Modal_Equipment"), EConfirmContext::Equipment, Data.ItemTag);
 				}
 			}
 		}

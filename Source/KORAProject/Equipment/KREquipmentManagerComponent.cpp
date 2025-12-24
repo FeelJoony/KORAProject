@@ -23,6 +23,8 @@
 #include "Data/ModuleDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "GameplayEffect.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
@@ -578,6 +580,8 @@ bool UKREquipmentManagerComponent::ActivateCombatMode(const FGameplayTag& Weapon
 	bCombatModeActive = true;
 	ActiveWeaponTypeTag = WeaponTypeTag;
 
+	BroadcastWeaponMessage(EWeaponMessageAction::Switched, WeaponTypeTag);
+
 	UE_LOG(LogEquipmentManagerComponent, Log, TEXT("ActivateCombatMode: Activated for WeaponTypeTag [%s]"), *WeaponTypeTag.ToString());
 	return true;
 }
@@ -637,6 +641,7 @@ void UKREquipmentManagerComponent::DeactivateCombatMode()
 	// 상태 업데이트
 	bCombatModeActive = false;
 	ActiveWeaponTypeTag = FGameplayTag();
+	BroadcastWeaponMessage(EWeaponMessageAction::Unequipped);
 
 	UE_LOG(LogEquipmentManagerComponent, Log, TEXT("DeactivateCombatMode: Combat mode deactivated"));
 }
@@ -897,5 +902,21 @@ void UKREquipmentManagerComponent::BroadcastEquipSlotMessage(const FGameplayTag&
 	Msg.ItemInstance = ItemInstance;
 
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipSlot(), Msg);
+}
+
+void UKREquipmentManagerComponent::BroadcastWeaponMessage(EWeaponMessageAction Action, const FGameplayTag& WeaponTypeTag)
+{
+	FKRUIMessage_Weapon Msg;
+	Msg.Action = Action;
+	Msg.WeaponTypeTag = WeaponTypeTag;
+
+	// TODO: 총기 탄약 정보 추가
+	// if (Action != EWeaponMessageAction::Unequipped && WeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN) && RangeActorInstance)
+	// {
+	//     Msg.CurrentAmmo = ...;
+	//     Msg.MaxAmmo = ...;
+	// }
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Weapon(), Msg);
 }
 
