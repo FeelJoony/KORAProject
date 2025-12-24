@@ -43,7 +43,20 @@ void UKRGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	
 	CachedCueParams = FKRHitReactionCueParams();
 	CachedCueParams.HitDirection = UKRHitReactionLibrary::CalculateHitDirection(Victim, Attacker);
-	CachedCueParams.HitIntensity = DefaultHitIntensity;
+
+	// MeleeAttack에서 EventMagnitude로 전달된 HitIntensity 사용, 없으면 기본값
+	if (TriggerEventData->EventMagnitude > 0.0f)
+	{
+		CachedCueParams.HitIntensity = static_cast<EKRHitIntensity>(FMath::Clamp(
+			static_cast<int32>(TriggerEventData->EventMagnitude),
+			0,
+			static_cast<int32>(EKRHitIntensity::Heavy)
+		));
+	}
+	else
+	{
+		CachedCueParams.HitIntensity = DefaultHitIntensity;
+	}
 	CachedCueParams.SoundTag = HitSoundTag;
 	CachedCueParams.EffectTag = HitEffectTag;
 	CachedCueParams.EffectSocketName = EffectSocketName;
