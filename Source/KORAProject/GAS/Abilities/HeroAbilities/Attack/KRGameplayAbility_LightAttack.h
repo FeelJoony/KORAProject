@@ -1,25 +1,24 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
-#include "KRGameplayAbility_MeleeBase.h"
+#include "KRGameplayAbility_MeleeAttack.h"
 #include "KRGameplayAbility_LightAttack.generated.h"
 
+/**
+ * Light Attack GA (일반 공격)
+ * - 새로운 Shape Trace 기반 히트 감지
+ * - Motion Warping 지원
+ * - 콤보 시스템
+ */
 UCLASS()
-class KORAPROJECT_API UKRGameplayAbility_LightAttack : public UKRGameplayAbility_MeleeBase
+class KORAPROJECT_API UKRGameplayAbility_LightAttack : public UKRGameplayAbility_MeleeAttack
 {
 	GENERATED_BODY()
 
 public:
 	UKRGameplayAbility_LightAttack(const FObjectInitializer& ObjectInitializer);
 
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
 protected:
-	UFUNCTION()
-	void OnMontageCompleted();
-
-	UFUNCTION()
-	void OnMontageInterrupted();
-
+	/** LightAttack 몽타주 배열 반환 */
+	virtual const TArray<TObjectPtr<UAnimMontage>>* GetMontageArrayFromEntry(const FKRAppliedEquipmentEntry& Entry) const override;
 };
