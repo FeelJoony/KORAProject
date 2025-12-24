@@ -87,6 +87,8 @@ void AInteractableActorBase::OnActorEnterRange(AActor* TargetActor)
 						this,
 						&AInteractableActorBase::OnAbilityActivated
 					);
+				
+				UE_LOG(LogTemp, Warning, TEXT("[Interactable] Player Entered Range. Delegate Bound."));
 			}
 		}
 
@@ -147,7 +149,7 @@ void AInteractableActorBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	//interact actorÀÇ tag¸¦ player¿¡°Ô Àü´Þ
+	//interact actorï¿½ï¿½ tagï¿½ï¿½ playerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (!IsValid(OtherActor)) return;
 
 	OnActorEnterRange(OtherActor);

@@ -70,6 +70,10 @@ void AGrappleVolume::OnOverlapEnd(
 		
 		UE_LOG(LogTemp, Warning, TEXT("Overlap Out"));
 	}
+	else
+	{
+		return;
+	}
 	
 	for (AActor* GrapplePoint : GrapplePoints)
 	{
