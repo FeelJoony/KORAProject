@@ -5,7 +5,7 @@
 #include "Camera/KRCameraAssistInterface.h"
 #include "KRHeroCharacter.generated.h"
 
-
+class UMotionWarpingComponent;
 class UKRHeroComponent;
 class UKRCameraComponent;
 
@@ -28,6 +28,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Component")
 	TObjectPtr<UKRHeroComponent> HeroComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Component")
+	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UActorComponent> CachedOutlinerComponent;

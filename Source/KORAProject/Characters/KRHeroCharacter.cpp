@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/KRHeroComponent.h"
 #include "Components/KRPawnExtensionComponent.h"
+#include "MotionWarpingComponent.h"
 
 AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -15,7 +16,9 @@ AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 	CameraComponent->SetupAttachment(GetCapsuleComponent());
 	
 	HeroComponent = CreateDefaultSubobject<UKRHeroComponent>(TEXT("HeroComponent"));
-	
+
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
 
 	bUseControllerRotationPitch = false;
