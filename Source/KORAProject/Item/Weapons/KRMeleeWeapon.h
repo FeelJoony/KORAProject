@@ -4,8 +4,12 @@
 #include "Item/Weapons/KRWeaponBase.h"
 #include "KRMeleeWeapon.generated.h"
 
-class UBoxComponent;
-
+/**
+ * 근접 무기 액터
+ *
+ * Shape Trace 기반 히트 감지로 전환됨에 따라 BoxCollision 제거
+ * 히트 감지는 UKRGameplayAbility_MeleeAttack + UKRAnimNotifyState_MeleeHitCheck에서 처리
+ */
 UCLASS()
 class KORAPROJECT_API AKRMeleeWeapon : public AKRWeaponBase
 {
@@ -14,22 +18,5 @@ class KORAPROJECT_API AKRMeleeWeapon : public AKRWeaponBase
 public:
 	AKRMeleeWeapon();
 
-	virtual void BeginPlay() override; 
-
 	virtual void ConfigureWeapon(UKRInventoryItemInstance* InInstance) override;
-	
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
-	TObjectPtr<UBoxComponent> WeaponCollisionBox;
-
-	UFUNCTION()
-	virtual void OnCollisionBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	virtual void OnCollisionBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-	
-	
-public:
-	FORCEINLINE UBoxComponent* GetWeaponCollisionBox() const {return WeaponCollisionBox;}
-	void SetHitCollisionEnabled(bool bEnabled);
 };
