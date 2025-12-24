@@ -1,7 +1,6 @@
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Equipment/KREquipmentInstance.h"
-#include "Equipment/KREquipmentDefinition.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
 
