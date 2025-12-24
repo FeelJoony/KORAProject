@@ -18,6 +18,14 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+
+	/** 현재 락온 대상 반환 */
+	UFUNCTION(BlueprintPure, Category = "KR|LockOn")
+	AActor* GetLockedTarget() const { return CurrentTarget; }
+
+	/** ASC에서 활성화된 LockOn GA의 타겟을 가져오는 헬퍼 함수 */
+	UFUNCTION(BlueprintPure, Category = "KR|LockOn", meta = (DefaultToSelf = "Actor"))
+	static AActor* GetLockedTargetFor(AActor* Actor);
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")

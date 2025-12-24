@@ -25,6 +25,27 @@ UKRGA_LockOn::UKRGA_LockOn(const FObjectInitializer& ObjectInitializer)
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+AActor* UKRGA_LockOn::GetLockedTargetFor(AActor* Actor)
+{
+	if (!Actor) return nullptr;
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
+	if (!ASC) return nullptr;
+
+	// 활성화된 LockOn GA 찾기
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (!Spec.IsActive()) continue;
+
+		if (UKRGA_LockOn* LockOnAbility = Cast<UKRGA_LockOn>(Spec.GetPrimaryInstance()))
+		{
+			return LockOnAbility->GetLockedTarget();
+		}
+	}
+
+	return nullptr;
+}
+
 void UKRGA_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
