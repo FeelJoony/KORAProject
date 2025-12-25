@@ -11,10 +11,17 @@
 #include "Widgets/SWidget.h"
 #include "UI/KRItemSlotBase.h"
 #include "GameplayTag/KRItemTypeTag.h"
+#include "TimerManager.h"
+#include "Engine/World.h"
+#include "Groups/CommonButtonGroupBase.h"
 
 void UKRPauseMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	// Initialize MenuTab ButtonGroup
+	MenuTabButtonGroup = NewObject<UCommonButtonGroupBase>(this);
+	MenuTabButtonGroup->SetSelectionRequired(false);
 
 	BindMenuButton(EquipmentButton);
 	BindMenuButton(InventoryButton);
@@ -39,8 +46,11 @@ void UKRPauseMenuWidget::NativeConstruct()
 	{
 		QuickSlotInventoryGrid->OnSlotClicked.AddDynamic(this, &ThisClass::HandleSelect);
 	}
-
+										
 	CloseQuickSlotInventory();
+
+	// Initialize navigation system
+	InitializeMenuTabArray();
 	HandleMenuHovered(EquipmentButton);
 }
 
@@ -68,7 +78,7 @@ void UKRPauseMenuWidget::NativeOnActivated()
 	Super::NativeOnActivated();
 
 	ResetQuickSlotAssignState(true);
-	
+
 	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
 	{
 		InputSubsys->BindBackDefault(this, TEXT("PauseMenu"));
@@ -79,7 +89,9 @@ void UKRPauseMenuWidget::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveUp));
 		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveDown));
 	}
-
+	
+	SetNavigationContext(EKRPauseNavigationContext::MenuTab);
+	UpdateMenuTabSelection(0);
 	HandleMenuHovered(EquipmentButton);
 }
 
@@ -223,33 +235,43 @@ void UKRPauseMenuWidget::OpenQuickSlotInventoryForSlot(const FGameplayTag& SlotD
 	QuickSlotInventoryItemList.Reset();
 	UKRUIAdapterLibrary::GetInventoryUIDataFiltered(this, KRTAG_ITEMTYPE_CONSUME, QuickSlotInventoryItemList);
 
-	if (QuickSlotInventoryGrid)
+	if (!QuickSlotInventoryGrid)
 	{
-		QuickSlotInventoryGrid->InitializeItemGrid(QuickSlotInventoryItemList);
-		QuickSlotInventoryGrid->SetVisibility(ESlateVisibility::Visible);
-		QuickSlotInventoryGrid->SetIsEnabled(true);
-
-		QuickSlotInventoryGrid->RebindButtonGroup();
-
-		QuickSlotInventoryGrid->SelectIndexSafe(0);
-		QuickSlotInventoryGrid->SetFocus();
+		return;
 	}
-
-	for (int32 i = 0; i < QuickSlotInventoryItemList.Num(); ++i)
+	
+	QuickSlotInventoryGrid->InitializeItemGrid(QuickSlotInventoryItemList);
+	QuickSlotInventoryGrid->SetVisibility(ESlateVisibility::Visible);
+	QuickSlotInventoryGrid->SetIsEnabled(true);
+	
+	QuickSlotInventoryGrid->RebindButtonGroup();
+	
+	if (QuickSlotWidget)
 	{
-		const FKRItemUIData& Data = QuickSlotInventoryItemList[i];
+		QuickSlotWidget->SetIsEnabled(false);
 	}
-
+	
 	if (QuickSlotInventoryItemList.Num() > 0)
 	{
-		QuickSlotInventoryGrid->SelectIndexSafe(0);
-		if (UWidget* W = QuickSlotInventoryGrid->GetSelectedWidget())
+		if (UWorld* World = GetWorld())
 		{
-			W->SetFocus();
-		}
-		else
-		{
-			QuickSlotInventoryGrid->SetFocus();
+			FTimerHandle TempHandle;
+			World->GetTimerManager().SetTimerForNextTick([this]()
+			{
+				if (QuickSlotInventoryGrid)
+				{
+					QuickSlotInventoryGrid->SelectIndexSafe(0);
+
+					if (UWidget* SelectedWidget = QuickSlotInventoryGrid->GetSelectedWidget())
+					{
+						SelectedWidget->SetFocus();
+					}
+					else
+					{
+						QuickSlotInventoryGrid->SetFocus();
+					}
+				}
+			});
 		}
 	}
 	else
@@ -265,6 +287,11 @@ void UKRPauseMenuWidget::CloseQuickSlotInventory()
 	{
 		QuickSlotInventoryGrid->SetVisibility(ESlateVisibility::Collapsed);
 		QuickSlotInventoryGrid->SetIsEnabled(false);
+	}
+	
+	if (QuickSlotWidget)
+	{
+		QuickSlotWidget->SetIsEnabled(true);
 	}
 }
 
@@ -418,6 +445,21 @@ void UKRPauseMenuWidget::HandleMoveLeft()
 	if (bQuickSlotInventoryOpen)
 	{
 		HandleQuickSlotInventoryMove(0);
+		return;
+	}
+	
+	if (NavigationContext == EKRPauseNavigationContext::MenuTab)
+	{
+		int32 NewIndex = FMath::Max(0, CurrentMenuTabIndex - 1);
+		if (NewIndex != CurrentMenuTabIndex)
+		{
+			UpdateMenuTabSelection(NewIndex);
+		}
+	}
+	else if (NavigationContext == EKRPauseNavigationContext::QuickSlot)
+	{
+		UpdateQuickSlotSelection(FKRUIMessageTags::QuickSlot_West());
+		bQuickSlotOnNorth = false;
 	}
 }
 
@@ -426,6 +468,22 @@ void UKRPauseMenuWidget::HandleMoveRight()
 	if (bQuickSlotInventoryOpen)
 	{
 		HandleQuickSlotInventoryMove(1);
+		return;
+	}
+	
+	if (NavigationContext == EKRPauseNavigationContext::MenuTab)
+	{
+		int32 NewIndex = FMath::Min(MenuTabButtons.Num() - 1, CurrentMenuTabIndex + 1);
+		if (NewIndex != CurrentMenuTabIndex)
+		{
+			UpdateMenuTabSelection(NewIndex);
+		}
+	}
+
+	else if (NavigationContext == EKRPauseNavigationContext::QuickSlot)
+	{
+		UpdateQuickSlotSelection(FKRUIMessageTags::QuickSlot_East());
+		bQuickSlotOnNorth = false;
 	}
 }
 
@@ -434,6 +492,21 @@ void UKRPauseMenuWidget::HandleMoveUp()
 	if (bQuickSlotInventoryOpen)
 	{
 		HandleQuickSlotInventoryMove(2);
+		return;
+	}
+	
+	if (NavigationContext == EKRPauseNavigationContext::QuickSlot)
+	{
+		if (bQuickSlotOnNorth)
+		{
+			SetNavigationContext(EKRPauseNavigationContext::MenuTab);
+			UpdateMenuTabSelection(LastMenuTabIndex);
+		}
+		else
+		{
+			UpdateQuickSlotSelection(FKRUIMessageTags::QuickSlot_North());
+			bQuickSlotOnNorth = true;
+		}
 	}
 }
 
@@ -442,6 +515,28 @@ void UKRPauseMenuWidget::HandleMoveDown()
 	if (bQuickSlotInventoryOpen)
 	{
 		HandleQuickSlotInventoryMove(3);
+		return;
+	}
+
+	if (NavigationContext == EKRPauseNavigationContext::MenuTab)
+	{
+		SetNavigationContext(EKRPauseNavigationContext::QuickSlot);
+		UpdateQuickSlotSelection(FKRUIMessageTags::QuickSlot_North());
+		bQuickSlotOnNorth = true;
+	}
+
+	else if (NavigationContext == EKRPauseNavigationContext::QuickSlot)
+	{
+		if (bQuickSlotOnNorth)
+		{
+			UpdateQuickSlotSelection(FKRUIMessageTags::QuickSlot_South());
+			bQuickSlotOnNorth = false;
+		}
+		else
+		{
+			UpdateQuickSlotSelection(FKRUIMessageTags::QuickSlot_North());
+			bQuickSlotOnNorth = true;
+		}
 	}
 }
 
@@ -461,9 +556,88 @@ void UKRPauseMenuWidget::ResetQuickSlotAssignState(bool bAlsoCloseUI)
 			QuickSlotInventoryGrid->SetIsEnabled(false);
 		}
 	}
-	
+
 	if (QuickSlotWidget)
 	{
 		QuickSlotWidget->SetIsEnabled(true);
 	}
+}
+
+void UKRPauseMenuWidget::InitializeMenuTabArray()
+{
+	MenuTabButtons.Empty();
+	MenuTabButtons.Add(EquipmentButton);
+	MenuTabButtons.Add(InventoryButton);
+	MenuTabButtons.Add(SkillTreeButton);
+	MenuTabButtons.Add(SettingsButton);
+	MenuTabButtons.Add(QuitButton);
+	
+	if (MenuTabButtonGroup)
+	{
+		for (UKRMenuTabButton* Button : MenuTabButtons)
+		{
+			if (Button)
+			{
+				MenuTabButtonGroup->AddWidget(Button);
+			}
+		}
+	}
+
+	CurrentMenuTabIndex = 0;
+	LastMenuTabIndex = 0;
+}
+
+void UKRPauseMenuWidget::SetNavigationContext(EKRPauseNavigationContext NewContext)
+{
+	NavigationContext = NewContext;
+
+	if (NavigationContext == EKRPauseNavigationContext::MenuTab)
+	{
+		if (QuickSlotWidget)
+		{
+			QuickSlotWidget->ClearAllSelections();
+		}
+	}
+	else if (NavigationContext == EKRPauseNavigationContext::QuickSlot)
+	{
+		if (MenuTabButtonGroup)
+		{
+			MenuTabButtonGroup->DeselectAll();
+		}
+	}
+}
+
+void UKRPauseMenuWidget::UpdateMenuTabSelection(int32 NewIndex)
+{
+	if (!MenuTabButtons.IsValidIndex(NewIndex))
+	{
+		return;
+	}
+
+	CurrentMenuTabIndex = NewIndex;
+	LastMenuTabIndex = NewIndex;
+	
+	if (MenuTabButtonGroup)
+	{
+		MenuTabButtonGroup->SelectButtonAtIndex(NewIndex);
+	}
+
+	if (UKRMenuTabButton* SelectedTab = MenuTabButtons[NewIndex])
+	{
+		SelectedTab->SetFocus();
+		HandleMenuHovered(SelectedTab);
+	}
+}
+
+void UKRPauseMenuWidget::UpdateQuickSlotSelection(FGameplayTag NewSlot)
+{
+	if (!QuickSlotWidget || !NewSlot.IsValid())
+	{
+		return;
+	}
+
+	CurrentQuickSlotSelection = NewSlot;
+	QuickSlotWidget->FocusSlot(NewSlot);
+
+	HandleQuickSlotHovered(NewSlot);
 }

@@ -116,6 +116,7 @@ struct FKRInventoryList
 	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
 	TArray<class UKRInventoryItemInstance*> FindAllItemsByTag(const FGameplayTag& FilterTag) const;
 	void Clear();
+	void AddEntryDirect(UKRInventoryItemInstance* NewInstance);
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -236,6 +237,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
 	bool UseConsumableItem(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
+	int32 GetQuickSlotItemCount(const FGameplayTag& SlotTag) const;
 	
 	UFUNCTION()
 	void OnMessageReceived(const FGameplayTag Channel, const FAddItemMessage& Message);
@@ -245,6 +249,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void AddItemInstance(UKRInventoryItemInstance* InInstance);
+
+	void BeginListenQuickSlotAssignConfirm();
+	void EndListenQuickSlotAssignConfirm();
 	
 private:
 	UPROPERTY()
@@ -307,9 +314,9 @@ private:
 	void HandleAutoSelectSlotFirstRegisteredItem(FGameplayTag SlotTag, bool bHadAssignedBefore);
 	
 	int32 GetItemQuantity_Internal(const FGameplayTag& ItemTag) const;
+	int32 GetQuickSlotItemDisplayCount(const FGameplayTag& ItemTag) const;
 	int32 GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const;
 	
-	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
 	void OnQuickSlotConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload);
 };
 

@@ -292,7 +292,7 @@ int32 UInventoryFragment_ConsumableItem::GetCurrentStacks(UAbilitySystemComponen
 			continue;
 		}
 
-		const int32 GEStack = ActiveGE->Spec.StackCount;
+		const int32 GEStack = ActiveGE->Spec.GetStackCount();
 
 		TotalStacks += FMath::Max(GEStack, 1);
 	}

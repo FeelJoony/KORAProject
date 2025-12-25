@@ -6,6 +6,7 @@
 #include "KRQuickSlotWidget.generated.h"
 
 class UKRQuickSlotButtonBase;
+class UCommonButtonGroupBase;
 
 UCLASS()
 class KORAPROJECT_API UKRQuickSlotWidget : public UCommonUserWidget
@@ -27,8 +28,20 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "QuickSlot") FKRQuickSlotClicked OnSlotClicked;
 	void NotifySlotHovered(FGameplayTag SlotDir);
 	void NotifySlotClicked();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") FGameplayTag GetHoveredSlot() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	void SetSelectedSlot(FGameplayTag SlotDir, bool bUpdateVisuals = true);
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	FGameplayTag GetSelectedSlot() const { return CurrentSelectedSlot; }
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	void FocusSlot(FGameplayTag SlotDir);
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	void ClearAllSelections();
 
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);
@@ -58,10 +71,13 @@ protected:
 	void BP_ResetAllSlotFrames();
 
 private:
+	UPROPERTY() TObjectPtr<UCommonButtonGroupBase> QuickSlotButtonGroup;
 	FGameplayMessageListenerHandle QuickSlotListener;
 	FGameplayTag CurrentSelectedSlot = FKRUIMessageTags::QuickSlot_North();
 
 	float UnHightlightedSlotOpacity = 0.6f;
 	float HighlightedSlotOpacity = 1.0f;
 	float QuantityZeroSlotOpacity = 0.3f;
+
+	int32 GetSlotIndex(FGameplayTag SlotDir) const;
 };

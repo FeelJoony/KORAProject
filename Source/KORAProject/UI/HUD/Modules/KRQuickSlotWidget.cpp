@@ -3,10 +3,21 @@
 #include "UI/Data/KRItemUIData.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "Engine/World.h"
+#include "Groups/CommonButtonGroupBase.h"
 
 void UKRQuickSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	// Initialize QuickSlot ButtonGroup
+	QuickSlotButtonGroup = NewObject<UCommonButtonGroupBase>(this);
+	QuickSlotButtonGroup->SetSelectionRequired(false);
+
+	// Add all slot buttons to the ButtonGroup
+	if (NorthQuickSlot) QuickSlotButtonGroup->AddWidget(NorthQuickSlot);
+	if (EastQuickSlot) QuickSlotButtonGroup->AddWidget(EastQuickSlot);
+	if (SouthQuickSlot) QuickSlotButtonGroup->AddWidget(SouthQuickSlot);
+	if (WestQuickSlot) QuickSlotButtonGroup->AddWidget(WestQuickSlot);
 
 	if (bListenGameplayMessages)
 	{
@@ -206,4 +217,66 @@ FGameplayTag UKRQuickSlotWidget::GetHoveredSlot() const
 	}
 
 	return FGameplayTag();
+}
+
+void UKRQuickSlotWidget::SetSelectedSlot(FGameplayTag SlotDir, bool bUpdateVisuals)
+{
+	CurrentSelectedSlot = SlotDir;
+
+	if (bUpdateVisuals)
+	{
+		// Use ButtonGroup to manage selection state
+		if (QuickSlotButtonGroup)
+		{
+			int32 SlotIndex = GetSlotIndex(SlotDir);
+			if (SlotIndex != INDEX_NONE)
+			{
+				QuickSlotButtonGroup->SelectButtonAtIndex(SlotIndex);
+			}
+		}
+
+		HighlightSlot(SlotDir);
+	}
+}
+
+void UKRQuickSlotWidget::FocusSlot(FGameplayTag SlotDir)
+{
+	SetSelectedSlot(SlotDir, true);
+	
+	if (UKRQuickSlotButtonBase* ButtonToFocus = GetSlotButton(SlotDir))
+	{
+		ButtonToFocus->SetFocus();
+	}
+	
+	NotifySlotHovered(SlotDir);
+}
+
+void UKRQuickSlotWidget::ClearAllSelections()
+{
+	if (QuickSlotButtonGroup)
+	{
+		QuickSlotButtonGroup->DeselectAll();
+	}
+}
+
+int32 UKRQuickSlotWidget::GetSlotIndex(FGameplayTag SlotDir) const
+{
+	if (SlotDir == FKRUIMessageTags::QuickSlot_North())
+	{
+		return 0;
+	}
+	else if (SlotDir == FKRUIMessageTags::QuickSlot_East())
+	{
+		return 1;
+	}
+	else if (SlotDir == FKRUIMessageTags::QuickSlot_South())
+	{
+		return 2;
+	}
+	else if (SlotDir == FKRUIMessageTags::QuickSlot_West())
+	{
+		return 3;
+	}
+
+	return INDEX_NONE;
 }

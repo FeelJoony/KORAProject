@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "UI/Data/KRUIAdapterLibrary.h"
 #include "Inventory/KRInventoryItemInstance.h"
 #include "SubSystem/KRInventorySubsystem.h"
@@ -177,6 +174,35 @@ bool UKRUIAdapterLibrary::GetEquippedSlotUIData(UObject* WorldContextObject, con
             return true;
         }
     }
+    return false;
+}
+
+bool UKRUIAdapterLibrary::GetQuickSlotUIData(UObject* WorldContextObject, const FGameplayTag& SlotTag, FKRItemUIData& Out)
+{
+    if (!WorldContextObject) return false;
+    
+    if (UGameInstance* GI = UGameplayStatics::GetGameInstance(WorldContextObject))
+    {
+        if (auto* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
+        {
+            UKRInventoryItemInstance* ItemInstance = Inv->GetQuickSlotItemInstance(SlotTag);
+
+            if (!ItemInstance) return false;
+            
+            FKRItemUIData UIData;
+
+            if (MakeUIDataFromItemInstance(ItemInstance, UIData))
+            {
+                Out = UIData;
+                Out.Quantity = Inv->GetQuickSlotItemCount(SlotTag);
+
+                return true;
+            }
+            
+            return false;
+        }
+    }
+
     return false;
 }
 

@@ -41,13 +41,14 @@ bool AGCN_Item_Light::OnActive_Implementation(AActor* MyTarget, const FGameplayC
 	
 	if (USceneComponent* AttachRoot = GetAttachRoot(MyTarget))
 	{
-		AttachToComponent(
-			AttachRoot,
-			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			AttachSocketName
+		FAttachmentTransformRules Rules(
+			EAttachmentRule::SnapToTarget,
+			EAttachmentRule::KeepWorld,
+			EAttachmentRule::KeepRelative,
+			false
 		);
-		
-		SetActorRelativeRotation(FRotator::ZeroRotator);
+
+		AttachToComponent(AttachRoot, Rules, AttachSocketName);
 	}
 
 	return true;

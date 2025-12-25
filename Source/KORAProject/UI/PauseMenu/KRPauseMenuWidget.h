@@ -8,13 +8,21 @@
 
 class UKRInventorySubsystem;
 class UKRSlotGridBase;
+class UCommonButtonGroupBase;
 struct FKRItemUIData;
+
+UENUM()
+enum class EKRPauseNavigationContext : uint8
+{
+	MenuTab,
+	QuickSlot
+};
 
 UCLASS()
 class KORAPROJECT_API UKRPauseMenuWidget : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
-	
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
@@ -56,13 +64,28 @@ private:
 	void HandleMoveDown();
 
 	void ResetQuickSlotAssignState(bool bAlsoCloseUI);
+	
+	void InitializeMenuTabArray();
+	void SetNavigationContext(EKRPauseNavigationContext NewContext);
+	void UpdateMenuTabSelection(int32 NewIndex);
+	void UpdateQuickSlotSelection(FGameplayTag NewSlot);
 
+	UPROPERTY() TObjectPtr<UCommonButtonGroupBase> MenuTabButtonGroup;
+	TArray<UKRMenuTabButton*> MenuTabButtons;
+	int32 CurrentMenuTabIndex = 0;
+	int32 LastMenuTabIndex = 0;
+	
+	FGameplayTag CurrentQuickSlotSelection;
+	bool bQuickSlotOnNorth = true;
+	
+	EKRPauseNavigationContext NavigationContext = EKRPauseNavigationContext::MenuTab;
+	
 	EKRSlotNameContext CurrentSlotContext = EKRSlotNameContext::Menu;
 	FName CurrentMenuRouteName;
 	FGameplayTag CurrentQuickSlotDir;
-	
+
 	bool bQuickSlotInventoryOpen = false;
 	TArray<FKRItemUIData> QuickSlotInventoryItemList;
-	
+
 	uint64 LastSelectHandledFrame = 0;
 };
