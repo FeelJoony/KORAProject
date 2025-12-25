@@ -47,7 +47,7 @@ void AKRChestActor::OnAbilityActivated(UGameplayAbility* Ability)
 	Super::OnAbilityActivated(Ability);
 
 	if (bIsOpened) return;
-	if (!Ability || !Ability->AbilityTags.HasTag(InteractAbilityTag)) return;
+	if (!Ability || !Ability->GetAssetTags().HasTag(InteractAbilityTag)) return;
 
 	AActor* Interactor = Ability->GetAvatarActorFromActorInfo();
 	if (!Interactor) return;

@@ -132,7 +132,7 @@ void AInteractableActorBase::OnAbilityActivated(UGameplayAbility* Ability)
 {
 	if (!Ability || !InteractAbilityTag.IsValid()) return;
 	
-	const FGameplayTagContainer& AbilityTags = Ability->AbilityTags;
+	const FGameplayTagContainer& AbilityTags = Ability->GetAssetTags();
 
 	if (AbilityTags.HasTagExact(InteractAbilityTag))
 	{

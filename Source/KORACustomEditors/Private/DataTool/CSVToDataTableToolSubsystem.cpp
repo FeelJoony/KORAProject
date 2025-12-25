@@ -223,13 +223,13 @@ bool UCSVToDataTableToolSubsystem::ProcessCSVFile(const FString& InFullCSVFilePa
 
 UScriptStruct* UCSVToDataTableToolSubsystem::FindStructByName(const FString& StructName)
 {
-    UScriptStruct* FoundStruct = FindObject<UScriptStruct>(ANY_PACKAGE, *StructName);
+    UScriptStruct* FoundStruct = FindFirstObject<UScriptStruct>(*StructName, EFindFirstObjectOptions::None, ELogVerbosity::Warning, TEXT("FindStructByName"));
 
     if (!FoundStruct)
     {
         FString ProjectName = FApp::GetProjectName();
         FString ScriptPath = FString::Printf(TEXT("/Script/%s.%s"), *ProjectName, *StructName);
-        FoundStruct = FindObject<UScriptStruct>(ANY_PACKAGE, *ScriptPath);
+        FoundStruct = FindObject<UScriptStruct>(nullptr, *ScriptPath);
     }
 
     if (!FoundStruct)

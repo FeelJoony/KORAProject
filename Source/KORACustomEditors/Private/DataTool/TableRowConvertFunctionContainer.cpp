@@ -916,12 +916,13 @@ void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVS
         TArray<FString> LineValues;
         CurrentLine.ParseIntoArray(LineValues, TEXT(","), true);
 
-        OutValues.Add(LineValues);
-
-        if (OutValues.Num() != OutHeaders.Num())
+        if (LineValues.Num() != OutHeaders.Num())
         {
-            UE_LOG(LogTemp, Warning, TEXT("Line %d in %s has %d columns, expected %d. Skipping line."), i + 1, *CSVFileName, OutValues.Num(), OutHeaders.Num());
+            UE_LOG(LogTemp, Warning, TEXT("Line %d in %s has %d columns, expected %d. Skipping line."), i + 1, *CSVFileName, LineValues.Num(), OutHeaders.Num());
+            continue;
         }
+
+        OutValues.Add(LineValues);
     }
 }
 

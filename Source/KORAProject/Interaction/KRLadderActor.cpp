@@ -71,7 +71,7 @@ void AKRLadderActor::OnAbilityActivated(UGameplayAbility* InAbility)
 {
 	Super::OnAbilityActivated(InAbility);
 
-	if (!InAbility || !InAbility->AbilityTags.HasTag(KRTAG_ABILITY_INTERACT)) { UE_LOG(LogTemp, Warning, TEXT("[Ladder] Ability Tag Mismatch. Needed: Ability.Interact"));
+	if (!InAbility || !InAbility->GetAssetTags().HasTag(KRTAG_ABILITY_INTERACT)) { UE_LOG(LogTemp, Warning, TEXT("[Ladder] Ability Tag Mismatch. Needed: Ability.Interact"));
 		return; }
 
 	if (!ObservedASC) { return; }
