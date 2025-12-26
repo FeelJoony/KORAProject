@@ -40,7 +40,7 @@ public:
 protected:
 
 	UFUNCTION(BlueprintCallable)
-	void OnAbilityActivated(UGameplayAbility* Ability);
+	virtual void OnAbilityActivated(UGameplayAbility* Ability);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interact", meta = (AllowPrivateAccess = "true"))
 	bool bIsInteract;

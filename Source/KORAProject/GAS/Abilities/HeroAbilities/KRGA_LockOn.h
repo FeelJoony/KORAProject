@@ -27,6 +27,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KR|LockOn", meta = (DefaultToSelf = "Actor"))
 	static AActor* GetLockedTargetFor(AActor* Actor);
 	
+	// FORCEINLINE AActor* GetTarget() const
+	// {
+	// 	return CurrentTarget;
+	// }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
 	float LockOnRadius = 1500.f;

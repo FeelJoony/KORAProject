@@ -2,6 +2,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "KRGA_LockOn.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
@@ -17,6 +18,7 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Interaction/GrappleVolume.h"
 #include "Enemy/KRAIC_Enemy.h"
+#include "GameplayTag/KRAbilityTag.h"
 
 //CharacterMovement->AirControl = 0.35f;
 
@@ -40,7 +42,16 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
         NewRotation.Yaw = PlayerController->GetControlRotation().Yaw;
         CachedPlayerCharacter->SetActorRotation(NewRotation);
     }
-	PerformLineTrace();
+	
+	if (SearchLockOnTarget())
+	{
+		HitState = EGrappleState::HitEnemy;
+		BeginStartMontage();
+	}
+	else
+	{
+		PerformLineTrace();
+	}
 }
 
 void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle, 
@@ -50,6 +61,8 @@ void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle,
                                 bool bWasCancelled)
 {
     ApplyCableVisibility(false);
+	
+	CachedTargetPawn = nullptr;
 
 	CachedPlayerCharacter->bUseControllerRotationYaw = false;
 	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -75,6 +88,7 @@ void UKRGA_Grapple::PerformLineTrace()
     FVector StartLocation = Camera->GetComponentLocation();
     FRotator StartRotation = Camera->GetComponentRotation();
     FVector EndLocation = StartLocation + (StartRotation.Vector() * TraceRange);
+	CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 200.f);
 
     FHitResult HitResult;
     FCollisionQueryParams Params;
@@ -152,7 +166,7 @@ void UKRGA_Grapple::OnActorGrappleFinished()
 }
 
 void UKRGA_Grapple::FinishAbility()
-{
+{	
 	if (CachedPlayerCharacter)
 	{
 		CachedPlayerCharacter->bUseControllerRotationYaw = false;
@@ -184,6 +198,42 @@ void UKRGA_Grapple::BeginStartMontage()
 	StartMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::OnStartMontageFinished);
     
 	StartMontageTask->ReadyForActivation();
+}
+
+APawn* UKRGA_Grapple::SearchLockOnTarget()
+{
+	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
+	if (!KRASC) return nullptr;
+	
+	if (KRASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_LOCKON))
+	{
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(KRTAG_ABILITY_LOCKON);
+		TArray<FGameplayAbilitySpec*> ActiveAbilities;
+		KRASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(TagContainer, ActiveAbilities);
+		
+		if (ActiveAbilities.Num() > 0)
+        {
+			FGameplayAbilitySpec* Spec = ActiveAbilities[0];
+
+			UGameplayAbility* FoundAbility = Spec->GetPrimaryInstance();
+			if (!FoundAbility) return nullptr;
+            
+            UKRGA_LockOn* LockOnGAInstance = Cast<UKRGA_LockOn>(FoundAbility);
+            if (!LockOnGAInstance) return nullptr;
+
+			AActor* Actor = LockOnGAInstance->GetLockedTarget();
+			CachedTargetPawn = Cast<APawn>(Actor);
+			if (!CachedTargetPawn) return nullptr;
+
+			TargetCapsuleComp = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
+			if (!TargetCapsuleComp)
+			{
+				HitState = EGrappleState::Default;
+			}
+        }
+	}
+	return CachedTargetPawn;
 }
 
 AKREnemyCharacter* UKRGA_Grapple::IsEnemy(const FHitResult& HitResult)
@@ -343,7 +393,7 @@ FVector UKRGA_Grapple::ReturnGrapplePointLocation()
 		}
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("GrapplePoint PointLocation : %f, %f, %f"), CachedGrapplePoint.X, CachedGrapplePoint.Y, CachedGrapplePoint.Z);
+	//UE_LOG(LogTemp, Warning, TEXT("GrapplePoint PointLocation : %f, %f, %f"), CachedGrapplePoint.X, CachedGrapplePoint.Y, CachedGrapplePoint.Z);
 	return CachedGrapplePoint;
 }
 
@@ -364,12 +414,13 @@ void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 		if (!TargetCapsuleComp)
 		{
 			HitState = EGrappleState::Default;
+			return;;
 		}
 		CachedTargetPawn = TargetEnemy;
 		
 		AKRAIC_Enemy* EnemyAIC = Cast<AKRAIC_Enemy>(CachedTargetPawn->GetController());
 		if (!IsValid(EnemyAIC)) return;
-		EnemyAIC->SetAttackTarget(GetAvatarActorFromActorInfo());
+		// EnemyAIC->SetAttackTarget(GetAvatarActorFromActorInfo());
 		
 		if (IsGrappleableEnemy(TargetEnemy))
 		{
@@ -385,6 +436,13 @@ void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 		if (ReturnGrapplePointLocation() == FVector::ZeroVector)
 		{
 			HitState = EGrappleState::Default;
+			
+			UCameraComponent* Camera = CachedPlayerCharacter->GetComponentByClass<UCameraComponent>();
+			if (!Camera) return;
+
+			FVector StartLocation = Camera->GetComponentLocation();
+			FRotator StartRotation = Camera->GetComponentRotation();
+			CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 200.f);
 		}
 		else
 		{
@@ -418,10 +476,21 @@ void UKRGA_Grapple::TickEnemyMovement()
 
     FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
     PlayerLocation.Z -= PlayerCapsule->GetScaledCapsuleHalfHeight();
+	
+	ACharacter* TargetCharacter = Cast<ACharacter>(CachedTargetPawn);
 
     FVector MoveDirection = (PlayerLocation - CachedGrapplePoint).GetSafeNormal();
-    FVector MoveOffset = GetWorld()->GetDeltaSeconds() * MoveDirection * TargetMoveSpeed;
-    CachedTargetPawn->AddActorWorldOffset(MoveOffset, true);
+	
+	if (TargetCharacter && TargetCharacter->GetCharacterMovement())
+	{
+		TargetCharacter->GetCharacterMovement()->Velocity = MoveDirection * TargetMoveSpeed;
+		//TargetCharacter->GetCharacterMovement()->AddInputVector(MoveDirection * TargetMoveSpeed, true);
+	}
+	else
+	{
+		FVector MoveOffset = GetWorld()->GetDeltaSeconds() * MoveDirection * TargetMoveSpeed;
+		CachedTargetPawn->AddActorWorldOffset(MoveOffset, true);
+	}
 
     FVector LookDirection = (CachedGrapplePoint - PlayerLocation).GetSafeNormal();
     CachedPlayerCharacter->SetActorRotation(FRotator(0.2f, LookDirection.Rotation().Yaw, 0.f));

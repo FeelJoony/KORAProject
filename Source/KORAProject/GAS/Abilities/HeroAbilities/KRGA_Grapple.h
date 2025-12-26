@@ -49,6 +49,8 @@ public:
 	void FinishAbility();
 	
 	void BeginStartMontage();
+
+	APawn* SearchLockOnTarget();
 	
 	class AKREnemyCharacter* IsEnemy(const FHitResult& HitResult);
 	

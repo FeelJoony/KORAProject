@@ -1,6 +1,6 @@
 EquipAbilityID,AbilityCount,AbilityTypeTag1,BaseValue1,IncValue1,AbilityTypeTag2,BaseValue2,IncValue2,AbilityTypeTag3,BaseValue3,IncValue3,AbilityTypeTag4,BaseValue4,IncValue4,AbilityTypeTag5,BaseValue5,IncValue5,AbilityTypeTag6,BaseValue6,IncValue6,AbilityTypeTag7,BaseValue7,IncValue7
-3001,9,Weapon.Stat.ATK,42,0,Weapon.Stat.CritChance,0.1,0,Weapon.Stat.CritMulti,1.6,0,Weapon.Stat.Range,18,0,Weapon.Stat.Capacity,15,0,Weapon.Stat.ReloadTime,1,0,Weapon.Stat.AttackSpeed,1,0
-4001,4,Weapon.Stat.ATK,58,0,Weapon.Stat.CritChance,0.08,0,Weapon.Stat.CritMulti,1.4,0,Weapon.Stat.AttackSpeed,1,0,,,,,,,,,
+3001,9,Weapon.Stat.Atk,42,0,Weapon.Stat.CritChance,0.1,0,Weapon.Stat.CritMulti,1.6,0,Weapon.Stat.Range,18,0,Weapon.Stat.Capacity,15,0,Weapon.Stat.ReloadTime,1,0,Weapon.Stat.AttackSpeed,1,0
+4001,4,Weapon.Stat.Atk,58,0,Weapon.Stat.CritChance,0.08,0,Weapon.Stat.CritMulti,1.4,0,Weapon.Stat.AttackSpeed,1,0,,,,,,,,,
 2001,1,Weapon.Stat.CritMulti,1,0.15,,,,,,,,,,,,,,,,,,
 2002,1,Weapon.Stat.AttackSpeed,1,0.12,,,,,,,,,,,,,,,,,,
 2003,2,Weapon.Stat.CritMulti,1,0.08,Weapon.Stat.AttackSpeed,1,0.06,,,,,,,,,,,,,,,

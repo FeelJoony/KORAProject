@@ -38,10 +38,7 @@ public class KORAProject : ModuleRules
             "MassCommon",
             "MassActors",
             "MassSpawner",
-            "MassAIBehavior",
-            "MassNavigation",
             "MassRepresentation",
-			"ZoneGraph",
 			"MotionWarping"
         });
 

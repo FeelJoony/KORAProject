@@ -224,6 +224,18 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 		}
 	}
 
+	AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
+	if (KRPS)
+	{
+		if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
+		{
+			if (ASC->HasMatchingGameplayTag(KRTAG_STATE_RESTRICT_INPUT))
+			{
+				return; 
+			}
+		}
+	}
+	
 	AController* PC = Pawn->GetController();
 
 	if (PC)

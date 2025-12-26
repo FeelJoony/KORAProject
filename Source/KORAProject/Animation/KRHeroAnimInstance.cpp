@@ -1,7 +1,6 @@
 #include "Animation/KRHeroAnimInstance.h"
 #include "Characters/KRHeroCharacter.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "KismetAnimationLibrary.h"
+#include "Components/KRCharacterMovementComponent.h"
 
 void UKRHeroAnimInstance::NativeInitializeAnimation()
 {
@@ -9,6 +8,11 @@ void UKRHeroAnimInstance::NativeInitializeAnimation()
 	if (CachedCharacter)
 	{
 		OwningHeroCharacter = Cast<AKRHeroCharacter>(CachedCharacter);
+		
+		if (OwningHeroCharacter)
+		{
+			CachedKRCMC = Cast<UKRCharacterMovementComponent>(OwningHeroCharacter->GetCharacterMovement());
+		}
 	}
 }
 
@@ -26,6 +30,18 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		IdleElapsedTime += DeltaSeconds;
 		bShouldEnterRelaxState = (IdleElapsedTime >= EnterRelaxStateTime);
+	}
+	
+	bIsClimbingLadder = false;
+	ClimbVelocityZ = 0.f;
+
+	if (CachedKRCMC)
+	{
+		if (CachedKRCMC->MovementMode == MOVE_Custom && CachedKRCMC->CustomMovementMode == (uint8)EKRMovementMode::Ladder)
+		{
+			bIsClimbingLadder = true;
+			ClimbVelocityZ = CachedKRCMC->Velocity.Z;
+		}
 	}
 		
 	/*

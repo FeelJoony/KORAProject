@@ -9,7 +9,9 @@
 UKRGA_Death::UKRGA_Death(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	AbilityTags.AddTag(KRTAG_ABILITY_DEATH);
+	FGameplayTagContainer Tags;
+	Tags.AddTag(KRTAG_ABILITY_DEATH);
+	SetAssetTags(Tags);
 
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
