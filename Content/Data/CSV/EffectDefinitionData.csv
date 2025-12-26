@@ -27,3 +27,4 @@ Effect.Combat.Sword.Attack.Light,/Game/Data/DataAssets/Effect/Combat/DA_Effect_C
 Effect.Combat.Sword.Attack.Combo1,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Attack_Combo1.DA_Effect_Combat_Attack_Combo1,Attack Combo1,TRUE
 Effect.Combat.Sword.Attack.Combo2,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Attack_Combo2.DA_Effect_Combat_Attack_Combo2,Attack Combo2,TRUE
 Effect.Combat.Sword.Attack.Combo3,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Attack_Combo3.DA_Effect_Combat_Attack_Combo3,Attack Combo3,TRUE
+Effect.Damage.Hit.Enemy,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Hit_Blood.DA_Effect_Combat_Hit_Blood,Hit Blood,TRUE
