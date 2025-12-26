@@ -549,9 +549,12 @@ void UKRGameplayAbility_MeleeAttack::SendHitReactionEvent(AActor* TargetActor, c
 	EventData.ContextHandle = SourceASC->MakeEffectContext();
 	EventData.ContextHandle.AddHitResult(HitResult);
 
-	// 히트 강도 전달
+	// 히트 강도 + 넉백 거리 패킹하여 전달
+	// EventMagnitude = HitIntensity(정수부) + KnockbackDistance * 0.001(소수부)
+	// 예: HitIntensity=2, KnockbackDistance=150 → 2.150
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	EventData.EventMagnitude = static_cast<float>(Config.HitIntensity);
+	float PackedMagnitude = static_cast<float>(Config.HitIntensity) + (Config.KnockbackDistance * 0.001f);
+	EventData.EventMagnitude = PackedMagnitude;
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		TargetActor,
