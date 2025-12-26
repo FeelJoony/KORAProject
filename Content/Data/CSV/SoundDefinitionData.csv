@@ -21,3 +21,6 @@ Sound.Movement.Landing.Heavy.Default,/Game/Data/DataAssets/Sound/Movement/DA_Sou
 Sound.Movement.Landing.Heavy.Concrete,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Landing_Heavy_Concrete.DA_Sound_Landing_Heavy_Concrete,Landing Heavy Concrete,TRUE
 Sound.Movement.Landing.Heavy.Dirt,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Landing_Heavy_Dirt.DA_Sound_Landing_Heavy_Dirt,Landing Heavy Dirt,TRUE
 Sound.Movement.Landing.Heavy.Wood,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Landing_Heavy_Wood.DA_Sound_Landing_Heavy_Wood,Landing Heavy Wood,TRUE
+Sound.Defense.Guard.Start,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Guard_Start.DA_Sound_Combat_Guard_Start,Guard Start,TRUE
+Sound.Defense.Guard.Impact,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Guard_Impact.DA_Sound_Combat_Guard_Impact,Guard Impact,TRUE
+Sound.Defense.Guard.Deflect,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Guard_Deflect.DA_Sound_Combat_Guard_Deflect,Guard Deflect,TRUE

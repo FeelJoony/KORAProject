@@ -21,3 +21,5 @@ Effect.Movement.Landing.Heavy.Default,/Game/Data/DataAssets/Effect/Movement/DA_E
 Effect.Movement.Landing.Heavy.Concrete,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Concrete.DA_Effect_Landing_Heavy_Concrete,Landing Heavy Concrete,TRUE
 Effect.Movement.Landing.Heavy.Dirt,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Dirt.DA_Effect_Landing_Heavy_Dirt,Landing Heavy Dirt,TRUE
 Effect.Movement.Landing.Heavy.Wood,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Wood.DA_Effect_Landing_Heavy_Wood,Landing Heavy Wood,TRUE
+Effect.Defense.Guard.Impact,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Guard_Impact.DA_Effect_Combat_Guard_Impact,Guard Impact,TRUE
+Effect.Defense.Guard.Deflect,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Guard_Deflect.DA_Effect_Combat_Guard_Deflect,Guard Deflect,TRUE
