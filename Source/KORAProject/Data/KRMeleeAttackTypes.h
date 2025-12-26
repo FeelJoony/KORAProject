@@ -114,6 +114,10 @@ struct KORAPROJECT_API FKRMeleeAttackConfig
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	EKRHitIntensity HitIntensity;
 
+	// 넉백 거리 (0이면 넉백 없음, HitReaction에 전달)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	float KnockbackDistance = 0.0f;
+
 	// ─────────────────────────────────────────────────────
 	// 모션 워핑 설정
 	// ─────────────────────────────────────────────────────

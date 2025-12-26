@@ -197,6 +197,9 @@ protected:
 	/** 현재 히트 체크 중인지 */
 	bool bIsHitCheckActive = false;
 
+	/** 현재 공격에 사용 중인 콤보 인덱스 (IncrementCombo 호출 전 저장) */
+	int32 ActiveComboIndex = 0;
+
 	/** 몽타주 태스크 */
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;

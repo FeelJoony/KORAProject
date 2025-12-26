@@ -55,6 +55,9 @@ void UKRGameplayAbility_MeleeAttack::ActivateAbility(
 	HitActorsThisSwing.Empty();
 	bIsHitCheckActive = false;
 
+	// IncrementCombo 전에 현재 콤보 인덱스 저장 (AnimNotify에서 사용)
+	ActiveComboIndex = CurrentComboIndex;
+
 	// 모션 워핑 설정
 	if (bUseMotionWarping)
 	{
@@ -143,9 +146,10 @@ void UKRGameplayAbility_MeleeAttack::EndHitCheck()
 
 const FKRMeleeAttackConfig& UKRGameplayAbility_MeleeAttack::GetCurrentAttackConfig() const
 {
-	if (ComboAttackConfigs.IsValidIndex(CurrentComboIndex))
+	// ActiveComboIndex 사용 (IncrementCombo 전에 저장된 값)
+	if (ComboAttackConfigs.IsValidIndex(ActiveComboIndex))
 	{
-		return ComboAttackConfigs[CurrentComboIndex];
+		return ComboAttackConfigs[ActiveComboIndex];
 	}
 	return DefaultAttackConfig;
 }
@@ -530,19 +534,27 @@ void UKRGameplayAbility_MeleeAttack::SendHitReactionEvent(AActor* TargetActor, c
 {
 	if (!TargetActor) return;
 
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC) return;
+	// 공격자 ASC 확인
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	if (!SourceASC) return;
+
+	// 타겟 ASC 확인 (ASC가 없는 액터 - Floor 등 - 에게 이벤트 전송 시 에러 방지)
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (!TargetASC) return;
 
 	FGameplayEventData EventData;
 	EventData.EventTag = KRTAG_EVENT_COMBAT_HITREACTION;
 	EventData.Instigator = GetAvatarActorFromActorInfo();
 	EventData.Target = TargetActor;
-	EventData.ContextHandle = ASC->MakeEffectContext();
+	EventData.ContextHandle = SourceASC->MakeEffectContext();
 	EventData.ContextHandle.AddHitResult(HitResult);
 
-	// 히트 강도 전달
+	// 히트 강도 + 넉백 거리 패킹하여 전달
+	// EventMagnitude = HitIntensity(정수부) + KnockbackDistance * 0.001(소수부)
+	// 예: HitIntensity=2, KnockbackDistance=150 → 2.150
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	EventData.EventMagnitude = static_cast<float>(Config.HitIntensity);
+	float PackedMagnitude = static_cast<float>(Config.HitIntensity) + (Config.KnockbackDistance * 0.001f);
+	EventData.EventMagnitude = PackedMagnitude;
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		TargetActor,
