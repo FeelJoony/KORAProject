@@ -176,7 +176,7 @@ void UKREnemyHPWidget::StartGreyAnim()
             GreyAnimTimerHandle,
             this,
             &ThisClass::TickGreyAnim,
-            0.01f,
+            0.016f,  // 60fps (0.01f에서 최적화)
             true
         );
     }
@@ -198,7 +198,13 @@ void UKREnemyHPWidget::TickGreyAnim()
         : 1.f;
 
     const float NewPercent = FMath::Lerp(GreyDisplayPercent, GreyTargetPercent, Alpha);
-    TickGreyHPBar(NewPercent);
+
+    // Slate Invalidation 최소화: 값이 변경될 때만 업데이트
+    const float CurrentPercent = GreyHPBar->GetPercent();
+    if (!FMath::IsNearlyEqual(CurrentPercent, NewPercent, 0.001f))
+    {
+        TickGreyHPBar(NewPercent);
+    }
 
     if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
     {
