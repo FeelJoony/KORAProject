@@ -4,6 +4,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Engine/AssetManager.h"
 #include "Animation/AnimSequence.h"
 #include "Kismet/GameplayStatics.h"
 #include "Equipment/KREquipmentManagerComponent.h"
@@ -32,11 +33,79 @@ void AKREquipmentPreviewActor::InitializeComponents()
 	PreviewMesh->bReceivesDecals = false;
 	PreviewMesh->SetAnimationMode(EAnimationMode::AnimationSingleNode);
 
+	PreviewMesh->CastShadow = false;
+	PreviewMesh->bCastDynamicShadow = false;
+	PreviewMesh->bAffectDynamicIndirectLighting = false;
+	PreviewMesh->bAffectDistanceFieldLighting = false;
+
 	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
 	SceneCapture->SetupAttachment(RootScene);
 	SceneCapture->bCaptureEveryFrame = false;
 	SceneCapture->bCaptureOnMovement = false;
 	SceneCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+	
+	SceneCapture->bAlwaysPersistRenderingState = true;   // 렌더링 상태 캐싱
+	SceneCapture->MaxViewDistanceOverride = 500.0f;     // 뷰 거리 제한
+	SceneCapture->LODDistanceFactor = 0.25f;            // LOD 적극적 사용
+	SceneCapture->bUseRayTracingIfEnabled = false;      // 레이트레이싱 비활성화
+	SceneCapture->DetailMode = EDetailMode::DM_Low;     // 디테일 모드 낮음
+	SceneCapture->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+	SceneCapture->CompositeMode = ESceneCaptureCompositeMode::SCCM_Overwrite;
+	
+	SceneCapture->ShowFlags.SetLumenGlobalIllumination(false);
+	SceneCapture->ShowFlags.SetLumenReflections(false);
+	SceneCapture->ShowFlags.SetGlobalIllumination(false);
+	SceneCapture->ShowFlags.SetIndirectLightingCache(false);
+
+	SceneCapture->ShowFlags.SetRayTracedDistanceFieldShadows(false);
+	SceneCapture->ShowFlags.SetReflectionEnvironment(false);
+	SceneCapture->ShowFlags.SetScreenSpaceReflections(false);
+	SceneCapture->ShowFlags.SetPathTracing(false);
+
+	SceneCapture->ShowFlags.SetContactShadows(false);
+	SceneCapture->ShowFlags.SetCapsuleShadows(false);
+
+	SceneCapture->ShowFlags.SetVolumetricFog(false);
+	SceneCapture->ShowFlags.SetVolumetricLightmap(false);
+	SceneCapture->ShowFlags.SetFog(false);
+	SceneCapture->ShowFlags.SetAtmosphere(false);
+	SceneCapture->ShowFlags.SetCloud(false);
+	SceneCapture->ShowFlags.SetSkyLighting(false);  // 스카이 라이팅 비활성화
+	
+	SceneCapture->ShowFlags.SetPostProcessing(false);
+	SceneCapture->ShowFlags.SetTonemapper(false);
+	SceneCapture->ShowFlags.SetToneCurve(false);
+	SceneCapture->ShowFlags.SetAntiAliasing(false);    // AA 비활성화 (마젠타 halo 방지)
+	SceneCapture->ShowFlags.SetTemporalAA(false);
+	SceneCapture->ShowFlags.SetMotionBlur(false);
+	SceneCapture->ShowFlags.SetBloom(false);
+	SceneCapture->ShowFlags.SetEyeAdaptation(false);
+	SceneCapture->ShowFlags.SetLocalExposure(false);
+	SceneCapture->ShowFlags.SetDepthOfField(false);
+	SceneCapture->ShowFlags.SetLensFlares(false);
+	SceneCapture->ShowFlags.SetVignette(false);
+	SceneCapture->ShowFlags.SetGrain(false);
+	SceneCapture->ShowFlags.SetColorGrading(false);
+
+	SceneCapture->ShowFlags.SetDynamicShadows(false);
+	SceneCapture->ShowFlags.SetAmbientOcclusion(false);
+	SceneCapture->ShowFlags.SetScreenSpaceAO(false);
+	SceneCapture->ShowFlags.SetDistanceFieldAO(false);
+
+	SceneCapture->ShowFlags.SetDecals(false);
+	SceneCapture->ShowFlags.SetTranslucency(false);
+	SceneCapture->ShowFlags.SetParticles(false);
+	SceneCapture->ShowFlags.SetTemporalAA(false);
+	SceneCapture->ShowFlags.SetHMDDistortion(false);
+	
+	SceneCapture->ShowFlags.SetInstancedFoliage(false);
+	SceneCapture->ShowFlags.SetInstancedGrass(false);
+	SceneCapture->ShowFlags.SetInstancedStaticMeshes(false);
+	SceneCapture->ShowFlags.SetLandscape(false);
+	SceneCapture->ShowFlags.SetBSP(false);
+	SceneCapture->ShowFlags.SetPaper2DSprites(false);
+	SceneCapture->ShowFlags.SetTextRender(false);
+	SceneCapture->ShowFlags.SetBillboardSprites(false);
 }
 
 void AKREquipmentPreviewActor::BeginPlay()
@@ -50,6 +119,10 @@ void AKREquipmentPreviewActor::BeginPlay()
 		{
 			PreviewMesh->SetSkeletalMesh(LoadedMesh);
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PreviewActor] CharacterMesh is NULL! Set it in BP."));
 	}
 
 	SetupSceneCapture();
@@ -70,6 +143,26 @@ void AKREquipmentPreviewActor::BeginPlay()
 
 void AKREquipmentPreviewActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(CaptureDebounceHandle);
+		World->GetTimerManager().ClearTimer(EquipChangeCaptureHandle);
+	}
+	
+	if (AnimPreloadHandle.IsValid())
+	{
+		AnimPreloadHandle->CancelHandle();
+		AnimPreloadHandle.Reset();
+	}
+	if (EquipAssetPreloadHandle.IsValid())
+	{
+		EquipAssetPreloadHandle->CancelHandle();
+		EquipAssetPreloadHandle.Reset();
+	}
+	CachedAnimations.Empty();
+	CachedMaterials.Empty();
+	CachedMeshes.Empty();
+
 	if (EquipMessageHandle.IsValid())
 	{
 		UGameplayMessageSubsystem::Get(this).UnregisterListener(EquipMessageHandle);
@@ -105,16 +198,35 @@ void AKREquipmentPreviewActor::Tick(float DeltaTime)
 			PlayRandomIdleAnimation();
 		}
 	}
-
-	if (bCaptureEveryFrame && SceneCapture && SceneCapture->TextureTarget)
+	if (SceneCapture && SceneCapture->TextureTarget)
 	{
-		SceneCapture->CaptureScene();
+		CaptureTimer += DeltaTime;
+		if (CaptureTimer >= CaptureInterval)
+		{
+			SceneCapture->CaptureScene();
+			CaptureTimer = 0.0f;
+		}
 	}
 }
 
 void AKREquipmentPreviewActor::SetupSceneCapture()
 {
-	if (!RenderTarget.IsNull())
+	if (bCreateRuntimeRT)
+	{
+		RuntimeRenderTarget = NewObject<UTextureRenderTarget2D>(this, TEXT("PreviewRT"));
+		if (RuntimeRenderTarget)
+		{
+			RuntimeRenderTarget->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA8;
+			RuntimeRenderTarget->ClearColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);  // 흰색 배경 (InvOpacity용) 
+			RuntimeRenderTarget->bAutoGenerateMips = false;
+			RuntimeRenderTarget->bGPUSharedFlag = false;
+			RuntimeRenderTarget->InitAutoFormat(RenderTargetWidth, RenderTargetHeight);
+			RuntimeRenderTarget->UpdateResourceImmediate(true);
+
+			SceneCapture->TextureTarget = RuntimeRenderTarget;
+		}
+	}
+	else if (!RenderTarget.IsNull())
 	{
 		UTextureRenderTarget2D* LoadedRT = RenderTarget.LoadSynchronous();
 		if (LoadedRT)
@@ -124,6 +236,32 @@ void AKREquipmentPreviewActor::SetupSceneCapture()
 	}
 
 	SceneCapture->ShowOnlyActors.Add(this);
+	if (PreviewMesh)
+	{
+		FVector MeshLocation = PreviewMesh->GetComponentLocation();
+		MeshLocation.Z += 100.0f;  // 캐릭터 가슴 높이로 오프셋 (발 기준 위로 100)
+		FVector CameraLocation = SceneCapture->GetComponentLocation();
+		FVector DirectionToMesh = (MeshLocation - CameraLocation).GetSafeNormal();
+
+		if (!DirectionToMesh.IsNearlyZero())
+		{
+			FRotator LookAtRotation = DirectionToMesh.Rotation();
+			SceneCapture->SetWorldRotation(LookAtRotation);
+		}
+	}
+	if (SceneCapture->TextureTarget)
+	{
+		SceneCapture->CaptureScene();
+	}
+}
+
+UTextureRenderTarget2D* AKREquipmentPreviewActor::GetActiveRenderTarget() const
+{
+	if (RuntimeRenderTarget)
+	{
+		return RuntimeRenderTarget;
+	}
+	return SceneCapture ? SceneCapture->TextureTarget : nullptr;
 }
 
 void AKREquipmentPreviewActor::SpawnWeaponActors()
@@ -279,9 +417,38 @@ void AKREquipmentPreviewActor::RotatePreview(float DeltaYaw)
 
 void AKREquipmentPreviewActor::CaptureNow()
 {
-	if (SceneCapture && SceneCapture->TextureTarget)
+	if (!SceneCapture || !SceneCapture->TextureTarget)
+	{
+		return;
+	}
+
+	if (CaptureDebounceTime > 0.0f)
+	{
+		bCapturePending = true;
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(CaptureDebounceHandle);
+			World->GetTimerManager().SetTimer(
+				CaptureDebounceHandle,
+				this,
+				&AKREquipmentPreviewActor::ExecuteDebouncedCapture,
+				CaptureDebounceTime,
+				false
+			);
+		}
+	}
+	else
 	{
 		SceneCapture->CaptureScene();
+	}
+}
+
+void AKREquipmentPreviewActor::ExecuteDebouncedCapture()
+{
+	if (bCapturePending && SceneCapture && SceneCapture->TextureTarget)
+	{
+		SceneCapture->CaptureScene();
+		bCapturePending = false;
 	}
 }
 
@@ -310,8 +477,7 @@ void AKREquipmentPreviewActor::PlaySpinThenIdle(const FGameplayTag& WeaponType)
 		PlayRandomIdleAnimation();
 		return;
 	}
-
-	UAnimSequence* SpinAnim = EquipSpinAnimation.LoadSynchronous();
+	UAnimSequence* SpinAnim = GetCachedOrLoadAnim(EquipSpinAnimation);
 	if (!SpinAnim)
 	{
 		PlayRandomIdleAnimation();
@@ -320,7 +486,6 @@ void AKREquipmentPreviewActor::PlaySpinThenIdle(const FGameplayTag& WeaponType)
 
 	bIsPlayingSpinAnim = true;
 	PendingWeaponType = WeaponType;
-	
 	PlayAnimation(SpinAnim, false);
 }
 
@@ -342,8 +507,7 @@ UAnimSequence* AKREquipmentPreviewActor::GetRandomAnimFromArray(const TArray<TSo
 	const TSoftObjectPtr<UAnimSequence>& AnimRef = AnimArray[RandomIndex];
 
 	if (AnimRef.IsNull()) return nullptr;
-
-	return AnimRef.LoadSynchronous();
+	return GetCachedOrLoadAnim(AnimRef);
 }
 
 TArray<TSoftObjectPtr<UAnimSequence>>& AKREquipmentPreviewActor::GetCurrentIdleAnimArray()
@@ -397,7 +561,11 @@ void AKREquipmentPreviewActor::ApplyWeaponMesh(const FEquipDataStruct* EquipData
 
 	if (!EquipData->EquipmentMesh.IsNull())
 	{
-		if (UStaticMesh* LoadedMesh = EquipData->EquipmentMesh.LoadSynchronous())
+		if (UStaticMesh* CachedMesh = GetCachedMesh(EquipData->EquipmentMesh))
+		{
+			MeshComp->SetStaticMesh(CachedMesh);
+		}
+		else if (UStaticMesh* LoadedMesh = EquipData->EquipmentMesh.LoadSynchronous())
 		{
 			MeshComp->SetStaticMesh(LoadedMesh);
 		}
@@ -407,7 +575,11 @@ void AKREquipmentPreviewActor::ApplyWeaponMesh(const FEquipDataStruct* EquipData
 	{
 		if (!EquipData->OverrideMaterials[i].IsNull())
 		{
-			if (UMaterialInterface* LoadedMat = EquipData->OverrideMaterials[i].LoadSynchronous())
+			if (UMaterialInterface* CachedMat = GetCachedMaterial(EquipData->OverrideMaterials[i]))
+			{
+				MeshComp->SetMaterial(i, CachedMat);
+			}
+			else if (UMaterialInterface* LoadedMat = EquipData->OverrideMaterials[i].LoadSynchronous())
 			{
 				MeshComp->SetMaterial(i, LoadedMat);
 			}
@@ -431,15 +603,36 @@ void AKREquipmentPreviewActor::ApplyCostumeMaterials(const FEquipDataStruct* Equ
 	{
 		if (!EquipData->OverrideMaterials[0].IsNull())
 		{
-			PreviewMesh->SetMaterial(Index1, EquipData->OverrideMaterials[0].LoadSynchronous());
+			if (UMaterialInterface* Mat = GetCachedMaterial(EquipData->OverrideMaterials[0]))
+			{
+				PreviewMesh->SetMaterial(Index1, Mat);
+			}
+			else
+			{
+				PreviewMesh->SetMaterial(Index1, EquipData->OverrideMaterials[0].LoadSynchronous());
+			}
 		}
 		if (!EquipData->OverrideMaterials[1].IsNull())
 		{
-			PreviewMesh->SetMaterial(Index2, EquipData->OverrideMaterials[1].LoadSynchronous());
+			if (UMaterialInterface* Mat = GetCachedMaterial(EquipData->OverrideMaterials[1]))
+			{
+				PreviewMesh->SetMaterial(Index2, Mat);
+			}
+			else
+			{
+				PreviewMesh->SetMaterial(Index2, EquipData->OverrideMaterials[1].LoadSynchronous());
+			}
 		}
 		if (!EquipData->OverrideMaterials[2].IsNull())
 		{
-			PreviewMesh->SetMaterial(Index3, EquipData->OverrideMaterials[2].LoadSynchronous());
+			if (UMaterialInterface* Mat = GetCachedMaterial(EquipData->OverrideMaterials[2]))
+			{
+				PreviewMesh->SetMaterial(Index3, Mat);
+			}
+			else
+			{
+				PreviewMesh->SetMaterial(Index3, EquipData->OverrideMaterials[2].LoadSynchronous());
+			}
 		}
 	}
 }
@@ -453,7 +646,14 @@ void AKREquipmentPreviewActor::ApplyHeadMaterial(const FEquipDataStruct* EquipDa
 
 	if (EquipData->OverrideMaterials.Num() >= 1 && !EquipData->OverrideMaterials[0].IsNull())
 	{
-		PreviewMesh->SetMaterial(HeadIndex, EquipData->OverrideMaterials[0].LoadSynchronous());
+		if (UMaterialInterface* Mat = GetCachedMaterial(EquipData->OverrideMaterials[0]))
+		{
+			PreviewMesh->SetMaterial(HeadIndex, Mat);
+		}
+		else
+		{
+			PreviewMesh->SetMaterial(HeadIndex, EquipData->OverrideMaterials[0].LoadSynchronous());
+		}
 	}
 }
 
@@ -468,11 +668,11 @@ void AKREquipmentPreviewActor::UpdateWeaponVisibility()
 		SpawnedGunActor->SetActorHiddenInGame(true);
 	}
 
-	if (CurrentWeaponType == KRTAG_ITEMTYPE_EQUIP_SWORD && SpawnedSwordActor)
+	if (CurrentWeaponType == KRTAG_ITEMTYPE_EQUIP_SWORD)
 	{
 		SpawnedSwordActor->SetActorHiddenInGame(false);
 	}
-	else if (CurrentWeaponType == KRTAG_ITEMTYPE_EQUIP_GUN && SpawnedGunActor)
+	else if (CurrentWeaponType == KRTAG_ITEMTYPE_EQUIP_GUN)
 	{
 		SpawnedGunActor->SetActorHiddenInGame(false);
 	}
@@ -504,7 +704,18 @@ void AKREquipmentPreviewActor::OnEquipSlotChanged(FGameplayTag Channel, const FK
 	{
 		PreviewUnequip(Msg.SlotTag);
 	}
-	CaptureNow();
+	
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(EquipChangeCaptureHandle);
+		World->GetTimerManager().SetTimer(
+			EquipChangeCaptureHandle,
+			this,
+			&AKREquipmentPreviewActor::OnDelayedEquipCapture,
+			0.033f,  // 약 2프레임 후 캡처 (60fps 기준)
+			false
+		);
+	}
 }
 
 void AKREquipmentPreviewActor::OnEquipmentUIStateChanged(FGameplayTag Channel, const FKRUIMessage_EquipmentUI& Msg)
@@ -513,8 +724,281 @@ void AKREquipmentPreviewActor::OnEquipmentUIStateChanged(FGameplayTag Channel, c
 
 	if (bIsEquipmentUIOpen)
 	{
-		SyncWithHeroCharacter();
-		PlayRandomIdleAnimation();
-		CaptureNow();
+		bAnimationsPreloaded = false;
+		bEquipAssetsPreloaded = false;
+		PreloadAnimations();
+		PreloadEquipmentAssets();
 	}
+	else
+	{
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(CaptureDebounceHandle);
+			World->GetTimerManager().ClearTimer(EquipChangeCaptureHandle);
+		}
+		bCapturePending = false;
+	}
+}
+
+void AKREquipmentPreviewActor::TryInitializeAfterPreload()
+{
+	if (!bAnimationsPreloaded || !bEquipAssetsPreloaded)
+	{
+		return;
+	}
+
+	if (!bIsEquipmentUIOpen)
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PreviewActor] All assets preloaded, initializing preview"));
+
+	SyncWithHeroCharacter();
+	PlayRandomIdleAnimation();
+	ActiveCaptureRemainingTime = ActiveCaptureDuration;
+	CaptureNow();
+}
+
+void AKREquipmentPreviewActor::PreloadAnimations()
+{
+	if (AnimPreloadHandle.IsValid() && AnimPreloadHandle->IsLoadingInProgress())
+	{
+		return;
+	}
+
+	TArray<FSoftObjectPath> AssetsToLoad;
+
+	auto CollectAnims = [&AssetsToLoad](const TArray<TSoftObjectPtr<UAnimSequence>>& AnimArray)
+	{
+		for (const auto& Anim : AnimArray)
+		{
+			if (!Anim.IsNull())
+			{
+				AssetsToLoad.AddUnique(Anim.ToSoftObjectPath());
+			}
+		}
+	};
+
+	CollectAnims(IdleAnimations);
+	CollectAnims(SwordIdleAnimations);
+	CollectAnims(GunIdleAnimations);
+
+	if (!EquipSpinAnimation.IsNull())
+	{
+		AssetsToLoad.AddUnique(EquipSpinAnimation.ToSoftObjectPath());
+	}
+
+	if (AssetsToLoad.Num() == 0)
+	{
+		bAnimationsPreloaded = true;
+		TryInitializeAfterPreload();
+		return;
+	}
+
+	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+	AnimPreloadHandle = StreamableManager.RequestAsyncLoad(
+		AssetsToLoad,
+		FStreamableDelegate::CreateUObject(this, &AKREquipmentPreviewActor::OnAnimationsPreloaded),
+		FStreamableManager::AsyncLoadHighPriority
+	);
+}
+
+void AKREquipmentPreviewActor::OnAnimationsPreloaded()
+{
+	auto CacheAnims = [this](const TArray<TSoftObjectPtr<UAnimSequence>>& AnimArray)
+	{
+		for (const auto& Anim : AnimArray)
+		{
+			if (!Anim.IsNull() && Anim.IsValid())
+			{
+				CachedAnimations.Add(Anim.ToSoftObjectPath(), Anim.Get());
+			}
+		}
+	};
+
+	CacheAnims(IdleAnimations);
+	CacheAnims(SwordIdleAnimations);
+	CacheAnims(GunIdleAnimations);
+
+	if (!EquipSpinAnimation.IsNull() && EquipSpinAnimation.IsValid())
+	{
+		CachedAnimations.Add(EquipSpinAnimation.ToSoftObjectPath(), EquipSpinAnimation.Get());
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PreviewActor] Animations preloaded: %d cached"), CachedAnimations.Num());
+
+	bAnimationsPreloaded = true;
+	TryInitializeAfterPreload();
+}
+
+UAnimSequence* AKREquipmentPreviewActor::GetCachedOrLoadAnim(const TSoftObjectPtr<UAnimSequence>& AnimRef)
+{
+	if (AnimRef.IsNull())
+	{
+		return nullptr;
+	}
+
+	if (TObjectPtr<UAnimSequence>* Found = CachedAnimations.Find(AnimRef.ToSoftObjectPath()))
+	{
+		if (*Found)
+		{
+			return *Found;
+		}
+	}
+	
+	UAnimSequence* Loaded = AnimRef.LoadSynchronous();
+	if (Loaded)
+	{
+		CachedAnimations.Add(AnimRef.ToSoftObjectPath(), Loaded);
+	}
+	return Loaded;
+}
+
+void AKREquipmentPreviewActor::PreloadEquipmentAssets()
+{
+	if (EquipAssetPreloadHandle.IsValid() && EquipAssetPreloadHandle->IsLoadingInProgress())
+	{
+		return;
+	}
+
+	TArray<FSoftObjectPath> AssetsToLoad;
+
+	UKREquipmentManagerComponent* HeroEquipMgr = GetHeroEquipmentManager();
+	if (!HeroEquipMgr)
+	{
+		bEquipAssetsPreloaded = true;
+		TryInitializeAfterPreload();
+		return;
+	}
+
+	TArray<FGameplayTag> SlotTags = {
+		KRTAG_ITEMTYPE_EQUIP_SWORD,
+		KRTAG_ITEMTYPE_EQUIP_GUN,
+		KRTAG_ITEMTYPE_EQUIP_HEAD,
+		KRTAG_ITEMTYPE_EQUIP_COSTUME
+	};
+
+	for (const FGameplayTag& SlotTag : SlotTags)
+	{
+		if (UKRInventoryItemInstance* Inst = HeroEquipMgr->GetEquippedItemInstanceBySlotTag(SlotTag))
+		{
+			const FGameplayTag& ItemTag = Inst->GetItemTag();
+			const FItemDataStruct* ItemData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+			if (!ItemData) continue;
+
+			const FEquipDataStruct* EquipData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FEquipDataStruct>(EGameDataType::EquipData, static_cast<uint32>(ItemData->EquipID));
+			if (!EquipData) continue;
+			
+			if (!EquipData->EquipmentMesh.IsNull())
+			{
+				AssetsToLoad.AddUnique(EquipData->EquipmentMesh.ToSoftObjectPath());
+			}
+
+			for (const TSoftObjectPtr<UMaterialInterface>& MatRef : EquipData->OverrideMaterials)
+			{
+				if (!MatRef.IsNull())
+				{
+					AssetsToLoad.AddUnique(MatRef.ToSoftObjectPath());
+				}
+			}
+		}
+	}
+
+	if (AssetsToLoad.Num() == 0)
+	{
+		bEquipAssetsPreloaded = true;
+		TryInitializeAfterPreload();
+		return;
+	}
+
+	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+	EquipAssetPreloadHandle = StreamableManager.RequestAsyncLoad(
+		AssetsToLoad,
+		FStreamableDelegate::CreateUObject(this, &AKREquipmentPreviewActor::OnEquipmentAssetsPreloaded),
+		FStreamableManager::AsyncLoadHighPriority
+	);
+}
+
+void AKREquipmentPreviewActor::OnEquipmentAssetsPreloaded()
+{
+	if (!EquipAssetPreloadHandle.IsValid())
+	{
+		return;
+	}
+
+	TArray<UObject*> LoadedAssets;
+	EquipAssetPreloadHandle->GetLoadedAssets(LoadedAssets);
+
+	for (UObject* Asset : LoadedAssets)
+	{
+		if (UMaterialInterface* Mat = Cast<UMaterialInterface>(Asset))
+		{
+			FSoftObjectPath Path(Mat);
+			CachedMaterials.Add(Path, Mat);
+		}
+		else if (UStaticMesh* Mesh = Cast<UStaticMesh>(Asset))
+		{
+			FSoftObjectPath Path(Mesh);
+			CachedMeshes.Add(Path, Mesh);
+		}
+	}
+	bEquipAssetsPreloaded = true;
+	TryInitializeAfterPreload();
+}
+
+UMaterialInterface* AKREquipmentPreviewActor::GetCachedMaterial(const TSoftObjectPtr<UMaterialInterface>& SoftPtr) const
+{
+	if (SoftPtr.IsNull())
+	{
+		return nullptr;
+	}
+
+	if (SoftPtr.IsValid())
+	{
+		return SoftPtr.Get();
+	}
+
+	if (const TObjectPtr<UMaterialInterface>* Found = CachedMaterials.Find(SoftPtr.ToSoftObjectPath()))
+	{
+		if (*Found)
+		{
+			return *Found;
+		}
+	}
+
+	return nullptr;
+}
+
+UStaticMesh* AKREquipmentPreviewActor::GetCachedMesh(const TSoftObjectPtr<UStaticMesh>& SoftPtr) const
+{
+	if (SoftPtr.IsNull())
+	{
+		return nullptr;
+	}
+
+	if (SoftPtr.IsValid())
+	{
+		return SoftPtr.Get();
+	}
+
+	if (const TObjectPtr<UStaticMesh>* Found = CachedMeshes.Find(SoftPtr.ToSoftObjectPath()))
+	{
+		if (*Found)
+		{
+			return *Found;
+		}
+	}
+
+	return nullptr;
+}
+
+void AKREquipmentPreviewActor::OnDelayedEquipCapture()
+{
+	if (!bIsEquipmentUIOpen)
+	{
+		return;
+	}
+
+	CaptureNow();
 }

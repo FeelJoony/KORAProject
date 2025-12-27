@@ -2,6 +2,7 @@
 
 
 #include "UI/Equipment/KREquipmentMain.h"
+#include "UI/Equipment/KREquipmentPreviewActor.h"
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Modal/KRConfirmModal.h"
@@ -9,6 +10,11 @@
 #include "SubSystem/KRUIRouterSubsystem.h"
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "GameplayTag/KRItemTypeTag.h"
+#include "Components/Image.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Styling/SlateBrush.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UKREquipmentMain::NativeOnActivated()
 {
@@ -30,6 +36,7 @@ void UKREquipmentMain::NativeOnActivated()
 	FKRUIMessage_EquipmentUI Msg;
 	Msg.bIsOpen = true;
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipmentUI(), Msg);
+	BindPreviewRenderTarget();
 }
 
 void UKREquipmentMain::NativeOnDeactivated()
@@ -100,8 +107,14 @@ void UKREquipmentMain::NativeDestruct()
 		EquipInventorySlot->OnSlotClicked.RemoveAll(this);
 	}
 
-	UGameplayMessageSubsystem::Get(this).UnregisterListener(EquipMessageHandle);
-	UGameplayMessageSubsystem::Get(this).UnregisterListener(ConfirmMessageHandle);
+	if (EquipMessageHandle.IsValid())
+	{
+		UGameplayMessageSubsystem::Get(this).UnregisterListener(EquipMessageHandle);
+	}
+	if (ConfirmMessageHandle.IsValid())
+	{
+		UGameplayMessageSubsystem::Get(this).UnregisterListener(ConfirmMessageHandle);
+	}
 
 	Super::NativeDestruct();
 }
@@ -541,25 +554,19 @@ int32 UKREquipmentMain::FindNextNonEmptySlot(int32 Current, ENavDir Dir) const
 	if (Cols <= 0 || Num <= 0) return Current;
 
 	int32 Next = StepGrid(Current, Dir, Cols, Num);
-
-	// If no movement, return current
+	
 	if (Next == Current) return Current;
-
-	// If the next slot is not empty, return it
 	if (!IsCategorySlotEmpty(Next))
 	{
 		return Next;
 	}
-
-	// Find the next non-empty slot in the same direction
+	
 	int32 SearchIdx = Next;
 	const int32 MaxIterations = Num;
 
 	for (int32 i = 0; i < MaxIterations; ++i)
 	{
 		int32 TryNext = StepGrid(SearchIdx, Dir, Cols, Num);
-
-		// No more movement possible in this direction
 		if (TryNext == SearchIdx)
 		{
 			break;
@@ -572,7 +579,98 @@ int32 UKREquipmentMain::FindNextNonEmptySlot(int32 Current, ENavDir Dir) const
 			return SearchIdx;
 		}
 	}
-
-	// No non-empty slot found, stay at current
 	return Current;
+}
+
+UWidget* UKREquipmentMain::NativeGetDesiredFocusTarget() const
+{
+	if (EquipCategorySlot && EquipCategorySlot->GetVisibility() == ESlateVisibility::Visible)
+	{
+		return EquipCategorySlot;
+	}
+	return Super::NativeGetDesiredFocusTarget();
+}
+
+void UKREquipmentMain::BindPreviewRenderTarget()
+{
+	if (!PreviewImage)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Equipment] PreviewImage widget not found! Check WBP for 'PreviewImage' named Image widget."));
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Equipment] World is null."));
+		return;
+	}
+
+	if (!CachedPreviewActor.IsValid())
+	{
+		TArray<AActor*> Found;
+		UGameplayStatics::GetAllActorsOfClass(World, AKREquipmentPreviewActor::StaticClass(), Found);
+		if (Found.Num() > 0)
+		{
+			CachedPreviewActor = Cast<AKREquipmentPreviewActor>(Found[0]);
+		}
+	}
+
+	if (!CachedPreviewActor.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Equipment] No AKREquipmentPreviewActor found in world. Place one in the level!"));
+		return;
+	}
+
+	UTextureRenderTarget2D* RT = CachedPreviewActor->GetActiveRenderTarget();
+	if (!RT)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Equipment] PreviewActor has no active RenderTarget! Check bCreateRuntimeRT setting."));
+		return;
+	}
+	
+	if (PreviewMID)
+	{
+		PreviewMID->SetTextureParameterValue(TEXT("RenderTarget"), RT);
+		return;
+	}
+
+	if (!CachedBaseMaterial)
+	{
+		if (!PreviewMaterialAsset.IsNull())
+		{
+			CachedBaseMaterial = PreviewMaterialAsset.LoadSynchronous();
+		}
+		else if (PreviewImage)
+		{
+			const FSlateBrush& ExistingBrush = PreviewImage->GetBrush();
+			if (UObject* Resource = ExistingBrush.GetResourceObject())
+			{
+				CachedBaseMaterial = Cast<UMaterialInterface>(Resource);
+			}
+		}
+	}
+	
+	if (CachedBaseMaterial)
+	{
+		PreviewMID = UMaterialInstanceDynamic::Create(CachedBaseMaterial, this);
+		if (PreviewMID)
+		{
+			FSlateBrush Brush;
+			Brush.SetResourceObject(PreviewMID);
+			Brush.ImageSize = FVector2D(RT->SizeX, RT->SizeY);
+			Brush.DrawAs = ESlateBrushDrawType::Image;
+			Brush.Tiling = ESlateBrushTileType::NoTile;
+			PreviewImage->SetBrush(Brush);
+			return;
+		}
+	}
+	
+	FSlateBrush Brush;
+	Brush.SetResourceObject(RT);
+	Brush.ImageSize = FVector2D(RT->SizeX, RT->SizeY);
+	Brush.DrawAs = ESlateBrushDrawType::Image;
+	Brush.Tiling = ESlateBrushTileType::NoTile;
+	Brush.ImageType = ESlateBrushImageType::FullColor;
+	PreviewImage->SetBrush(Brush);
 }
