@@ -7,6 +7,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/KRHeroComponent.h"
 #include "Components/KRPawnExtensionComponent.h"
+#include "Components/KRStaminaComponent.h"
+#include "Components/KRCoreDriveComponent.h"
+#include "Components/KRGuardRegainComponent.h"
 #include "MotionWarpingComponent.h"
 
 AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
@@ -19,6 +22,12 @@ AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 	HeroComponent = CreateDefaultSubobject<UKRHeroComponent>(TEXT("HeroComponent"));
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+
+	StaminaComponent = CreateDefaultSubobject<UKRStaminaComponent>(TEXT("StaminaComponent"));
+
+	CoreDriveComponent = CreateDefaultSubobject<UKRCoreDriveComponent>(TEXT("CoreDriveComponent"));
+
+	GuardRegainComponent = CreateDefaultSubobject<UKRGuardRegainComponent>(TEXT("GuardRegainComponent"));
 
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
 

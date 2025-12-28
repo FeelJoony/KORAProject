@@ -8,6 +8,9 @@
 class UMotionWarpingComponent;
 class UKRHeroComponent;
 class UKRCameraComponent;
+class UKRStaminaComponent;
+class UKRCoreDriveComponent;
+class UKRGuardRegainComponent;
 
 UCLASS()
 class KORAPROJECT_API AKRHeroCharacter : public AKRBaseCharacter, public IKRCameraAssistInterface
@@ -31,7 +34,16 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Component")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Component")
+	TObjectPtr<UKRStaminaComponent> StaminaComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Component")
+	TObjectPtr<UKRCoreDriveComponent> CoreDriveComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Component")
+	TObjectPtr<UKRGuardRegainComponent> GuardRegainComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UActorComponent> CachedOutlinerComponent;
 
