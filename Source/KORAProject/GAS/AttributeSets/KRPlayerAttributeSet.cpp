@@ -2,11 +2,11 @@
 
 UKRPlayerAttributeSet::UKRPlayerAttributeSet()
 {
-	InitCurrentStamina(1.f);
-	InitMaxStamina(1.f);
+	InitCurrentStamina(100.f);
+	InitMaxStamina(100.f);
+	InitStaminaRegenRate(30.f);
+	InitStaminaRegenDelay(0.5f);
 	InitGreyHP(0.f);
-	InitStaminaRegenRate(1.f);
-	InitStaminaRegenDelay(1.f);
 	InitCoreDrive(0.f);
 	InitMaxCoreDrive(60.f);
 }

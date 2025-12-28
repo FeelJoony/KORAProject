@@ -14,16 +14,9 @@ class UCameraShakeBase;
 UENUM(BlueprintType)
 enum class EKRAttackShapeType : uint8
 {
-	// 전방 박스 형태 (찌르기, 내려치기)
 	Box UMETA(DisplayName = "Box"),
-
-	// 구형 (타격 시점 범위)
 	Sphere UMETA(DisplayName = "Sphere"),
-
-	// 원뿔형 (베기 공격) - 여러 Line Trace로 구현
 	Cone UMETA(DisplayName = "Cone"),
-
-	// 캡슐형 (회전 공격)
 	Capsule UMETA(DisplayName = "Capsule")
 };
 
@@ -59,45 +52,35 @@ struct KORAPROJECT_API FKRMeleeAttackConfig
 	// ─────────────────────────────────────────────────────
 	// 히트 감지 설정
 	// ─────────────────────────────────────────────────────
-
-	// 공격 형태 (Cone, Box, Sphere, Capsule)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection")
 	EKRAttackShapeType AttackShape;
-
-	// 공격 사거리
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection")
 	float AttackRange;
-
-	// 원뿔 각도 (AttackShape == Cone일 때)
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection",
 		meta = (EditCondition = "AttackShape == EKRAttackShapeType::Cone", EditConditionHides, ClampMin = "10.0", ClampMax = "180.0"))
 	float ConeAngle;
 
-	// 박스 크기 (AttackShape == Box일 때)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection",
 		meta = (EditCondition = "AttackShape == EKRAttackShapeType::Box", EditConditionHides))
 	FVector BoxExtent;
-
-	// 구체 반지름 (AttackShape == Sphere일 때)
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection",
 		meta = (EditCondition = "AttackShape == EKRAttackShapeType::Sphere", EditConditionHides))
 	float SphereRadius;
-
-	// 캡슐 반지름 (AttackShape == Capsule일 때)
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection",
 		meta = (EditCondition = "AttackShape == EKRAttackShapeType::Capsule", EditConditionHides))
 	float CapsuleRadius;
-
-	// 캡슐 절반 높이 (AttackShape == Capsule일 때)
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection",
 		meta = (EditCondition = "AttackShape == EKRAttackShapeType::Capsule", EditConditionHides))
 	float CapsuleHalfHeight;
-
-	// 다중 히트 허용 여부
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection")
 	bool bCanHitMultiple;
-
-	// 한 번 휘두르기로 최대 히트 수
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection",
 		meta = (EditCondition = "bCanHitMultiple", EditConditionHides, ClampMin = "1", ClampMax = "20"))
 	int32 MaxHitCount;
@@ -105,53 +88,42 @@ struct KORAPROJECT_API FKRMeleeAttackConfig
 	// ─────────────────────────────────────────────────────
 	// 데미지 설정
 	// ─────────────────────────────────────────────────────
-
-	// 데미지 배율 (무기 기본 데미지에 곱함)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	float DamageMultiplier;
-
-	// 히트 강도 (HitReaction에 전달)
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	EKRHitIntensity HitIntensity;
-
-	// 넉백 거리 (0이면 넉백 없음, HitReaction에 전달)
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	float KnockbackDistance = 0.0f;
 
 	// ─────────────────────────────────────────────────────
 	// 모션 워핑 설정
 	// ─────────────────────────────────────────────────────
-
-	// 타겟 없을 때 전방 이동 거리
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping")
 	float WarpDistance;
-
-	// 타겟과 최소 접근 거리 (겹침 방지)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping")
-	float MinApproachDistance = 100.0f;
-
-	// 타겟 탐지 범위
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping", meta = (ClampMin = "80.0", ClampMax = "200.0"))
+	float MinApproachDistance = 110.0f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping")
 	float TargetSearchRadius = 500.0f;
 
 	// ─────────────────────────────────────────────────────
 	// 타격감 설정
 	// ─────────────────────────────────────────────────────
-
-	// 히트스톱 사용 여부
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
 	bool bUseHitStop;
-
-	// 히트스톱 지속 시간
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback",
 		meta = (EditCondition = "bUseHitStop", EditConditionHides, ClampMin = "0.01", ClampMax = "0.5"))
 	float HitStopDuration;
-
-	// 카메라 쉐이크 사용 여부
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
 	bool bUseCameraShake;
-
-	// 히트 시 카메라 쉐이크
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback",
 		meta = (EditCondition = "bUseCameraShake", EditConditionHides))
 	TSubclassOf<UCameraShakeBase> HitCameraShake;
