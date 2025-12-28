@@ -5,7 +5,6 @@
 #include "Data/KRGuardTypes.h"
 #include "KRGA_HeroGuard.generated.h"
 
-class UAbilityTask_WaitInputRelease;
 class UAbilityTask_WaitGameplayEvent;
 class UAbilityTask_PlayMontageAndWait;
 class UKRStaminaComponent;
@@ -27,6 +26,7 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 	// ─────────────────────────────────────────
 	// 외부 호출용 (데미지 시스템에서 호출)
@@ -124,9 +124,6 @@ protected:
 	// ─────────────────────────────────────────
 
 	UFUNCTION()
-	void OnGuardInputReleased(float TimeHeld);
-
-	UFUNCTION()
 	void OnGuardBrokenEventReceived(FGameplayEventData Payload);
 
 	UFUNCTION()
@@ -156,9 +153,6 @@ protected:
 	FTimerHandle GuardBreakTimer;
 
 	/** 태스크들 */
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitInputRelease> InputReleaseTask;
-
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitGameplayEvent> GuardBrokenEventTask;
 

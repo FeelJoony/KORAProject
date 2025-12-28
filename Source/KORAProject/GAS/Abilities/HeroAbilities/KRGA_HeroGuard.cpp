@@ -1,7 +1,6 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_HeroGuard.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Components/KRStaminaComponent.h"
@@ -31,14 +30,6 @@ void UKRGA_HeroGuard::ActivateAbility(
 
 	// 가드 상태 시작
 	StartGuardState();
-
-	// 입력 해제 대기
-	InputReleaseTask = UAbilityTask_WaitInputRelease::WaitInputRelease(this, true);
-	if (InputReleaseTask)
-	{
-		InputReleaseTask->OnRelease.AddDynamic(this, &ThisClass::OnGuardInputReleased);
-		InputReleaseTask->ReadyForActivation();
-	}
 
 	// 가드 브레이크 이벤트 대기
 	GuardBrokenEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
@@ -399,15 +390,20 @@ void UKRGA_HeroGuard::OnGuardBreakEnded()
 // 이벤트 핸들러
 // ─────────────────────────────────────────────────────
 
-void UKRGA_HeroGuard::OnGuardInputReleased(float TimeHeld)
+void UKRGA_HeroGuard::InputReleased(
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+
 	// 가드 브레이크 중에는 입력 무시
 	if (CurrentGuardState == EGuardState::GuardBroken)
 	{
 		return;
 	}
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 void UKRGA_HeroGuard::OnGuardBrokenEventReceived(FGameplayEventData Payload)
