@@ -5,6 +5,7 @@
 #include "KRGA_HeroSprint.generated.h"
 
 class UAbilityTask_WaitDelay;
+class UKRStaminaComponent;
 
 UCLASS()
 class KORAPROJECT_API UKRGA_HeroSprint : public UKRGameplayAbility
@@ -36,6 +37,10 @@ protected:
 	FGameplayTag StepAbilityTag;
 	UPROPERTY(EditDefaultsOnly, Category=KRAbility)
 	FGameplayTag JumpAbilityTag;
+
+	/** 달리기 중 스태미나 소모량 (초당) */
+	UPROPERTY(EditDefaultsOnly, Category = "KRAbility|Stamina")
+	float SprintStaminaCostPerSecond = 8.0f;
 	
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitDelay> EndDelayTask;

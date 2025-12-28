@@ -2,6 +2,7 @@
 
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystemComponent.h"
+#include "Components/KRStaminaComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -27,7 +28,14 @@ void UKRGA_HeroSprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		InitialWalkSpeed = MovementComponent->MaxWalkSpeed;
 	}
-	
+
+	// 스태미나 지속 소모 시작
+	if (UKRStaminaComponent* StaminaComp = Char->FindComponentByClass<UKRStaminaComponent>())
+	{
+		StaminaComp->StartContinuousConsumption(SprintStaminaCostPerSecond);
+		StaminaComp->SetRecoveryState(EStaminaRecoveryState::Sprinting);
+	}
+
 	GetWorld()->GetTimerManager().SetTimer(
 		SprintChargeTimerHandle,
 		this,
@@ -46,16 +54,16 @@ void UKRGA_HeroSprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 		{
 			Move->MaxWalkSpeed = WalkSpeed;
 		}
-	}
-	GetWorld()->GetTimerManager().ClearTimer(SprintChargeTimerHandle);
-	if (ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
-	{
-		if (UCharacterMovementComponent* Move = Char->GetCharacterMovement())
+
+		// 스태미나 지속 소모 중지 및 회복 상태 복원
+		if (UKRStaminaComponent* StaminaComp = Char->FindComponentByClass<UKRStaminaComponent>())
 		{
-			// 이 부분도 보간
-			Move->MaxWalkSpeed = WalkSpeed;
+			StaminaComp->StopContinuousConsumption();
+			StaminaComp->SetRecoveryState(EStaminaRecoveryState::Normal);
 		}
 	}
+
+	GetWorld()->GetTimerManager().ClearTimer(SprintChargeTimerHandle);
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -121,6 +129,17 @@ void UKRGA_HeroSprint::UpdateSprintSpeed()
 		GetWorld()->GetTimerManager().ClearTimer(SprintChargeTimerHandle);
 		return;
 	}
+
+	// 스태미나가 0이면 달리기 중단
+	if (UKRStaminaComponent* StaminaComp = Char->FindComponentByClass<UKRStaminaComponent>())
+	{
+		if (StaminaComp->GetCurrentStamina() <= 0.f)
+		{
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+			return;
+		}
+	}
+
 	CurrentChargeTime += 0.01f;
 	float Alpha = FMath::Clamp(CurrentChargeTime / SprintChargeTime, 0.0f, 1.0f);
 	float NewSpeed = FMath::Lerp(InitialWalkSpeed, SprintSpeed, Alpha);
