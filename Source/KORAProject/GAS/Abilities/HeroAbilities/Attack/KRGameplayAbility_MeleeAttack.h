@@ -70,15 +70,9 @@ protected:
 	// ─────────────────────────────────────────────────────
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|MotionWarping")
 	bool bUseMotionWarping = true;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|MotionWarping")
 	FName WarpTargetName = FName("AttackWarp");
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|MotionWarping", meta = (ClampMin = "80.0", ClampMax = "200.0"))
-	float MinApproachDistance = 110.0f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|MotionWarping")
-	float TargetSearchRadius = 500.0f;
 
 	// ─────────────────────────────────────────────────────
 	// 데미지
@@ -117,7 +111,7 @@ protected:
 	UMotionWarpingComponent* GetMotionWarpingComponent() const;
 	UAnimMontage* GetCurrentMontage() const;
 	void SetupMotionWarping();
-	AActor* FindBestTarget(const FKRMeleeAttackConfig& Config) const;
+	AActor* FindBestTarget() const;
 	bool PerformShapeTrace(TArray<FHitResult>& OutHitResults) const;
 	bool PerformConeTrace(TArray<FHitResult>& OutHitResults) const;
 	bool PerformBoxTrace(TArray<FHitResult>& OutHitResults) const;

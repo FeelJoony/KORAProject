@@ -106,9 +106,6 @@ struct KORAPROJECT_API FKRMeleeAttackConfig
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping", meta = (ClampMin = "80.0", ClampMax = "200.0"))
 	float MinApproachDistance = 110.0f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping")
-	float TargetSearchRadius = 500.0f;
 
 	// ─────────────────────────────────────────────────────
 	// 타격감 설정

@@ -228,7 +228,7 @@ void UKRGameplayAbility_MeleeAttack::SetupMotionWarping()
 	if (!AvatarActor) return;
 
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	AActor* TargetActor = FindBestTarget(Config);
+	AActor* TargetActor = FindBestTarget();
 
 	if (TargetActor)
 	{
@@ -273,11 +273,11 @@ void UKRGameplayAbility_MeleeAttack::SetupMotionWarping()
 	}
 }
 
-AActor* UKRGameplayAbility_MeleeAttack::FindBestTarget(const FKRMeleeAttackConfig& Config) const
+AActor* UKRGameplayAbility_MeleeAttack::FindBestTarget() const
 {
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
 	if (!AvatarActor) return nullptr;
-	
+
 	return UKRGA_LockOn::GetLockedTargetFor(AvatarActor);
 }
 
@@ -501,32 +501,37 @@ void UKRGameplayAbility_MeleeAttack::ApplyHitToTarget(AActor* HitActor, const FH
 	}
 
 	// 6. 코어드라이브 충전 이벤트 전송 (공격자에게)
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (AvatarActor)
+	// 타겟이 유효한 전투 대상(ASC 보유)인 경우에만 충전
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
+	if (TargetASC)
 	{
-		// 기본 공격력 * 스킬 배율을 이벤트 데이터로 전달
-		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
-		float AttackPower = 1.0f;
-		if (SourceASC)
+		AActor* AvatarActor = GetAvatarActorFromActorInfo();
+		if (AvatarActor)
 		{
-			if (const UKRCombatCommonSet* CombatSet = SourceASC->GetSet<UKRCombatCommonSet>())
+			// 기본 공격력 * 스킬 배율을 이벤트 데이터로 전달
+			UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+			float AttackPower = 1.0f;
+			if (SourceASC)
 			{
-				AttackPower = CombatSet->GetAttackPower();
+				if (const UKRCombatCommonSet* CombatSet = SourceASC->GetSet<UKRCombatCommonSet>())
+				{
+					AttackPower = CombatSet->GetAttackPower();
+				}
 			}
+			float BaseDamage = AttackPower * Config.DamageMultiplier;
+
+			FGameplayEventData ChargeEvent;
+			ChargeEvent.EventTag = KRTAG_EVENT_COREDRIVE_CHARGE_ONHIT;
+			ChargeEvent.EventMagnitude = BaseDamage;
+			ChargeEvent.Instigator = AvatarActor;
+			ChargeEvent.Target = HitActor;
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				AvatarActor,
+				KRTAG_EVENT_COREDRIVE_CHARGE_ONHIT,
+				ChargeEvent
+			);
 		}
-		float BaseDamage = AttackPower * Config.DamageMultiplier;
-
-		FGameplayEventData ChargeEvent;
-		ChargeEvent.EventTag = KRTAG_EVENT_COREDRIVE_CHARGE_ONHIT;
-		ChargeEvent.EventMagnitude = BaseDamage;
-		ChargeEvent.Instigator = AvatarActor;
-		ChargeEvent.Target = HitActor;
-
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
-			AvatarActor,
-			KRTAG_EVENT_COREDRIVE_CHARGE_ONHIT,
-			ChargeEvent
-		);
 	}
 }
 
