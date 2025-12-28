@@ -1,5 +1,6 @@
 #include "Characters/KREnemyCharacter.h"
 #include "Components/KRPawnExtensionComponent.h"
+#include "Components/KRCharacterMovementComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
@@ -18,7 +19,7 @@
 #include "KORADebugHelper.h"
 
 AKREnemyCharacter::AKREnemyCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UKRCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
