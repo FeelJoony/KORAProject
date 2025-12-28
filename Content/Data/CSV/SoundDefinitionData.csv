@@ -30,4 +30,8 @@ Sound.Combat.Sword.Attack.Combo2,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Com
 Sound.Combat.Sword.Attack.Combo3,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Sword_Attack_Combo3.DA_Sound_Combat_Sword_Attack_Combo3,Attack Combo3,TRUE
 Sound.Damage.Hit.Enemy,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Hit_Blood.DA_Sound_Combat_Hit_Blood,Hit Blood,TRUE
 Sound.Combat.Sword.ChargeStart,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Sword_ChargeStart.DA_Sound_Combat_Sword_ChargeStart,Charge Start,TRUE
-,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Sword_ChargeAttack.DA_Sound_Combat_Sword_ChargeAttack,Charge Attack,TRUE
+Sound.Combat.Sword.ChargeAttack,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Sword_ChargeAttack.DA_Sound_Combat_Sword_ChargeAttack,Charge Attack,TRUE
+Sound.Combat.Sword.Attack.Voice01,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Combat_Attack_Voice01.DA_Sound_Combat_Attack_Voice01,Attack Voice01,TRUE
+Sound.Combat.Sword.Attack.Voice02,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Combat_Attack_Voice02.DA_Sound_Combat_Attack_Voice02,Attack Voice02,TRUE
+Sound.Combat.Sword.Attack.Voice03,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Combat_Attack_Voice03.DA_Sound_Combat_Attack_Voice03,Attack Voice03,TRUE
+Sound.Combat.Sword.Attack.Voice04,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Combat_Attack_Voice04.DA_Sound_Combat_Attack_Voice04,Attack Voice04,TRUE
