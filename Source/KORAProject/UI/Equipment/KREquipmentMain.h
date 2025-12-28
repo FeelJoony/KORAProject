@@ -11,6 +11,10 @@
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UKRItemSlotBase;
+class UImage;
+class AKREquipmentPreviewActor;
+class UMaterialInterface;
+class UMaterialInstanceDynamic;
 
 UENUM(BlueprintType)
 enum class EFocusRegion : uint8
@@ -31,6 +35,7 @@ public:
 	UPROPERTY(meta = (BindWidget)) UKRSlotGridBase* EquipCategorySlot = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKRSlotGridBase* EquipInventorySlot = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKRItemDescriptionBase* ModuleDescription = nullptr;
+	UPROPERTY(meta = (BindWidgetOptional)) UImage* PreviewImage = nullptr;
 
 protected:
 	virtual void NativeOnActivated() override;
@@ -38,6 +43,8 @@ protected:
 
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+	
+	virtual UWidget* NativeGetDesiredFocusTarget() const override;
 
 private:
 	UPROPERTY() TArray<FGameplayTag> CategorySlotOrder;
@@ -48,6 +55,15 @@ private:
 	TArray<FKRItemUIData> InventorySlotUIData;
 	FGameplayMessageListenerHandle EquipMessageHandle;
 	FGameplayMessageListenerHandle ConfirmMessageHandle;
+
+	UPROPERTY()
+	TWeakObjectPtr<AKREquipmentPreviewActor> CachedPreviewActor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Preview")
+	TSoftObjectPtr<UMaterialInterface> PreviewMaterialAsset;
+
+	UPROPERTY() TObjectPtr<UMaterialInterface> CachedBaseMaterial;
+	UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> PreviewMID;
 
 	void InitializeCategoryOrder();
 	void RefreshEquippedCategoryIcons();
@@ -90,4 +106,6 @@ private:
 	bool IsCategorySlotEmpty(int32 Index) const;
 	int32 FindFirstNonEmptySlot() const;
 	int32 FindNextNonEmptySlot(int32 Current, ENavDir Dir) const;
+
+	void BindPreviewRenderTarget();
 };

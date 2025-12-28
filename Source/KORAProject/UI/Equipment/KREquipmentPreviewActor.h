@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Engine/StreamableManager.h"
 #include "KREquipmentPreviewActor.generated.h"
 
 class USkeletalMeshComponent;
@@ -13,6 +14,8 @@ class USceneCaptureComponent2D;
 class UTextureRenderTarget2D;
 class UKRInventoryItemInstance;
 class UAnimSequence;
+class UStaticMesh;
+class UMaterialInterface;
 struct FEquipDataStruct;
 struct FKRUIMessage_EquipSlot;
 struct FKRUIMessage_EquipmentUI;
@@ -43,13 +46,24 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Animation")
 	TArray<TSoftObjectPtr<UAnimSequence>> GunIdleAnimations;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Animation")
-	float AnimBlendTime = 0.25f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Capture")
 	TSoftObjectPtr<UTextureRenderTarget2D> RenderTarget;
+	UPROPERTY(BlueprintReadOnly, Category = "Preview|Capture")
+	TObjectPtr<UTextureRenderTarget2D> RuntimeRenderTarget;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Capture")
-	bool bCaptureEveryFrame = true;
+	bool bCaptureEveryFrame = false;  // 성능 최적화: 기본값 false
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Capture")
+	bool bCreateRuntimeRT = true;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Capture")
+	float CaptureInterval = 0.066f;  // 약 15fps로 캡처 (성능 최적화)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Capture")
+	float CaptureDebounceTime = 0.05f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Capture")
+	int32 RenderTargetWidth = 1024;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Capture")
+	int32 RenderTargetHeight = 1024;
 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview|Weapon")
@@ -80,6 +94,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Preview")
 	void CaptureNow();
+	
+	UFUNCTION(BlueprintPure, Category = "Preview")
+	UTextureRenderTarget2D* GetActiveRenderTarget() const;
 
 	UFUNCTION(BlueprintPure, Category = "Preview")
 	FGameplayTag GetEquippedWeaponType() const { return CurrentWeaponType; }
@@ -110,16 +127,44 @@ protected:
 	TMap<FGameplayTag, FGameplayTag> EquippedItems; // SlotTag -> ItemTag
 
 	bool bIsPlayingSpinAnim = false;
+	float CaptureTimer = 0.0f;
+
+	float ActiveCaptureRemainingTime = 0.0f;
+	static constexpr float ActiveCaptureDuration = 2.0f;  // 활동 후 2초간 캡처
+
+	FTimerHandle CaptureDebounceHandle;
+	bool bCapturePending = false;
+	FTimerHandle EquipChangeCaptureHandle;
+	void OnDelayedEquipCapture();
 
 	FGameplayTag PendingWeaponType;
 	FGameplayMessageListenerHandle EquipMessageHandle;
 	FGameplayMessageListenerHandle EquipUIMessageHandle;
 	bool bIsEquipmentUIOpen = false;
+	
+	UPROPERTY() TMap<FSoftObjectPath, TObjectPtr<UAnimSequence>> CachedAnimations;
+	UPROPERTY() TMap<FSoftObjectPath, TObjectPtr<UMaterialInterface>> CachedMaterials;
+	UPROPERTY() TMap<FSoftObjectPath, TObjectPtr<UStaticMesh>> CachedMeshes;
+	
+	TSharedPtr<FStreamableHandle> AnimPreloadHandle;
+	TSharedPtr<FStreamableHandle> EquipAssetPreloadHandle;
+
+	bool bAnimationsPreloaded = false;
+	bool bEquipAssetsPreloaded = false;
+	void TryInitializeAfterPreload();
+
+	void PreloadEquipmentAssets();
+	void OnEquipmentAssetsPreloaded();
+
+	UMaterialInterface* GetCachedMaterial(const TSoftObjectPtr<UMaterialInterface>& SoftPtr) const;
+	UStaticMesh* GetCachedMesh(const TSoftObjectPtr<UStaticMesh>& SoftPtr) const;
 
 private:
 	void InitializeComponents();
 	void SetupSceneCapture();
 	void SpawnWeaponActors();
+
+	void ExecuteDebouncedCapture();
 
 	void ApplyEquipmentVisual(const FGameplayTag& SlotTag, const FEquipDataStruct* EquipData);
 	void ApplyWeaponMesh(const FEquipDataStruct* EquipData, bool bIsSword);
@@ -134,6 +179,10 @@ private:
 	TArray<TSoftObjectPtr<UAnimSequence>>& GetCurrentIdleAnimArray();
 
 	void OnSpinAnimFinished();
+
+	void PreloadAnimations();
+	void OnAnimationsPreloaded();
+	UAnimSequence* GetCachedOrLoadAnim(const TSoftObjectPtr<UAnimSequence>& AnimRef);
 
 	class UKREquipmentManagerComponent* GetHeroEquipmentManager() const;
 

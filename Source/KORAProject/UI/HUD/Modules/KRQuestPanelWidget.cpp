@@ -33,7 +33,10 @@ void UKRQuestPanelWidget::UnbindAll()
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
-		Subsys.UnregisterListener(QuestListener);
+		if (QuestListener.IsValid())
+		{
+			Subsys.UnregisterListener(QuestListener);
+		}
 	}
 }
 

@@ -54,8 +54,14 @@ void UKRPlayerStatusWidget::UnbindAll()
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
-		Subsys.UnregisterListener(WeaponMessageHandle);
-		Subsys.UnregisterListener(GuardMessageHandle);
+		if (WeaponMessageHandle.IsValid())
+		{
+			Subsys.UnregisterListener(WeaponMessageHandle);
+		}
+		if (GuardMessageHandle.IsValid())
+		{
+			Subsys.UnregisterListener(GuardMessageHandle);
+		}
 
 		FTimerManager& TM = World->GetTimerManager();
 		TM.ClearTimer(HealthAnimTimerHandle);
@@ -415,7 +421,7 @@ void UKRPlayerStatusWidget::StartHealthAnim()
 			HealthAnimTimerHandle,
 			this,
 			&ThisClass::TickHealthAnim,
-			0.01f,
+			0.016f,  // 60fps (0.01f에서 최적화)
 			true
 		);
 	}
@@ -433,7 +439,13 @@ void UKRPlayerStatusWidget::TickHealthAnim()
 			: 1.f;
 
 		const float NewPercent = FMath::Lerp(HealthDisplayPercent, HealthTargetPercent, Alpha);
-		MainHPBar->SetPercent(NewPercent);
+
+		// Slate Invalidation 최소화: 값이 변경될 때만 업데이트
+		const float CurrentPercent = MainHPBar->GetPercent();
+		if (!FMath::IsNearlyEqual(CurrentPercent, NewPercent, 0.001f))
+		{
+			MainHPBar->SetPercent(NewPercent);
+		}
 
 		if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
 		{
@@ -457,7 +469,7 @@ void UKRPlayerStatusWidget::StartGreyHPAnim()
 			GreyHPAnimTimerHandle,
 			this,
 			&ThisClass::TickGreyHPAnim,
-			0.01f,
+			0.016f,  // 60fps (0.01f에서 최적화)
 			true
 		);
 	}
@@ -475,8 +487,13 @@ void UKRPlayerStatusWidget::TickGreyHPAnim()
 			: 1.f;
 
 		const float NewPercent = FMath::Lerp(GreyHPDisplayPercent, GreyHPTargetPercent, Alpha);
-		GreyHPDisplayPercent = NewPercent;
-		UpdateGreyHPBar(GreyHPDisplayPercent);
+
+		// Slate Invalidation 최소화: 값이 변경될 때만 업데이트
+		if (!FMath::IsNearlyEqual(GreyHPDisplayPercent, NewPercent, 0.001f))
+		{
+			GreyHPDisplayPercent = NewPercent;
+			UpdateGreyHPBar(GreyHPDisplayPercent);
+		}
 
 		if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
 		{
@@ -500,7 +517,7 @@ void UKRPlayerStatusWidget::StartStaminaAnim()
 			StaminaAnimTimerHandle,
 			this,
 			&ThisClass::TickStaminaAnim,
-			0.01f,
+			0.016f,  // 60fps (0.01f에서 최적화)
 			true
 		);
 	}
@@ -516,7 +533,13 @@ void UKRPlayerStatusWidget::TickStaminaAnim()
 		const float Alpha = (StaminaAnimTime > 0.f) ? FMath::Clamp(StaminaAnimElapsed / StaminaAnimTime, 0.f, 1.f) : 1.f;
 
 		const float NewPercent = FMath::Lerp(StaminaDisplayPercent, StaminaTargetPercent, Alpha);
-		StaminaBar->SetPercent(NewPercent);
+
+		// Slate Invalidation 최소화: 값이 변경될 때만 업데이트
+		const float CurrentPercent = StaminaBar->GetPercent();
+		if (!FMath::IsNearlyEqual(CurrentPercent, NewPercent, 0.001f))
+		{
+			StaminaBar->SetPercent(NewPercent);
+		}
 
 		if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
 		{

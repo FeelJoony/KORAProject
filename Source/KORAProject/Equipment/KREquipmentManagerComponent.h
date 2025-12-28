@@ -10,6 +10,7 @@
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "Equipment/KRWeaponStatsCache.h"
+#include "Engine/StreamableManager.h"
 
 #include "KREquipmentManagerComponent.generated.h"
 
@@ -197,6 +198,14 @@ private:
 	void BroadcastEquipSlotMessage(const FGameplayTag& SlotTag, UKRInventoryItemInstance* ItemInstance);
 	void BroadcastWeaponMessage(EWeaponMessageAction Action, const FGameplayTag& WeaponTypeTag = FGameplayTag());
 	FGameplayMessageListenerHandle ConfirmMessageHandle;
+
+	void ScheduleEquipSlotBroadcast(const FGameplayTag& SlotTag, UKRInventoryItemInstance* ItemInstance);
+	void ExecutePendingBroadcast();
+
+	FTimerHandle EquipBroadcastDelayHandle;
+	FGameplayTag PendingBroadcastSlotTag;
+	UPROPERTY()
+	TObjectPtr<UKRInventoryItemInstance> PendingBroadcastItem;
 	
 	bool bASCInitCallbackProcessed = false;
 
@@ -215,4 +224,21 @@ private:
 	FKRAbilitySet_GrantedHandles CombatModeGrantedHandles;
 	TSubclassOf<class UAnimInstance> ActiveAnimLayer;
 	TObjectPtr<class UInputMappingContext> ActiveIMC;
+	
+	void PrewarmWeaponEffects();
+	void ExecutePrewarmStep();
+	void FinishPrewarm();
+
+	FTimerHandle PrewarmTimerHandle;
+	int32 PrewarmStep = 0;
+	bool bPrewarmCompleted = false;
+
+	void PreloadEquipmentMaterials(const TArray<UKRInventoryItemInstance*>& ItemsToPreload);
+	void OnMaterialsPreloaded();
+
+	UMaterialInterface* GetCachedMaterial(const TSoftObjectPtr<UMaterialInterface>& SoftPtr) const;
+
+	UPROPERTY()
+	TMap<FSoftObjectPath, TObjectPtr<UMaterialInterface>> CachedMaterials;
+	TSharedPtr<FStreamableHandle> MaterialPreloadHandle;
 };

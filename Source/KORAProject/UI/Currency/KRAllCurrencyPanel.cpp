@@ -30,7 +30,10 @@ void UKRAllCurrencyPanel::NativeDestruct()
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
-		Subsys.UnregisterListener(CurrencyListener);
+		if (CurrencyListener.IsValid())
+		{
+			Subsys.UnregisterListener(CurrencyListener);
+		}
 	}
 
 	Super::NativeDestruct();
