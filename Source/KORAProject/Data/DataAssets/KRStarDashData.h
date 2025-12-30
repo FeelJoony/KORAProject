@@ -44,6 +44,8 @@ struct FKRStarDashSoundSettings
 	FGameplayTag FinishSoundTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayCue", meta = (Categories = "GameplayCue"))
+	FGameplayTag StartCueTag;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayCue", meta = (Categories = "GameplayCue"))
 	FGameplayTag DashCueTag;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayCue", meta = (Categories = "GameplayCue"))
 	FGameplayTag SlashCueTag;

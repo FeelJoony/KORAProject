@@ -29,6 +29,15 @@ protected:
 };
 
 UCLASS()
+class KORAPROJECT_API UKRGameplayCue_StarDash_Start : public UKRGameplayCue_StarDash
+{
+	GENERATED_BODY()
+
+public:
+	UKRGameplayCue_StarDash_Start();
+};
+
+UCLASS()
 class KORAPROJECT_API UKRGameplayCue_StarDash_Dash : public UKRGameplayCue_StarDash
 {
 	GENERATED_BODY()

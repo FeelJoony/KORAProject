@@ -125,6 +125,11 @@ void UKRGameplayCue_StarDash::SpawnEffect(UWorld* World, const FGameplayTag& Eff
 	EffectSubsystem->SpawnEffectByTag(EffectTag, SpawnTransform, Target);
 }
 
+UKRGameplayCue_StarDash_Start::UKRGameplayCue_StarDash_Start()
+{
+	GameplayCueTag = KRTAG_GAMEPLAYCUE_STARDASH_START;
+}
+
 UKRGameplayCue_StarDash_Dash::UKRGameplayCue_StarDash_Dash()
 {
 	GameplayCueTag = KRTAG_GAMEPLAYCUE_STARDASH_DASH;
