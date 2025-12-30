@@ -39,3 +39,4 @@ Sound.Skill.StarDash.Start,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Swor
 Sound.Skill.StarDash.Dash.Loop,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Loop.DA_Sound_Skill_Sword_StarDash_Loop,StarDash Loop,TRUE
 Sound.Skill.StarDash.Slash,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Slash.DA_Sound_Skill_Sword_StarDash_Slash,StarDash Slash,TRUE
 Sound.Skill.StarDash.Finish,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Finish.DA_Sound_Skill_Sword_StarDash_Finish,StarDash Finish,TRUE
+Sound.Combat.Sword.Charge.QuickAttack,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Sword_ChargeFailed.DA_Sound_Combat_Sword_ChargeFailed,Charge Failed,TRUE
