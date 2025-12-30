@@ -35,3 +35,7 @@ Sound.Combat.Sword.Attack.Voice01,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Com
 Sound.Combat.Sword.Attack.Voice02,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Combat_Attack_Voice02.DA_Sound_Combat_Attack_Voice02,Attack Voice02,TRUE
 Sound.Combat.Sword.Attack.Voice03,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Combat_Attack_Voice03.DA_Sound_Combat_Attack_Voice03,Attack Voice03,TRUE
 Sound.Combat.Sword.Attack.Voice04,/Game/Data/DataAssets/Sound/Voice/DA_Sound_Combat_Attack_Voice04.DA_Sound_Combat_Attack_Voice04,Attack Voice04,TRUE
+Sound.Skill.StarDash.Start,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Start.DA_Sound_Skill_Sword_StarDash_Start,StarDash Start,TRUE
+Sound.Skill.StarDash.Dash.Loop,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Loop.DA_Sound_Skill_Sword_StarDash_Loop,StarDash Loop,TRUE
+Sound.Skill.StarDash.Slash,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Slash.DA_Sound_Skill_Sword_StarDash_Slash,StarDash Slash,TRUE
+Sound.Skill.StarDash.Finish,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Finish.DA_Sound_Skill_Sword_StarDash_Finish,StarDash Finish,TRUE

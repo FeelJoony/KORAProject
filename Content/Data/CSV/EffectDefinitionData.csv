@@ -30,3 +30,6 @@ Effect.Combat.Sword.Attack.Combo3,/Game/Data/DataAssets/Effect/Combat/DA_Effect_
 Effect.Damage.Hit.Enemy,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Hit_Blood.DA_Effect_Combat_Hit_Blood,Hit Blood,TRUE
 Effect.Combat.Sword.Charge.Start,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_ChargeStart.DA_Effect_Combat_Sword_ChargeStart,Charge Start,TRUE
 Effect.Combat.Sword.Charge.Release,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_ChargeAttack.DA_Effect_Combat_Sword_ChargeAttack,Charge Attack,TRUE
+Effect.Skill.StarDash.Line,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_StarDash_Line.DA_Effect_Skill_StarDash_Line,StarDash Line,TRUE
+Effect.Skill.StarDash.AfterImage,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_StarDash_AfterImage.DA_Effect_Skill_StarDash_AfterImage,StarDash AfterImage,TRUE
+Effect.Skill.StarDash.Finish,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_StarDash_Finish.DA_Effect_Skill_StarDash_Finish,StarDash Finish,TRUE

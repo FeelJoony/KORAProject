@@ -65,6 +65,8 @@ struct FKRStarDashEffectSettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EffectTag", meta = (Categories = "Effect"))
 	FGameplayTag FinishEffectTag;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lightning")
+	TSubclassOf<AActor>SplineLightningClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineParams")
 	FLinearColor LineColor = FLinearColor(1.0f, 0.8f, 0.2f, 1.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineParams", meta = (ClampMin = "1.0", ClampMax = "50.0"))
