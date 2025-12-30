@@ -80,19 +80,6 @@ struct FKRStarDashEffectSettings
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lightning")
 	bool bEnableLightning = true;
-
-	/**
-	 * Lightning 모드:
-	 * 0 = Multi-Segment (휘는 경로)
-	 * 1 = SplineVFX BP Actor
-	 * 2 = Single (직선)
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lightning", meta = (ClampMin = "0", ClampMax = "2"))
-	int32 LightningMode = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lightning")
-	FLinearColor LightningColor = FLinearColor(0.5f, 0.7f, 1.0f, 1.0f);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lightning", meta = (ClampMin = "0.5", ClampMax = "10.0"))
-	float LightningIntensity = 3.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AfterImage")
 	FLinearColor AfterImageColor = FLinearColor(0.5f, 0.8f, 1.0f, 0.5f);

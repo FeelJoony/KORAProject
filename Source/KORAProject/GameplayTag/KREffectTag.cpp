@@ -112,6 +112,19 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_BOSS_AREAATTACK, "Effect.Boss.AreaAttack");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_BOSS_DEATH, "Effect.Boss.Death");
 
 // ============================================================
+// EFFECT TAGS - Special Skills (StarDash, AerialCombo, etc.)
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_STARDASH_LINE, "Effect.Skill.StarDash.Line");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_STARDASH_AFTERIMAGE, "Effect.Skill.StarDash.AfterImage");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_STARDASH_COMPLETE, "Effect.Skill.StarDash.Complete");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_STARDASH_FINISH, "Effect.Skill.StarDash.Finish");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_AERIALCOMBO_LAUNCH, "Effect.Skill.AerialCombo.Launch");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_AERIALCOMBO_HIT, "Effect.Skill.AerialCombo.Hit");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_AERIALCOMBO_FINISH, "Effect.Skill.AerialCombo.Finish");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_SKILL_AERIALCOMBO_TRAIL, "Effect.Skill.AerialCombo.Trail");
+
+// ============================================================
 // EFFECT TAGS - Category (for filtering/pooling)
 // ============================================================
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_COMBAT, "Effect.Category.Combat");
@@ -119,3 +132,4 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_WEAPON, "Effect.Category.Weapon");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_IMPACT, "Effect.Category.Impact");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_ENVIRONMENT, "Effect.Category.Environment");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_UI, "Effect.Category.UI");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_SKILL, "Effect.Category.Skill");

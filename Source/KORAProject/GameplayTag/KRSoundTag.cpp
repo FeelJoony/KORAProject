@@ -149,6 +149,20 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_ROAR, "Sound.Boss.Roar");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_DEATH, "Sound.Boss.Death");
 
 // ============================================================
+// SOUND TAGS - Special Skills (StarDash, AerialCombo, etc.)
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_STARDASH_START, "Sound.Skill.StarDash.Start");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_STARDASH_DASH, "Sound.Skill.StarDash.Dash");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_STARDASH_DASH_LOOP, "Sound.Skill.StarDash.Dash.Loop");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_STARDASH_SLASH, "Sound.Skill.StarDash.Slash");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_STARDASH_FINISH, "Sound.Skill.StarDash.Finish");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_STARDASH_COMPLETE, "Sound.Skill.StarDash.Complete");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_AERIALCOMBO_LAUNCH, "Sound.Skill.AerialCombo.Launch");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_AERIALCOMBO_HIT, "Sound.Skill.AerialCombo.Hit");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_AERIALCOMBO_FINISH, "Sound.Skill.AerialCombo.Finish");
+
+// ============================================================
 // SOUND TAGS - Category (for filtering/volume control)
 // ============================================================
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_FOLEY, "Sound.Category.Foley");
@@ -159,3 +173,4 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_VOICE, "Sound.Category.Voice");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_AMBIENTLOOP, "Sound.Category.AmbientLoop");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_PLAYER, "Sound.Category.Player");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_ENEMY, "Sound.Category.Enemy");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_SKILL, "Sound.Category.Skill");
