@@ -298,14 +298,10 @@ UNiagaraComponent* UKREffectSubsystem::AcquireNiagaraComponentFromPool(const UKR
 			FRotator::ZeroRotator,
 			FVector::OneVector,
 			false,  // bAutoDestroy - 우리가 직접 관리
-			true,   // bAutoActivate
+			false,  // bAutoActivate
 			ENCPoolMethod::None,
 			true    // bPreCullCheck
 		);
-		if (Component)
-		{
-			Component->Deactivate();
-		}
 		return Component;
 	}
 
@@ -340,13 +336,12 @@ UNiagaraComponent* UKREffectSubsystem::AcquireNiagaraComponentFromPool(const UKR
 		FRotator::ZeroRotator,
 		FVector::OneVector,
 		false,  // bAutoDestroy
-		true,   // bAutoActivate
+		false,  // bAutoActivate
 		ENCPoolMethod::None,
 		true
 	);
 	if (NewComponent)
 	{
-		NewComponent->Deactivate();
 		Pool->ActiveNiagaraComponents.Add(NewComponent);
 	}
 
@@ -382,12 +377,8 @@ UParticleSystemComponent* UKREffectSubsystem::AcquireCascadeComponentFromPool(co
 			FVector::OneVector,
 			false,  // bAutoDestroy - 우리가 직접 관리
 			EPSCPoolMethod::None,
-			true    // bAutoActivate
+			false   // bAutoActivate
 		);
-		if (Component)
-		{
-			Component->Deactivate();
-		}
 		return Component;
 	}
 
@@ -423,11 +414,10 @@ UParticleSystemComponent* UKREffectSubsystem::AcquireCascadeComponentFromPool(co
 		FVector::OneVector,
 		false,
 		EPSCPoolMethod::None,
-		true
+		false  // bAutoActivate
 	);
 	if (NewComponent)
 	{
-		NewComponent->Deactivate();
 		Pool->ActiveCascadeComponents.Add(NewComponent);
 	}
 
@@ -523,13 +513,12 @@ void UKREffectSubsystem::InitializePool(const UKREffectDefinition* EffectDef)
 				FRotator::ZeroRotator,
 				FVector::OneVector,
 				false,
-				true,
+				false,  // bAutoActivate - false로 설정
 				ENCPoolMethod::None,
 				true
 			);
 			if (Component)
 			{
-				Component->Deactivate();
 				NewPool.AvailableNiagaraComponents.Add(Component);
 			}
 		}
@@ -552,11 +541,10 @@ void UKREffectSubsystem::InitializePool(const UKREffectDefinition* EffectDef)
 				FVector::OneVector,
 				false,
 				EPSCPoolMethod::None,
-				true
+				false  // bAutoActivate - false로 설정
 			);
 			if (Component)
 			{
-				Component->Deactivate();
 				NewPool.AvailableCascadeComponents.Add(Component);
 			}
 		}
