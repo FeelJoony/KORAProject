@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "AbilitySystemInterface.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "GAS/KRAbilitySystemComponent.h"
 
 #include "KRInventorySubsystem.generated.h"
@@ -27,6 +28,9 @@ struct FAddItemMessage
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Message)
 	FGameplayTag ItemTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Message)
+	FGameplayTag SlotTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Message)
 	int32 StackCount = 0;
@@ -112,6 +116,7 @@ struct FKRInventoryList
 	TArray<class UKRInventoryItemInstance*> GetAllItems() const;
 	TArray<class UKRInventoryItemInstance*> FindAllItemsByTag(const FGameplayTag& FilterTag) const;
 	void Clear();
+	void AddEntryDirect(UKRInventoryItemInstance* NewInstance);
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -233,6 +238,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
 	bool UseConsumableItem(FGameplayTag ItemTag, UAbilitySystemComponent* TargetASC);
 
+	UFUNCTION(BlueprintCallable, Category="Inventory|Consumable")
+	int32 GetQuickSlotItemCount(const FGameplayTag& SlotTag) const;
 	
 	UFUNCTION()
 	void OnMessageReceived(const FGameplayTag Channel, const FAddItemMessage& Message);
@@ -242,10 +249,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void AddItemInstance(UKRInventoryItemInstance* InInstance);
+
+	void BeginListenQuickSlotAssignConfirm();
+	void EndListenQuickSlotAssignConfirm();
 	
 private:
 	UPROPERTY()
 	TMap<FGameplayTag, TSubclassOf<class UKRInventoryItemFragment>> FragmentRegistry;
+
+	TArray<FGameplayMessageListenerHandle> ListenerHandles;
+	FGameplayMessageListenerHandle QuickSlotConfirmHandle;
 	
 	UPROPERTY()
 	TMap<FGameplayTag, FGameplayTag> PlayerQuickSlot;
@@ -266,6 +279,9 @@ private:
 	
 	void InitializeItemDefinitionFragments();
 	void InitialFragmentType(TSubclassOf<class UKRInventoryItemFragment> FragmentClass);
+
+	void RegisterAllListeners();
+	void UnregisterAllListeners();
 	
 	bool IsPersistentQuickSlotItem(const FGameplayTag& ItemTag) const;
 	bool IsAssignedQuickSlot() const;
@@ -298,9 +314,10 @@ private:
 	void HandleAutoSelectSlotFirstRegisteredItem(FGameplayTag SlotTag, bool bHadAssignedBefore);
 	
 	int32 GetItemQuantity_Internal(const FGameplayTag& ItemTag) const;
+	int32 GetQuickSlotItemDisplayCount(const FGameplayTag& ItemTag) const;
 	int32 GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const;
 	
-	void OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload);
+	void OnQuickSlotConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload);
 };
 
 template <typename T>

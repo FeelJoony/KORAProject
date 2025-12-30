@@ -18,6 +18,16 @@ void UKRQuickSlotButtonBase::NativeOnHovered()
 	}
 }
 
+void UKRQuickSlotButtonBase::NativeOnClicked()
+{
+    Super::NativeOnClicked();
+
+    if (UKRQuickSlotWidget* Parent = GetTypedOuter<UKRQuickSlotWidget>())
+    {
+        Parent->NotifySlotClicked();
+    }
+}
+
 void UKRQuickSlotButtonBase::NativeDestruct()
 {
 	if (UWorld* World = GetWorld())

@@ -1,10 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemSlotBase.h"
-//#include "UI/Data/KRItemUIData.h"
-
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Groups/CommonButtonGroupBase.h"
@@ -39,7 +34,6 @@ void UKRSlotGridBase::BuildGrid()
 {
 	if (!SlotGrid || !SlotClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("KRSlotGridBase::BuildGrid - SlotGrid or SlotClass is null."));
 		return;
 	}
 

@@ -16,17 +16,6 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 
-
-void UKRInventoryMain::BeginQuickSlotAssign(FGameplayTag SlotDir)
-{
-	bQuickSlotAssignMode = true;
-	PendingQuickSlotDir = SlotDir;
-
-	RebuildInventoryUI(KRTAG_ITEMTYPE_CONSUME);
-
-	// Hide Material Quest Filter Buttons
-}
-
 void UKRInventoryMain::NativeOnActivated()
 {
 	Super::NativeOnActivated();
@@ -157,39 +146,7 @@ void UKRInventoryMain::HandleMoveInternal(uint8 DirIdx)
 
 void UKRInventoryMain::HandleSelect()
 {
-	if (!InventorySlot) return;
-	const int32 Cur = InventorySlot->GetSelectedIndex();
-	if (Cur < 0 || !CachedUIData.IsValidIndex(Cur)) return;
 
-	const FKRItemUIData& Data = CachedUIData[Cur];
-
-	FKRUIMessage_Confirm Msg;
-	Msg.Result = EConfirmResult::None;
-	Msg.ItemTag = Data.ItemTag;
-	Msg.Quantity = Data.Quantity;
-
-	if (bQuickSlotAssignMode)
-	{
-		Msg.Context = EConfirmContext::QuickSlotAssign;
-		Msg.SlotTag = PendingQuickSlotDir;
-	}
-	else
-	{
-		Msg.Context = EConfirmContext::InventoryItemUse;
-		Msg.SlotTag = FGameplayTag();
-	}
-
-	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Confirm(), Msg);
-
-	if (UGameInstance* GI = GetGameInstance())
-	{
-		if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
-		{
-			Router->ToggleRoute(TEXT("Confirm"));
-		}
-	}
-
-	// Setup Confirm -> Confirm Yes¸é PauseMenu Äü½½·Ô ¾÷µ¥ÀÌÆ®
 }
 
 int32 UKRInventoryMain::StepGrid(int32 Cur, uint8 DirIdx, int32 Cols, int32 Num) const

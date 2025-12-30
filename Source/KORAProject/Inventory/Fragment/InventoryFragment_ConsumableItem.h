@@ -90,6 +90,10 @@ public:
 
 	int32 GetCurrentStacks(UAbilitySystemComponent* ASC) const;
 	bool CanApplyMoreStacks(UAbilitySystemComponent* ASC) const;
+
+private:
+	bool CanUpgradeInsurance(UAbilitySystemComponent* ASC, float NewInsuranceRate) const;
+
 protected:
 	void LoadFromDataTable(UKRInventoryItemInstance* Instance);
 	bool ApplyMainEffect(UAbilitySystemComponent* ASC, float& OutDuration);

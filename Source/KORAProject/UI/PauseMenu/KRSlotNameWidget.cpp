@@ -46,7 +46,7 @@ void UKRSlotNameWidget::SetupForQuickSlot(FName ItemNameKey)
 		}
 		else
 		{
-			LabelText->SetText(MakeText(ItemNameKey));
+			LabelText->SetText(MakeItemName(ItemNameKey));
 
 			Context = EKRSlotNameContext::QuickSlot_HasItem;
 
@@ -81,6 +81,11 @@ void UKRSlotNameWidget::NativeConstruct()
 FText UKRSlotNameWidget::MakeText(FName Key) const
 {
 	return FText::FromStringTable(StringTableId, Key.ToString());
+}
+
+FText UKRSlotNameWidget::MakeItemName(FName Key) const
+{
+	return FText::FromStringTable(ItemTableId, Key.ToString());
 }
 
 void UKRSlotNameWidget::HandlePrimaryClicked()
