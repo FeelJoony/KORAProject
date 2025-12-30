@@ -56,12 +56,14 @@ UFXSystemComponent* UKREffectSubsystem::SpawnEffectAttached(const FGameplayTag& 
 {
 	if (!AttachToComponent)
 	{
+		UE_LOG(LogTemp, Error, TEXT("  FAILED: AttachToComponent is null"));
 		return nullptr;
 	}
 
 	UKREffectDefinition* EffectDef = GetEffectDefinition(EffectTag);
 	if (!EffectDef)
 	{
+		UE_LOG(LogTemp, Error, TEXT("  FAILED: EffectDefinition not found for tag %s"), *EffectTag.ToString());
 		return nullptr;
 	}
 
@@ -76,35 +78,61 @@ UFXSystemComponent* UKREffectSubsystem::SpawnEffectAttached(const FGameplayTag& 
 
 	if (EffectDef->EffectSystemType == EKREffectSystemType::Niagara)
 	{
-		UNiagaraComponent* Component = AcquireNiagaraComponentFromPool(EffectDef);
-		if (!Component)
+		UNiagaraSystem* NiagaraSystem = EffectDef->NiagaraEffect.LoadSynchronous();
+		if (!NiagaraSystem)
 		{
+			UE_LOG(LogTemp, Error, TEXT("  FAILED: NiagaraSystem is null (could not load)"));
 			return nullptr;
 		}
+		
+		UNiagaraComponent* Component = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			NiagaraSystem,
+			AttachToComponent,
+			SocketName,
+			LocationOffset,
+			RotationOffset,
+			EffectDef->SpawnSettings.Scale,
+			EAttachLocation::SnapToTarget,
+			false,  // bAutoDestroy - 우리가 관리
+			ENCPoolMethod::None,
+			true    // bAutoActivate - 즉시 활성화
+		);
 
-		Component->AttachToComponent(AttachToComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-		Component->SetRelativeLocation(LocationOffset);
-		Component->SetRelativeRotation(RotationOffset);
-		Component->SetRelativeScale3D(EffectDef->SpawnSettings.Scale);
-		Component->Activate(true);
-
+		if (!Component)
+		{
+			UE_LOG(LogTemp, Error, TEXT("  FAILED: SpawnSystemAttached returned null"));
+			return nullptr;
+		}
 		Instance.NiagaraComponent = Component;
 		ResultComponent = Component;
 	}
 	else
 	{
-		UParticleSystemComponent* Component = AcquireCascadeComponentFromPool(EffectDef);
-		if (!Component)
+		UParticleSystem* CascadeSystem = EffectDef->CascadeEffect.LoadSynchronous();
+		if (!CascadeSystem)
 		{
+			UE_LOG(LogTemp, Error, TEXT("  FAILED: CascadeSystem is null (could not load)"));
 			return nullptr;
 		}
+		
+		UParticleSystemComponent* Component = UGameplayStatics::SpawnEmitterAttached(
+			CascadeSystem,
+			AttachToComponent,
+			SocketName,
+			LocationOffset,
+			RotationOffset,
+			EffectDef->SpawnSettings.Scale,
+			EAttachLocation::SnapToTarget,
+			false,  // bAutoDestroy - 우리가 관리
+			EPSCPoolMethod::None,
+			true    // bAutoActivate
+		);
 
-		Component->AttachToComponent(AttachToComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-		Component->SetRelativeLocation(LocationOffset);
-		Component->SetRelativeRotation(RotationOffset);
-		Component->SetRelativeScale3D(EffectDef->SpawnSettings.Scale);
-		Component->Activate(true);
-
+		if (!Component)
+		{
+			UE_LOG(LogTemp, Error, TEXT("  FAILED: SpawnEmitterAttached returned null"));
+			return nullptr;
+		}
 		Instance.CascadeComponent = Component;
 		ResultComponent = Component;
 	}
@@ -513,7 +541,7 @@ void UKREffectSubsystem::InitializePool(const UKREffectDefinition* EffectDef)
 				FRotator::ZeroRotator,
 				FVector::OneVector,
 				false,
-				false,  // bAutoActivate - false로 설정
+				false,  // bAutoActivate
 				ENCPoolMethod::None,
 				true
 			);
@@ -541,7 +569,7 @@ void UKREffectSubsystem::InitializePool(const UKREffectDefinition* EffectDef)
 				FVector::OneVector,
 				false,
 				EPSCPoolMethod::None,
-				false  // bAutoActivate - false로 설정
+				false  // bAutoActivate
 			);
 			if (Component)
 			{
