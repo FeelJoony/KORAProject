@@ -42,8 +42,6 @@ struct FKRStarDashSoundSettings
 	FGameplayTag SlashSoundTag;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SoundTag", meta = (Categories = "Sound"))
 	FGameplayTag FinishSoundTag;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SoundTag", meta = (Categories = "Sound"))
-	FGameplayTag StarCompleteSoundTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayCue", meta = (Categories = "GameplayCue"))
 	FGameplayTag DashCueTag;
@@ -63,11 +61,7 @@ struct FKRStarDashEffectSettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EffectTag", meta = (Categories = "Effect"))
 	FGameplayTag SlashLineEffectTag;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EffectTag", meta = (Categories = "Effect"))
-	FGameplayTag LightningEffectTag;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EffectTag", meta = (Categories = "Effect"))
 	FGameplayTag AfterImageEffectTag;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EffectTag", meta = (Categories = "Effect"))
-	FGameplayTag StarCompleteEffectTag;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EffectTag", meta = (Categories = "Effect"))
 	FGameplayTag FinishEffectTag;
 	
