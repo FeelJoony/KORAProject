@@ -109,7 +109,6 @@ void UKRShopSubsystem::LoadShopDataCache()
 	}
 }
 
-
 bool UKRShopSubsystem::TryBuyItem(FGameplayTag ItemTag, int32 InCount)
 {
 	if (!ShopStockCountMap.Contains(ItemTag)) return false;
@@ -141,10 +140,6 @@ bool UKRShopSubsystem::TryBuyItem(FGameplayTag ItemTag, int32 InCount)
 		UE_LOG(LogShopSubSystem, Warning, TEXT("TryBuyItem Failed: Not enough currency."));
 		return false;
 	}
-	
-	CurrencyComp->SpendCurrency(KRTAG_CURRENCY_PURCHASE_GEARING, TotalCost);
-	
-	InventorySubsystem->AddItem(ItemTag, InCount);
 
 	CurrentStock -= InCount;
 	if (CurrentStock <= 0)
@@ -153,6 +148,9 @@ bool UKRShopSubsystem::TryBuyItem(FGameplayTag ItemTag, int32 InCount)
 		CurrentShopInventory.Remove(ShopItem);
 		UE_LOG(LogShopSubSystem, Log, TEXT("Item Sold Out!"));
 	}
+
+	InventorySubsystem->AddItem(ItemTag, InCount);
+	CurrencyComp->SpendCurrency(KRTAG_CURRENCY_PURCHASE_GEARING, TotalCost);
 	
 	return true;
 }
@@ -176,9 +174,7 @@ bool UKRShopSubsystem::TrySellItem(FGameplayTag InItemTag, int32 InCount)
 
 	if (!SellableFragment) return false;
 
-	const int32 BasePrice = SellableFragment->GetBasePrice();
-	const float DiscountedPrice = BasePrice * SellBackMultiplier;
-	const int32 SellPrice = Round5(DiscountedPrice);
+	const int32 SellPrice = Round5(SellableFragment->GetSellPrice());
 	
 	const int32 TotalPayout = SellPrice * InCount;
 	
