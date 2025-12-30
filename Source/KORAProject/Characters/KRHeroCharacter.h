@@ -25,6 +25,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KR|Movement")
 	void SetMovementMode_Strafe(bool bStrafe);
 	
+	UFUNCTION(BlueprintCallable, Category = "KR|Camera")
+	UKRCameraComponent* GetCameraComponent() {return CameraComponent;}
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KR|Camera")
 	TObjectPtr<UKRCameraComponent> CameraComponent;
