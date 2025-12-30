@@ -65,6 +65,9 @@ private:
 	UPROPERTY() TObjectPtr<UMaterialInterface> CachedBaseMaterial;
 	UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> PreviewMID;
 
+	FTimerHandle PreviewBindHandle;
+	void DelayedBindPreviewRenderTarget();
+
 	void InitializeCategoryOrder();
 	void RefreshEquippedCategoryIcons();
 	void FilterAndCacheItems(const FGameplayTag& FilterTag);
@@ -106,6 +109,7 @@ private:
 	bool IsCategorySlotEmpty(int32 Index) const;
 	int32 FindFirstNonEmptySlot() const;
 	int32 FindNextNonEmptySlot(int32 Current, ENavDir Dir) const;
+	int32 FindEquippedItemIndex() const;
 
 	void BindPreviewRenderTarget();
 };

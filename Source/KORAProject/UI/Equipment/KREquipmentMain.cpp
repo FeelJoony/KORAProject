@@ -29,6 +29,14 @@ void UKREquipmentMain::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveUp));
 		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveDown));
 	}
+	if (EquipCategorySlot)
+	{
+		EquipCategorySlot->RebindButtonGroup();
+	}
+	if (EquipInventorySlot)
+	{
+		EquipInventorySlot->RebindButtonGroup();
+	}
 
 	RefreshEquippedCategoryIcons();
 	FocusCategory();
@@ -36,11 +44,28 @@ void UKREquipmentMain::NativeOnActivated()
 	FKRUIMessage_EquipmentUI Msg;
 	Msg.bIsOpen = true;
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipmentUI(), Msg);
+
 	BindPreviewRenderTarget();
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PreviewBindHandle);
+		World->GetTimerManager().SetTimer(
+			PreviewBindHandle,
+			this,
+			&UKREquipmentMain::DelayedBindPreviewRenderTarget,
+			0.3f,
+			false
+		);
+	}
 }
 
 void UKREquipmentMain::NativeOnDeactivated()
 {
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PreviewBindHandle);
+	}
+
 	FKRUIMessage_EquipmentUI Msg;
 	Msg.bIsOpen = false;
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipmentUI(), Msg);
@@ -301,18 +326,19 @@ void UKREquipmentMain::HandleSelect()
 			UE_LOG(LogTemp, Error, TEXT("[Equipment] HandleSelect - Invalid HoverIdx!"));
 			return;
 		}
-		
+
 		ActiveCategoryIndex = HoverIdx;
 
 		if (EquipCategorySlot)
 		{
 			EquipCategorySlot->SelectIndexSafe(HoverIdx);
 		}
-		
+
 		RebuildInventoryUI(CategorySlotOrder[ActiveCategoryIndex]);
 
-		const int32 Prefer = LastInventoryIndexPerCategory.IsValidIndex(ActiveCategoryIndex) ? LastInventoryIndexPerCategory[ActiveCategoryIndex] : 0;
-		FocusInventory(Prefer);
+		// 현재 장착된 아이템을 선택
+		const int32 EquippedIdx = FindEquippedItemIndex();
+		FocusInventory(EquippedIdx);
 		return;
 	}
 	if (TryEquipSelectedItem())
@@ -418,10 +444,25 @@ void UKREquipmentMain::OnInventoryHovered(int32 Index, UKRItemSlotBase* SlotBase
 
 void UKREquipmentMain::OnCategoryClicked()
 {
-	if (FocusRegion == EFocusRegion::Category)
+	const int32 HoverIdx = EquipCategorySlot ? EquipCategorySlot->GetHoveredIndex() : ActiveCategoryIndex;
+	if (!CategorySlotOrder.IsValidIndex(HoverIdx)) return;
+
+	if (FocusRegion == EFocusRegion::Grid && HoverIdx == ActiveCategoryIndex)
 	{
-		HandleSelect();
+		FocusCategory();
+		return;
 	}
+
+	ActiveCategoryIndex = HoverIdx;
+	if (EquipCategorySlot)
+	{
+		EquipCategorySlot->SelectIndexSafe(HoverIdx);
+	}
+
+	RebuildInventoryUI(CategorySlotOrder[ActiveCategoryIndex]);
+
+	const int32 EquippedIdx = FindEquippedItemIndex();
+	FocusInventory(EquippedIdx);
 }
 
 void UKREquipmentMain::OnInventoryClicked()
@@ -554,13 +595,13 @@ int32 UKREquipmentMain::FindNextNonEmptySlot(int32 Current, ENavDir Dir) const
 	if (Cols <= 0 || Num <= 0) return Current;
 
 	int32 Next = StepGrid(Current, Dir, Cols, Num);
-	
+
 	if (Next == Current) return Current;
 	if (!IsCategorySlotEmpty(Next))
 	{
 		return Next;
 	}
-	
+
 	int32 SearchIdx = Next;
 	const int32 MaxIterations = Num;
 
@@ -582,6 +623,22 @@ int32 UKREquipmentMain::FindNextNonEmptySlot(int32 Current, ENavDir Dir) const
 	return Current;
 }
 
+int32 UKREquipmentMain::FindEquippedItemIndex() const
+{
+	if (!CategorySlotOrder.IsValidIndex(ActiveCategoryIndex)) return 0;
+
+	FKRItemUIData EquippedUI;
+	if (!UKRUIAdapterLibrary::GetEquippedSlotUIData(const_cast<UKREquipmentMain*>(this), CategorySlotOrder[ActiveCategoryIndex], EquippedUI))
+	{
+		return 0;
+	}
+
+	const int32 Found = InventorySlotUIData.IndexOfByPredicate(
+		[&](const FKRItemUIData& D) { return D.ItemTag == EquippedUI.ItemTag; });
+
+	return Found != INDEX_NONE ? Found : 0;
+}
+
 UWidget* UKREquipmentMain::NativeGetDesiredFocusTarget() const
 {
 	if (EquipCategorySlot && EquipCategorySlot->GetVisibility() == ESlateVisibility::Visible)
@@ -591,18 +648,21 @@ UWidget* UKREquipmentMain::NativeGetDesiredFocusTarget() const
 	return Super::NativeGetDesiredFocusTarget();
 }
 
+void UKREquipmentMain::DelayedBindPreviewRenderTarget()
+{
+	BindPreviewRenderTarget();
+}
+
 void UKREquipmentMain::BindPreviewRenderTarget()
 {
 	if (!PreviewImage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Equipment] PreviewImage widget not found! Check WBP for 'PreviewImage' named Image widget."));
 		return;
 	}
 
 	UWorld* World = GetWorld();
 	if (!World)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Equipment] World is null."));
 		return;
 	}
 
@@ -618,14 +678,12 @@ void UKREquipmentMain::BindPreviewRenderTarget()
 
 	if (!CachedPreviewActor.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Equipment] No AKREquipmentPreviewActor found in world. Place one in the level!"));
 		return;
 	}
 
 	UTextureRenderTarget2D* RT = CachedPreviewActor->GetActiveRenderTarget();
 	if (!RT)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Equipment] PreviewActor has no active RenderTarget! Check bCreateRuntimeRT setting."));
 		return;
 	}
 	
