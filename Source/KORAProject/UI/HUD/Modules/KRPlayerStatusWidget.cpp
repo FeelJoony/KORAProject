@@ -274,29 +274,16 @@ void UKRPlayerStatusWidget::OnStaminaAttributeChanged(const FOnAttributeChangeDa
 	const float MaxStam = PlayerAttr->GetMaxStamina();
 	if (MaxStam <= 0.f) return;
 
-	const float OldStam = Data.OldValue;
 	const float NewStam = Data.NewValue;
-
-	const float OldPct = FMath::Clamp(OldStam / MaxStam, 0.f, 1.f);
 	const float NewPct = FMath::Clamp(NewStam / MaxStam, 0.f, 1.f);
-	const float Delta = NewPct - OldPct;
 
-	if (Delta < 0.f)
-	{
-		StaminaBar->SetPercent(NewPct);
-		StaminaDisplayPercent = NewPct;
-		StaminaTargetPercent = NewPct;
-	}
-	else if (Delta > 0.f)
-	{
-		StaminaDisplayPercent = StaminaBar->GetPercent();
-		StaminaTargetPercent = NewPct;
-		StartStaminaAnim();
-	}
-
-	StaminaDisplayPercent = StaminaBar->GetPercent();
+	StaminaBar->SetPercent(NewPct);
+	StaminaDisplayPercent = NewPct;
 	StaminaTargetPercent = NewPct;
-	StartStaminaAnim();
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(StaminaAnimTimerHandle);
+	}
 
 	if (NewPct <= KINDA_SMALL_NUMBER)
 	{
