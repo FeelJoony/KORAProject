@@ -8,6 +8,14 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogQuestSubSystem, Log, All);
 
+USTRUCT()
+struct FQuestDialogueNPCSet
+{
+	GENERATED_BODY()
+
+	UPROPERTY() TSet<FGameplayTag> NPCTags;
+};
+
 UCLASS()
 class KORAPROJECT_API UKRQuestSubsystem : public UGameInstanceSubsystem
 {
@@ -27,6 +35,18 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Quest)
 	void NotifyObjectiveEvent(FGameplayTag TargetTag, int32 Count = 1);
+
+	UFUNCTION(BlueprintCallable, Category = Quest)
+	void NotifyNPCDialogueComplete(FGameplayTag NPCTag);
+
+	UFUNCTION(BlueprintCallable, Category = Quest)
+	void MarkNPCDialogueForQuest(FGameplayTag NPCTag);
+
+	UFUNCTION(BlueprintPure, Category = Quest)
+	bool HasTalkedToNPCForCurrentQuest(FGameplayTag NPCTag) const;
+
+	UFUNCTION(BlueprintPure, Category = Quest)
+	int32 GetCurrentQuestIndex() const;
 
 	UFUNCTION(BlueprintPure, Category = Quest)
 	class AKRQuestActor* GetActiveActor() const { return ActiveActor; }
@@ -61,6 +81,8 @@ protected:
 private:
 	UPROPERTY()
 	TMap<EQuestType, TObjectPtr<class UQuestDelegate>> QuestDelegateMap;
+	
+	UPROPERTY() TMap<int32, FQuestDialogueNPCSet> QuestDialogueNPCs;
 
 	TSubclassOf<class AKRQuestActor> LoadQuestActorClass(int32 Index);
 };
