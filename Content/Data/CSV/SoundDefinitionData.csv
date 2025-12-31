@@ -40,3 +40,8 @@ Sound.Skill.StarDash.Dash.Loop,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_
 Sound.Skill.StarDash.Slash,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Slash.DA_Sound_Skill_Sword_StarDash_Slash,StarDash Slash,TRUE
 Sound.Skill.StarDash.Finish,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Finish.DA_Sound_Skill_Sword_StarDash_Finish,StarDash Finish,TRUE
 Sound.Combat.Sword.Charge.QuickAttack,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Sword_ChargeFailed.DA_Sound_Combat_Sword_ChargeFailed,Charge Failed,TRUE
+Sound.Skill.AerialCombo.Launch,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Launch.DA_Sound_Skill_Sword_AerialCombo_Launch,Aerial Launch,TRUE
+Sound.Skill.AerialCombo.Rising,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Rising.DA_Sound_Skill_Sword_AerialCombo_Rising,Aerial Rising,TRUE
+Sound.Skill.AerialCombo.Slam,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Slam.DA_Sound_Skill_Sword_AerialCombo_Slam,Aerial Slam,TRUE
+Sound.Skill.AerialCombo.Hit,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Hit.DA_Sound_Skill_Sword_AerialCombo_Hit,Aerial Impact,TRUE
+Sound.Skill.AerialCombo.Finish,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Finish.DA_Sound_Skill_Sword_AerialCombo_Finish,Aerial Finish,TRUE
