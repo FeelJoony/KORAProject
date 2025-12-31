@@ -224,22 +224,6 @@ void UKRPlayerStatusWidget::OnHealthAttributeChanged(const FOnAttributeChangeDat
 	HealthDisplayPercent = OldHPPercent;
 	HealthTargetPercent = NewHPPercent;
 	StartHealthAnim();
-
-	if (GreyHPBar && PlayerAttr.IsValid())
-	{
-		const float RecoverableGrey = PlayerAttr->GetGreyHP();
-		const float NewGreyPercent = FMath::Clamp(
-			(NewHP + RecoverableGrey) / MaxHP,
-			NewHPPercent,
-			1.f
-		);
-
-		GreyHPDisplayPercent = GreyHPBar->GetPercent();
-		GreyHPTargetPercent = NewGreyPercent;
-		GreyHPAnimTime = 0.25f;
-
-		StartGreyHPAnim();
-	}
 }
 
 void UKRPlayerStatusWidget::OnGreyHealthAttributeChanged(const FOnAttributeChangeData& Data)
