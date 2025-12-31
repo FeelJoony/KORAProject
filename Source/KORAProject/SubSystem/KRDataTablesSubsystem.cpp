@@ -33,6 +33,7 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	AddDataTable(EGameDataType::EffectDefinitionData, FString(TEXT("EffectDefinitionData")));
 	AddDataTable(EGameDataType::WorldEventData, FString(TEXT("WorldEventData")));
 	AddDataTable(EGameDataType::CitizenData, FString(TEXT("CitizenData")));
+	AddDataTable(EGameDataType::DialogueData, FString(TEXT("DialogueData")));
 
 #if !UE_BUILD_SHIPPING
 	ValidateDataReferences();
