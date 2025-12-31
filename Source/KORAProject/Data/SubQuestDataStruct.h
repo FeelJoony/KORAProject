@@ -55,4 +55,5 @@ struct KORAPROJECT_API FSubQuestDataStruct : public FTableRowBase, public ITable
 	}
 
 	const FSubQuestEvalDataStruct& GetEvalData(int Order) const { return EvalDatas[Order - 1]; }
+	int32 GetEvalDataCount() const { return EvalDatas.Num(); }
 };
