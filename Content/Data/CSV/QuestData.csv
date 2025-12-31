@@ -1,2 +1,4 @@
 Index,Type,QuestName,Description,StateTreeDefinitionAssetPath
 1,Q_Tutorial,Name_1,3,BP_TutorialQuestDataDefinition
+2,Q_Main,MainQuest_Adventure,Complete the main adventure,BP_MainQuestDataDefinition
+3,Q_Main,MainQuest_FinalBoss,Defeat the final boss,BP_MainQuestDataDefinition
