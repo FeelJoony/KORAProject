@@ -121,6 +121,8 @@ public:
 	// 디버깅 정보 제공
 	void GetBlendInfo(float& OutWeightOfTopLayer, FGameplayTag& OutTagOfTopLayer) const;
 	void DrawDebug(UCanvas* Canvas) const;
+	
+	UKRCameraMode* GetCameraModeInstance(TSubclassOf<UKRCameraMode> CameraModeClass);
 
 protected:
 	UPROPERTY()
@@ -130,8 +132,7 @@ protected:
 	TArray<TObjectPtr<UKRCameraMode>> CameraModeStack;
 
 	bool bIsActive;
-	
-	UKRCameraMode* GetCameraModeInstance(TSubclassOf<UKRCameraMode> CameraModeClass);
+
 	void UpdateStack(float DeltaTime);
 	void BlendStack(FKRCameraModeView& OutCameraModeView) const;
 	

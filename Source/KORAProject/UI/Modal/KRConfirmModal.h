@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CommonActivatableWidget.h"
@@ -9,6 +7,7 @@
 
 class UCommonTextBlock;
 class UCommonButtonBase;
+class UCommonButtonGroupBase;
 
 UCLASS()
 class KORAPROJECT_API UKRConfirmModal : public UCommonActivatableWidget
@@ -43,6 +42,7 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional)) UPanelWidget* QuantityPanel;
 
 	virtual void NativeOnInitialized() override;
+	virtual void NativeOnActivated() override;
 	virtual void NativeOnDeactivated() override;
 
 private:
@@ -53,7 +53,7 @@ private:
 	int32 MaxQuantity = 0;
 	int32 CurrentQuantity = 0;
 	bool bUseQuantity = false;
-	
+
 	UFUNCTION() void HandleYes();
 	UFUNCTION() void HandleNo();
 	UFUNCTION() void HandleIncrease();
@@ -61,4 +61,16 @@ private:
 
 	void RefreshQuantityUI();
 	void UpdateAlertText(FName MessageKey);
+	
+	UPROPERTY()
+	TObjectPtr<UCommonButtonGroupBase> ConfirmButtonGroup;
+
+	TArray<UCommonButtonBase*> ConfirmButtons;
+	int32 CurrentButtonIndex = 0;
+
+	void InitializeConfirmButtons();
+	void UpdateButtonSelection(int32 NewIndex);
+	void HandleMovePrev();
+	void HandleMoveNext();
+	void HandleSelect();
 };

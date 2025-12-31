@@ -217,7 +217,7 @@ void AKREquipmentPreviewActor::SetupSceneCapture()
 		if (RuntimeRenderTarget)
 		{
 			RuntimeRenderTarget->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA8;
-			RuntimeRenderTarget->ClearColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);  // 흰색 배경 (InvOpacity용) 
+			RuntimeRenderTarget->ClearColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
 			RuntimeRenderTarget->bAutoGenerateMips = false;
 			RuntimeRenderTarget->bGPUSharedFlag = false;
 			RuntimeRenderTarget->InitAutoFormat(RenderTargetWidth, RenderTargetHeight);
@@ -234,6 +234,8 @@ void AKREquipmentPreviewActor::SetupSceneCapture()
 			SceneCapture->TextureTarget = LoadedRT;
 		}
 	}
+	
+	SceneCapture->bCaptureEveryFrame = true;
 
 	SceneCapture->ShowOnlyActors.Add(this);
 	if (PreviewMesh)
@@ -724,6 +726,8 @@ void AKREquipmentPreviewActor::OnEquipmentUIStateChanged(FGameplayTag Channel, c
 
 	if (bIsEquipmentUIOpen)
 	{
+		SyncWithHeroCharacter();
+
 		bAnimationsPreloaded = false;
 		bEquipAssetsPreloaded = false;
 		PreloadAnimations();

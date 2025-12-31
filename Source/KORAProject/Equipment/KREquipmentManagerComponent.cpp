@@ -1125,11 +1125,13 @@ void UKREquipmentManagerComponent::ExecutePrewarmStep()
 	{
 		return;
 	}
+	const bool bMeleeIsActive = bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD);
+	const bool bRangeIsActive = bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN);
 
 	switch (PrewarmStep)
 	{
 	case 0:
-		if (MeleeActorInstance)
+		if (MeleeActorInstance && !bMeleeIsActive)
 		{
 			MeleeActorInstance->PlayEquipEffect();
 		}
@@ -1138,7 +1140,7 @@ void UKREquipmentManagerComponent::ExecutePrewarmStep()
 		break;
 
 	case 1:
-		if (MeleeActorInstance)
+		if (MeleeActorInstance && !bMeleeIsActive)
 		{
 			MeleeActorInstance->PlayUnequipEffect();
 		}
@@ -1147,7 +1149,7 @@ void UKREquipmentManagerComponent::ExecutePrewarmStep()
 		break;
 
 	case 2:
-		if (RangeActorInstance)
+		if (RangeActorInstance && !bRangeIsActive)
 		{
 			RangeActorInstance->PlayEquipEffect();
 		}
@@ -1156,7 +1158,7 @@ void UKREquipmentManagerComponent::ExecutePrewarmStep()
 		break;
 
 	case 3:
-		if (RangeActorInstance)
+		if (RangeActorInstance && !bRangeIsActive)
 		{
 			RangeActorInstance->PlayUnequipEffect();
 		}
@@ -1174,11 +1176,12 @@ void UKREquipmentManagerComponent::FinishPrewarm()
 	bPrewarmCompleted = true;
 	PrewarmStep = 0;
 
-	if (MeleeActorInstance)
+	// 현재 활성화된 무기는 숨기지 않음
+	if (MeleeActorInstance && !(bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD)))
 	{
 		MeleeActorInstance->SetWeaponVisibility(false);
 	}
-	if (RangeActorInstance)
+	if (RangeActorInstance && !(bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN)))
 	{
 		RangeActorInstance->SetWeaponVisibility(false);
 	}

@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CommonUserWidget.h"
@@ -8,6 +6,7 @@
 #include "KRQuickSlotWidget.generated.h"
 
 class UKRQuickSlotButtonBase;
+class UCommonButtonGroupBase;
 
 UCLASS()
 class KORAPROJECT_API UKRQuickSlotWidget : public UCommonUserWidget
@@ -20,12 +19,29 @@ public:
 
 	void RefreshFromInventory();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuickSlot") // true for HUD, false for Quickslot
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuickSlot")
 	bool bListenGameplayMessages = true;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKRQuickSlotHovered, FGameplayTag, SlotDirection);
 	UPROPERTY(BlueprintAssignable, Category = "QuickSlot") FKRQuickSlotHovered OnSlotHovered;
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FKRQuickSlotClicked);
+	UPROPERTY(BlueprintAssignable, Category = "QuickSlot") FKRQuickSlotClicked OnSlotClicked;
 	void NotifySlotHovered(FGameplayTag SlotDir);
+	void NotifySlotClicked();
+
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot") FGameplayTag GetHoveredSlot() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	void SetSelectedSlot(FGameplayTag SlotDir, bool bUpdateVisuals = true);
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	FGameplayTag GetSelectedSlot() const { return CurrentSelectedSlot; }
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	void FocusSlot(FGameplayTag SlotDir);
+	
+	UFUNCTION(BlueprintCallable, Category = "QuickSlot|Navigation")
+	void ClearAllSelections();
 
 protected:
 	void OnQuickSlotMessageReceived(FGameplayTag Channel, const FKRUIMessage_QuickSlot& Message);
@@ -42,8 +58,7 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void ClearSlot(FGameplayTag Direction);
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void HighlightSlot(FGameplayTag Direction);
 	UFUNCTION(BlueprintCallable, Category = "QuickSlot") void UpdateSlotQuantity(FGameplayTag Direction, int32 NewQuantity);
-
-
+	
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Item Used From Slot"))
 	void BP_OnItemUsedFromSlot(FGameplayTag Direction, float Duration);
 	UFUNCTION(BlueprintImplementableEvent, Category = "QuickSlot", meta = (DisplayName = "On Slot Registered"))
@@ -56,10 +71,13 @@ protected:
 	void BP_ResetAllSlotFrames();
 
 private:
+	UPROPERTY() TObjectPtr<UCommonButtonGroupBase> QuickSlotButtonGroup;
 	FGameplayMessageListenerHandle QuickSlotListener;
 	FGameplayTag CurrentSelectedSlot = FKRUIMessageTags::QuickSlot_North();
 
 	float UnHightlightedSlotOpacity = 0.6f;
 	float HighlightedSlotOpacity = 1.0f;
 	float QuantityZeroSlotOpacity = 0.3f;
+
+	int32 GetSlotIndex(FGameplayTag SlotDir) const;
 };

@@ -64,9 +64,6 @@ private:
 
 	UPROPERTY()
 	TArray<FShopItemDataStruct> CachedShopData;
-
-	UPROPERTY(EditDefaultsOnly, Category = "KR|Shop")
-	float SellBackMultiplier = 0.8f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "KR|Shop")
 	int32 MaxShopSlots = 6;

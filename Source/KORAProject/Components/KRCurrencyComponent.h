@@ -3,10 +3,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
+#include "Item/Drop/LostCurrencyDrop.h"
 #include "KRCurrencyComponent.generated.h"
 
 class UKRAbilitySystemComponent;
 class UKRDataTablesSubsystem;
+class ALostCurrencyDrop;
 struct FCurrencyDataStruct;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogKRCurrency, Log, All);
@@ -55,6 +57,12 @@ protected:
 	void InitializeAbilityReferences();
 	
 	bool IsLostOnDeath(const FGameplayTag& CurrencyTag) const;
+
+public:
+	void ReclaimLostCurrency();
+	void SpawnLostCurrencyDrop();
+
+protected:
 	float GetInsuranceKeepRate() const;
 	void ConsumeInsuranceEffects();
 	void ApplyCurrencyChange_Internal(const FGameplayTag& CurrencyTag, int32 NewValue);
@@ -69,6 +77,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Currency|Internal")
 	int32 CurrentCorbyte = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category="Currency|DeathDrop")
+	TSubclassOf<ALostCurrencyDrop> LostCurrencyDropClass;
 	
 	UPROPERTY()
 	TObjectPtr<UKRAbilitySystemComponent> ASC = nullptr;

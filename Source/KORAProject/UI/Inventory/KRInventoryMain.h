@@ -25,8 +25,6 @@ public:
 	UPROPERTY(meta = (BindWidget)) UKRSlotGridBase* InventorySlot = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKRItemDescriptionBase* ItemDescriptionWidget = nullptr;
 
-	void BeginQuickSlotAssign(FGameplayTag SlotDir);
-
 protected:
 	virtual void NativeOnActivated() override;
 	virtual void NativeOnDeactivated() override;
@@ -36,8 +34,6 @@ protected:
 
 private:
 	TArray<FKRItemUIData> CachedUIData;
-	bool bQuickSlotAssignMode = false;
-	FGameplayTag PendingQuickSlotDir;
 
 	UFUNCTION() void OnClickConsumables();
 	UFUNCTION() void OnClickMaterial();
