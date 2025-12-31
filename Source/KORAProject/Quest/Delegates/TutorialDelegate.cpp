@@ -11,6 +11,7 @@ void UTutorialDelegate::Initialize(class UKRQuestInstance* NewQuestInstance)
 
 	OnQuestAccepted.AddDynamic(this, &ThisClass::OnAppearTutorialUI);
 	OnQuestSetNextSub.AddDynamic(this, &ThisClass::OnAppearTutorialUI);
+	OnQuestCompleted.AddDynamic(this, &ThisClass::OnTutorialCompleted);
 }
 
 void UTutorialDelegate::OnAppearTutorialUI(int32 OrderIndex)
@@ -21,6 +22,22 @@ void UTutorialDelegate::OnAppearTutorialUI(int32 OrderIndex)
 	{
 		FKRUIMessage_Tutorial TutorialMessage;
 		TutorialMessage.TutorialDTRowName = EvalDataStruct.UIRowName;
-		UGameplayMessageSubsystem::Get(GetWorld()).BroadcastMessage(FKRUIMessageTags::Tutorial(), TutorialMessage);	
+		UGameplayMessageSubsystem::Get(GetWorld()).BroadcastMessage(FKRUIMessageTags::Tutorial(), TutorialMessage);
+	}
+}
+
+void UTutorialDelegate::OnTutorialCompleted(int32 OrderIndex)
+{
+	if (!QuestInstance)
+	{
+		return;
+	}
+
+	const FSubQuestDataStruct& SubQuestData = QuestInstance->GetSubQuestData();
+	const int32 TotalSubQuests = SubQuestData.GetEvalDataCount();
+	
+	if (OrderIndex >= TotalSubQuests)
+	{
+		// TODO: NPC 대화 레벨로 전환
 	}
 }

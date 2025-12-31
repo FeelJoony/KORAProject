@@ -16,4 +16,7 @@ public:
 protected:
 	UFUNCTION(Blueprintable, Category = "Quest|Tutorial")
 	void OnAppearTutorialUI(int32 OrderIndex);
+
+	UFUNCTION()
+	void OnTutorialCompleted(int32 OrderIndex);
 };
