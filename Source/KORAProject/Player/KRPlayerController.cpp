@@ -3,6 +3,7 @@
 #include "Player/KRPlayerState.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Subsystem/KRQuestSubsystem.h"
+#include "Interaction/InteractableActorBase.h"
 
 AKRPlayerController::AKRPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -15,7 +16,7 @@ void AKRPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	UKRQuestSubsystem& KRSubsystem = UKRQuestSubsystem::Get(this);
-	KRSubsystem.AcceptQuest(1);
+	KRSubsystem.AcceptQuest(2);
 }
 
 void AKRPlayerController::OnUnPossess()
@@ -52,4 +53,14 @@ UKRAbilitySystemComponent* AKRPlayerController::GetKRAbilitySystemComponent() co
 {
 	const AKRPlayerState* KRPS = GetKRPlayerState();
 	return (KRPS ? KRPS->GetKRAbilitySystemComponent() : nullptr);
+}
+
+void AKRPlayerController::SetCurrentInteractableActor(AInteractableActorBase* InActor)
+{
+	CurrentInteractableActor = InActor;
+}
+
+AInteractableActorBase* AKRPlayerController::GetCurrentInteractableActor() const
+{
+	return CurrentInteractableActor.Get();
 }
