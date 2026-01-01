@@ -44,3 +44,4 @@ Sound.Skill.AerialCombo.Launch,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_
 Sound.Skill.AerialCombo.Hit,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Hit.DA_Sound_Skill_Sword_AerialCombo_Hit,Aerial Impact,TRUE
 Sound.Skill.AerialCombo.Finish,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Finish.DA_Sound_Skill_Sword_AerialCombo_Finish,Aerial Finish,TRUE
 Sound.Skill.AerialCombo.Dash,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Dash.DA_Sound_Skill_Sword_AerialCombo_Dash,Aerial Dash,TRUE
+Sound.Interaction.Rope.Hook,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Rope_Hook.DA_Sound_Interaction_Rope_Hook,Interaction Hook,TRUE
