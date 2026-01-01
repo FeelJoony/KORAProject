@@ -13,6 +13,7 @@
 #include "Player/KRPlayerController.h"
 #include "Player/KRPlayerState.h"
 #include "SubSystem/KRDataAssetRegistry.h"
+#include "KRWorldSettings.h"
 
 AKRBaseGameMode::AKRBaseGameMode()
 {
@@ -138,18 +139,24 @@ APawn* AKRBaseGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* 
 void AKRBaseGameMode::HandleMatchAssignmentIfNotExpectionOne()
 {
 	FPrimaryAssetId ExperienceId;
-
 	UWorld* World = GetWorld();
-
 	if (!ExperienceId.IsValid() && UGameplayStatics::HasOption(OptionsString, TEXT("Experience")))
 	{
 		const FString ExperienceFromOptions = UGameplayStatics::ParseOption(OptionsString, TEXT("Experience"));
-		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType(UKRExperienceDefinition::StaticClass()->GetFName()), FName(*ExperienceFromOptions)));
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetType(UKRExperienceDefinition::StaticClass()->GetFName()), FName(*ExperienceFromOptions));
 	}
 	
 	if (!ExperienceId.IsValid())
 	{
-		ExperienceId = FPrimaryAssetId(FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("BP_KRDefaultExperienceDefinition")));
+		if (AKRWorldSettings* TypedWorldSettings = Cast<AKRWorldSettings>(GetWorldSettings()))
+		{
+			ExperienceId = TypedWorldSettings->GetDefaultGameplayExperience();
+		}
+	}
+
+	if (!ExperienceId.IsValid())
+	{
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetType("KRExperienceDefinition"), FName("BP_KRDefaultExperienceDefinition"));
 	}
 
 	OnMatchAssignmentGiven(ExperienceId);
@@ -173,7 +180,7 @@ bool AKRBaseGameMode::IsExperienceLoaded() const
 	return ExperienceManagerComponent->IsExperienceLoaded();
 }
 
-void AKRBaseGameMode::OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience)
+void AKRBaseGameMode::OnExperienceLoaded(const UKRExperienceDefinition* CurrentExperience)
 {
 	RegisterDataAssets();
 
@@ -188,5 +195,12 @@ void AKRBaseGameMode::OnExperienceLoaded(const class UKRExperienceDefinition* Cu
 				RestartPlayer(PC);
 			}
 		}
+
+		if (PC && PC->IsLocalController())
+		{
+			FInputModeGameOnly InputMode;
+			PC->SetInputMode(InputMode);
+			PC->bShowMouseCursor = false;
+		}
 	}
-} 
+}

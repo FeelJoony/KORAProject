@@ -3,6 +3,9 @@
 #include "SubSystem/KRUIInputSubsystem.h"
 #include "Groups/CommonButtonGroupBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "GameModes/KRFrontendStateComponent.h"
+#include "GameModes/KRBaseGameState.h"
 
 void UKRMainMenuWidget::NativeConstruct()
 {
@@ -19,6 +22,25 @@ void UKRMainMenuWidget::NativeConstruct()
 	}
 	
 	InitializeMenuButtons();
+	
+	if (UWorld* World = GetWorld())
+	{
+		if (AGameStateBase* GameState = World->GetGameState())
+		{
+			FrontendStateComponent = GameState->FindComponentByClass<UKRFrontendStateComponent>();
+		}
+		
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UGameplayMessageSubsystem* MessageSubsystem = GI->GetSubsystem<UGameplayMessageSubsystem>())
+			{
+				ConfirmListenerHandle = MessageSubsystem->RegisterListener<FKRUIMessage_Confirm>(
+					FKRUIMessageTags::Confirm(),
+					this,
+					&ThisClass::OnConfirmMessageReceived);
+			}
+		}
+	}
 	
 	if (ContinueButton && ContinueButton->GetVisibility() == ESlateVisibility::Visible)
 	{
@@ -38,6 +60,50 @@ void UKRMainMenuWidget::NativeConstruct()
 	if (QuitGameButton)
 	{
 		BindMenuButton(QuitGameButton);
+	}
+}
+
+void UKRMainMenuWidget::NativeDestruct()
+{
+	if (ConfirmListenerHandle.IsValid())
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (UGameInstance* GI = World->GetGameInstance())
+			{
+				if (UGameplayMessageSubsystem* MessageSubsystem = GI->GetSubsystem<UGameplayMessageSubsystem>())
+				{
+					MessageSubsystem->UnregisterListener(ConfirmListenerHandle);
+				}
+			}
+		}
+	}
+
+	Super::NativeDestruct();
+}
+
+void UKRMainMenuWidget::OnConfirmMessageReceived(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload)
+{
+	if (Payload.Context == EConfirmContext::NewGame && Payload.Result == EConfirmResult::Yes)
+	{
+		if (FrontendStateComponent)
+		{
+			FrontendStateComponent->TravelToGameplay();
+		}
+	}
+	else if (Payload.Context == EConfirmContext::QuitGame && Payload.Result == EConfirmResult::Yes)
+	{
+		if (APlayerController* PC = GetOwningPlayer())
+		{
+			UKismetSystemLibrary::QuitGame(GetWorld(), PC, EQuitPreference::Quit, false);
+		}
+	}
+	else if (Payload.Context == EConfirmContext::Continue && Payload.Result == EConfirmResult::Yes)
+	{
+		if (FrontendStateComponent)
+		{
+			FrontendStateComponent->TravelToContinue();
+		}
 	}
 }
 

@@ -25,11 +25,27 @@ void UKRExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId Experie
 	TSubclassOf<UKRExperienceDefinition> AssetClass;
 	{
 		FSoftObjectPath AssetPath = AssetManager.GetPrimaryAssetPath(ExperienceId);
+		if (!AssetPath.IsValid())
+		{
+			UE_LOG(LogTemp, Error, TEXT("[ExperienceManager] Failed to get asset path for ExperienceId: %s"), *ExperienceId.ToString());
+			return;
+		}
+
 		AssetClass = Cast<UClass>(AssetPath.TryLoad());
+		if (!AssetClass)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[ExperienceManager] Failed to load asset class from path: %s"), *AssetPath.ToString());
+			return;
+		}
 	}
 	
 	const UKRExperienceDefinition* Experience = GetDefault<UKRExperienceDefinition>(AssetClass);
-	check(Experience != nullptr);
+	if (!Experience)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ExperienceManager] Failed to get default object for class: %s"), *AssetClass->GetName());
+		return;
+	}
+
 	check(CurrentExperience == nullptr);
 	{
 		CurrentExperience = Experience;

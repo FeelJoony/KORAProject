@@ -9,6 +9,7 @@ class UCommonButtonBase;
 class UKRMenuTabButton;
 class UCommonButtonGroupBase;
 class UKRUserFacingExperience;
+class UKRFrontendStateComponent;
 
 UCLASS()
 class KORAPROJECT_API UKRMainMenuWidget : public UCommonActivatableWidget
@@ -17,12 +18,19 @@ class KORAPROJECT_API UKRMainMenuWidget : public UCommonActivatableWidget
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual void NativeOnActivated() override;
 	virtual void NativeOnDeactivated() override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "MainMenu")
 	void BP_OnMenuButtonInvoked(EConfirmContext Context);
 	
+	void OnConfirmMessageReceived(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload);
+	
+	UPROPERTY() TObjectPtr<UKRFrontendStateComponent> FrontendStateComponent;
+
+	FGameplayMessageListenerHandle ConfirmListenerHandle;
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCommonButtonBase> ContinueButton;

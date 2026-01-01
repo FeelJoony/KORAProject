@@ -117,6 +117,13 @@ void UKRFrontendStateComponent::TravelToExperience(const UKRUserFacingExperience
 	{
 		return;
 	}
+	
+	APlayerController* HostingPlayer = World->GetFirstPlayerController();
+	if (!HostingPlayer)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[FrontendState] TravelToExperience: No valid PlayerController found!"));
+		return;
+	}
 
 	if (UGameInstance* GI = World->GetGameInstance())
 	{
@@ -127,7 +134,7 @@ void UKRFrontendStateComponent::TravelToExperience(const UKRUserFacingExperience
 			{
 				UE_LOG(LogTemp, Log, TEXT("[FrontendState] Hosting session with MapID: %s"),
 					*Experience->MapID.ToString());
-				SessionSubsystem->HostSession(nullptr, Request);
+				SessionSubsystem->HostSession(HostingPlayer, Request);
 			}
 		}
 	}
