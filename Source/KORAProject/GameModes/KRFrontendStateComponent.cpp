@@ -16,8 +16,7 @@ UKRFrontendStateComponent::UKRFrontendStateComponent(const FObjectInitializer& O
 void UKRFrontendStateComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Wait for experience to load
+	
 	if (AGameStateBase* GS = GetGameStateChecked<AGameStateBase>())
 	{
 		if (UKRExperienceManagerComponent* ExperienceManager = GS->FindComponentByClass<UKRExperienceManagerComponent>())
@@ -56,8 +55,7 @@ void UKRFrontendStateComponent::ShowMainMenu()
 	{
 		return;
 	}
-
-	// Open main menu via UI Router
+	
 	if (UGameInstance* GI = World->GetGameInstance())
 	{
 		if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
@@ -68,13 +66,10 @@ void UKRFrontendStateComponent::ShowMainMenu()
 			UE_LOG(LogTemp, Log, TEXT("[FrontendState] Main menu opened - input mode managed by UIRouter"));
 		}
 	}
-
-	// Broadcast ready event
+	
 	OnFrontendReady.Broadcast();
 	OnFrontendReadyEvent();
 }
-
-// SetUIOnlyInputMode removed - input mode is now managed by UIRouterSubsystem
 
 void UKRFrontendStateComponent::TravelToGameplay()
 {
@@ -90,12 +85,8 @@ void UKRFrontendStateComponent::TravelToGameplay()
 
 void UKRFrontendStateComponent::TravelToContinue()
 {
-	// TODO: Load save data here before traveling
-	// For now, just travel to gameplay
 	if (HasSaveData())
 	{
-		// Load save game data
-		// Then travel
 		TravelToGameplay();
 	}
 	else
@@ -106,7 +97,7 @@ void UKRFrontendStateComponent::TravelToContinue()
 
 void UKRFrontendStateComponent::TravelToExperience(const UKRUserFacingExperience* Experience)
 {
-	if (!Experience)
+	if (!Experience)	
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[FrontendState] TravelToExperience: Experience is null"));
 		return;
@@ -142,8 +133,6 @@ void UKRFrontendStateComponent::TravelToExperience(const UKRUserFacingExperience
 
 bool UKRFrontendStateComponent::HasSaveData() const
 {
-	// TODO: Implement actual save data check
-	// For now, check if a save game exists
 	return UGameplayStatics::DoesSaveGameExist(TEXT("PlayerSaveSlot"), 0);
 }
 
