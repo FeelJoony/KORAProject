@@ -30,6 +30,7 @@ void UKRExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId Experie
 	
 	const UKRExperienceDefinition* Experience = GetDefault<UKRExperienceDefinition>(AssetClass);
 	check(Experience != nullptr);
+	
 	check(CurrentExperience == nullptr);
 	{
 		CurrentExperience = Experience;
