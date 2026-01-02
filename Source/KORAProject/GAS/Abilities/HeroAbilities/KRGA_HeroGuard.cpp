@@ -7,6 +7,8 @@
 #include "GAS/Abilities/HeroAbilities/Libraries/KRMotionWarpingLibrary.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KREventTag.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
 UKRGA_HeroGuard::UKRGA_HeroGuard(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -263,6 +265,17 @@ void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 			GuardConfig.PerfectGuardWindow,
 			false
 		);
+
+		// 퍼펙트 가드 UI 메시지 브로드캐스트
+		FKRUIMessage_Guard GuardMessage;
+		GuardMessage.TargetActor = AvatarActor;
+		GuardMessage.bGuardSuccess = true;
+		GuardMessage.bPerfectGuard = true;
+
+		UGameplayMessageSubsystem::Get(World).BroadcastMessage(
+			FKRUIMessageTags::Guard(),
+			GuardMessage
+		);
 	}
 }
 
@@ -325,6 +338,20 @@ void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
 			CueParams.Location = GetAvatarActorFromActorInfo()->GetActorLocation();
 			ASC->ExecuteGameplayCue(GuardHitCueTag, CueParams);
 		}
+	}
+
+	// 일반 가드 UI 메시지 브로드캐스트
+	if (UWorld* World = GetWorld())
+	{
+		FKRUIMessage_Guard GuardMessage;
+		GuardMessage.TargetActor = AvatarActor;
+		GuardMessage.bGuardSuccess = true;
+		GuardMessage.bPerfectGuard = false;
+
+		UGameplayMessageSubsystem::Get(World).BroadcastMessage(
+			FKRUIMessageTags::Guard(),
+			GuardMessage
+		);
 	}
 }
 
