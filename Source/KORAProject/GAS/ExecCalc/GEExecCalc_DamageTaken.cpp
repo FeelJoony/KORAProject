@@ -238,6 +238,70 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 #endif
 	}
 
+	// ─────────────────────────────────────────────────────
+	// 9. 히트 이벤트 전송 (가드 성공 vs HitReaction 분기)
+	// ─────────────────────────────────────────────────────
+	AActor* TargetActor = TargetASC->GetAvatarActor();
+	AActor* InstigatorActor = const_cast<AActor*>(Spec.GetContext().GetOriginalInstigator());
+
+	if (TargetActor && FinalDamage >= 0.f)
+	{
+		// 패리 성공: 이미 위에서 PARRYSUCCESS 이벤트 전송됨, 추가 이벤트 불필요
+		if (bIsParried)
+		{
+			// 패리는 이미 처리됨
+		}
+		// 일반 가드 성공 (전방 공격 + 가드 감소 적용됨)
+		else if (bIsStandardGuard)
+		{
+			// Guard GA에서 처리할 COMBAT_HIT 이벤트 전송
+			FGameplayEventData GuardHitEvent;
+			GuardHitEvent.EventTag = KRTAG_EVENT_COMBAT_HIT;
+			GuardHitEvent.EventMagnitude = FinalDamage;
+			GuardHitEvent.Instigator = InstigatorActor;
+			GuardHitEvent.Target = TargetActor;
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				TargetActor,
+				KRTAG_EVENT_COMBAT_HIT,
+				GuardHitEvent
+			);
+
+#if !UE_BUILD_SHIPPING
+			UE_LOG(LogTemp, Log, TEXT("[Event] Sent COMBAT_HIT (Guard Success) to %s"), *TargetActor->GetName());
+#endif
+		}
+		// 가드 실패 (후방 공격, 가드 안 함, 가드 브레이크 등) → HitReaction
+		else
+		{
+			// HitReaction GA에서 처리할 HITREACTION 이벤트 전송
+			// EventMagnitude 패킹: HitIntensity(정수부) + KnockbackDistance * 0.001(소수부)
+			// 기본값: Light(0) + 100 넉백 = 0.100
+			const float HitIntensity = bIsCritical ? 2.0f : 1.0f;  // Critical이면 Heavy, 아니면 Medium
+			const float KnockbackDistance = 100.0f;  // 기본 넉백 거리
+			const float PackedMagnitude = HitIntensity + (KnockbackDistance * 0.001f);
+
+			FGameplayEventData HitReactionEvent;
+			HitReactionEvent.EventTag = KRTAG_EVENT_COMBAT_HITREACTION;
+			HitReactionEvent.EventMagnitude = PackedMagnitude;
+			HitReactionEvent.Instigator = InstigatorActor;
+			HitReactionEvent.Target = TargetActor;
+			HitReactionEvent.ContextHandle = Spec.GetContext();
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				TargetActor,
+				KRTAG_EVENT_COMBAT_HITREACTION,
+				HitReactionEvent
+			);
+
+#if !UE_BUILD_SHIPPING
+			UE_LOG(LogTemp, Log, TEXT("[Event] Sent HITREACTION to %s (BackAttack: %s)"),
+				*TargetActor->GetName(),
+				(bIsGuarding && GuardDamageReduction == 0.f) ? TEXT("Yes") : TEXT("No"));
+#endif
+		}
+	}
+
 #if !UE_BUILD_SHIPPING
 	// 디버그 로그
 	UE_LOG(LogTemp, Log, TEXT("[DamageTaken] BaseDamage: %.1f, DealMult: %.2f, CritMult: %.2f, Defense: %.1f, TakeMult: %.2f, GuardRed: %.2f -> Final: %.1f %s%s"),

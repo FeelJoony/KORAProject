@@ -478,29 +478,26 @@ void UKRGameplayAbility_MeleeAttack::ApplyHitToTarget(AActor* HitActor, const FH
 {
 	if (!HitActor) return;
 
-	// 1. HitReaction 이벤트 전송 (피격자에게)
-	SendHitReactionEvent(HitActor, HitResult);
-
-	// 2. 데미지 적용
+	// 1. 데미지 적용
 	ApplyDamage(HitActor, HitResult);
 
-	// 3. 히트 Cue 실행 (공격자 측 이펙트/사운드)
+	// 2. 히트 Cue 실행 (공격자 측 이펙트/사운드)
 	ExecuteHitCue(HitResult);
 
-	// 4. 히트스톱 적용
+	// 3. 히트스톱 적용
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
 	if (Config.bUseHitStop)
 	{
 		ApplyHitStop();
 	}
 
-	// 5. 카메라 쉐이크 적용
+	// 4. 카메라 쉐이크 적용
 	if (Config.bUseCameraShake && Config.HitCameraShake)
 	{
 		ApplyCameraShake();
 	}
 
-	// 6. 코어드라이브 충전 이벤트 전송 (공격자에게)
+	// 5. 코어드라이브 충전 이벤트 전송 (공격자에게)
 	// 타겟이 유효한 전투 대상(ASC 보유)인 경우에만 충전
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
 	if (TargetASC)
