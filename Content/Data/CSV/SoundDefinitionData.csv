@@ -47,3 +47,5 @@ Sound.Skill.AerialCombo.Dash,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sw
 Sound.Interaction.Rope.Hook,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Rope_Hook.DA_Sound_Interaction_Rope_Hook,Interaction Hook,TRUE
 Sound.Mobility.Dodge.Step,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Mobility_Dodge_Default.DA_Sound_Mobility_Dodge_Default,Dodge Step ,TRUE
 Sound.Mobility.Dodge.Swish,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Mobility_Dodge_Swish.DA_Sound_Mobility_Dodge_Swish,Dodge Swish,TRUE
+Sound.Interaction.Scan.Sense.Start,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Scan_Sense_Start.DA_Sound_Interaction_Scan_Sense_Start,Sense Start,TRUE
+Sound.Interaction.Scan.Sense.Enemy,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Scan_Sense_Enemy.DA_Sound_Interaction_Scan_Sense_Enemy,Sense Enemy,TRUE
