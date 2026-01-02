@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "QuestConditionChecker.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "QuestEnterLocationChecker.generated.h"
 
 UCLASS()
@@ -20,4 +21,7 @@ protected:
 
 	UFUNCTION(Blueprintable)
 	void ReceiveMessage(FGameplayTag Channel, const struct FQuestEventTriggerBoxMessage& Payload);
+
+private:
+	FGameplayMessageListenerHandle ListenerHandle;
 };

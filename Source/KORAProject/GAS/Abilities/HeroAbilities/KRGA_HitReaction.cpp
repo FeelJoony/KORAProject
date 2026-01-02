@@ -11,8 +11,10 @@
 UKRGA_HitReaction::UKRGA_HitReaction(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	AbilityTags.AddTag(KRTAG_ABILITY_HITREACTION);
-	HitReactionCueTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.Combat.HitReaction")); // UILevel과 병합 후 태그 추가 예정 
+	FGameplayTagContainer Tags;
+	Tags.AddTag(KRTAG_ABILITY_HITREACTION);
+	SetAssetTags(Tags);
+	HitReactionCueTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.Combat.HitReaction")); // UILevel과 병합 후 태그 추가 예정
 
 	ActivationPolicy = EKRAbilityActivationPolicy::OnInputTriggered;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -44,23 +46,40 @@ void UKRGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	CachedCueParams = FKRHitReactionCueParams();
 	CachedCueParams.HitDirection = UKRHitReactionLibrary::CalculateHitDirection(Victim, Attacker);
 
-	// MeleeAttack에서 EventMagnitude로 전달된 HitIntensity 사용, 없으면 기본값
+	// MeleeAttack에서 EventMagnitude로 패킹된 데이터 언패킹
+	// EventMagnitude = HitIntensity(정수부) + KnockbackDistance * 0.001(소수부)
+	// 예: 2.150 → HitIntensity=2, KnockbackDistance=150
+	float ReceivedKnockbackDistance = 0.0f;
 	if (TriggerEventData->EventMagnitude > 0.0f)
 	{
+		int32 UnpackedIntensity = FMath::FloorToInt(TriggerEventData->EventMagnitude);
 		CachedCueParams.HitIntensity = static_cast<EKRHitIntensity>(FMath::Clamp(
-			static_cast<int32>(TriggerEventData->EventMagnitude),
+			UnpackedIntensity,
 			0,
 			static_cast<int32>(EKRHitIntensity::Heavy)
 		));
+
+		// 소수부에서 넉백 거리 추출
+		ReceivedKnockbackDistance = (TriggerEventData->EventMagnitude - static_cast<float>(UnpackedIntensity)) * 1000.0f;
 	}
 	else
 	{
 		CachedCueParams.HitIntensity = DefaultHitIntensity;
 	}
+
 	CachedCueParams.SoundTag = HitSoundTag;
 	CachedCueParams.EffectTag = HitEffectTag;
 	CachedCueParams.EffectSocketName = EffectSocketName;
-	CachedCueParams.KnockbackDistance = bUseKnockback ? KnockbackDistance : 0.0f;
+
+	// 공격자가 전달한 넉백 거리 사용, 없으면 GA 기본값 사용
+	if (ReceivedKnockbackDistance > 0.0f)
+	{
+		CachedCueParams.KnockbackDistance = ReceivedKnockbackDistance;
+	}
+	else
+	{
+		CachedCueParams.KnockbackDistance = bUseKnockback ? KnockbackDistance : 0.0f;
+	}
 	CachedCueParams.HitStopDuration = bUseHitStop ? HitStopDuration : 0.0f;
 	
 	CachedCueParams.HitLocation = Victim ? Victim->GetActorLocation() : FVector::ZeroVector;
@@ -88,7 +107,8 @@ void UKRGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		ApplyHitStop();
 	}
 	
-	if (bUseKnockback)
+	// 넉백 적용: 공격자가 전달한 거리가 있거나 GA 기본 설정이 활성화된 경우
+	if (CachedCueParams.KnockbackDistance > 0.0f)
 	{
 		ApplyKnockback(CachedCueParams.HitNormal);
 	}
@@ -187,13 +207,15 @@ void UKRGA_HitReaction::ApplyKnockback(const FVector& HitDirection)
 	{
 		return;
 	}
-	
+
 	FVector KnockbackDirection = HitDirection;
 	KnockbackDirection.Z = 0.f;
 	KnockbackDirection.Normalize();
 
-	FVector KnockbackLocation = AvatarActor->GetActorLocation() + (KnockbackDirection * KnockbackDistance);
-	
+	// 캐싱된 넉백 거리 사용 (공격자가 전달한 값 또는 GA 기본값)
+	const float ActualKnockbackDistance = CachedCueParams.KnockbackDistance;
+	FVector KnockbackLocation = AvatarActor->GetActorLocation() + (KnockbackDirection * ActualKnockbackDistance);
+
 	if (bUseMotionWarping)
 	{
 		if (UMotionWarpingComponent* MWComp = GetMotionWarpingComponent())
@@ -210,7 +232,7 @@ void UKRGA_HitReaction::ApplyKnockback(const FVector& HitDirection)
 	{
 		if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
 		{
-			FVector LaunchVelocity = KnockbackDirection * (KnockbackDistance * 5.0f);
+			FVector LaunchVelocity = KnockbackDirection * (ActualKnockbackDistance * 5.0f);
 			LaunchVelocity.Z = 100.0f;
 			Character->LaunchCharacter(LaunchVelocity, true, true);
 		}

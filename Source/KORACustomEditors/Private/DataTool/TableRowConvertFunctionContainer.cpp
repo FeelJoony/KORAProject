@@ -21,6 +21,7 @@
 #include "Data/ModuleDataStruct.h"
 #include "Data/KRDataAssetTableRows.h"
 #include "Data/CitizenDataStruct.h"
+#include "Data/DialogueDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -879,6 +880,49 @@ void UTableRowConvertFunctionContainer::CreateCitizenData(UDataTable* OutDataTab
 
 }
 
+void UTableRowConvertFunctionContainer::CreateDialogueData(UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("DialogueData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
+				int32 NPCTag_Index = GetHeaderIndex(Headers, TEXT("NPCTag"));
+				int32 DialogueTextKeys_Index = GetHeaderIndex(Headers, TEXT("DialogueTextKeys"));
+
+				FDialogueDataStruct DialogueData;
+
+				DialogueData.Index = ParseIntValue(RowValue[Index_Index]);
+				DialogueData.NPCTag = ParseGameplayTagValue(RowValue[NPCTag_Index]);
+
+				TArray<FString> KeysArray = ParseArrayValue(RowValue[DialogueTextKeys_Index]);
+				for (const FString& KeyString : KeysArray)
+				{
+					FString TrimmedKey = KeyString.TrimStartAndEnd();
+					if (!TrimmedKey.IsEmpty())
+					{
+						DialogueData.DialogueTextKeys.Add(FName(*TrimmedKey));
+					}
+				}
+
+				FName RowName = *FString::Printf(TEXT("Dialogue_%d"), i);
+				if (FDialogueDataStruct* FindRow = OutDataTable->FindRow<FDialogueDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = DialogueData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, DialogueData);
+				}
+			}
+		}));
+}
+
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)
 {
     TArray<FString> Lines;
@@ -916,12 +960,13 @@ void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVS
         TArray<FString> LineValues;
         CurrentLine.ParseIntoArray(LineValues, TEXT(","), true);
 
-        OutValues.Add(LineValues);
-
-        if (OutValues.Num() != OutHeaders.Num())
+        if (LineValues.Num() != OutHeaders.Num())
         {
-            UE_LOG(LogTemp, Warning, TEXT("Line %d in %s has %d columns, expected %d. Skipping line."), i + 1, *CSVFileName, OutValues.Num(), OutHeaders.Num());
+            UE_LOG(LogTemp, Warning, TEXT("Line %d in %s has %d columns, expected %d. Skipping line."), i + 1, *CSVFileName, LineValues.Num(), OutHeaders.Num());
+            continue;
         }
+
+        OutValues.Add(LineValues);
     }
 }
 

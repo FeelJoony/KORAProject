@@ -16,14 +16,6 @@ enum class EKRCombatEventType : uint8
 	SpawnEffect
 };
 
-/**
- * 전투 이벤트 AnimNotify - 간략화 버전
- *
- * 애니메이션에서 Sound/Effect 트리거만 담당
- * - HitCheck: HitCheck NotifyState 또는 GA에서 처리
- * - MotionWarping: UE5 내장 AnimNotifyState_MotionWarping 사용
- * - HitReaction: UKRGA_HitReaction GA에서 처리
- */
 UCLASS()
 class KORAPROJECT_API UKRAnimNotify_CombatEvent : public UAnimNotify
 {
@@ -37,15 +29,9 @@ public:
 #endif
 
 protected:
-	// 이벤트 타입 (Sound 또는 Effect)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CombatEvent")
 	EKRCombatEventType EventType = EKRCombatEventType::PlaySound;
 
-	// 이벤트 태그 (사운드/이펙트 태그)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CombatEvent")
 	FGameplayTag EventTag;
-
-	// 소켓 이름 (이펙트 스폰 위치)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CombatEvent", meta = (EditCondition = "EventType == EKRCombatEventType::SpawnEffect"))
-	FName SocketName = NAME_None;
 };

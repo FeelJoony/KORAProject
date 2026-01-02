@@ -4,6 +4,7 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KREventTag.h"
@@ -209,4 +210,104 @@ void UKRCharacterMovementComponent::CheckLadderExit(float ClimbDirection)
 void UKRCharacterMovementComponent::SetLadderMounting(bool bMounting)
 {
 	bIsLadderMounting = bMounting;
+}
+
+void UKRCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (bEnableCharacterSeparation && CharacterOwner)
+	{
+		ApplyCharacterSeparation(DeltaTime);
+	}
+}
+
+void UKRCharacterMovementComponent::SetCharacterSeparationEnabled(bool bEnabled)
+{
+	bEnableCharacterSeparation = bEnabled;
+}
+
+void UKRCharacterMovementComponent::ApplyCharacterSeparation(float DeltaTime)
+{
+	if (!CharacterOwner) return;
+
+	UCapsuleComponent* Capsule = CharacterOwner->GetCapsuleComponent();
+	if (!Capsule) return;
+
+	const float CapsuleRadius = Capsule->GetScaledCapsuleRadius();
+	const float DetectionRadius = CapsuleRadius + SeparationDetectionRadius;
+	const FVector OwnerLocation = CharacterOwner->GetActorLocation();
+
+	// 주변 캐릭터 탐지
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(CharacterOwner);
+
+	const bool bHasOverlaps = GetWorld()->OverlapMultiByChannel(
+		Overlaps,
+		OwnerLocation,
+		FQuat::Identity,
+		ECC_Pawn,
+		FCollisionShape::MakeSphere(DetectionRadius + 100.0f),  // 여유있게 탐지
+		QueryParams
+	);
+
+	if (!bHasOverlaps) return;
+
+	FVector TotalSeparation = FVector::ZeroVector;
+	int32 SeparationCount = 0;
+
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		ACharacter* OtherChar = Cast<ACharacter>(Overlap.GetActor());
+		if (!OtherChar) continue;
+
+		UCapsuleComponent* OtherCapsule = OtherChar->GetCapsuleComponent();
+		if (!OtherCapsule) continue;
+
+		FVector ToOther = OtherChar->GetActorLocation() - OwnerLocation;
+		ToOther.Z = 0.0f;  // 수평 방향만 고려
+
+		const float Distance = ToOther.Size();
+		if (Distance < KINDA_SMALL_NUMBER) continue;
+
+		const float OtherRadius = OtherCapsule->GetScaledCapsuleRadius();
+		const float MinRequiredDist = CapsuleRadius + OtherRadius + MinSeparationBuffer;
+
+		if (Distance < MinRequiredDist)
+		{
+			// 분리 방향 (다른 캐릭터에서 멀어지는 방향)
+			const FVector SeparationDir = -ToOther.GetSafeNormal();
+
+			// 거리에 반비례하는 분리력 (가까울수록 강함)
+			// 0 = 완전히 겹침, 1 = 최소 거리에서 접촉
+			const float OverlapRatio = FMath::Clamp(1.0f - (Distance / MinRequiredDist), 0.0f, 1.0f);
+
+			// 거리 기반 가중치 (더 가까운 캐릭터에 더 강한 반응)
+			TotalSeparation += SeparationDir * OverlapRatio;
+			SeparationCount++;
+		}
+	}
+
+	if (SeparationCount > 0 && !TotalSeparation.IsNearlyZero())
+	{
+		TotalSeparation.Normalize();
+
+		// 공격 중이면 분리력 감소 (타겟에 가까이 유지)
+		float FinalStrength = SeparationStrength;
+		if (IsPerformingAttack())
+		{
+			FinalStrength *= SeparationMultiplierWhileAttacking;
+		}
+
+		// AddInputVector로 부드럽게 분리 (물리 충돌 없이 자연스러운 이동)
+		AddInputVector(TotalSeparation * FinalStrength * DeltaTime);
+	}
+}
+
+bool UKRCharacterMovementComponent::IsPerformingAttack() const
+{
+	if (!CachedASC.IsValid()) return false;
+
+	return CachedASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_ATTACKING);
 }

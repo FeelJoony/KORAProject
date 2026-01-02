@@ -12,14 +12,26 @@ UQuestConditionChecker* UQuestEnterLocationChecker::Initialize(UKRQuestInstance*
 	ObjectiveTag = EvalData.ObjectiveTag;
 	QuestInstance = NewQuestInstance;
 
-	UGameplayMessageSubsystem& GameplayMessageSubSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	GameplayMessageSubSystem.RegisterListener(ObjectiveTag, this, &ThisClass::ReceiveMessage);
+	if (UWorld* World = NewQuestInstance ? NewQuestInstance->GetWorld() : nullptr)
+	{
+		UGameplayMessageSubsystem& GameplayMessageSubSystem = UGameplayMessageSubsystem::Get(World);
+		ListenerHandle = GameplayMessageSubSystem.RegisterListener<FQuestEventTriggerBoxMessage>(
+			ObjectiveTag, this, &ThisClass::ReceiveMessage);
+	}
 
 	return this;
 }
 
 void UQuestEnterLocationChecker::Uninitialize()
 {
+	if (ListenerHandle.IsValid() && QuestInstance)
+	{
+		if (UWorld* World = QuestInstance->GetWorld())
+		{
+			UGameplayMessageSubsystem::Get(World).UnregisterListener(ListenerHandle);
+		}
+	}
+
 	Super::Uninitialize();
 }
 

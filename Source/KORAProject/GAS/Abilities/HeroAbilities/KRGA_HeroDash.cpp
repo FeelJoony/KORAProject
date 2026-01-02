@@ -2,24 +2,38 @@
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Characters/KRHeroCharacter.h"
-#include "GameFramework/Character.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Components/KRHeroComponent.h"
+#include "Components/KRStaminaComponent.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/KRAbilitySystemComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UKRGA_HeroDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                      const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
+
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
 	if (!Character)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	// 스태미나 체크 및 소모
+	if (UKRStaminaComponent* StaminaComp = Character->FindComponentByClass<UKRStaminaComponent>())
+	{
+		if (!StaminaComp->HasEnoughStamina(DashStaminaCost))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+			return;
+		}
+		StaminaComp->ConsumeStamina(DashStaminaCost);
+	}
+
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;

@@ -10,3 +10,11 @@ GroupIndex,OrderIndex,ObjectiveTag,SubQuestName,Description,RequiredCount,TimeLi
 1,9,Ability.LockOn,Name9,Description9,5,-1,Scene3_Shot3b
 1,10,Ability.LockOn,Name10,Description10,5,-1,Scene4_Shot4b
 1,11,Ability.LockOn,Name11,Description11,5,-1,SceneX_SpecialGauge
+2,1,NPC.Type.Clara,QUEST_OBJ_TALK_CLARA,QUEST_OBJ_TALK_CLARA,1,-1,Main_TalkClara
+2,2,Event.ForgottenCity.MissionArea,QUEST_OBJ_GOTO_MISSION,QUEST_OBJ_GOTO_MISSION,1,-1,Main_MissionArea
+2,3,Event.ForgottenCity.AccessPoint,QUEST_OBJ_ACCESS_POINT,QUEST_OBJ_ACCESS_POINT,1,-1,Main_AccessPoint
+2,4,ItemType.Quest.CoreWeaponBlueprint,QUEST_OBJ_GET_BLUEPRINT,QUEST_OBJ_GET_BLUEPRINT,1,-1,Main_Blueprint
+2,5,Event.ForgottenCity.BossArena,QUEST_OBJ_ACCESS_BossRoom,QUEST_OBJ_DEFEAT_BOSS,1,-1,Main_BossRoom
+2,6,Enemy.AIState.Dead,QUEST_OBJ_DEFEAT_BOSS,QUEST_OBJ_DEFEAT_BOSS,1,-1,Main_Boss
+2,7,Event.ForgottenCity.FinalBossArena,QUEST_OBJ_DEFEAT_FINALBOSS,QUEST_OBJ_DEFEAT_FINALBOSS,1,-1,Main_FinalBossRoom
+2,8,Enemy.AIState.Dead,QUEST_OBJ_DEFEAT_FINALBOSS,QUEST_OBJ_DEFEAT_FINALBOSS,1,-1,Main_FinalBoss

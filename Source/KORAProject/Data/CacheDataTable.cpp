@@ -16,6 +16,7 @@
 
 #include "KRDataAssetTableRows.h"
 #include "Data/CitizenDataStruct.h"
+#include "Data/DialogueDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -110,6 +111,12 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 	case EGameDataType::CitizenData:
 		{
 		InitKeyList<FCitizenDataStruct>(NewDataTable);
+		}
+		break;
+
+	case EGameDataType::DialogueData:
+		{
+		InitKeyList<FDialogueDataStruct>(NewDataTable);
 		}
 		break;
 	}

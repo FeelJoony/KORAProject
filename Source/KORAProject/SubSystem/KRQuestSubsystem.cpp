@@ -3,19 +3,25 @@
 #include "KRDataTablesSubsystem.h"
 #include "KRInventorySubsystem.h"
 #include "Data/QuestDataStruct.h"
-#include "Data/SubQuestDataStruct.h"
 #include "Quest/KRQuestActor.h"
 #include "Quest/KRQuestDataDefinition.h"
 #include "Quest/KRQuestInstance.h"
 #include "Quest/Condition/QuestAddItemChecker.h"
 #include "Quest/Condition/PlayAbilityChecker.h"
 #include "Quest/Condition/KillMonsterChecker.h"
+#include "Quest/Condition/QuestTalkNPCChecker.h"
 #include "Quest/Delegates/QuestDelegate.h"
 #include "System/KRAssetManager.h"
 #include "Quest/Delegates/TutorialDelegate.h"
+#include "Quest/Delegates/MainQuestDelegate.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "GameplayTag/KRAbilityTag.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KREnemyTag.h"
+#include "GameplayTag/KRNPCTag.h"
+#include "GameplayTag/KREventTag.h"
+#include "GameplayTag/KRItemTypeTag.h"
+#include "Quest/Condition/QuestEnterLocationChecker.h"
 
 DEFINE_LOG_CATEGORY(LogQuestSubSystem);
 
@@ -27,11 +33,20 @@ void UKRQuestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Collection.InitializeDependency<UKRInventorySubsystem>();
 
 	QuestDelegateMap.Add(EQuestType::Q_Tutorial, NewObject<UTutorialDelegate>(this));
+	QuestDelegateMap.Add(EQuestType::Q_Main, NewObject<UMainQuestDelegate>(this));
 
 	CheckerGroup.Add(KRTAG_ABILITY_LOCKON, UPlayAbilityChecker::StaticClass());
 	CheckerGroup.Add(KRTAG_STATE_ACTING_LOCKON, UPlayAbilityChecker::StaticClass());
 	CheckerGroup.Add(KRTAG_STATE_ACTING_GRAPPLING_SUCCESS, UPlayAbilityChecker::StaticClass());
 	CheckerGroup.Add(KRTAG_ENEMY_AISTATE_DEAD, UKillMonsterChecker::StaticClass());
+	
+	CheckerGroup.Add(KRTAG_NPC_TYPE_CLARA, UQuestTalkNPCChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_EVENT_FORGOTTENCITY_MISSIONAREA, UQuestEnterLocationChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_EVENT_FORGOTTENCITY_ACCESSPOINT, UQuestEnterLocationChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_ITEMTYPE_QUEST_COREWEAPONBLUEPRINT, UQuestAddItemChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_EVENT_FORGOTTENCITY_BOSSARENA, UQuestEnterLocationChecker::StaticClass());
+	CheckerGroup.Add(KRTAG_EVENT_FORGOTTENCITY_FINALBOSSARENA, UQuestEnterLocationChecker::StaticClass());
+	
 }
 
 void UKRQuestSubsystem::Deinitialize()
@@ -72,6 +87,62 @@ bool UKRQuestSubsystem::AbandonQuest(int32 Index)
 void UKRQuestSubsystem::NotifyObjectiveEvent(FGameplayTag TargetTag, int32 Count)
 {
 	
+}
+
+void UKRQuestSubsystem::NotifyNPCDialogueComplete(FGameplayTag NPCTag)
+{
+	if (!NPCTag.IsValid())
+	{
+		return;
+	}
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+	FQuestNPCDialogueCompleteMessage Message;
+	Message.NPCTag = NPCTag;
+
+	MessageSubsystem.BroadcastMessage(NPCTag, Message);
+}
+
+void UKRQuestSubsystem::MarkNPCDialogueForQuest(FGameplayTag NPCTag)
+{
+	if (!NPCTag.IsValid())
+	{
+		return;
+	}
+
+	const int32 CurrentQuestIdx = GetCurrentQuestIndex();
+	if (CurrentQuestIdx == INDEX_NONE)
+	{
+		return;
+	}
+	FQuestDialogueNPCSet& NPCSet = QuestDialogueNPCs.FindOrAdd(CurrentQuestIdx);
+	NPCSet.NPCTags.Add(NPCTag);
+}
+
+bool UKRQuestSubsystem::HasTalkedToNPCForCurrentQuest(FGameplayTag NPCTag) const
+{
+	const int32 CurrentQuestIdx = GetCurrentQuestIndex();
+	if (CurrentQuestIdx == INDEX_NONE)
+	{
+		return false;
+	}
+
+	const FQuestDialogueNPCSet* NPCSet = QuestDialogueNPCs.Find(CurrentQuestIdx);
+	if (!NPCSet)
+	{
+		return false;
+	}
+
+	return NPCSet->NPCTags.Contains(NPCTag);
+}
+
+int32 UKRQuestSubsystem::GetCurrentQuestIndex() const
+{
+	if (ActiveInstance)
+	{
+		return ActiveInstance->GetQuestIndex();
+	}
+	return INDEX_NONE;
 }
 
 void UKRQuestSubsystem::InitializeQuestDelegate(class UKRQuestInstance* NewQuestInstance)

@@ -3,6 +3,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
+#include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KREventTag.h"
 #include "GameplayTag/KRSetByCallerTag.h"
@@ -18,6 +19,7 @@ struct FDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DefensePower);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(TakeDamageMult);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DamageTaken);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(GreyHP);
 
 	FDamageStatics()
 	{
@@ -30,6 +32,9 @@ struct FDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UKRCombatCommonSet, DefensePower, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UKRCombatCommonSet, TakeDamageMult, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UKRCombatCommonSet, DamageTaken, Target, false);
+
+		// Target GreyHP (가드 리게인용, PlayerAttributeSet)
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UKRPlayerAttributeSet, GreyHP, Target, false);
 	}
 };
 
@@ -51,6 +56,7 @@ UGEExecCalc_DamageTaken::UGEExecCalc_DamageTaken()
 	RelevantAttributesToCapture.Add(DamageStatics().DefensePowerDef);
 	RelevantAttributesToCapture.Add(DamageStatics().TakeDamageMultDef);
 	RelevantAttributesToCapture.Add(DamageStatics().DamageTakenDef);
+	RelevantAttributesToCapture.Add(DamageStatics().GreyHPDef);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -208,6 +214,94 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 		);
 	}
 
+	// ─────────────────────────────────────────────────────
+	// 8. 일반 가드 시 GreyHP 생성 (가드 리게인)
+	// ─────────────────────────────────────────────────────
+	// 일반 가드로 막은 경우 (패리 X, 전방 피격 O), 받은 데미지만큼 GreyHP 생성
+	// 이 GreyHP는 플레이어가 공격하면 실제 HP로 회복 가능
+	const bool bIsStandardGuard = bIsGuarding && !bIsParried && (GuardDamageReduction > 0.f);
+	if (bIsStandardGuard && FinalDamage > 0.f)
+	{
+		// GreyHP 생성량 = 받은 실제 데미지
+		const float GreyHPToAdd = FinalDamage;
+
+		OutExecutionOutput.AddOutputModifier(
+			FGameplayModifierEvaluatedData(
+				DamageStatics().GreyHPProperty,
+				EGameplayModOp::Additive,
+				GreyHPToAdd
+			)
+		);
+
+#if !UE_BUILD_SHIPPING
+		UE_LOG(LogTemp, Log, TEXT("[GreyHP] Standard guard hit - added %.1f GreyHP"), GreyHPToAdd);
+#endif
+	}
+
+	// ─────────────────────────────────────────────────────
+	// 9. 히트 이벤트 전송 (가드 성공 vs HitReaction 분기)
+	// ─────────────────────────────────────────────────────
+	AActor* TargetActor = TargetASC->GetAvatarActor();
+	AActor* InstigatorActor = const_cast<AActor*>(Spec.GetContext().GetOriginalInstigator());
+
+	if (TargetActor && FinalDamage >= 0.f)
+	{
+		// 패리 성공: 이미 위에서 PARRYSUCCESS 이벤트 전송됨, 추가 이벤트 불필요
+		if (bIsParried)
+		{
+			// 패리는 이미 처리됨
+		}
+		// 일반 가드 성공 (전방 공격 + 가드 감소 적용됨)
+		else if (bIsStandardGuard)
+		{
+			// Guard GA에서 처리할 COMBAT_HIT 이벤트 전송
+			FGameplayEventData GuardHitEvent;
+			GuardHitEvent.EventTag = KRTAG_EVENT_COMBAT_HIT;
+			GuardHitEvent.EventMagnitude = FinalDamage;
+			GuardHitEvent.Instigator = InstigatorActor;
+			GuardHitEvent.Target = TargetActor;
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				TargetActor,
+				KRTAG_EVENT_COMBAT_HIT,
+				GuardHitEvent
+			);
+
+#if !UE_BUILD_SHIPPING
+			UE_LOG(LogTemp, Log, TEXT("[Event] Sent COMBAT_HIT (Guard Success) to %s"), *TargetActor->GetName());
+#endif
+		}
+		// 가드 실패 (후방 공격, 가드 안 함, 가드 브레이크 등) → HitReaction
+		else
+		{
+			// HitReaction GA에서 처리할 HITREACTION 이벤트 전송
+			// EventMagnitude 패킹: HitIntensity(정수부) + KnockbackDistance * 0.001(소수부)
+			// 기본값: Light(0) + 100 넉백 = 0.100
+			const float HitIntensity = bIsCritical ? 2.0f : 1.0f;  // Critical이면 Heavy, 아니면 Medium
+			const float KnockbackDistance = 100.0f;  // 기본 넉백 거리
+			const float PackedMagnitude = HitIntensity + (KnockbackDistance * 0.001f);
+
+			FGameplayEventData HitReactionEvent;
+			HitReactionEvent.EventTag = KRTAG_EVENT_COMBAT_HITREACTION;
+			HitReactionEvent.EventMagnitude = PackedMagnitude;
+			HitReactionEvent.Instigator = InstigatorActor;
+			HitReactionEvent.Target = TargetActor;
+			HitReactionEvent.ContextHandle = Spec.GetContext();
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				TargetActor,
+				KRTAG_EVENT_COMBAT_HITREACTION,
+				HitReactionEvent
+			);
+
+#if !UE_BUILD_SHIPPING
+			UE_LOG(LogTemp, Log, TEXT("[Event] Sent HITREACTION to %s (BackAttack: %s)"),
+				*TargetActor->GetName(),
+				(bIsGuarding && GuardDamageReduction == 0.f) ? TEXT("Yes") : TEXT("No"));
+#endif
+		}
+	}
+
 #if !UE_BUILD_SHIPPING
 	// 디버그 로그
 	UE_LOG(LogTemp, Log, TEXT("[DamageTaken] BaseDamage: %.1f, DealMult: %.2f, CritMult: %.2f, Defense: %.1f, TakeMult: %.2f, GuardRed: %.2f -> Final: %.1f %s%s"),
@@ -217,9 +311,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 #endif
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// IsHitFromFront
-// ─────────────────────────────────────────────────────────────────────────────
+
 bool UGEExecCalc_DamageTaken::IsHitFromFront(const FGameplayEffectSpec& Spec, UAbilitySystemComponent* TargetASC) const
 {
 	if (!TargetASC)

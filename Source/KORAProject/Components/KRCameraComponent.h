@@ -28,6 +28,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KR|Camera")
 	void RemoveCameraMode(TSubclassOf<UKRCameraMode> CameraModeClass);
 	
+	template<typename T>
+	T* GetCameraModeInstance() const
+	{
+		return Cast<T>(GetCameraModeInstanceByClass(T::StaticClass()));
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "KR|Camera")
+	UKRCameraMode* GetCameraModeInstanceByClass(TSubclassOf<UKRCameraMode> CameraModeClass) const;
+
+	// for special skill camera mode 
+	UFUNCTION(BlueprintCallable, Category = "KR|Camera")
+	void SetCameraModeUpdateLocked(bool bLocked) { bCameraModeUpdateLocked = bLocked; }
+	UFUNCTION(BlueprintPure, Category = "KR|Camera")
+	bool IsCameraModeUpdateLocked() const { return bCameraModeUpdateLocked; }
+
 	virtual AActor* GetTargetActor() const { return GetOwner(); }
 
 	void AddFieldOfViewOffset(float FovOffset) { FieldOfViewOffset += FovOffset; }
@@ -48,4 +63,7 @@ protected:
 	TObjectPtr<UKRCameraModeStack> CameraModeStack;
 
 	float FieldOfViewOffset;
+
+	// for special skill camera mode 
+	bool bCameraModeUpdateLocked = false;
 };

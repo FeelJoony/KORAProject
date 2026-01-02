@@ -6,6 +6,7 @@
 #include "GAS/Abilities/KRGameplayAbility.h"
 #include "Subsystem/KRUIRouterSubsystem.h"
 #include "Characters/KRHeroCharacter.h"
+#include "Player/KRPlayerController.h"
 
 AInteractableActorBase::AInteractableActorBase()
 {
@@ -87,9 +88,12 @@ void AInteractableActorBase::OnActorEnterRange(AActor* TargetActor)
 						this,
 						&AInteractableActorBase::OnAbilityActivated
 					);
-				
-				UE_LOG(LogTemp, Warning, TEXT("[Interactable] Player Entered Range. Delegate Bound."));
 			}
+		}
+
+		if (AKRPlayerController* PC = Cast<AKRPlayerController>(Character->GetController()))
+		{
+			PC->SetCurrentInteractableActor(this);
 		}
 
 		GiveTagToActor(Character, InteractAbilityTag);
@@ -101,6 +105,14 @@ void AInteractableActorBase::OnActorExitRange(AActor* TargetActor)
 	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(TargetActor))
 	{
 		if (!IsValid(Character)) return;
+
+		if (AKRPlayerController* PC = Cast<AKRPlayerController>(Character->GetController()))
+		{
+			if (PC->GetCurrentInteractableActor() == this)
+			{
+				PC->SetCurrentInteractableActor(nullptr);
+			}
+		}
 
 		RemoveTagFromActor(Character, InteractAbilityTag);
 	}
@@ -120,7 +132,7 @@ void AInteractableActorBase::HideInteractionUI()
 	UKRUIRouterSubsystem* Router = GetWorld()->GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>();
 	if (IsValid(Router))
 	{
-		Router->ToggleRoute("ScreenInteract");
+		Router->CloseRoute("ScreenInteract");
 	}
 }
 
@@ -132,7 +144,7 @@ void AInteractableActorBase::OnAbilityActivated(UGameplayAbility* Ability)
 {
 	if (!Ability || !InteractAbilityTag.IsValid()) return;
 	
-	const FGameplayTagContainer& AbilityTags = Ability->AbilityTags;
+	const FGameplayTagContainer& AbilityTags = Ability->GetAssetTags();
 
 	if (AbilityTags.HasTagExact(InteractAbilityTag))
 	{
@@ -149,7 +161,6 @@ void AInteractableActorBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	//interact actor�� tag�� player���� ����
 	if (!IsValid(OtherActor)) return;
 
 	OnActorEnterRange(OtherActor);
@@ -162,7 +173,6 @@ void AInteractableActorBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
 {
 	if (!IsValid(OtherActor)) return;
 
-	//loose tag
 	OnActorExitRange(OtherActor);
 }
  
