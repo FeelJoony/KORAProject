@@ -18,8 +18,8 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	UPROPERTY(EditDefaultsOnly, Config, Category = "Citizen|Appearance", meta = (AllowedClasses = "DataTable"))
-	FSoftObjectPath MHCitizenAppearanceTablePath; //DT³Ö°í config·Î ¼³Á¤ÇØ¾ßÇÔ 
+	// UPROPERTY(EditDefaultsOnly, Config, Category = "Citizen|Appearance", meta = (AllowedClasses = "DataTable"))
+	// FSoftObjectPath MHCitizenAppearanceTablePath; //DTï¿½Ö°ï¿½ configï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ 
 
 	UPROPERTY(Transient)
 	UDataTable* MHCitizenAppearanceTable = nullptr;
