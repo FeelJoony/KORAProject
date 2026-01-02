@@ -9,7 +9,7 @@
 #include "KRCitizenStreamingSubsystem.generated.h"
 
 
-UCLASS(Config = Game, DefaultConfig)
+UCLASS()
 class KORAPROJECT_API UKRCitizenStreamingSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
