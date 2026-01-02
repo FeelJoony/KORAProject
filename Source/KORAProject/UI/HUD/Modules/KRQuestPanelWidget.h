@@ -8,6 +8,7 @@
 #include "KRQuestPanelWidget.generated.h"
 
 class UCommonTextBlock;
+class UStringTable;
 
 UCLASS()
 class KORAPROJECT_API UKRQuestPanelWidget : public UKRHUDWidgetBase
@@ -25,6 +26,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Quest")
 	void BP_OnUpdateQuestPanel(const FName QuestObjectiveKey);
 
+	UFUNCTION(BlueprintCallable, Category = "Quest")
+	FText GetQuestTextFromStringTable(FName Key) const;
+
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Quest")
+	TSoftObjectPtr<UStringTable> QuestStringTable;
+
 	FGameplayMessageListenerHandle QuestListener;
 };

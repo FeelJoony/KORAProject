@@ -27,4 +27,7 @@ public:
 
 	UPROPERTY(EditInstanceOnly, Category = "Quest|EventGameplayTag")
 	FGameplayTag EventGameplayTag;
+
+private:
+	bool bTriggered;
 };

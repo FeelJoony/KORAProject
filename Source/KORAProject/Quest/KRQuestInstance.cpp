@@ -30,12 +30,15 @@ void UKRQuestInstance::Initialize(int32 QuestIndex)
 		EvalData.Init(CurrentSubQuestData, EvalDataStruct.OrderIndex);
 		SubQuestProgressMap.Add(EvalDataStruct.OrderIndex, EvalData);
 
-		// Initialize Checkers
-
-		UQuestConditionChecker* Checker = QuestSubsystem.CheckerGroup.FindRef(EvalDataStruct.ObjectiveTag)->GetDefaultObject<UQuestConditionChecker>()->Initialize(this, EvalDataStruct);
-		if (Checker)
+		TSubclassOf<UQuestConditionChecker> CheckerClass = QuestSubsystem.CheckerGroup.FindRef(EvalDataStruct.ObjectiveTag);
+		if (CheckerClass)
 		{
-			QuestCheckers.Add(EvalDataStruct.ObjectiveTag, Checker);
+			UQuestConditionChecker* Checker = NewObject<UQuestConditionChecker>(this, CheckerClass);
+			if (Checker)
+			{
+				Checker->Initialize(this, EvalDataStruct);
+				QuestCheckers.Add(EvalDataStruct.ObjectiveTag, Checker);
+			}
 		}
 	}
 
