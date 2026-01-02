@@ -32,7 +32,8 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOVEMENT_LANDING_HEAVY_CONCRETE, "Sound.Movem
 // ============================================================
 // SOUND TAGS - Mobility
 // ============================================================
-UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_DODGE, "Sound.Mobility.Dodge");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_DODGE_STEP, "Sound.Mobility.Dodge.Step");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_DODGE_SWISH, "Sound.Mobility.Dodge.Swish");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_ROLL_START, "Sound.Mobility.Roll.Start");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_ROLL_END, "Sound.Mobility.Roll.End");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_MOBILITY_JUMP_VOICE, "Sound.Mobility.Jump.Voice");
