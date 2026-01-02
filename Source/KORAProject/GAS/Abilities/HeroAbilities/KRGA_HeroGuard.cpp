@@ -265,18 +265,18 @@ void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 			GuardConfig.PerfectGuardWindow,
 			false
 		);
-
-		// 퍼펙트 가드 UI 메시지 브로드캐스트
-		FKRUIMessage_Guard GuardMessage;
-		GuardMessage.TargetActor = AvatarActor;
-		GuardMessage.bGuardSuccess = true;
-		GuardMessage.bPerfectGuard = true;
-
-		UGameplayMessageSubsystem::Get(World).BroadcastMessage(
-			FKRUIMessageTags::Guard(),
-			GuardMessage
-		);
 	}
+
+	// 퍼펙트 가드 UI 메시지 브로드캐스트
+	FKRUIMessage_Guard GuardMessage;
+	GuardMessage.TargetActor = AvatarActor;
+	GuardMessage.bGuardSuccess = true;
+	GuardMessage.bPerfectGuard = true;
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(
+		FKRUIMessageTags::Guard(),
+		GuardMessage
+	);
 }
 
 void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
@@ -341,18 +341,15 @@ void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
 	}
 
 	// 일반 가드 UI 메시지 브로드캐스트
-	if (UWorld* World = GetWorld())
-	{
-		FKRUIMessage_Guard GuardMessage;
-		GuardMessage.TargetActor = AvatarActor;
-		GuardMessage.bGuardSuccess = true;
-		GuardMessage.bPerfectGuard = false;
+	FKRUIMessage_Guard GuardMessage;
+	GuardMessage.TargetActor = AvatarActor;
+	GuardMessage.bGuardSuccess = true;
+	GuardMessage.bPerfectGuard = false;
 
-		UGameplayMessageSubsystem::Get(World).BroadcastMessage(
-			FKRUIMessageTags::Guard(),
-			GuardMessage
-		);
-	}
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(
+		FKRUIMessageTags::Guard(),
+		GuardMessage
+	);
 }
 
 // ─────────────────────────────────────────────────────
