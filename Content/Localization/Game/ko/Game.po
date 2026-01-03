@@ -1,0 +1,1195 @@
+# Korean translations generated from archive JSON
+msgid ""
+msgstr ""
+"Project-Id-Version: KORAProject\n"
+"POT-Creation-Date: 2026-01-03 00:00+0900\n"
+"PO-Revision-Date: 2026-01-03 00:00+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Desc_Corebunny_Blue
+msgctxt "ST_ItemList"
+msgid "A Corebunny Limiter finished in the Azure Pulse color for ICMA security personnel."
+msgstr "ICMA 보안 요원을 위해 아주르 펄스 컬러로 마감한 코어버니 리미터."
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Desc_Corebunny_Red
+msgctxt "ST_ItemList"
+msgid "A Corebunny Limiter finished in the Crimson Core color for ICMA security personnel."
+msgstr "ICMA 보안 요원을 위해 크림슨 코어 컬러로 마감한 코어버니 리미터."
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Desc_Corebunny_White
+msgctxt "ST_ItemList"
+msgid "A Corebunny Limiter finished in the Ivory Gear color for ICMA security personnel."
+msgstr "ICMA 보안 요원을 위해 아이보리 기어 컬러로 마감한 코어버니 리미터."
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Desc_Corebunny_Black
+msgctxt "ST_ItemList"
+msgid "A Corebunny Limiter finished in the Obsidian Black color for ICMA security personnel."
+msgstr "ICMA 보안 요원을 위해 옵시디언 블랙 컬러로 마감한 코어버니 리미터."
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Desc_Corebunny_Green
+msgctxt "ST_ItemList"
+msgid "A Corebunny Limiter finished in the Verdant Neon color for ICMA security personnel."
+msgstr "ICMA 보안 요원을 위해 버던트 네온 컬러로 마감한 코어버니 리미터."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_CompressedBoreBarrel
+msgctxt "ST_ItemList"
+msgid "A barrel designed with a compressed bore diameter and internal structure to stably accommodate a greater number of rounds."
+msgstr "압축된 강선 구경과 내부 구조로 더 많은 탄약을 안정적으로 수용하도록 설계된 배럴."
+
+#. Namespace: ST_ItemList
+#. Key: COS_Desc_GearRequiem_Blue
+msgctxt "ST_ItemList"
+msgid "A battle dress finished in the Azure Pulse color used by ICMA security officers."
+msgstr "ICMA 보안 요원들이 사용하는 아주르 펄스 컬러의 전투 드레스."
+
+#. Namespace: ST_ItemList
+#. Key: COS_Desc_GearRequiem_Red
+msgctxt "ST_ItemList"
+msgid "A battle dress finished in the Crimson Core color used by ICMA security officers."
+msgstr "ICMA 보안 요원들이 사용하는 크림슨 코어 컬러의 전투 드레스."
+
+#. Namespace: ST_ItemList
+#. Key: COS_Desc_GearRequiem_White
+msgctxt "ST_ItemList"
+msgid "A battle dress finished in the Ivory Gear color used by ICMA security officers."
+msgstr "ICMA 보안 요원들이 사용하는 아이보리 기어 컬러의 전투 드레스."
+
+#. Namespace: ST_ItemList
+#. Key: COS_Desc_GearRequiem_Black
+msgctxt "ST_ItemList"
+msgid "A battle dress finished in the Obsidian Black color used by ICMA security officers."
+msgstr "ICMA 보안 요원들이 사용하는 옵시디언 블랙 컬러의 전투 드레스."
+
+#. Namespace: ST_ItemList
+#. Key: COS_Desc_GearRequiem_Green
+msgctxt "ST_ItemList"
+msgid "A battle dress finished in the Verdant Neon color used by ICMA security officers."
+msgstr "ICMA 보안 요원들이 사용하는 버던트 네온 컬러의 전투 드레스."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Violic_Suppress
+msgctxt "ST_ItemList"
+msgid "A biosignal suppressor that minimizes internal response signatures, disrupting enemy detection systems and aiding stealthy maneuvers."
+msgstr "내부 반응 신호를 최소화해 적의 감지 시스템을 교란하고 은밀한 기동을 돕는 바이오 신호 억제기."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Ferro_ChippedSickle
+msgctxt "ST_ItemList"
+msgid "A broken shard from the work sickle once wielded by a Ferro Loader. The blade edge is badly damaged."
+msgstr "페로 로더가 사용하던 작업용 낫에서 부러져 나온 파편. 날끝이 심하게 손상되어 있다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_08_Desc
+msgctxt "ST_ItemList"
+msgid "A ceremonial-style blade adorned with repeating violet light patterns."
+msgstr "반복되는 보랏빛 광 패턴으로 장식된 의식용 스타일의 검."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_CoreBattery_AE01
+msgctxt "ST_ItemList"
+msgid "A chip-type core battery designed to rapidly recharge one segment of core drive, used as an emergency power source for special attacks."
+msgstr "코어 드라이브 한 칸을 빠르게 충전하도록 설계된 칩형 코어 배터리. 특수 공격을 위한 비상 전원으로 사용된다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_04_Desc
+msgctxt "ST_ItemList"
+msgid "A cold-looking blade forged from deep, dark-toned metal."
+msgstr "짙고 어두운 금속으로 단조된 차가운 인상의 검."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_EncryptedChip
+msgctxt "ST_ItemList"
+msgid "A core chip from a communications module protected by heavy encryption. Decrypting it will not be easy."
+msgstr "강력한 암호화로 보호된 통신 모듈의 코어 칩. 해독은 쉽지 않을 것이다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Ferro_RatmailPlate
+msgctxt "ST_ItemList"
+msgid "A crude patch of metal armor from makeshift rat-mail, torn free during a clash with a Ferro Loader."
+msgstr "페로 로더와의 충돌 중 뜯겨 나온 임시 랫메일 금속 갑옷 조각."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_DamagedScope
+msgctxt "ST_ItemList"
+msgid "A damaged scope with cracked lenses. No longer reliable for aiming, but its internal components retain reprocessing value."
+msgstr "렌즈가 갈라진 손상된 스코프. 조준에는 더 이상 쓸 수 없지만 내부 부품은 재가공 가치가 있다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_05_Desc
+msgctxt "ST_ItemList"
+msgid "A decorative combat sword with vivid magenta luminescent patterns across its body."
+msgstr "몸체 전반에 선명한 마젠타 발광 문양이 새겨진 장식용 전투검."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Nerras_ExoPlating
+msgctxt "ST_ItemList"
+msgid "A defensive plate taken from Nerras’s core-fused exoskeleton, notable for its thermal stability and impact resistance."
+msgstr "네라스의 코어 융합 외골격에서 떼어낸 방어 플레이트. 열 안정성과 충격 저항이 돋보인다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Arbid_WebSpool
+msgctxt "ST_ItemList"
+msgid "A dense spool of silk secreted by Arbid, condensed into a sticky mass with exceptional strength and adhesion."
+msgstr "아르비드가 분비한 실크를 고밀도로 응축한 덩어리. 뛰어난 강도와 접착성을 지닌다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_RustedBadge
+msgctxt "ST_ItemList"
+msgid "A heavily oxidized metal badge whose original emblem is almost unrecognizable; it once proved someone’s rank or identity."
+msgstr "심하게 산화되어 원래의 문장이 거의 알아볼 수 없는 금속 배지. 한때 누군가의 계급이나 신분을 증명했을 것이다."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_OverloadCompMagazine
+msgctxt "ST_ItemList"
+msgid "A high-pressure compression magazine that expands ammo capacity but adds weight, potentially reducing fire rate."
+msgstr "탄약 수용량을 늘리는 고압 압축 탄창. 무게가 증가해 연사 속도가 떨어질 수 있다."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_KineticFlowActuator
+msgctxt "ST_ItemList"
+msgid "A high-speed energy flow control module that recycles kinetic energy generated during firing without loss, enhancing both barrel stabilization and firing cycle efficiency."
+msgstr "사격 중 발생하는 운동 에너지를 손실 없이 재활용하는 고속 에너지 흐름 제어 모듈. 배럴 안정화와 발사 사이클 효율을 강화한다."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_DualPhaseSurge
+msgctxt "ST_ItemList"
+msgid "A hybrid combat unit that generates both phase vibration and shockwaves at the same time."
+msgstr "위상 진동과 충격파를 동시에 발생시키는 하이브리드 전투 유닛."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_LightSyncMatrix
+msgctxt "ST_ItemList"
+msgid "A lightweight sync matrix that tunes blade tempo, stabilizing attack speed while enhancing critical potential."
+msgstr "블레이드의 템포를 조율해 공격 속도를 안정화하고 치명타 잠재력을 강화하는 경량 싱크 매트릭스."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_01_Desc
+msgctxt "ST_ItemList"
+msgid "A long blacksteel blade that carries a heavy and oppressive presence."
+msgstr "길고 검은 흑강철 칼날로, 무겁고 억압적인 존재감을 풍긴다."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_PulseBladeMotor
+msgctxt "ST_ItemList"
+msgid "A miniature pulse engine that boosts blade acceleration, allowing faster, more agile strikes."
+msgstr "블레이드 가속을 높이는 소형 펄스 엔진. 더 빠르고 민첩한 참격을 가능케 한다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Violic_All
+msgctxt "ST_ItemList"
+msgid "A premium module from Violic Pharmaceuticals that stabilizes both core drive output and bio-recovery systems, restoring HP, stamina, and core drive in balanced amounts."
+msgstr "바이올릭 제약의 프리미엄 모듈. 코어 드라이브 출력과 생체 회복 시스템을 안정화해 HP, 스태미나, 코어 드라이브를 균형 있게 회복한다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Sora_Coin
+msgctxt "ST_ItemList"
+msgid "A rare coin engraved with the crest of Sora Bell. Generates a strange protective luck field that reduces gearing loss on death by 50%."
+msgstr "소라 벨의 문장이 새겨진 희귀 동전. 기묘한 보호 행운장을 생성해 사망 시 기어링 손실을 50% 감소시킨다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_06_Desc
+msgctxt "ST_ItemList"
+msgid "A refined long sword with condensed white radiance gathered at its center."
+msgstr "중심에 응축된 백색 광휘가 모인 정제된 장검."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Spinder_ChitinPlate
+msgctxt "ST_ItemList"
+msgid "A reinforced segment of Spinder exoskeleton, valued as a base material for high-strength composite fibers."
+msgstr "스핀더 외골격의 강화 분절. 고강도 복합 섬유의 기초 소재로 가치가 높다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_BloodstainedNote
+msgctxt "ST_ItemList"
+msgid "A scrap of paper stained with dried blood. Most of the writing has blurred, but fragments of codes and notes remain."
+msgstr "마른 피로 얼룩진 종이 조각. 대부분의 글씨가 번졌지만 코드와 메모의 일부가 남아 있다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_LuxLamp
+msgctxt "ST_ItemList"
+msgid "A self-illuminating portable lamp essential for dark zones and derelict sectors, lighting a set radius for 300 seconds."
+msgstr "어두운 구역과 폐허 섹터에서 필수인 자체 발광 휴대용 램프. 300초 동안 일정 반경을 비춘다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Nerras_DualBladFrag
+msgctxt "ST_ItemList"
+msgid "A shard of high-tensile military alloy broken off Nerras’s twin blades."
+msgstr "네라스의 쌍검에서 떨어져 나온 고인장 군용 합금 파편."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Violic_Stamina
+msgctxt "ST_ItemList"
+msgid "A sky-blue ampoule from Violic Pharmaceuticals that suppresses fatigue signals and accelerates energy metabolism, quickly restoring stamina during intense missions."
+msgstr "피로 신호를 억제하고 에너지 대사를 촉진하는 바이올릭 제약의 하늘빛 앰플. 격렬한 임무 중 스태미나를 빠르게 회복한다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_07_Desc
+msgctxt "ST_ItemList"
+msgid "A sleek blade traced with a thin teal luminescent line from guard to tip."
+msgstr "가드에서 끝까지 얇은 청록 발광 라인이 이어진 매끈한 검."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Arbid_EyeCluster
+msgctxt "ST_ItemList"
+msgid "A small cluster of severed compound eyes from Arbid. Faint photoreactive responses still flicker across the tissue."
+msgstr "아르비드의 복안이 잘려 모인 작은 덩이. 조직 위로 희미한 광반응이 아직도 깜박인다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Violic_ATKBoost
+msgctxt "ST_ItemList"
+msgid "A special orange solution that boosts attack reaction speed and muscular energy release, greatly enhancing combat performance for a short duration."
+msgstr "공격 반응 속도와 근육 에너지 방출을 높이는 특수 오렌지 용액. 짧은 시간 동안 전투 성능을 크게 강화한다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Violic_FirstAid
+msgctxt "ST_ItemList"
+msgid "A standard emergency recovery kit from Violic Pharmaceuticals. Rapidly restores HP when vital responses drop, greatly increasing survival in critical moments."
+msgstr "바이올릭 제약의 표준 응급 회복 키트. 생체 반응이 저하되면 HP를 빠르게 회복해 위기 상황에서 생존성을 크게 높인다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_TornUniform
+msgctxt "ST_ItemList"
+msgid "A torn scrap of mercenary uniform fabric, still marked with bullet holes and slashes."
+msgstr "총탄 자국과 베임 흔적이 남아 있는 용병 제복의 찢어진 천 조각."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Sora_Wallet
+msgctxt "ST_ItemList"
+msgid "A vault-style leather wallet whose micro-lock mechanisms can completely prevent one instance of runaway currency loss upon death."
+msgstr "마이크로 락 메커니즘을 갖춘 금고형 가죽 지갑. 사망 시 폭주하는 화폐 손실을 한 번 완전히 방지한다."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Spinder_VenomFang
+msgctxt "ST_ItemList"
+msgid "A venomous fang from a Spinder Breed, still coated with traces of powerful neurotoxin."
+msgstr "스핀더 종의 독니. 강력한 신경독의 흔적이 아직 코팅되어 있다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_03_Desc
+msgctxt "ST_ItemList"
+msgid "A well-balanced sword that leaves a faint afterglow along its edge."
+msgstr "날끝에 희미한 잔광이 남는 균형 잡힌 검."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_WornKnuckle
+msgctxt "ST_ItemList"
+msgid "A well-worn knuckle guard scarred by long use. The metal fatigue is so advanced it looks ready to snap at any moment."
+msgstr "오랜 사용으로 상처투성이가 된 너클 가드. 금속 피로가 심각해 당장이라도 부러질 듯하다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_04
+msgctxt "ST_ItemList"
+msgid "Abyssal Edge"
+msgstr "심연의 칼날"
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_03
+msgctxt "ST_ItemList"
+msgid "Afterglow Judicator"
+msgstr "잔광의 심판자"
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_05
+msgctxt "ST_ItemList"
+msgid "Amaranth Rhythm"
+msgstr "아마란스 리듬"
+
+#. Namespace: ST_ItemList
+#. Key: GUN_Desc_IGCM45_Blue
+msgctxt "ST_ItemList"
+msgid "An IGCM-45 Black Order sidearm finished in the Azure Pulse color."
+msgstr "아주르 펄스 컬러로 마감한 IGCM-45 블랙 오더 권총."
+
+#. Namespace: ST_ItemList
+#. Key: GUN_Desc_IGCM45_Red
+msgctxt "ST_ItemList"
+msgid "An IGCM-45 Black Order sidearm finished in the Crimson Core color."
+msgstr "크림슨 코어 컬러로 마감한 IGCM-45 블랙 오더 권총."
+
+#. Namespace: ST_ItemList
+#. Key: GUN_Desc_IGCM45_White
+msgctxt "ST_ItemList"
+msgid "An IGCM-45 Black Order sidearm finished in the Ivory Gear color."
+msgstr "아이보리 기어 컬러로 마감한 IGCM-45 블랙 오더 권총."
+
+#. Namespace: ST_ItemList
+#. Key: GUN_Desc_IGCM45_Black
+msgctxt "ST_ItemList"
+msgid "An IGCM-45 Black Order sidearm finished in the Obsidian Black color."
+msgstr "옵시디언 블랙 컬러로 마감한 IGCM-45 블랙 오더 권총."
+
+#. Namespace: ST_ItemList
+#. Key: GUN_Desc_IGCM45_Green
+msgctxt "ST_ItemList"
+msgid "An IGCM-45 Black Order sidearm finished in the Verdant Neon color."
+msgstr "버던트 네온 컬러로 마감한 IGCM-45 블랙 오더 권총."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_ZeroKickMount
+msgctxt "ST_ItemList"
+msgid "An advanced frame that channels recoil through the entire weapon structure, achieving near-zero perceived kick."
+msgstr "반동을 무기 전체 구조로 분산시키는 고급 프레임. 체감 반동을 거의 0에 가깝게 만든다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_02_Desc
+msgctxt "ST_ItemList"
+msgid "An experimental combat blade etched with flowing crimson pulse patterns."
+msgstr "흐르는 듯한 크림슨 펄스 문양이 새겨진 실험용 전투검."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Spinder_CompoundLens
+msgctxt "ST_ItemList"
+msgid "An optical fragment formed from many tiny overlapping lenses shed from a Spinder Breed’s eye structure."
+msgstr "스핀더 종의 눈 구조에서 떨어져 나온, 수많은 작은 렌즈 조각이 겹쳐 형성된 광학 파편."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_Clara_Key
+msgctxt "ST_ItemList"
+msgid "An ornate brass key engineered by Clara Weiss, specialized for old mechanical locks and used to open certain chests."
+msgstr "클라라 바이스가 설계한 장식적인 황동 열쇠. 오래된 기계식 자물쇠에 특화되어 있으며 일부 상자를 여는 데 사용된다."
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_01
+msgctxt "ST_ItemList"
+msgid "Blacksteel Exorciser"
+msgstr "흑강철 퇴마검"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Desc_SpentBrass
+msgctxt "ST_ItemList"
+msgid "Bundles of spent brass casings, still carrying the faint echo of recent gunfire."
+msgstr "방금 전의 총성이 희미하게 남아 있는 사용된 탄피 묶음."
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Clara_Key
+msgctxt "ST_ItemList"
+msgid "Clara Weiss's Key"
+msgstr "클라라 바이스의 열쇠"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_CompressedBoreBarrel
+msgctxt "ST_ItemList"
+msgid "Compressed Bore Barrel"
+msgstr "압축 보어 배럴"
+
+#. Namespace: ST_ItemList
+#. Key: CUR_Corbyte
+msgctxt "ST_ItemList"
+msgid "Corbyte"
+msgstr "코바이트"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_CoreBattery_AE01
+msgctxt "ST_ItemList"
+msgid "Core Battery: AE-01"
+msgstr "코어 배터리: AE-01"
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Corebunny_Black
+msgctxt "ST_ItemList"
+msgid "Corebunny Limiter"
+msgstr "코어버니 리미터"
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Corebunny_Blue
+msgctxt "ST_ItemList"
+msgid "Corebunny Limiter"
+msgstr "코어버니 리미터"
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Corebunny_Green
+msgctxt "ST_ItemList"
+msgid "Corebunny Limiter"
+msgstr "코어버니 리미터"
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Corebunny_Red
+msgctxt "ST_ItemList"
+msgid "Corebunny Limiter"
+msgstr "코어버니 리미터"
+
+#. Namespace: ST_ItemList
+#. Key: HEAD_Corebunny_White
+msgctxt "ST_ItemList"
+msgid "Corebunny Limiter"
+msgstr "코어버니 리미터"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_DualPhaseSurge
+msgctxt "ST_ItemList"
+msgid "Dual-Phase Surge Unit"
+msgstr "듀얼 페이즈 서지 유닛"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_FatalDriveAmp
+msgctxt "ST_ItemList"
+msgid "Enhances the blade's shock resonance, leaving enemies with deeper, more lethal critical wounds."
+msgstr "블레이드의 충격 공명을 강화해 적에게 더 깊고 치명적인 치명상(크리티컬 상처)을 남긴다."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_FatalDriveAmp
+msgctxt "ST_ItemList"
+msgid "Fatal Drive Amplifier"
+msgstr "페이탈 드라이브 증폭기"
+
+#. Namespace: ST_ItemList
+#. Key: COS_GearRequiem_Black
+msgctxt "ST_ItemList"
+msgid "Gear Requiem Dress"
+msgstr "기어 레퀴엠 드레스"
+
+#. Namespace: ST_ItemList
+#. Key: COS_GearRequiem_Blue
+msgctxt "ST_ItemList"
+msgid "Gear Requiem Dress"
+msgstr "기어 레퀴엠 드레스"
+
+#. Namespace: ST_ItemList
+#. Key: COS_GearRequiem_Green
+msgctxt "ST_ItemList"
+msgid "Gear Requiem Dress"
+msgstr "기어 레퀴엠 드레스"
+
+#. Namespace: ST_ItemList
+#. Key: COS_GearRequiem_Red
+msgctxt "ST_ItemList"
+msgid "Gear Requiem Dress"
+msgstr "기어 레퀴엠 드레스"
+
+#. Namespace: ST_ItemList
+#. Key: COS_GearRequiem_White
+msgctxt "ST_ItemList"
+msgid "Gear Requiem Dress"
+msgstr "기어 레퀴엠 드레스"
+
+#. Namespace: ST_ItemList
+#. Key: CUR_Gearing
+msgctxt "ST_ItemList"
+msgid "Gearing"
+msgstr "기어링"
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_06
+msgctxt "ST_ItemList"
+msgid "Heart of White Radiance"
+msgstr "백광의 심장"
+
+#. Namespace: ST_ItemList
+#. Key: GUN_IGCM45_Blue
+msgctxt "ST_ItemList"
+msgid "IGCM-45 Black Order"
+msgstr "IGCM-45 블랙 오더"
+
+#. Namespace: ST_ItemList
+#. Key: GUN_IGCM45_Green
+msgctxt "ST_ItemList"
+msgid "IGCM-45 Black Order"
+msgstr "IGCM-45 블랙 오더"
+
+#. Namespace: ST_ItemList
+#. Key: GUN_IGCM45_Red
+msgctxt "ST_ItemList"
+msgid "IGCM-45 Black Order"
+msgstr "IGCM-45 블랙 오더"
+
+#. Namespace: ST_ItemList
+#. Key: GUN_IGCM45_White
+msgctxt "ST_ItemList"
+msgid "IGCM-45 Black Order"
+msgstr "IGCM-45 블랙 오더"
+
+#. Namespace: ST_ItemList
+#. Key: GUN_IGCM45_Black
+msgctxt "ST_ItemList"
+msgid "IGCM-45 Black Order"
+msgstr "IGCM-45 블랙 오더"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_IonImpactChamber
+msgctxt "ST_ItemList"
+msgid "Ionized Impact Chamber"
+msgstr "이온 임팩트 챔버"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_IonImpactChamber
+msgctxt "ST_ItemList"
+msgid "Ionizes the projectile surface at the moment of firing, dramatically amplifying its impact force."
+msgstr "발사 순간 탄환 표면을 이온화하여 충격력을 극적으로 증폭시킨다."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_KineticFlowActuator
+msgctxt "ST_ItemList"
+msgid "Kinetic Flow Actuator"
+msgstr "키네틱 플로우 액추에이터"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_LightSyncMatrix
+msgctxt "ST_ItemList"
+msgid "Lightweight Sync Matrix"
+msgstr "경량 싱크 매트릭스"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_LuxLamp
+msgctxt "ST_ItemList"
+msgid "Lux Lamp"
+msgstr "럭스 램프"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_Desc_RapidTimingGear
+msgctxt "ST_ItemList"
+msgid "Optimizes trigger circuitry and fire cadence to push the weapon’s rate of fire to its safe limit."
+msgstr "트리거 회로와 발사 템포를 최적화해 무기의 연사 속도를 안전 한계까지 끌어올린다."
+
+#. Namespace: ST_ItemList
+#. Key: MOD_OverloadCompMagazine
+msgctxt "ST_ItemList"
+msgid "Overload Compression Magazine"
+msgstr "오버로드 압축 탄창"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_PulseBladeMotor
+msgctxt "ST_ItemList"
+msgid "Pulse-Driven Blade Motor"
+msgstr "펄스 구동 블레이드 모터"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_RapidTimingGear
+msgctxt "ST_ItemList"
+msgid "Rapid-Fire Timing Gear"
+msgstr "고속 연사 타이밍 기어"
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_02
+msgctxt "ST_ItemList"
+msgid "Red Pulse Blade"
+msgstr "붉은 펄스 블레이드"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Sora_Coin
+msgctxt "ST_ItemList"
+msgid "Sora Bell's Coin"
+msgstr "소라 벨의 동전"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Sora_Wallet
+msgctxt "ST_ItemList"
+msgid "Sora Bell's Wallet"
+msgstr "소라 벨의 지갑"
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_07
+msgctxt "ST_ItemList"
+msgid "Teal Luminous Blade"
+msgstr "청록 발광 검"
+
+#. Namespace: ST_ItemList
+#. Key: WPN_Sword_08
+msgctxt "ST_ItemList"
+msgid "Violet Oathblade"
+msgstr "보랏빛 서약검"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Violic_All
+msgctxt "ST_ItemList"
+msgid "Violic Pharm: All-In-One Recovery"
+msgstr "바이올릭 제약: 올인원 회복제"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Violic_Suppress
+msgctxt "ST_ItemList"
+msgid "Violic Pharm: Biosignal Suppressant"
+msgstr "바이올릭 제약: 바이오 신호 억제제"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Violic_ATKBoost
+msgctxt "ST_ItemList"
+msgid "Violic Pharm: Combat Booster"
+msgstr "바이올릭 제약: 전투 부스터"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Violic_FirstAid
+msgctxt "ST_ItemList"
+msgid "Violic Pharm: First-Aid Kit"
+msgstr "바이올릭 제약: 응급 처치 키트"
+
+#. Namespace: ST_ItemList
+#. Key: ITM_Violic_Stamina
+msgctxt "ST_ItemList"
+msgid "Violic Pharm: Stamina Ampoule"
+msgstr "바이올릭 제약: 스태미나 앰플"
+
+#. Namespace: ST_ItemList
+#. Key: MOD_ZeroKickMount
+msgctxt "ST_ItemList"
+msgid "Zero-Kick Mount Frame"
+msgstr "제로 킥 마운트 프레임"
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_001
+msgctxt "ST_QuestList"
+msgid "Agent Kora, your successful mission and the capture of the syndicate’s remnants have provided invaluable support to our investigation."
+msgstr "요원 코라, 임무의 성공과 연합 잔당의 체포는 우리 수사에 귀중한 도움이 되었습니다."
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_002
+msgctxt "ST_QuestList"
+msgid "As you know, Barion floats in the sky thanks to the power of five cores scattered across the city."
+msgstr "알다시피 바리온은 도시 곳곳에 흩어진 다섯 개의 코어의 힘으로 하늘에 떠 있습니다."
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_004
+msgctxt "ST_QuestList"
+msgid "At this rate, Barion will crash to the ground within weeks."
+msgstr "이대로라면 바리온은 몇 주 안에 지상으로 추락할 겁니다."
+
+#. Namespace: ST_QuestList
+#. Key: QUEST_OBJ_DEFEAT_BOSS
+msgctxt "ST_QuestList"
+msgid "Defeat Nerras the Dualfang"
+msgstr "쌍송곳니 네라스를 처치하라"
+
+#. Namespace: ST_QuestList
+#. Key: Main_Boss
+msgctxt "ST_QuestList"
+msgid "Defeat Nerras the Dualfang"
+msgstr "쌍송곳니 네라스를 처치하라"
+
+#. Namespace: ST_QuestList
+#. Key: QUEST_OBJ_DEFEAT_FINALBOSS
+msgctxt "ST_QuestList"
+msgid "Defeat the final boss"
+msgstr "최종 보스를 처치하라"
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_003
+msgctxt "ST_QuestList"
+msgid "Earlier this morning, the Eastern Core was stolne. Our floating energy has been dropping ever since."
+msgstr "오늘 아침 일찍 동쪽 코어가 도난당했습니다. 그 이후로 우리의 부유 에너지가 계속 떨어지고 있어요."
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_008
+msgctxt "ST_QuestList"
+msgid "Find the truth, Agent Kora. The fate of Barion rests on your shoulders. Good luck."
+msgstr "진실을 찾아라, 요원 코라. 바리온의 운명이 당신의 어깨에 달려 있습니다. 행운을 빕니다."
+
+#. Namespace: ST_QuestList
+#. Key: Main_MissionArea
+msgctxt "ST_QuestList"
+msgid "Go to the Forgotten city area"
+msgstr "잊혀진 도시 지역으로 이동하라"
+
+#. Namespace: ST_QuestList
+#. Key: Main_AccessPoint
+msgctxt "ST_QuestList"
+msgid "Infiltrate the Crime Syndicate’s stronghold"
+msgstr "범죄 연합의 거점에 침투하라"
+
+#. Namespace: ST_QuestList
+#. Key: Main_FinalBossRoom
+msgctxt "ST_QuestList"
+msgid "Leave the base now"
+msgstr "지금 즉시 기지를 떠나라"
+
+#. Namespace: ST_QuestList
+#. Key: QUEST_OBJ_ACCESS_POINT
+msgctxt "ST_QuestList"
+msgid "Locate and activate the access point"
+msgstr "접근 지점을 찾아 활성화하라"
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_005
+msgctxt "ST_QuestList"
+msgid "Our Intelligence indicates that a crime syndicate called 'The Hollow' is responsible."
+msgstr "우리 정보에 따르면 '더 할로우(The Hollow)'라는 범죄 연합이 배후입니다."
+
+#. Namespace: ST_QuestList
+#. Key: Main_BossRoom
+msgctxt "ST_QuestList"
+msgid "Search deeper inside the base"
+msgstr "기지 내부를 더 깊이 수색하라"
+
+#. Namespace: ST_QuestList
+#. Key: QUEST_OBJ_TALK_CLARA
+msgctxt "ST_QuestList"
+msgid "Talk to Director Clara"
+msgstr "클라라 국장과 대화하라"
+
+#. Namespace: ST_QuestList
+#. Key: Main_TalkClara
+msgctxt "ST_QuestList"
+msgid "Talk to Director Clara"
+msgstr "클라라 국장과 대화하라"
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_006
+msgctxt "ST_QuestList"
+msgid "They've retreated to the surface... to a place called the Forgotten City."
+msgstr "그들은 지상으로 후퇴했습니다... '잊혀진 도시'라는 곳으로요."
+
+#. Namespace: ST_QuestList
+#. Key: DLG_3_Talked
+msgctxt "ST_QuestList"
+msgid "Track down and eliminate the boss of the organization that stole Barion’s East Core."
+msgstr "바리온의 동쪽 코어를 훔친 조직의 보스를 추적해 제거하라."
+
+#. Namespace: ST_QuestList
+#. Key: QUEST_OBJ_GOTO_MISSION
+msgctxt "ST_QuestList"
+msgid "Travel to the Forgotten city area"
+msgstr "잊혀진 도시 지역으로 이동하라"
+
+#. Namespace: ST_QuestList
+#. Key: QUEST_OBJ_GET_BLUEPRINT
+msgctxt "ST_QuestList"
+msgid "Uncover the organization's confidential files"
+msgstr "조직의 기밀 문서를 확보하라"
+
+#. Namespace: ST_QuestList
+#. Key: Main_Blueprint
+msgctxt "ST_QuestList"
+msgid "Uncover the organization's confidential files"
+msgstr "조직의 기밀 문서를 확보하라"
+
+#. Namespace: ST_QuestList
+#. Key: DLG_2_Talked
+msgctxt "ST_QuestList"
+msgid "Uncover the secrets of the crime organization and save Barion."
+msgstr "범죄 조직의 비밀을 파헤쳐 바리온을 구하라."
+
+#. Namespace: ST_QuestList
+#. Key: DLG_Clara_007
+msgctxt "ST_QuestList"
+msgid "Your mission is to infiltrate their headquarters and uncover how they stole the core."
+msgstr "당신의 임무는 그들의 본부에 잠입해 그들이 어떻게 코어를 훔쳤는지 밝혀내는 것입니다."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_Intro
+msgctxt "ST_Tutorial"
+msgid "All units, be advised. Members of the East Core theft syndicate have been sighted near the East Core perimeter. Engage immediately and restrain on sight. Over."
+msgstr "전 부대에 알린다. 동쪽 코어 도난 조직의 잔당이 동쪽 코어 경계 부근에서 목격되었다. 즉시 교전하고 발견 즉시 제압하라. 오버."
+
+#. Namespace: ST_Tutorial
+#. Key: Narr_EastCoreAlert
+msgctxt "ST_Tutorial"
+msgid "All units, be advised. Members of the East Core theft syndicate have been sighted near the East Core perimeter. Engage immediately and restrain on sight. Over."
+msgstr "전 부대에 알린다. 동쪽 코어 도난 조직의 잔당이 동쪽 코어 경계 부근에서 목격되었다. 즉시 교전하고 발견 즉시 제압하라. 오버."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_BasicAttack
+msgctxt "ST_Tutorial"
+msgid "Click Left Mouse Button to use a basic attack."
+msgstr "마우스 왼쪽 버튼을 클릭하여 기본 공격을 사용하세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_ChargedAttack
+msgctxt "ST_Tutorial"
+msgid "Click Right Mouse Button to perform a charged attack."
+msgstr "마우스 오른쪽 버튼을 클릭하여 차지 공격을 사용하세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_IntroKORA
+msgctxt "ST_Tutorial"
+msgid "Command, this is Kora. Spotted one remnant of the East Core theft group. Currently in pursuit. Will return to base immediately upon capture. Over."
+msgstr "본부, 여기는 코라. 동쪽 코어 도난 조직의 잔당 하나를 발견했다. 현재 추적 중이다. 확보하는 즉시 본부로 복귀하겠다. 오버."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_Run
+msgctxt "ST_Tutorial"
+msgid "Hold SpaceBar to run."
+msgstr "SpaceBar를 길게 눌러 달리세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_PressCtrl
+msgctxt "ST_Tutorial"
+msgid "Press Ctrl to pull the enemy toward you."
+msgstr "Ctrl을 눌러 적을 끌어오세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_LockOn
+msgctxt "ST_Tutorial"
+msgid "Press Middle Mouse Button to lock on."
+msgstr "마우스 가운데 버튼을 눌러 락온하세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_Explore
+msgctxt "ST_Tutorial"
+msgid "Press Q to explore your surroundings."
+msgstr "Q를 눌러 주변을 탐색하세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_PressSpace
+msgctxt "ST_Tutorial"
+msgid "Press Space Bar ▼"
+msgstr "Space Bar를 누르세요 ▼"
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_SwitchSword
+msgctxt "ST_Tutorial"
+msgid "Press TAB to switch to your sword."
+msgstr "TAB을 눌러 검으로 전환하세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_SwitchLockTarget
+msgctxt "ST_Tutorial"
+msgid "Scroll the mouse wheel to switch lock-on targets."
+msgstr "마우스 휠을 스크롤하여 락온 대상을 전환하세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_StealthKO
+msgctxt "ST_Tutorial"
+msgid "Sneak up while the enemy is distracted and left-click to knock them out."
+msgstr "적이 방심한 틈에 접근한 뒤, 마우스 왼쪽 클릭으로 기절시키세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_DodgeOrGuard
+msgctxt "ST_Tutorial"
+msgid "Use Space to dodge or Shift to guard against enemy attacks."
+msgstr "Space로 회피하거나 Shift로 적의 공격을 가드하세요."
+
+#. Namespace: ST_Tutorial
+#. Key: Tut_SpecialGauge
+msgctxt "ST_Tutorial"
+msgid "When the special gauge is full, a successful charged attack can deal tremendous damage."
+msgstr "특수 게이지가 가득 차면, 차지 공격을 성공시켜 막대한 피해를 줄 수 있습니다."
+
+#. Namespace: ST_Tutorial
+#. Key: KORTut_IntroKORA
+msgctxt "ST_Tutorial"
+msgid "본부, 여기는 코라. 동쪽 코어 도난 조직의 잔당 하나를 발견했다. 현재 추적 중이다. 확보하는 즉시 본부로 복귀하겠다. 오버."
+msgstr "본부, 여기는 코라. 동쪽 코어 도난 조직의 잔당 하나를 발견했다. 현재 추적 중이다. 확보하는 즉시 본부로 복귀하겠다. 오버."
+
+#. Namespace: ST_Tutorial
+#. Key: KORTut_Intro
+msgctxt "ST_Tutorial"
+msgid "전 부대에 알린다. 동쪽 코어 도난 조직의 잔당이 동쪽 코어 경계 부근에서 목격되었다. 즉시 교전하고 발견 즉시 제압하라. 오버."
+msgstr "전 부대에 알린다. 동쪽 코어 도난 조직의 잔당이 동쪽 코어 경계 부근에서 목격되었다. 즉시 교전하고 발견 즉시 제압하라. 오버."
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Button_Activate
+msgctxt "ST_UIBaseTexts"
+msgid "Activate"
+msgstr "활성화"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_NewGameConfirm
+msgctxt "ST_UIBaseTexts"
+msgid "All current game data will be deleted. Do you still want to start a new game?"
+msgstr "현재 게임 데이터가 모두 삭제됩니다. 새 게임을 시작하시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Btn_Apply
+msgctxt "ST_UIBaseTexts"
+msgid "Apply"
+msgstr "적용"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_QuitGameConfirm
+msgctxt "ST_UIBaseTexts"
+msgid "Are you sure you want to quit?"
+msgstr "정말 종료하시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Button_Back
+msgctxt "ST_UIBaseTexts"
+msgid "Back"
+msgstr "뒤로"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Info_Barion
+msgctxt "ST_UIBaseTexts"
+msgid "Barion"
+msgstr "바리온"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Shop_Buy
+msgctxt "ST_UIBaseTexts"
+msgid "Buy"
+msgstr "구매"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Button_Close
+msgctxt "ST_UIBaseTexts"
+msgid "Close"
+msgstr "닫기"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Inventory_Collectibles
+msgctxt "ST_UIBaseTexts"
+msgid "Collectibles"
+msgstr "수집품"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Inventory_Consumables
+msgctxt "ST_UIBaseTexts"
+msgid "Consumables"
+msgstr "소모품"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: MainMenu_Continue
+msgctxt "ST_UIBaseTexts"
+msgid "Continue"
+msgstr "계속하기"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: WeaponUpgrade_CorbyteNeeded
+msgctxt "ST_UIBaseTexts"
+msgid "Corbyte Needed:  "
+msgstr "필요 코바이트:  "
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Equipment_Costume
+msgctxt "ST_UIBaseTexts"
+msgid "Costume"
+msgstr "코스튬"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_BuyConfirm
+msgctxt "ST_UIBaseTexts"
+msgid "Do you want to buy this item?"
+msgstr "이 아이템을 구매하시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_ContinueConfirm
+msgctxt "ST_UIBaseTexts"
+msgid "Do you want to continue the game?"
+msgstr "게임을 계속하시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_SellConfirm
+msgctxt "ST_UIBaseTexts"
+msgid "Do you want to sell this item?"
+msgstr "이 아이템을 판매하시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Slot_Empty
+msgctxt "ST_UIBaseTexts"
+msgid "Empty"
+msgstr "비어 있음"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_Equip
+msgctxt "ST_UIBaseTexts"
+msgid "Equipment"
+msgstr "장비"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Info_SaveGame
+msgctxt "ST_UIBaseTexts"
+msgid "Game Saved"
+msgstr "게임 저장됨"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Equipment_GunModule
+msgctxt "ST_UIBaseTexts"
+msgid "Gun Module"
+msgstr "총기 모듈"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Equipment_GunSkin
+msgctxt "ST_UIBaseTexts"
+msgid "Gun Skin"
+msgstr "총기 스킨"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Equipment_Head
+msgctxt "ST_UIBaseTexts"
+msgid "Head"
+msgstr "머리"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Interact
+msgctxt "ST_UIBaseTexts"
+msgid "Interact"
+msgstr "상호작용"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_Inventory
+msgctxt "ST_UIBaseTexts"
+msgid "Inventory"
+msgstr "인벤토리"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Inventory_Materials
+msgctxt "ST_UIBaseTexts"
+msgid "Materials"
+msgstr "재료"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_Menu
+msgctxt "ST_UIBaseTexts"
+msgid "Menu"
+msgstr "메뉴"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: MainMenu_NewGame
+msgctxt "ST_UIBaseTexts"
+msgid "New Game"
+msgstr "새 게임"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_No
+msgctxt "ST_UIBaseTexts"
+msgid "No"
+msgstr "아니오"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Info_Office
+msgctxt "ST_UIBaseTexts"
+msgid "Office of Director Clara Weiss"
+msgstr "클라라 바이스 국장실"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_Quit
+msgctxt "ST_UIBaseTexts"
+msgid "Quit"
+msgstr "종료"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: MainMenu_Quit
+msgctxt "ST_UIBaseTexts"
+msgid "Quit"
+msgstr "종료"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_Remove
+msgctxt "ST_UIBaseTexts"
+msgid "Remove"
+msgstr "해제"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Btn_Remove
+msgctxt "ST_UIBaseTexts"
+msgid "Remove"
+msgstr "해제"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Btn_Select
+msgctxt "ST_UIBaseTexts"
+msgid "Select"
+msgstr "선택"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Shop_Sell
+msgctxt "ST_UIBaseTexts"
+msgid "Sell"
+msgstr "판매"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_Settings
+msgctxt "ST_UIBaseTexts"
+msgid "Settings"
+msgstr "설정"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: MainMenu_Settings
+msgctxt "ST_UIBaseTexts"
+msgid "Settings"
+msgstr "설정"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Shop_List
+msgctxt "ST_UIBaseTexts"
+msgid "Shop Inventory"
+msgstr "상점 목록"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_SkillTree
+msgctxt "ST_UIBaseTexts"
+msgid "Skill Tree"
+msgstr "스킬 트리"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Equipment_SwordModule
+msgctxt "ST_UIBaseTexts"
+msgid "Sowrd Module"
+msgstr "검 모듈"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Btn_Switch
+msgctxt "ST_UIBaseTexts"
+msgid "Switch"
+msgstr "전환"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: PauseMenu_Switch
+msgctxt "ST_UIBaseTexts"
+msgid "Switch"
+msgstr "전환"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Equipment_SwordSkin
+msgctxt "ST_UIBaseTexts"
+msgid "Sword Skin"
+msgstr "검 스킨"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: WeaponUpgrade_Talk
+msgctxt "ST_UIBaseTexts"
+msgid "Talk"
+msgstr "대화"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Info_ForgottenCity
+msgctxt "ST_UIBaseTexts"
+msgid "The Forgotten City"
+msgstr "잊혀진 도시"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: NPC_Weapon
+msgctxt "ST_UIBaseTexts"
+msgid "Tia Cogbelle"
+msgstr "티아 코그벨"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: WeaponUpgrade_Upgrade
+msgctxt "ST_UIBaseTexts"
+msgid "Upgrade"
+msgstr "강화"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: WeaponUpgrade_List
+msgctxt "ST_UIBaseTexts"
+msgid "Weapon List"
+msgstr "무기 목록"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_Equipment
+msgctxt "ST_UIBaseTexts"
+msgid "Would you like to install this equipment?"
+msgstr "이 장비를 장착하시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_QuitConfirm
+msgctxt "ST_UIBaseTexts"
+msgid "Would you like to return to the main menu?"
+msgstr "메인 메뉴로 돌아가시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_WeaponUpgradeConfirm
+msgctxt "ST_UIBaseTexts"
+msgid "Would you like to uprade this weapon?"
+msgstr "이 무기를 강화하시겠습니까?"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Modal_Yes
+msgctxt "ST_UIBaseTexts"
+msgid "Yes"
+msgstr "예"
+
+#. Namespace: ST_UIBaseTexts
+#. Key: Info_Death
+msgctxt "ST_UIBaseTexts"
+msgid "You Died"
+msgstr "사망"
