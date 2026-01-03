@@ -14,7 +14,6 @@ UKRGA_HitReaction::UKRGA_HitReaction(const FObjectInitializer& ObjectInitializer
 	FGameplayTagContainer Tags;
 	Tags.AddTag(KRTAG_ABILITY_HITREACTION);
 	SetAssetTags(Tags);
-	HitReactionCueTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.Combat.HitReaction")); // UILevel과 병합 후 태그 추가 예정
 
 	ActivationPolicy = EKRAbilityActivationPolicy::OnInputTriggered;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
