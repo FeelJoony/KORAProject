@@ -25,7 +25,6 @@ void UKRPauseMenuWidget::NativeConstruct()
 
 	BindMenuButton(EquipmentButton);
 	BindMenuButton(InventoryButton);
-	BindMenuButton(SkillTreeButton);
 	BindMenuButton(SettingsButton);
 	BindMenuButton(QuitButton);
 
@@ -568,7 +567,6 @@ void UKRPauseMenuWidget::InitializeMenuTabArray()
 	MenuTabButtons.Empty();
 	MenuTabButtons.Add(EquipmentButton);
 	MenuTabButtons.Add(InventoryButton);
-	MenuTabButtons.Add(SkillTreeButton);
 	MenuTabButtons.Add(SettingsButton);
 	MenuTabButtons.Add(QuitButton);
 	

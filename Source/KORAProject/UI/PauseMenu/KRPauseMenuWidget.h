@@ -32,7 +32,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> EquipmentButton;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> InventoryButton;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> SkillTreeButton;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> SettingsButton;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> QuitButton;
 
