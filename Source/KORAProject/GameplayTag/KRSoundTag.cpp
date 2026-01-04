@@ -180,3 +180,9 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_AMBIENTLOOP, "Sound.Category.Ambient
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_PLAYER, "Sound.Category.Player");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_ENEMY, "Sound.Category.Enemy");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_SKILL, "Sound.Category.Skill");
+
+// ============================================================
+// SOUND TAGS - Settings (Environment/Category)
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SETTINGS_MUSIC, "Sound.Settings.Music");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SETTINGS_SFX, "Sound.Settings.SFX");
