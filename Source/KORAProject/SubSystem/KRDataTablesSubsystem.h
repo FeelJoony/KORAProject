@@ -69,6 +69,10 @@ private:
 	const FString TablePath = TEXT("/Game/Data/DataTables");
 	const FString DefaultStringContext = TEXT("");
 
+	// 테이블 타입별 이름 매핑 (Initialize에서 초기화)
+	TMap<EGameDataType, FString> TableNames;
+
 	void AddDataTable(EGameDataType InType, const FString& TableName);
-	
+	void InitializeTableNames();
+
 };
