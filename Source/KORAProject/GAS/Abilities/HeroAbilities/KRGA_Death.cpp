@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/KRCurrencyComponent.h"
 #include "GameplayTag/KRAbilityTag.h"
+#include "GameplayTag/KREventTag.h"
 #include "GameFramework/Character.h"
 
 UKRGA_Death::UKRGA_Death(const FObjectInitializer& ObjectInitializer)
@@ -15,6 +16,12 @@ UKRGA_Death::UKRGA_Death(const FObjectInitializer& ObjectInitializer)
 
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+
+	// Event.Combat.Death 이벤트 발생 시 자동 활성화
+	FAbilityTriggerData TriggerData;
+	TriggerData.TriggerTag = KRTAG_EVENT_COMBAT_DEATH;
+	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(TriggerData);
 }
 
 void UKRGA_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
