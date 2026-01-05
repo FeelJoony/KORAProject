@@ -65,7 +65,29 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Selection")
 	float DistanceScoreWeight = 0.3f;
-	
+
+	// ===== 피치 오프셋 설정 (거리 기반 내려다보기) =====
+
+	/** 거리 기반 피치 조정 활성화 */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera")
+	bool bAdjustPitchBasedOnDistance = true;
+
+	/** 피치 계산 계수 (거리 * 계수). 값이 클수록 거리 변화에 민감 */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
+	float PitchDistanceCoefficient = 0.02f;
+
+	/** 피치 기본 오프셋 (기본적으로 적용되는 내려다보기 각도) */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
+	float PitchBaseOffset = 5.f;
+
+	/** 피치 오프셋 최소값 (음수 = 아래로, 최대 내려다보기 각도) */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
+	float PitchOffsetMin = -30.f;
+
+	/** 피치 오프셋 최대값 (0 = 수평) */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
+	float PitchOffsetMax = 0.f;
+
 private:
 	UPROPERTY()
 	TObjectPtr<AActor> CurrentTarget;

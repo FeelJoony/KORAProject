@@ -73,7 +73,7 @@ void UKRGA_Scanning::SpawnOverlapSphere()
 		Params
 	);
 	
-	DrawDebugSphere(
+	/*	DrawDebugSphere(
 		GetWorld(),
 		CachedCharacter->GetActorLocation(),
 		Radius,
@@ -82,7 +82,7 @@ void UKRGA_Scanning::SpawnOverlapSphere()
 		false,
 		0.1,
 		0
-	);
+	); */
 	
 	//UE_LOG(LogTemp,Warning,TEXT("Scan : %f"), Radius);
 	

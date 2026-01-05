@@ -1,11 +1,14 @@
 #include "Animation/Notify/KRAnimNotifyState_MeleeHitCheck.h"
-#include "GAS/Abilities/HeroAbilities/Attack/KRGameplayAbility_MeleeAttack.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayTag/KREventTag.h"
 
 UKRAnimNotifyState_MeleeHitCheck::UKRAnimNotifyState_MeleeHitCheck()
 {
+	// 기본 이벤트 태그 설정
+	BeginEventTag = KRTAG_EVENT_MELEE_HITCHECK_BEGIN;
+	TickEventTag = KRTAG_EVENT_MELEE_HITCHECK_TICK;
+	EndEventTag = KRTAG_EVENT_MELEE_HITCHECK_END;
 }
 
 FString UKRAnimNotifyState_MeleeHitCheck::GetNotifyName_Implementation() const
@@ -18,21 +21,7 @@ void UKRAnimNotifyState_MeleeHitCheck::NotifyBegin(USkeletalMeshComponent* MeshC
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	if (!MeshComp)
-	{
-		return;
-	}
-
-	AActor* OwnerActor = MeshComp->GetOwner();
-	if (!IsValid(OwnerActor))
-	{
-		return;
-	}
-
-	if (UKRGameplayAbility_MeleeAttack* MeleeAbility = GetActiveMeleeAttackAbility(OwnerActor))
-	{
-		MeleeAbility->BeginHitCheck();
-	}
+	SendHitCheckEvent(MeshComp, BeginEventTag);
 }
 
 void UKRAnimNotifyState_MeleeHitCheck::NotifyTick(USkeletalMeshComponent* MeshComp,
@@ -40,21 +29,7 @@ void UKRAnimNotifyState_MeleeHitCheck::NotifyTick(USkeletalMeshComponent* MeshCo
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
 
-	if (!MeshComp)
-	{
-		return;
-	}
-
-	AActor* OwnerActor = MeshComp->GetOwner();
-	if (!IsValid(OwnerActor))
-	{
-		return;
-	}
-
-	if (UKRGameplayAbility_MeleeAttack* MeleeAbility = GetActiveMeleeAttackAbility(OwnerActor))
-	{
-		MeleeAbility->PerformHitCheck();
-	}
+	SendHitCheckEvent(MeshComp, TickEventTag);
 }
 
 void UKRAnimNotifyState_MeleeHitCheck::NotifyEnd(USkeletalMeshComponent* MeshComp,
@@ -62,52 +37,40 @@ void UKRAnimNotifyState_MeleeHitCheck::NotifyEnd(USkeletalMeshComponent* MeshCom
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	if (!MeshComp)
-	{
-		return;
-	}
-
-	AActor* OwnerActor = MeshComp->GetOwner();
-	if (!IsValid(OwnerActor))
-	{
-		return;
-	}
-
-	if (UKRGameplayAbility_MeleeAttack* MeleeAbility = GetActiveMeleeAttackAbility(OwnerActor))
-	{
-		MeleeAbility->EndHitCheck();
-	}
+	SendHitCheckEvent(MeshComp, EndEventTag);
 }
 
-UKRGameplayAbility_MeleeAttack* UKRAnimNotifyState_MeleeHitCheck::GetActiveMeleeAttackAbility(AActor* OwnerActor) const
+void UKRAnimNotifyState_MeleeHitCheck::SendHitCheckEvent(USkeletalMeshComponent* MeshComp, const FGameplayTag& EventTag)
 {
-	if (!OwnerActor)
+	if (!EventTag.IsValid())
 	{
-		return nullptr;
+		return;
 	}
 
-	// ASC 조회
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor);
+	UAbilitySystemComponent* ASC = GetASC(MeshComp);
 	if (!ASC)
 	{
+		return;
+	}
+
+	// GameplayEvent를 통해 히트 체크 알림 (특정 GA에 의존하지 않음)
+	FGameplayEventData EventData;
+	EventData.Instigator = MeshComp ? MeshComp->GetOwner() : nullptr;
+	ASC->HandleGameplayEvent(EventTag, &EventData);
+}
+
+UAbilitySystemComponent* UKRAnimNotifyState_MeleeHitCheck::GetASC(USkeletalMeshComponent* MeshComp) const
+{
+	if (!MeshComp)
+	{
 		return nullptr;
 	}
 
-	// 활성화된 MeleeAttack GA 찾기
-	for (FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	AActor* Owner = MeshComp->GetOwner();
+	if (!Owner)
 	{
-		// Ability가 활성화되어 있는지 확인
-		if (!Spec.IsActive())
-		{
-			continue;
-		}
-
-		// MeleeAttack 타입인지 확인
-		if (UKRGameplayAbility_MeleeAttack* MeleeAbility = Cast<UKRGameplayAbility_MeleeAttack>(Spec.GetPrimaryInstance()))
-		{
-			return MeleeAbility;
-		}
+		return nullptr;
 	}
 
-	return nullptr;
+	return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
 }

@@ -165,10 +165,7 @@ void UKRGA_HeroGuard::OnPerfectGuardWindowEnded()
 	// 가드 루프 몽타주 재생
 	if (GuardLoopMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("GuardLoop"), GuardLoopMontage, 1.0f, NAME_None, true);
 		if (MontageTask)
@@ -214,10 +211,7 @@ void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 	// 퍼펙트 가드 몽타주 재생
 	if (PerfectGuardMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("PerfectGuard"), PerfectGuardMontage, 1.0f);
 		if (MontageTask)
@@ -315,10 +309,7 @@ void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
 	// 가드 히트 몽타주 재생
 	if (GuardHitMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("GuardHit"), GuardHitMontage, 1.0f);
 		if (MontageTask)
@@ -371,10 +362,7 @@ void UKRGA_HeroGuard::TriggerGuardBreak()
 	// 가드 브레이크 몽타주 재생
 	if (GuardBreakMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("GuardBreak"), GuardBreakMontage, 1.0f);
 		if (MontageTask)
@@ -484,4 +472,16 @@ UKRStaminaComponent* UKRGA_HeroGuard::GetStaminaComponent() const
 {
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
 	return AvatarActor ? AvatarActor->FindComponentByClass<UKRStaminaComponent>() : nullptr;
+}
+
+void UKRGA_HeroGuard::StopCurrentMontageTask()
+{
+	if (MontageTask)
+	{
+		// 인터럽트 핸들러 해제 (어빌리티 재시작 방지)
+		MontageTask->OnInterrupted.RemoveDynamic(this, &ThisClass::OnMontageInterrupted);
+		MontageTask->OnCancelled.RemoveDynamic(this, &ThisClass::OnMontageInterrupted);
+		MontageTask->OnCompleted.RemoveDynamic(this, &ThisClass::OnMontageCompleted);
+		MontageTask->EndTask();
+	}
 }

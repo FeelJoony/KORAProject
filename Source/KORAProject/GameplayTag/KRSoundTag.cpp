@@ -140,6 +140,8 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_LADDER_EXIT, "Sound.Interaction.L
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_ROPE_HOOK, "Sound.Interaction.Rope.Hook");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_SCAN_SENSE_START, "Sound.Interaction.Scan.Sense.Start");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_SCAN_SENSE_ENEMY, "Sound.Interaction.Scan.Sense.Enemy");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_BOX_OPEN, "Sound.Interaction.Box.Open");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_INTERACTION_SAVE_FIRE, "Sound.Interaction.Save.Fire");
 
 // ============================================================
 // SOUND TAGS - Boss
@@ -178,3 +180,9 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_AMBIENTLOOP, "Sound.Category.Ambient
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_PLAYER, "Sound.Category.Player");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_ENEMY, "Sound.Category.Enemy");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_CATEGORY_SKILL, "Sound.Category.Skill");
+
+// ============================================================
+// SOUND TAGS - Settings (Environment/Category)
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SETTINGS_MUSIC, "Sound.Settings.Music");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SETTINGS_SFX, "Sound.Settings.SFX");

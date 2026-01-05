@@ -6,6 +6,7 @@
 #include "KRGameplayAbility_MeleeAttack.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
+class UAbilityTask_WaitGameplayEvent;
 class UMotionWarpingComponent;
 class UKREquipmentManagerComponent;
 struct FKRAppliedEquipmentEntry;
@@ -32,14 +33,14 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	// ─────────────────────────────────────────────────────
-	// 외부 호출용 (AnimNotify에서 호출)
+	// 히트 체크 (GameplayEvent로 트리거됨)
 	// ─────────────────────────────────────────────────────
 	UFUNCTION(BlueprintCallable, Category = "KR|MeleeAttack")
 	void BeginHitCheck();
 
 	UFUNCTION(BlueprintCallable, Category = "KR|MeleeAttack")
 	void PerformHitCheck();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "KR|MeleeAttack")
 	void EndHitCheck();
 	
@@ -106,6 +107,20 @@ protected:
 
 	UFUNCTION()
 	void OnMontageInterrupted();
+
+	// ─────────────────────────────────────────────────────
+	// GameplayEvent 리스너
+	// ─────────────────────────────────────────────────────
+	void SetupHitCheckEventListeners();
+
+	UFUNCTION()
+	void OnHitCheckBeginEvent(FGameplayEventData Payload);
+
+	UFUNCTION()
+	void OnHitCheckTickEvent(FGameplayEventData Payload);
+
+	UFUNCTION()
+	void OnHitCheckEndEvent(FGameplayEventData Payload);
 	
 	UKREquipmentManagerComponent* GetEquipmentManager() const;
 	UMotionWarpingComponent* GetMotionWarpingComponent() const;
@@ -135,8 +150,16 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
-	
+
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitCheckBeginTask;
+
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitCheckTickTask;
+
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitCheckEndTask;
+
 	bool bIsHitCheckActive = false;
 	int32 ActiveComboIndex = 0;
-	
 };

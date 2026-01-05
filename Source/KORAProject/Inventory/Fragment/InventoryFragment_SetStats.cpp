@@ -40,7 +40,7 @@ void UInventoryFragment_SetStats::InitializeWeaponStats(UKRInventoryItemInstance
 		UE_LOG(LogTemp, Error, TEXT("EquipData Missing"));
 		return;
 	}
-	const FEquipAbilityDataStruct* AbilityData = DataTablesSubsystem.GetData<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, EquipData->EquipAbilityID);
+	const FEquipAbilityDataStruct* AbilityData = DataTablesSubsystem.GetDataSafe<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, EquipData->EquipAbilityID);
 	if (!AbilityData)
 	{
 		UE_LOG(LogTemp, Error, TEXT("EquipAbilityData Missing"));

@@ -50,3 +50,24 @@ FTransform AKRRangeWeapon::GetMuzzleTransform() const
 	}
 	return FTransform::Identity;
 }
+
+void AKRRangeWeapon::FireProjectile(const FRotator& InOverrideRotation)
+{
+	if (!ProjectileClass || !GetWorld()) return;
+
+	FVector SpawnLocation = MuzzlePoint->GetComponentLocation();
+    
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = GetInstigator();
+
+	AActor* Projectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, InOverrideRotation, SpawnParams);
+
+	if (Projectile)
+	{
+		if (UProjectileMovementComponent* MoveComp = Projectile->FindComponentByClass<UProjectileMovementComponent>())
+		{
+			MoveComp->Velocity = InOverrideRotation.Vector() * ProjectileSpeed;
+		}
+	}
+}
