@@ -2,6 +2,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Camera/CameraShakeBase.h"
 #include "Components/KRStaminaComponent.h"
 #include "Equipment/KREquipmentManagerComponent.h"
@@ -101,6 +102,9 @@ void UKRGameplayAbility_MeleeAttack::ActivateAbility(
 		MontageTask->OnBlendOut.AddDynamic(this, &ThisClass::OnMontageCompleted);
 		MontageTask->ReadyForActivation();
 	}
+
+	// GameplayEvent 리스너 설정 (AnimNotifyState에서 발송한 이벤트 수신)
+	SetupHitCheckEventListeners();
 
 	IncrementCombo();
 }
@@ -687,4 +691,68 @@ void UKRGameplayAbility_MeleeAttack::OnMontageCompleted()
 void UKRGameplayAbility_MeleeAttack::OnMontageInterrupted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+// ─────────────────────────────────────────────────────
+// GameplayEvent 리스너
+// ─────────────────────────────────────────────────────
+
+void UKRGameplayAbility_MeleeAttack::SetupHitCheckEventListeners()
+{
+	// Begin 이벤트 리스너 (한 번만 수신)
+	HitCheckBeginTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		KRTAG_EVENT_MELEE_HITCHECK_BEGIN,
+		nullptr,
+		true,  // OnlyTriggerOnce = true
+		true   // OnlyMatchExact = true
+	);
+	if (HitCheckBeginTask)
+	{
+		HitCheckBeginTask->EventReceived.AddDynamic(this, &ThisClass::OnHitCheckBeginEvent);
+		HitCheckBeginTask->ReadyForActivation();
+	}
+
+	// Tick 이벤트 리스너 (여러 번 수신)
+	HitCheckTickTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		KRTAG_EVENT_MELEE_HITCHECK_TICK,
+		nullptr,
+		false,  // OnlyTriggerOnce = false (여러 번 수신)
+		true    // OnlyMatchExact = true
+	);
+	if (HitCheckTickTask)
+	{
+		HitCheckTickTask->EventReceived.AddDynamic(this, &ThisClass::OnHitCheckTickEvent);
+		HitCheckTickTask->ReadyForActivation();
+	}
+
+	// End 이벤트 리스너 (한 번만 수신)
+	HitCheckEndTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		KRTAG_EVENT_MELEE_HITCHECK_END,
+		nullptr,
+		true,  // OnlyTriggerOnce = true
+		true   // OnlyMatchExact = true
+	);
+	if (HitCheckEndTask)
+	{
+		HitCheckEndTask->EventReceived.AddDynamic(this, &ThisClass::OnHitCheckEndEvent);
+		HitCheckEndTask->ReadyForActivation();
+	}
+}
+
+void UKRGameplayAbility_MeleeAttack::OnHitCheckBeginEvent(FGameplayEventData Payload)
+{
+	BeginHitCheck();
+}
+
+void UKRGameplayAbility_MeleeAttack::OnHitCheckTickEvent(FGameplayEventData Payload)
+{
+	PerformHitCheck();
+}
+
+void UKRGameplayAbility_MeleeAttack::OnHitCheckEndEvent(FGameplayEventData Payload)
+{
+	EndHitCheck();
 }
