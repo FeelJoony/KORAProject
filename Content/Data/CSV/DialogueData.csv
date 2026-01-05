@@ -1,3 +1,3 @@
-Index,NPCTag,DialogueTextKeys
-1,NPC.Type.Clara,DLG_Clara_001|DLG_Clara_002|DLG_Clara_003|DLG_Clara_004|DLG_Clara_005|DLG_Clara_006|DLG_Clara_007|DLG_Clara_008
-2,NPC.Type.Clara,DLG_Clara_Alt_001
+Index,NPCTag,DialogueTextKeys,VoiceAssets
+1,NPC.Type.Clara,DLG_Clara_001|DLG_Clara_002|DLG_Clara_003|DLG_Clara_004|DLG_Clara_005|DLG_Clara_006|DLG_Clara_007|DLG_Clara_008,/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line01.Clara_M1_Line01|/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line02.Clara_M1_Line02|/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line03.Clara_M1_Line03|/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line04.Clara_M1_Line04|/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line05.Clara_M1_Line05|/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line06.Clara_M1_Line06|/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line07.Clara_M1_Line07|/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Line08.Clara_M1_Line08
+2,NPC.Type.Clara,DLG_Clara_Alt_001,/Game/Blueprints/Quest/Actor/Clara_Voice/Clara_M1_Talked.Clara_M1_Talked

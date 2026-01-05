@@ -894,6 +894,7 @@ void UTableRowConvertFunctionContainer::CreateDialogueData(UDataTable* OutDataTa
 				int32 Index_Index = GetHeaderIndex(Headers, TEXT("Index"));
 				int32 NPCTag_Index = GetHeaderIndex(Headers, TEXT("NPCTag"));
 				int32 DialogueTextKeys_Index = GetHeaderIndex(Headers, TEXT("DialogueTextKeys"));
+				int32 VoiceAssets_Index = GetHeaderIndex(Headers, TEXT("VoiceAssets"));
 
 				FDialogueDataStruct DialogueData;
 
@@ -907,6 +908,23 @@ void UTableRowConvertFunctionContainer::CreateDialogueData(UDataTable* OutDataTa
 					if (!TrimmedKey.IsEmpty())
 					{
 						DialogueData.DialogueTextKeys.Add(FName(*TrimmedKey));
+					}
+				}
+
+				if (VoiceAssets_Index != INDEX_NONE && RowValue.IsValidIndex(VoiceAssets_Index))
+				{
+					TArray<FString> VoiceArray = ParseArrayValue(RowValue[VoiceAssets_Index]);
+					for (const FString& VoiceString : VoiceArray)
+					{
+						FString TrimmedVoice = VoiceString.TrimStartAndEnd();
+						if (TrimmedVoice.IsEmpty() || TrimmedVoice == TEXT("-1"))
+						{
+							DialogueData.VoiceAssets.Add(TSoftObjectPtr<USoundBase>());
+						}
+						else
+						{
+							DialogueData.VoiceAssets.Add(ParseSoftObjectValue<USoundBase>(TrimmedVoice));
+						}
 					}
 				}
 
