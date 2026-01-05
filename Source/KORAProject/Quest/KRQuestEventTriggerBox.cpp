@@ -4,6 +4,7 @@
 #include "GameFramework/GameplayMessageSubsystem.h"
 
 AKRQuestEventTriggerBox::AKRQuestEventTriggerBox()
+	: bTriggered(false)
 {
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	PrimaryActorTick.bCanEverTick = false;
@@ -18,17 +19,27 @@ AKRQuestEventTriggerBox::AKRQuestEventTriggerBox()
 void AKRQuestEventTriggerBox::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UGameplayMessageSubsystem& GameplayMessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-	//GameplayMessageSubsystem.BroadcastMessage(EventGameplayTag, )
 }
 
 void AKRQuestEventTriggerBox::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
+	if (bTriggered) return;
+
 
 	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(OtherActor))
 	{
-		
+		if (!EventGameplayTag.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[QuestEventTriggerBox] EventGameplayTag is not set!"));
+			return;
+		}
+
+		bTriggered = true;
+
+		FQuestEventTriggerBoxMessage Message;
+		Message.EventGameplayTag = EventGameplayTag;
+		UGameplayMessageSubsystem& GameplayMessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+		GameplayMessageSubsystem.BroadcastMessage(EventGameplayTag, Message);
 	}
 }

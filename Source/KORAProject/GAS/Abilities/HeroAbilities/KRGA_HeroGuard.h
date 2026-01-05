@@ -43,6 +43,10 @@ public:
 	/** 가드 히트 시 스태미나 소모 (GEExecCalc에서 호출) */
 	void OnGuardHit(float IncomingDamage, AActor* Attacker);
 
+	/** 가드 설정 조회 (GEExecCalc에서 감소율 조회용) */
+	UFUNCTION(BlueprintPure, Category = "Guard")
+	const FKRGuardConfig& GetGuardConfig() const { return GuardConfig; }
+
 protected:
 	// ─────────────────────────────────────────
 	// 설정
@@ -118,6 +122,9 @@ protected:
 
 	/** 스태미나 컴포넌트 조회 */
 	UKRStaminaComponent* GetStaminaComponent() const;
+
+	/** 현재 몽타주 태스크를 안전하게 종료 (인터럽트 핸들러 해제 후 종료) */
+	void StopCurrentMontageTask();
 
 	// ─────────────────────────────────────────
 	// 이벤트 핸들러

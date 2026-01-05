@@ -47,7 +47,7 @@ class KORAPROJECT_API AKRAerialComboTestActor : public AActor
 	GENERATED_BODY()
 
 public:
-	AKRAerialComboTestActor();
+	/*AKRAerialComboTestActor();
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -66,11 +66,11 @@ public:
 	// 데이터 에셋
 	// ─────────────────────────────────────────────────────
 
-	/** Aerial Combo 데이터 에셋 (설정하면 아래 개별 설정 무시) */
+	/** Aerial Combo 데이터 에셋 (설정하면 아래 개별 설정 무시) #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Data")
 	TObjectPtr<UKRAerialComboData> AerialComboData;
 
-	/** 데이터 에셋 사용 여부 */
+	/** 데이터 에셋 사용 여부 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Data")
 	bool bUseDataAsset = false;
 
@@ -78,19 +78,19 @@ public:
 	// 런칭 설정
 	// ─────────────────────────────────────────────────────
 
-	/** 적 런칭 높이 */
+	/** 적 런칭 높이 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Launch", meta = (ClampMin = "100.0", ClampMax = "1000.0"))
 	float EnemyLaunchHeight = 500.0f;
 
-	/** 적 런칭 속도 */
+	/** 적 런칭 속도 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Launch", meta = (ClampMin = "500.0", ClampMax = "2000.0"))
 	float EnemyLaunchVelocity = 1200.0f;
 
-	/** 플레이어 점프 속도 */
+	/** 플레이어 점프 속도 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Launch", meta = (ClampMin = "500.0", ClampMax = "2000.0"))
 	float PlayerJumpVelocity = 1000.0f;
 
-	/** 런칭 후 공중 체류 시간 */
+	/** 런칭 후 공중 체류 시간 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Launch", meta = (ClampMin = "0.1", ClampMax = "1.0"))
 	float AirborneHangTime = 0.3f;
 
@@ -98,15 +98,15 @@ public:
 	// 슬램 설정
 	// ─────────────────────────────────────────────────────
 
-	/** 내리찍기 속도 */
+	/** 내리찍기 속도 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Slam", meta = (ClampMin = "1000.0", ClampMax = "5000.0"))
 	float SlamVelocity = 2000.0f;
 
-	/** 착지 충격파 반경 */
+	/** 착지 충격파 반경 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Slam", meta = (ClampMin = "100.0", ClampMax = "500.0"))
 	float ImpactRadius = 300.0f;
 
-	/** 슬램 히트스톱 시간 */
+	/** 슬램 히트스톱 시간 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Slam", meta = (ClampMin = "0.0", ClampMax = "0.5"))
 	float SlamHitStopDuration = 0.15f;
 
@@ -114,27 +114,27 @@ public:
 	// 몽타주
 	// ─────────────────────────────────────────────────────
 
-	/** 런칭 몽타주 */
+	/** 런칭 몽타주 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Montage")
 	TObjectPtr<UAnimMontage> LaunchMontage;
 
-	/** 상승 몽타주 */
+	/** 상승 몽타주 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Montage")
 	TObjectPtr<UAnimMontage> RisingMontage;
 
-	/** 공중 대기 몽타주 */
+	/** 공중 대기 몽타주 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Montage")
 	TObjectPtr<UAnimMontage> AirborneMontage;
 
-	/** 슬램 몽타주 */
+	/** 슬램 몽타주 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Montage")
 	TObjectPtr<UAnimMontage> SlamMontage;
 
-	/** 착지 몽타주 */
+	/** 착지 몽타주 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Montage")
 	TObjectPtr<UAnimMontage> LandingMontage;
 
-	/** 몽타주 재생 속도 */
+	/** 몽타주 재생 속도 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Montage", meta = (ClampMin = "0.5", ClampMax = "2.0"))
 	float MontagePlayRate = 1.0f;
 
@@ -142,27 +142,27 @@ public:
 	// 이펙트 태그 (개별 설정 - bUseDataAsset = false 일 때)
 	// ─────────────────────────────────────────────────────
 
-	/** 런칭 상승 기류 이펙트 태그 */
+	/** 런칭 상승 기류 이펙트 태그 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Effect", meta = (Categories = "Effect.AerialCombo"))
 	FGameplayTag LaunchWindEffectTag;
 
-	/** 플레이어 잔상 이펙트 태그 */
+	/** 플레이어 잔상 이펙트 태그 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Effect", meta = (Categories = "Effect.AerialCombo"))
 	FGameplayTag AfterImageEffectTag;
 
-	/** 슬램 궤적 이펙트 태그 */
+	/** 슬램 궤적 이펙트 태그 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Effect", meta = (Categories = "Effect.AerialCombo"))
 	FGameplayTag SlamTrailEffectTag;
 
-	/** 착지 충격파 이펙트 태그 */
+	/** 착지 충격파 이펙트 태그 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Effect", meta = (Categories = "Effect.AerialCombo"))
 	FGameplayTag ImpactEffectTag;
 
-	/** 바닥 균열 이펙트 태그 */
+	/** 바닥 균열 이펙트 태그 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Effect", meta = (Categories = "Effect.AerialCombo"))
 	FGameplayTag GroundCrackEffectTag;
 
-	/** 이펙트 색상 */
+	/** 이펙트 색상 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Effect")
 	FLinearColor EffectColor = FLinearColor(0.8f, 0.2f, 0.1f, 1.0f);
 
@@ -170,11 +170,11 @@ public:
 	// 물리 설정
 	// ─────────────────────────────────────────────────────
 
-	/** 공중 중력 스케일 */
+	/** 공중 중력 스케일 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Physics", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float AirborneGravityScale = 0.3f;
 
-	/** 슬램 중력 스케일 */
+	/** 슬램 중력 스케일 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Physics", meta = (ClampMin = "1.0", ClampMax = "5.0"))
 	float SlamGravityScale = 3.0f;
 
@@ -182,19 +182,19 @@ public:
 	// 테스트 옵션
 	// ─────────────────────────────────────────────────────
 
-	/** 시작 시 자동 실행 */
+	/** 시작 시 자동 실행 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Test")
 	bool bAutoStartOnBeginPlay = false;
 
-	/** 자동 실행 딜레이 */
+	/** 자동 실행 딜레이 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Test", meta = (EditCondition = "bAutoStartOnBeginPlay"))
 	float AutoStartDelay = 1.0f;
 
-	/** 디버그: 페이즈 정보 표시 */
+	/** 디버그: 페이즈 정보 표시 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Debug")
 	bool bDrawDebugInfo = true;
 
-	/** 디버그: 타겟 위치 표시 */
+	/** 디버그: 타겟 위치 표시 #1#
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AerialCombo|Debug")
 	bool bDrawDebugTarget = true;
 
@@ -202,19 +202,19 @@ public:
 	// 함수
 	// ─────────────────────────────────────────────────────
 
-	/** Aerial Combo 스킬 시작 */
+	/** Aerial Combo 스킬 시작 #1#
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AerialCombo")
 	void StartAerialCombo();
 
-	/** Aerial Combo 스킬 중지 */
+	/** Aerial Combo 스킬 중지 #1#
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AerialCombo")
 	void StopAerialCombo();
 
-	/** 현재 스킬 페이즈 가져오기 */
+	/** 현재 스킬 페이즈 가져오기 #1#
 	UFUNCTION(BlueprintPure, Category = "AerialCombo")
 	ETestAerialComboPhase GetCurrentPhase() const { return CurrentPhase; }
 
-	/** 타겟(이 Actor) 위치 가져오기 */
+	/** 타겟(이 Actor) 위치 가져오기 #1#
 	UFUNCTION(BlueprintPure, Category = "AerialCombo")
 	FVector GetTargetActorLocation() const { return GetActorLocation(); }
 
@@ -250,117 +250,117 @@ protected:
 	// 페이즈 실행 함수
 	// ─────────────────────────────────────────────────────
 
-	/** 런칭 페이즈 실행 */
+	/** 런칭 페이즈 실행 #1#
 	void ExecuteLaunchPhase();
 
-	/** 상승 페이즈 실행 */
+	/** 상승 페이즈 실행 #1#
 	void ExecuteRisingPhase();
 
-	/** 공중 페이즈 실행 */
+	/** 공중 페이즈 실행 #1#
 	void ExecuteAirbornePhase();
 
-	/** 슬램 페이즈 실행 */
+	/** 슬램 페이즈 실행 #1#
 	void ExecuteSlamPhase();
 
-	/** 착지 페이즈 실행 */
+	/** 착지 페이즈 실행 #1#
 	void ExecuteLandingPhase();
 
-	/** 스킬 완료 */
+	/** 스킬 완료 #1#
 	void CompleteAerialCombo();
 
 	// ─────────────────────────────────────────────────────
 	// 캐릭터 제어
 	// ─────────────────────────────────────────────────────
 
-	/** 플레이어 캐릭터 찾기 */
+	/** 플레이어 캐릭터 찾기 #1#
 	ACharacter* GetPlayerCharacter() const;
 
-	/** 플레이어 점프 */
+	/** 플레이어 점프 #1#
 	void LaunchPlayer();
 
-	/** 중력 스케일 설정 */
+	/** 중력 스케일 설정 #1#
 	void SetPlayerGravityScale(float Scale);
 
-	/** 원래 중력 스케일 복구 */
+	/** 원래 중력 스케일 복구 #1#
 	void RestorePlayerGravityScale();
 
-	/** 착지 체크 */
+	/** 착지 체크 #1#
 	void CheckLanding();
 
 	// ─────────────────────────────────────────────────────
 	// 몽타주 제어
 	// ─────────────────────────────────────────────────────
 
-	/** 몽타주 재생 */
+	/** 몽타주 재생 #1#
 	void PlayMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
 
-	/** 현재 몽타주 중지 */
+	/** 현재 몽타주 중지 #1#
 	void StopCurrentMontage();
 
 	// ─────────────────────────────────────────────────────
 	// 이펙트 제어
 	// ─────────────────────────────────────────────────────
 
-	/** 런칭 이펙트 스폰 */
+	/** 런칭 이펙트 스폰 #1#
 	void SpawnLaunchEffect();
 
-	/** 잔상 이펙트 시작 */
+	/** 잔상 이펙트 시작 #1#
 	void StartAfterImageEffect();
 
-	/** 잔상 이펙트 중지 */
+	/** 잔상 이펙트 중지 #1#
 	void StopAfterImageEffect();
 
-	/** 슬램 궤적 이펙트 스폰 */
+	/** 슬램 궤적 이펙트 스폰 #1#
 	void SpawnSlamTrailEffect();
 
-	/** 착지 충격파 이펙트 스폰 */
+	/** 착지 충격파 이펙트 스폰 #1#
 	void SpawnImpactEffect();
 
-	/** 바닥 균열 이펙트 스폰 */
+	/** 바닥 균열 이펙트 스폰 #1#
 	void SpawnGroundCrackEffect();
 
-	/** 히트스톱 적용 */
+	/** 히트스톱 적용 #1#
 	void ApplyHitStop(float Duration);
 
 	// ─────────────────────────────────────────────────────
 	// 디버그
 	// ─────────────────────────────────────────────────────
 
-	/** 디버그 정보 그리기 */
+	/** 디버그 정보 그리기 #1#
 	void DrawDebug();
 
 private:
-	/** 현재 스킬 페이즈 */
+	/** 현재 스킬 페이즈 #1#
 	ETestAerialComboPhase CurrentPhase = ETestAerialComboPhase::None;
 
-	/** 원래 중력 스케일 */
+	/** 원래 중력 스케일 #1#
 	float OriginalGravityScale = 1.0f;
 
-	/** 스킬 시작 위치 */
+	/** 스킬 시작 위치 #1#
 	FVector SkillStartLocation;
 
-	/** 타겟(이 Actor)의 시작 위치 */
+	/** 타겟(이 Actor)의 시작 위치 #1#
 	FVector TargetStartLocation;
 
-	/** 스폰된 잔상 이펙트 */
+	/** 스폰된 잔상 이펙트 #1#
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> ActiveAfterImageEffect;
 
-	/** 스폰된 슬램 궤적 이펙트 */
+	/** 스폰된 슬램 궤적 이펙트 #1#
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> ActiveSlamTrailEffect;
 
-	/** 타이머 핸들 */
+	/** 타이머 핸들 #1#
 	FTimerHandle PhaseTimerHandle;
 
-	/** 착지 체크 타이머 핸들 */
+	/** 착지 체크 타이머 핸들 #1#
 	FTimerHandle LandingCheckTimerHandle;
 
-	/** 자동 시작 타이머 핸들 */
+	/** 자동 시작 타이머 핸들 #1#
 	FTimerHandle AutoStartTimerHandle;
 
-	/** 슬램 중 플레이어 위치 보간 */
+	/** 슬램 중 플레이어 위치 보간 #1#
 	bool bIsSlamming = false;
 	FVector SlamStartLocation;
-	float SlamStartTime = 0.0f;
+	float SlamStartTime = 0.0f;*/
 };

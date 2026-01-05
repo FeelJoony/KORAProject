@@ -37,6 +37,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|Ladder")
 	float ClimbVelocityZ;
+
+	UPROPERTY(BlueprintReadOnly, Category = "AnimData|AimOffset")
+	float AimPitch;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "AnimData|AimOffset")
+	bool bIsGunMode;
 	
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LockOnData")
 	//bool bIsLockOn; //태그 관리 고려
@@ -48,4 +54,7 @@ protected:
 	//float LockOnSpeed;
 	
 	float IdleElapsedTime;
+
+private:
+	void UpdateGunAnimData(APawn* Pawn);
 };

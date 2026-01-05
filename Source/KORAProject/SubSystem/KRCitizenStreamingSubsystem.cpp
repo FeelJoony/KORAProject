@@ -15,7 +15,7 @@ void UKRCitizenStreamingSubsystem::Initialize(FSubsystemCollectionBase& Collecti
 	CachedRowNames.Reset();
 	PreloadAssetList.Reset();
 
-	if (!MHCitizenAppearanceTable && MHCitizenAppearanceTablePath.IsValid())
+	/*if (!MHCitizenAppearanceTable && MHCitizenAppearanceTablePath.IsValid())
 	{
 		UObject* Loaded = MHCitizenAppearanceTablePath.TryLoad();
 		MHCitizenAppearanceTable = Cast<UDataTable>(Loaded);
@@ -26,7 +26,7 @@ void UKRCitizenStreamingSubsystem::Initialize(FSubsystemCollectionBase& Collecti
 				TEXT("KRCitizenStreamingSubsystem: Failed to load DataTable from %s"),
 				*MHCitizenAppearanceTablePath.ToString());
 		}
-	}
+	}*/
 }
 
 void UKRCitizenStreamingSubsystem::Deinitialize()

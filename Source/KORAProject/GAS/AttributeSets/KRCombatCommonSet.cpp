@@ -17,6 +17,8 @@ UKRCombatCommonSet::UKRCombatCommonSet()
 	InitCritChance(0.f);
 	InitCritMulti(1.5f);
 	InitWeaponRange(200.f);
+	InitCurrentAmmo(0.f);
+	InitMaxAmmo(0.f);
 }
 
 void UKRCombatCommonSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -26,6 +28,11 @@ void UKRCombatCommonSet::PreAttributeChange(const FGameplayAttribute& Attribute,
 	if (Attribute == GetCurrentHealthAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
+	}
+
+	if (Attribute == GetCurrentAmmoAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxAmmo());
 	}
 }
 
@@ -44,34 +51,24 @@ void UKRCombatCommonSet::PostGameplayEffectExecute(const struct FGameplayEffectM
 			const float NewHealth = FMath::Clamp(OldHealth - LocalDamageDone, 0.f, GetMaxHealth());
 			SetCurrentHealth(NewHealth);
 
-			FGameplayEventData Payload;
-			Payload.EventTag = (NewHealth <= 0.f) ? KRTAG_EVENT_COMBAT_DEATH : KRTAG_EVENT_COMBAT_HIT;
-			Payload.EventMagnitude = LocalDamageDone;
-
-			Payload.Instigator = Data.EffectSpec.GetEffectContext().GetOriginalInstigator();
-			Payload.Target = GetOwningActor();
-			Payload.ContextHandle = Data.EffectSpec.GetContext();
-
+			// 사망 이벤트만 여기서 처리
+			// HITREACTION 이벤트는 GEExecCalc_DamageTaken에서 가드 상태를 고려하여 전송
 			const bool bIsDead = GetOwningAbilitySystemComponent()->HasMatchingGameplayTag(KRTAG_STATE_ACTING_DEAD);
 
-			if (!bIsDead)
+			if (!bIsDead && NewHealth <= 0.f)
 			{
-				if (NewHealth <= 0.f)
-				{
-					UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
-						GetOwningActor(),
-						KRTAG_EVENT_COMBAT_DEATH,
-						Payload
-						);
-				}
-				else
-				{
-					UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
-						GetOwningActor(),
-						KRTAG_EVENT_COMBAT_HITREACTION,
-						Payload
-						);
-				}
+				FGameplayEventData Payload;
+				Payload.EventTag = KRTAG_EVENT_COMBAT_DEATH;
+				Payload.EventMagnitude = LocalDamageDone;
+				Payload.Instigator = Data.EffectSpec.GetEffectContext().GetOriginalInstigator();
+				Payload.Target = GetOwningActor();
+				Payload.ContextHandle = Data.EffectSpec.GetContext();
+
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+					GetOwningActor(),
+					KRTAG_EVENT_COMBAT_DEATH,
+					Payload
+				);
 			}
 		}
 	}

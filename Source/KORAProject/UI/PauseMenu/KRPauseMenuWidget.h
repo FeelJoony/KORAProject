@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonActivatableWidget.h"
+#include "UI/Data/KRItemUIData.h"
 #include "UI/PauseMenu/KRSlotNameWidget.h"
 #include "UI/PauseMenu/KRMenuTabButton.h"
 #include "UI/HUD/Modules/KRQuickSlotWidget.h"
@@ -9,7 +10,6 @@
 class UKRInventorySubsystem;
 class UKRSlotGridBase;
 class UCommonButtonGroupBase;
-struct FKRItemUIData;
 
 UENUM()
 enum class EKRPauseNavigationContext : uint8
@@ -32,7 +32,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> EquipmentButton;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> InventoryButton;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> SkillTreeButton;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> SettingsButton;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UKRMenuTabButton> QuitButton;
 

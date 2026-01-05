@@ -63,6 +63,14 @@ public:
 	FGameplayAttributeData WeaponRange;
 	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, WeaponRange)
 
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat|Ammo")
+	FGameplayAttributeData CurrentAmmo;
+	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, CurrentAmmo)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Combat|Ammo")
+	FGameplayAttributeData MaxAmmo;
+	ATTRIBUTE_ACCESSORS(UKRCombatCommonSet, MaxAmmo)
+
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 };

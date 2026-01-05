@@ -39,6 +39,9 @@ AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+
+	// 포탈 시스템을 위한 플레이어 태그 추가
+	Tags.Add(FName(TEXT("Player")));
 }
 
 void AKRHeroCharacter::PossessedBy(AController* NewController)

@@ -41,7 +41,15 @@ Sound.Skill.StarDash.Slash,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Swor
 Sound.Skill.StarDash.Finish,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_StarDash_Finish.DA_Sound_Skill_Sword_StarDash_Finish,StarDash Finish,TRUE
 Sound.Combat.Sword.Charge.QuickAttack,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Sword_ChargeFailed.DA_Sound_Combat_Sword_ChargeFailed,Charge Failed,TRUE
 Sound.Skill.AerialCombo.Launch,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Launch.DA_Sound_Skill_Sword_AerialCombo_Launch,Aerial Launch,TRUE
-Sound.Skill.AerialCombo.Rising,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Rising.DA_Sound_Skill_Sword_AerialCombo_Rising,Aerial Rising,TRUE
-Sound.Skill.AerialCombo.Slam,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Slam.DA_Sound_Skill_Sword_AerialCombo_Slam,Aerial Slam,TRUE
 Sound.Skill.AerialCombo.Hit,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Hit.DA_Sound_Skill_Sword_AerialCombo_Hit,Aerial Impact,TRUE
 Sound.Skill.AerialCombo.Finish,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Finish.DA_Sound_Skill_Sword_AerialCombo_Finish,Aerial Finish,TRUE
+Sound.Skill.AerialCombo.Dash,/Game/Data/DataAssets/Sound/Skill/DA_Sound_Skill_Sword_AerialCombo_Dash.DA_Sound_Skill_Sword_AerialCombo_Dash,Aerial Dash,TRUE
+Sound.Interaction.Rope.Hook,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Rope_Hook.DA_Sound_Interaction_Rope_Hook,Interaction Hook,TRUE
+Sound.Mobility.Dodge.Step,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Mobility_Dodge_Default.DA_Sound_Mobility_Dodge_Default,Dodge Step ,TRUE
+Sound.Mobility.Dodge.Swish,/Game/Data/DataAssets/Sound/Movement/DA_Sound_Mobility_Dodge_Swish.DA_Sound_Mobility_Dodge_Swish,Dodge Swish,TRUE
+Sound.Interaction.Scan.Sense.Start,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Scan_Sense_Start.DA_Sound_Interaction_Scan_Sense_Start,Sense Start,TRUE
+Sound.Interaction.Scan.Sense.Enemy,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Scan_Sense_Enemy.DA_Sound_Interaction_Scan_Sense_Enemy,Sense Enemy,TRUE
+Sound.Interaction.Box.Open,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Box_Open.DA_Sound_Interaction_Box_Open,Box Open,TRUE
+Sound.Interaction.PickUp,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Item_PickUp.DA_Sound_Interaction_Item_PickUp,Get Item,TRUE
+Sound.Interaction.Ladder.Climb,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Ladder_Climb.DA_Sound_Interaction_Ladder_Climb,Ladder Climb,TRUE
+Sound.Interaction.Save.Fire,/Game/Data/DataAssets/Sound/Interact/DA_Sound_Interaction_Save_Fire.DA_Sound_Interaction_Save_Fire,Save Fire,TRUE

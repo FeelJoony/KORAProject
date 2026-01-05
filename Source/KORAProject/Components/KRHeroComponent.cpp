@@ -10,11 +10,13 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GameplayTag/KRInputTag.h"
 #include "GameplayTag/KRStateTag.h"
-#include "Components//GameFrameworkComponentManager.h"
+#include "Components/GameFrameworkComponentManager.h"
 #include "EnhancedInputSubsystems.h"
 #include "UserSettings/EnhancedInputUserSettings.h"
 #include "Components/KRCameraComponent.h"
 #include "Camera/KRCameraMode.h"
+#include "GameplayTag/KRPlayerTag.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRHeroComponent)
 
@@ -328,9 +330,20 @@ TSubclassOf<UKRCameraMode> UKRHeroComponent::DetermineCameraMode() const
 
 	const APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn) return nullptr;
-
+	
 	if (UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 	{
+		if (GunCameraMode)
+		{
+			if (const UKRAbilitySystemComponent* ASC = PawnExtComp->GetKRAbilitySystemComponent())
+			{
+				if (ASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_GUN))
+				{
+					return GunCameraMode;
+				}
+			}
+		}
+		
 		if (const UKRPawnData* PawnData = PawnExtComp->GetPawnData<UKRPawnData>())
 		{
 			return PawnData->DefaultCameraMode;

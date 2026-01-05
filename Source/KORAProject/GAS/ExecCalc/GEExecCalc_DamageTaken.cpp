@@ -4,9 +4,11 @@
 #include "GameplayEffectExtension.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KRPlayerAttributeSet.h"
+#include "GAS/Abilities/HeroAbilities/KRGA_HeroGuard.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KREventTag.h"
 #include "GameplayTag/KRSetByCallerTag.h"
+#include "GameplayTag/KRAbilityTag.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Capture할 속성 정의
@@ -77,7 +79,19 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 	}
 
 	// ─────────────────────────────────────────────────────
-	// 1. 기본 데미지 가져오기 (GA에서 SetByCaller로 전달)
+	// 1. 무적 상태 체크 (최우선 처리)
+	// ─────────────────────────────────────────────────────
+	if (TargetASC->HasMatchingGameplayTag(KRTAG_STATE_IMMUNE_DAMAGE))
+	{
+		// 무적 상태: 데미지 0 처리, 이벤트도 보내지 않음
+#if !UE_BUILD_SHIPPING
+		UE_LOG(LogTemp, Log, TEXT("[DamageTaken] Target is IMMUNE_DAMAGE - damage blocked"));
+#endif
+		return;
+	}
+
+	// ─────────────────────────────────────────────────────
+	// 2. 기본 데미지 가져오기 (GA에서 SetByCaller로 전달)
 	// ─────────────────────────────────────────────────────
 	float BaseDamage = Spec.GetSetByCallerMagnitude(KRTAG_SETBYCALLER_BASEDAMAGE, false, 0.f);
 	if (BaseDamage <= 0.f)
@@ -86,7 +100,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 	}
 
 	// ─────────────────────────────────────────────────────
-	// 2. 공격자 속성 Capture
+	// 3. 공격자 속성 Capture
 	// ─────────────────────────────────────────────────────
 	float SourceDealDamageMult = 1.0f;
 	float SourceCritChance = 0.0f;
@@ -105,7 +119,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 	}
 
 	// ─────────────────────────────────────────────────────
-	// 3. 피격자 속성 Capture
+	// 4. 피격자 속성 Capture
 	// ─────────────────────────────────────────────────────
 	float TargetDefensePower = 0.0f;
 	float TargetTakeDamageMult = 1.0f;
@@ -116,7 +130,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 		DamageStatics().TakeDamageMultDef, EvalParams, TargetTakeDamageMult);
 
 	// ─────────────────────────────────────────────────────
-	// 4. 크리티컬 계산
+	// 5. 크리티컬 계산
 	// ─────────────────────────────────────────────────────
 	float CritMultiplier = 1.0f;
 	bool bIsCritical = false;
@@ -128,7 +142,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 	}
 
 	// ─────────────────────────────────────────────────────
-	// 5. 가드/패리 상태 체크
+	// 6. 가드/패리 상태 체크
 	// ─────────────────────────────────────────────────────
 	float GuardDamageReduction = 0.0f;
 	bool bIsGuarding = false;
@@ -174,8 +188,8 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 			}
 			else
 			{
-				// 일반 가드: 70% 데미지 감소
-				GuardDamageReduction = 0.7f;
+				// 일반 가드: GuardConfig에서 감소율 가져오기
+				GuardDamageReduction = GetGuardReductionFromConfig(TargetASC);
 			}
 		}
 		else
@@ -186,7 +200,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 	}
 
 	// ─────────────────────────────────────────────────────
-	// 6. 최종 데미지 계산
+	// 7. 최종 데미지 계산
 	// ─────────────────────────────────────────────────────
 	// 공식: (BaseDamage × DealDamageMult × CritMult - Defense) × TakeDamageMult × (1 - GuardReduction)
 	float FinalDamage = BaseDamage * SourceDealDamageMult * CritMultiplier;
@@ -201,7 +215,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 	}
 
 	// ─────────────────────────────────────────────────────
-	// 7. DamageTaken에 출력
+	// 8. DamageTaken에 출력
 	// ─────────────────────────────────────────────────────
 	if (FinalDamage > 0.f)
 	{
@@ -215,7 +229,7 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 	}
 
 	// ─────────────────────────────────────────────────────
-	// 8. 일반 가드 시 GreyHP 생성 (가드 리게인)
+	// 9. 일반 가드 시 GreyHP 생성 (가드 리게인)
 	// ─────────────────────────────────────────────────────
 	// 일반 가드로 막은 경우 (패리 X, 전방 피격 O), 받은 데미지만큼 GreyHP 생성
 	// 이 GreyHP는 플레이어가 공격하면 실제 HP로 회복 가능
@@ -236,6 +250,70 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 #if !UE_BUILD_SHIPPING
 		UE_LOG(LogTemp, Log, TEXT("[GreyHP] Standard guard hit - added %.1f GreyHP"), GreyHPToAdd);
 #endif
+	}
+
+	// ─────────────────────────────────────────────────────
+	// 10. 히트 이벤트 전송 (가드 성공 vs HitReaction 분기)
+	// ─────────────────────────────────────────────────────
+	AActor* TargetActor = TargetASC->GetAvatarActor();
+	AActor* InstigatorActor = const_cast<AActor*>(Spec.GetContext().GetOriginalInstigator());
+
+	if (TargetActor && FinalDamage >= 0.f)
+	{
+		// 패리 성공: 이미 위에서 PARRYSUCCESS 이벤트 전송됨, 추가 이벤트 불필요
+		if (bIsParried)
+		{
+			// 패리는 이미 처리됨
+		}
+		// 일반 가드 성공 (전방 공격 + 가드 감소 적용됨)
+		else if (bIsStandardGuard)
+		{
+			// Guard GA에서 처리할 COMBAT_HIT 이벤트 전송
+			FGameplayEventData GuardHitEvent;
+			GuardHitEvent.EventTag = KRTAG_EVENT_COMBAT_HIT;
+			GuardHitEvent.EventMagnitude = FinalDamage;
+			GuardHitEvent.Instigator = InstigatorActor;
+			GuardHitEvent.Target = TargetActor;
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				TargetActor,
+				KRTAG_EVENT_COMBAT_HIT,
+				GuardHitEvent
+			);
+
+#if !UE_BUILD_SHIPPING
+			UE_LOG(LogTemp, Log, TEXT("[Event] Sent COMBAT_HIT (Guard Success) to %s"), *TargetActor->GetName());
+#endif
+		}
+		// 가드 실패 (후방 공격, 가드 안 함, 가드 브레이크 등) → HitReaction
+		else
+		{
+			// HitReaction GA에서 처리할 HITREACTION 이벤트 전송
+			// EventMagnitude 패킹: HitIntensity(정수부) + KnockbackDistance * 0.001(소수부)
+			// 기본값: Light(0) + 100 넉백 = 0.100
+			const float HitIntensity = bIsCritical ? 2.0f : 1.0f;  // Critical이면 Heavy, 아니면 Medium
+			const float KnockbackDistance = 100.0f;  // 기본 넉백 거리
+			const float PackedMagnitude = HitIntensity + (KnockbackDistance * 0.001f);
+
+			FGameplayEventData HitReactionEvent;
+			HitReactionEvent.EventTag = KRTAG_EVENT_COMBAT_HITREACTION;
+			HitReactionEvent.EventMagnitude = PackedMagnitude;
+			HitReactionEvent.Instigator = InstigatorActor;
+			HitReactionEvent.Target = TargetActor;
+			HitReactionEvent.ContextHandle = Spec.GetContext();
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				TargetActor,
+				KRTAG_EVENT_COMBAT_HITREACTION,
+				HitReactionEvent
+			);
+
+#if !UE_BUILD_SHIPPING
+			UE_LOG(LogTemp, Log, TEXT("[Event] Sent HITREACTION to %s (BackAttack: %s)"),
+				*TargetActor->GetName(),
+				(bIsGuarding && GuardDamageReduction == 0.f) ? TEXT("Yes") : TEXT("No"));
+#endif
+		}
 	}
 
 #if !UE_BUILD_SHIPPING
@@ -269,4 +347,26 @@ bool UGEExecCalc_DamageTaken::IsHitFromFront(const FGameplayEffectSpec& Spec, UA
 
 	// Dot > 0: 공격자가 피격자 앞에 있음 (전방 공격)
 	return Dot > 0.f;
+}
+
+float UGEExecCalc_DamageTaken::GetGuardReductionFromConfig(UAbilitySystemComponent* TargetASC) const
+{
+	constexpr float DefaultGuardReduction = 0.7f;
+
+	if (!TargetASC)
+	{
+		return DefaultGuardReduction;
+	}
+
+	// 활성화된 KRGA_HeroGuard 어빌리티에서 GuardConfig 가져오기
+	FGameplayAbilitySpec* GuardAbilitySpec = TargetASC->FindAbilitySpecFromClass(UKRGA_HeroGuard::StaticClass());
+	if (GuardAbilitySpec && GuardAbilitySpec->GetPrimaryInstance())
+	{
+		if (const UKRGA_HeroGuard* GuardAbility = Cast<UKRGA_HeroGuard>(GuardAbilitySpec->GetPrimaryInstance()))
+		{
+			return GuardAbility->GetGuardConfig().StandardGuardReduction;
+		}
+	}
+
+	return DefaultGuardReduction;
 }

@@ -39,7 +39,7 @@ void UInventoryFragment_ModuleItem::InitializeFromData(UKRInventoryItemInstance*
 		TargetWeaponSlotTag = KRTAG_ITEMTYPE_EQUIP_GUN;
 	}
 	
-	const FEquipAbilityDataStruct* AbilityData = DataSubsystem.GetData<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, static_cast<uint32>(ModuleData->EquipAbilityID), TEXT("ModuleFragment"), false);
+	const FEquipAbilityDataStruct* AbilityData = DataSubsystem.GetDataSafe<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, ModuleData->EquipAbilityID);
 
 	if (AbilityData)
 	{

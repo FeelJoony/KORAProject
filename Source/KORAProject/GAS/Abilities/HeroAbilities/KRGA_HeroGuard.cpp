@@ -7,6 +7,8 @@
 #include "GAS/Abilities/HeroAbilities/Libraries/KRMotionWarpingLibrary.h"
 #include "GameplayTag/KRStateTag.h"
 #include "GameplayTag/KREventTag.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
 UKRGA_HeroGuard::UKRGA_HeroGuard(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -163,10 +165,7 @@ void UKRGA_HeroGuard::OnPerfectGuardWindowEnded()
 	// 가드 루프 몽타주 재생
 	if (GuardLoopMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("GuardLoop"), GuardLoopMontage, 1.0f, NAME_None, true);
 		if (MontageTask)
@@ -212,10 +211,7 @@ void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 	// 퍼펙트 가드 몽타주 재생
 	if (PerfectGuardMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("PerfectGuard"), PerfectGuardMontage, 1.0f);
 		if (MontageTask)
@@ -264,6 +260,17 @@ void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 			false
 		);
 	}
+
+	// 퍼펙트 가드 UI 메시지 브로드캐스트
+	FKRUIMessage_Guard GuardMessage;
+	GuardMessage.TargetActor = AvatarActor;
+	GuardMessage.bGuardSuccess = true;
+	GuardMessage.bPerfectGuard = true;
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(
+		FKRUIMessageTags::Guard(),
+		GuardMessage
+	);
 }
 
 void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
@@ -302,10 +309,7 @@ void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
 	// 가드 히트 몽타주 재생
 	if (GuardHitMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("GuardHit"), GuardHitMontage, 1.0f);
 		if (MontageTask)
@@ -326,6 +330,17 @@ void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
 			ASC->ExecuteGameplayCue(GuardHitCueTag, CueParams);
 		}
 	}
+
+	// 일반 가드 UI 메시지 브로드캐스트
+	FKRUIMessage_Guard GuardMessage;
+	GuardMessage.TargetActor = AvatarActor;
+	GuardMessage.bGuardSuccess = true;
+	GuardMessage.bPerfectGuard = false;
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(
+		FKRUIMessageTags::Guard(),
+		GuardMessage
+	);
 }
 
 // ─────────────────────────────────────────────────────
@@ -347,10 +362,7 @@ void UKRGA_HeroGuard::TriggerGuardBreak()
 	// 가드 브레이크 몽타주 재생
 	if (GuardBreakMontage)
 	{
-		if (MontageTask)
-		{
-			MontageTask->EndTask();
-		}
+		StopCurrentMontageTask();
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, FName("GuardBreak"), GuardBreakMontage, 1.0f);
 		if (MontageTask)
@@ -460,4 +472,16 @@ UKRStaminaComponent* UKRGA_HeroGuard::GetStaminaComponent() const
 {
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
 	return AvatarActor ? AvatarActor->FindComponentByClass<UKRStaminaComponent>() : nullptr;
+}
+
+void UKRGA_HeroGuard::StopCurrentMontageTask()
+{
+	if (MontageTask)
+	{
+		// 인터럽트 핸들러 해제 (어빌리티 재시작 방지)
+		MontageTask->OnInterrupted.RemoveDynamic(this, &ThisClass::OnMontageInterrupted);
+		MontageTask->OnCancelled.RemoveDynamic(this, &ThisClass::OnMontageInterrupted);
+		MontageTask->OnCompleted.RemoveDynamic(this, &ThisClass::OnMontageCompleted);
+		MontageTask->EndTask();
+	}
 }
