@@ -1,4 +1,5 @@
 #include "KREquipmentManagerComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "KREquipmentInstance.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -741,7 +742,7 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(AttackSpeedDelta));
 		Idx++;
 	}
-
+	
 	const float CritChanceDelta = Stats.CritChance - FWeaponStatsCache::DefaultCritChance;
 	if (!FMath::IsNearlyZero(CritChanceDelta))
 	{
@@ -769,6 +770,22 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetWeaponRangeAttribute();
 		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
 		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(RangeDelta));
+		Idx++;
+	}
+
+	const float MaxAmmoDelta = (float)Stats.Capacity;
+	if (MaxAmmoDelta > 0.f)
+	{
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetMaxAmmoAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MaxAmmoDelta));
+		Idx++;
+		
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetCurrentAmmoAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MaxAmmoDelta));
 		Idx++;
 	}
 	
@@ -830,6 +847,19 @@ void UKREquipmentManagerComponent::ApplyModuleStats(UKRInventoryItemInstance* Mo
 	FWeaponStatsCache Stats = ConvertModifiersToStatsCache(Modifiers);
 
 	ApplyEquipmentStats(Stats, ItemTag);
+	
+	UAbilitySystemComponent* LocalASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
+
+	if (!LocalASC) return;
+
+	UKRCombatCommonSet* CombatSet = const_cast<UKRCombatCommonSet*>(LocalASC->GetSet<UKRCombatCommonSet>());
+
+	if (!CombatSet) return;
+
+	if (RangeActorInstance && !RangeActorInstance->IsHidden())
+	{
+		BroadcastWeaponMessage(EWeaponMessageAction::Equipped, RangeActorInstance->GetWeaponItemTag());
+	}
 }
 
 void UKREquipmentManagerComponent::RemoveModuleStats(UKRInventoryItemInstance* ModuleInstance)
@@ -995,12 +1025,18 @@ void UKREquipmentManagerComponent::BroadcastWeaponMessage(EWeaponMessageAction A
 	Msg.Action = Action;
 	Msg.WeaponTypeTag = WeaponTypeTag;
 
-	// TODO: 총기 탄약 정보 추가
-	// if (Action != EWeaponMessageAction::Unequipped && WeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN) && RangeActorInstance)
-	// {
-	//     Msg.CurrentAmmo = ...;
-	//     Msg.MaxAmmo = ...;
-	// }
+	if (Action != EWeaponMessageAction::Unequipped && WeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN) && RangeActorInstance)
+	{
+		if (UAbilitySystemComponent* LocalASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
+		{
+			bool bFound = false;
+			float CurVal = LocalASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetCurrentAmmoAttribute(), bFound);
+			float MaxVal = LocalASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetMaxAmmoAttribute(), bFound);
+
+			Msg.CurrentAmmo = (int32)CurVal;
+			Msg.MaxAmmo = (int32)MaxVal;
+		}
+	}
 
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Weapon(), Msg);
 }

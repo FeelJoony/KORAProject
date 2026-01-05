@@ -25,6 +25,8 @@ public:
 	virtual void FireProjectile();
 
 	virtual FTransform GetMuzzleTransform() const;
+
+	virtual void FireProjectile(const FRotator& InOverrideRotation);
 	
 protected:
 	/** 발사체 스폰 위치 */

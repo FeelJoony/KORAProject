@@ -58,6 +58,9 @@ protected:
 	UPROPERTY()
 	TSubclassOf<UKRCameraMode> AbilityCameraMode;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UKRCameraMode> GunCameraMode;
+
 	FVector2D LastLookInput = FVector2D::ZeroVector;
     FVector2D LastMoveInput = FVector2D::ZeroVector;
 
