@@ -5,6 +5,7 @@
 #include "Materials/MaterialParameterCollectionInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "GameFramework/Character.h"
 
 #include "Engine/World.h"                
 #include "Engine/EngineTypes.h"          
@@ -20,8 +21,11 @@ void AScannerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    MPCI = GetWorld() ? GetWorld()->GetParameterCollectionInstance(ScannerMPC) : nullptr;
-    if (!MPCI) { UE_LOG(LogTemp, Warning, TEXT("[SphereReveal] MPCI null on %s"), *GetName()); return; }
+    if (!GetMPCI())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[SphereReveal] MPCI null on %s"), *GetName());
+        return;
+    }
 
     Radius = StartRadius;
     SetFloat(ParamEditorOverride, 0.f);
@@ -51,7 +55,6 @@ void AScannerController::BeginPlay()
 void AScannerController::Tick(float dt)
 {
     Super::Tick(dt);
-    if (!MPCI) return;
 
     // cool down countdown
     if (!bHoldingAtMax && GetFloat(ParamActive) < 0.5f && bCoolingDown)
@@ -63,8 +66,18 @@ void AScannerController::Tick(float dt)
             CooldownTimer = 0.f;
         }
     }
+
+    FVector NewCenter;
+    if (IsValid(FollowActor))
+    {
+        NewCenter=FollowActor->GetActorLocation();
+    }
+    else
+    {
+         ReCacheFollowActor();
+    }
+
     
-    const FVector NewCenter = IsValid(FollowActor) ? FollowActor->GetActorLocation() : GetActorLocation();
     if (!NewCenter.Equals(CachedCenter, 0.1f))
     {
         CachedCenter = NewCenter;
@@ -126,18 +139,34 @@ void AScannerController::UpdateFX(bool bActive)
 
 void AScannerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    if (MPCI)
-    {
-        SetFloat(ParamActive, 0.f);
-        SetFloat(ParamRadius, 0.f);
-    }
+    SetFloat(ParamActive, 0.f);
+    SetFloat(ParamRadius, 0.f);
     
     Super::EndPlay(EndPlayReason);
 }
 
+void AScannerController::ReCacheFollowActor()
+{
+    if (IsFollowPlayer0 && GetWorld())
+    {
+        FollowActor=UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
+        return;
+    }
+    //UE_LOG(LogTemp,Error, TEXT("[SphereReveal] FollowActor null"));
+}
+
+UMaterialParameterCollectionInstance* AScannerController::GetMPCI() const
+{
+    if (!GetWorld() || !ScannerMPC) return nullptr;
+
+    UMaterialParameterCollectionInstance* MPCI = GetWorld()->GetParameterCollectionInstance(ScannerMPC);
+
+    return IsValid(MPCI) ? MPCI : nullptr;
+}
+
 void AScannerController::StartScan()
 {
-    if (!MPCI) return;
+    //if (!MPCI) return;
 
     if (bCoolingDown) return;
 
@@ -166,8 +195,6 @@ void AScannerController::StartScan()
 
 void AScannerController::StopScan(bool bHardCut)
 {
-    if (!MPCI) return;
-
     // Deactivate flag
     SetFloat(ParamActive, 0.f);
 
@@ -196,15 +223,27 @@ void AScannerController::BeginCooldown()
 
 void AScannerController::SetVec(FName N, const FVector& V)
 {
-    if (MPCI) MPCI->SetVectorParameterValue(N, FLinearColor(V));
+    //if (MPCI) MPCI->SetVectorParameterValue(N, FLinearColor(V));
+    if (UMaterialParameterCollectionInstance* MPCI = GetMPCI())
+    {
+        MPCI->SetVectorParameterValue(N, FLinearColor(V));
+    }
 }
 void AScannerController::SetFloat(FName N, float V)
 {
-    if (MPCI) MPCI->SetScalarParameterValue(N, V);
+    //if (MPCI) MPCI->SetScalarParameterValue(N, V);
+    if (UMaterialParameterCollectionInstance* MPCI = GetMPCI())
+    {
+        MPCI->SetScalarParameterValue(N, V);
+    }
 }
 float AScannerController::GetFloat(FName N) const
 {
     float Out = 0.f;
-    if (MPCI) MPCI->GetScalarParameterValue(N, Out);
+    //if (MPCI) MPCI->GetScalarParameterValue(N, Out);
+    if (UMaterialParameterCollectionInstance* MPCI = GetMPCI())
+    {
+        MPCI->GetScalarParameterValue(N, Out);
+    }
     return Out;
 }

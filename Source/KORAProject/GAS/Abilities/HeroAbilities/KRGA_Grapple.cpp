@@ -204,34 +204,23 @@ APawn* UKRGA_Grapple::SearchLockOnTarget()
 {
 	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
 	if (!KRASC) return nullptr;
-	
+
+	//락온 상태 체크 > 락온 GA에서 대상 return
 	if (KRASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_LOCKON))
 	{
-		FGameplayTagContainer TagContainer;
-		TagContainer.AddTag(KRTAG_ABILITY_LOCKON);
-		TArray<FGameplayAbilitySpec*> ActiveAbilities;
-		KRASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(TagContainer, ActiveAbilities);
-		
-		if (ActiveAbilities.Num() > 0)
-        {
-			FGameplayAbilitySpec* Spec = ActiveAbilities[0];
+		UKRGA_LockOn* LockOnGAInstance = KRASC->GetActiveAbilityByClass<UKRGA_LockOn>();
+        if (!LockOnGAInstance) return nullptr;
 
-			UGameplayAbility* FoundAbility = Spec->GetPrimaryInstance();
-			if (!FoundAbility) return nullptr;
-            
-            UKRGA_LockOn* LockOnGAInstance = Cast<UKRGA_LockOn>(FoundAbility);
-            if (!LockOnGAInstance) return nullptr;
+		AActor* Actor = LockOnGAInstance->GetLockedTarget();
+		CachedTargetPawn = Cast<APawn>(Actor);
+		if (!CachedTargetPawn) return nullptr;
 
-			AActor* Actor = LockOnGAInstance->GetLockedTarget();
-			CachedTargetPawn = Cast<APawn>(Actor);
-			if (!CachedTargetPawn) return nullptr;
-
-			TargetCapsuleComp = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
-			if (!TargetCapsuleComp)
-			{
-				HitState = EGrappleState::Default;
-			}
-        }
+		TargetCapsuleComp = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
+		if (!TargetCapsuleComp)
+		{
+			HitState = EGrappleState::Default;
+		}
+        
 	}
 	return CachedTargetPawn;
 }

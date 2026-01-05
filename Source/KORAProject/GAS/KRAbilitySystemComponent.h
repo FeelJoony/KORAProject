@@ -25,7 +25,23 @@ public:
 	void ClearAbilityInput();
 	void SetTagRelationshipMapping(UKRAbilityTagRelationshipMapping* NewTagMapping);
 	
-
+	//실행 중인 T타입의 GA인스턴스를 찾는 템플릿 함수
+	template<typename T>
+	T* GetActiveAbilityByClass()
+	{
+		for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+		{
+			if (Spec.IsActive())
+			{
+				if (T* AbilityInst = Cast<T>(Spec.GetPrimaryInstance()))
+				{
+					return AbilityInst;
+				}
+			}
+		}
+		return nullptr;
+	}
+	
 protected:
 	UPROPERTY()
 	TObjectPtr<UKRAbilityTagRelationshipMapping> TagRelationshipMapping;
