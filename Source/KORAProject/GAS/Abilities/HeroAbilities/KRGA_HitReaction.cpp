@@ -4,6 +4,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTag/KREventTag.h"
 #include "GameplayTag/KRAbilityTag.h"
+#include "GameplayTag/KRStateTag.h"
 #include "MotionWarpingComponent.h"
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -26,6 +27,17 @@ void UKRGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	// 하이퍼아머 체크: 히트리액션 면역 상태이면 즉시 종료
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC && ASC->HasMatchingGameplayTag(KRTAG_STATE_IMMUNE_HITREACTION))
+	{
+#if !UE_BUILD_SHIPPING
+		UE_LOG(LogTemp, Log, TEXT("[HitReaction] Blocked - Target has IMMUNE_HITREACTION tag (HyperArmor)"));
+#endif
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
 
 	if (!TriggerEventData || !TriggerEventData->EventTag.MatchesTag(KRTAG_EVENT_COMBAT_HITREACTION))
 	{
