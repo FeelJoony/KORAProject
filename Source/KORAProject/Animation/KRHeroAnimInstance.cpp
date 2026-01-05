@@ -1,6 +1,9 @@
 #include "Animation/KRHeroAnimInstance.h"
 #include "Characters/KRHeroCharacter.h"
 #include "Components/KRCharacterMovementComponent.h"
+#include "Components/KRPawnExtensionComponent.h"
+#include "GameplayTag/KRPlayerTag.h"
+#include "GAS/KRAbilitySystemComponent.h"
 
 void UKRHeroAnimInstance::NativeInitializeAnimation()
 {
@@ -55,4 +58,30 @@ void UKRHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		//CachedMoveComponent->MaxWalkSpeed=LockOnSpeed;
 	}
 	*/
+	
+	if (APawn* Pawn = TryGetPawnOwner())
+	{
+		UpdateGunAnimData(Pawn);
+	}
+}
+
+void UKRHeroAnimInstance::UpdateGunAnimData(APawn* Pawn)
+{
+	if (!Pawn) return;
+	
+	FRotator ControlRot = Pawn->GetControlRotation();
+	FRotator ActorRot = Pawn->GetActorRotation();
+	FRotator DeltaRot = ControlRot - ActorRot;
+	DeltaRot.Normalize(); 
+
+	AimPitch = DeltaRot.Pitch; 
+	
+	bIsGunMode = false;
+	if (UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+	{
+		if (const UKRAbilitySystemComponent* ASC = PawnExtComp->GetKRAbilitySystemComponent())
+		{
+			bIsGunMode = ASC->HasMatchingGameplayTag(KRTAG_PLAYER_MODE_GUN);
+		}
+	}
 }
