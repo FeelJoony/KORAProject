@@ -117,6 +117,15 @@ void UKRPauseMenuWidget::BindMenuButton(UKRMenuTabButton* Button)
 	   HandleMenuHovered(Button);
 		
 	   HandleSlotNamePrimary(EKRSlotNameContext::Menu);
+
+		if (Button == QuitButton)
+		{
+			APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+			if (PC)
+			{
+				UKismetSystemLibrary::QuitGame(this, PC, EQuitPreference::Quit, true);
+			}
+		}
 	});
 }
 

@@ -1,6 +1,7 @@
 #include "UI/MainMenu/KRMainMenuWidget.h"
 #include "UI/PauseMenu/KRMenuTabButton.h"
 #include "SubSystem/KRUIInputSubsystem.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
 #include "Groups/CommonButtonGroupBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -103,6 +104,17 @@ void UKRMainMenuWidget::OnConfirmMessageReceived(FGameplayTag Channel, const FKR
 		if (FrontendStateComponent)
 		{
 			FrontendStateComponent->TravelToContinue();
+		}
+	}
+	else if (Payload.Context == EConfirmContext::Generic && Payload.Result == EConfirmResult::Yes)
+	{
+		// Generic context from SettingButton - open Settings route
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+			{
+				Router->OpenRoute(FName("Settings"));
+			}
 		}
 	}
 }
@@ -232,11 +244,28 @@ void UKRMainMenuWidget::BindMenuButton(UCommonButtonBase* Button)
 		return;
 	}
 
-	Button->OnClicked().AddLambda([this, Button]()
+	// SettingButton 특별 처리 - 바로 Settings Route 열기 (PauseMenu 방식)
+	if (Button == SettingButton)
 	{
-		EConfirmContext Context = GetContextForButton(Button);
-		BP_OnMenuButtonInvoked(Context);
-	});
+		Button->OnClicked().AddLambda([this]()
+		{
+			if (UGameInstance* GI = GetGameInstance())
+			{
+				if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+				{
+					Router->OpenRoute(FName("Settings"));
+				}
+			}
+		});
+	}
+	else
+	{
+		Button->OnClicked().AddLambda([this, Button]()
+		{
+			EConfirmContext Context = GetContextForButton(Button);
+			BP_OnMenuButtonInvoked(Context);
+		});
+	}
 
 	// Bind hover to update selection (prevents dual selection visual)
 	Button->OnHovered().AddLambda([this, Button]()
