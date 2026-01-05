@@ -1,52 +1,69 @@
 #include "Animation/Notify/KRAnimNotifyState_EnemySlash.h"
-#include "GAS/Abilities/EnemyAbility/KRGA_EnemySlash.h"
-#include "Characters/KREnemyCharacter.h"
-#include "Components/KRCombatComponent.h"
-#include "Enemy/KRAIC_Enemy.h"
-#include "Characters/KRHeroCharacter.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayTag/KREventTag.h"
 
-void UKRAnimNotifyState_EnemySlash::NotifyBegin(USkeletalMeshComponent* MeshComp, 
-												UAnimSequenceBase* Animation, 
-												float TotalDuration, 
+UKRAnimNotifyState_EnemySlash::UKRAnimNotifyState_EnemySlash()
+{
+	// 기본 히트 체크 이벤트 태그 설정
+	HitCheckEventTag = KRTAG_EVENT_ENEMY_SLASH_HITCHECK;
+}
+
+FString UKRAnimNotifyState_EnemySlash::GetNotifyName_Implementation() const
+{
+	return TEXT("Enemy Slash Hit Check");
+}
+
+void UKRAnimNotifyState_EnemySlash::NotifyBegin(USkeletalMeshComponent* MeshComp,
+												UAnimSequenceBase* Animation,
+												float TotalDuration,
 												const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
-	
-	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(MeshComp->GetOwner());
-	if (!IsValid(Enemy)) return;
 
-	AController* AIC = Enemy->GetController();
-	if (!AIC) return;
-	UE_LOG(LogTemp, Warning, TEXT("Get AIC"));
-	
-	AKRAIC_Enemy* EnemyAIC = Cast<AKRAIC_Enemy>(AIC);
-	if (!EnemyAIC) return;
-	UE_LOG(LogTemp, Warning, TEXT("Get Enmey AIC"));
-
-	AActor* Target = EnemyAIC->GetAttackTarget();
-	if (!Target) return;
-	UE_LOG(LogTemp, Warning, TEXT("Get Target"));
-
-	AKRHeroCharacter* Player = Cast<AKRHeroCharacter>(Target);
-	UE_LOG(LogTemp, Warning, TEXT("Get Player"));
-
-	UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
-	if (EnemyCombatComp)
-	{
-		EnemyCombatComp->ApplyDamageToTarget(Player, 10, false, nullptr);
-	}
+	// GameplayEvent 발송 (특정 캐릭터/컨트롤러에 의존하지 않음)
+	SendHitCheckEvent(MeshComp);
 }
 
-void UKRAnimNotifyState_EnemySlash::NotifyEnd(USkeletalMeshComponent* MeshComp, 
-												UAnimSequenceBase* Animation, 
+void UKRAnimNotifyState_EnemySlash::NotifyEnd(USkeletalMeshComponent* MeshComp,
+												UAnimSequenceBase* Animation,
 												const FAnimNotifyEventReference& EventReference)
 {
-	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(MeshComp->GetOwner());
-	if (!IsValid(Enemy)) return;
+	Super::NotifyEnd(MeshComp, Animation, EventReference);
+	// 종료 시 별도 처리 없음
+}
 
-	/*UKRCombatComponent* EnemyCombatComp = Enemy->GetEnemyCombatComponent();
-	if (EnemyCombatComp)
+void UKRAnimNotifyState_EnemySlash::SendHitCheckEvent(USkeletalMeshComponent* MeshComp)
+{
+	if (!HitCheckEventTag.IsValid())
 	{
-		EnemyCombatComp->ToggleWeaponCollision(false, EToggleDamageType::CurrentEquippedWeapon, EWeaponSlot::RightHand);
-	}*/
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = GetASC(MeshComp);
+	if (!ASC)
+	{
+		return;
+	}
+
+	// GameplayEvent를 통해 히트 체크 알림 (특정 GA에 의존하지 않음)
+	FGameplayEventData EventData;
+	EventData.Instigator = MeshComp ? MeshComp->GetOwner() : nullptr;
+	ASC->HandleGameplayEvent(HitCheckEventTag, &EventData);
+}
+
+UAbilitySystemComponent* UKRAnimNotifyState_EnemySlash::GetASC(USkeletalMeshComponent* MeshComp) const
+{
+	if (!MeshComp)
+	{
+		return nullptr;
+	}
+
+	AActor* Owner = MeshComp->GetOwner();
+	if (!Owner)
+	{
+		return nullptr;
+	}
+
+	return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
 }
