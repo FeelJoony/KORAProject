@@ -85,12 +85,22 @@ void UKRUIInputSubsystem::EnterUIMode(bool bShowCursor)
 {
     ++UIModeRefCount;
     bDesiredShowCursor = bShowCursor;
+    UE_LOG(LogTemp, Warning, TEXT("[UIInput] EnterUIMode - RefCount: %d, ShowCursor: %d"), UIModeRefCount, bShowCursor);
     UpdateUIMode();
 }
 
 void UKRUIInputSubsystem::ReleaseUIMode()
 {
     UIModeRefCount = FMath::Max(0, UIModeRefCount - 1);
+    UE_LOG(LogTemp, Warning, TEXT("[UIInput] ReleaseUIMode - RefCount: %d"), UIModeRefCount);
+    UpdateUIMode();
+}
+
+void UKRUIInputSubsystem::ForceResetUIMode()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[UIInput] ForceResetUIMode - Previous RefCount: %d"), UIModeRefCount);
+    UIModeRefCount = 0;
+    bDesiredShowCursor = false;
     UpdateUIMode();
 }
 
@@ -210,11 +220,13 @@ void UKRUIInputSubsystem::UpdateUIMode()
 
     if (bShouldBeActive && !bUIModeApplied)
     {
+        UE_LOG(LogTemp, Warning, TEXT("[UIInput] UpdateUIMode - Applying UI Mode (RefCount: %d)"), UIModeRefCount);
         ApplyEnable(bDesiredShowCursor);
         bUIModeApplied = true;
     }
     else if (!bShouldBeActive && bUIModeApplied)
     {
+        UE_LOG(LogTemp, Warning, TEXT("[UIInput] UpdateUIMode - Disabling UI Mode (RefCount: %d)"), UIModeRefCount);
         ApplyDisable();
         bUIModeApplied = false;
     }
@@ -235,6 +247,7 @@ FSimpleDelegate UKRUIInputSubsystem::MakeSimpleDelegateFromDynamic(const FKRUISi
 void UKRUIInputSubsystem::OnRouterRouteOpened(ULocalPlayer* LP, FName Route, EKRUILayer Layer)
 {
     if (LP != GetLocalPlayer()) return;
+    UE_LOG(LogTemp, Warning, TEXT("[UIInput] RouteOpened: %s, Layer: %d"), *Route.ToString(), (int32)Layer);
     switch (Layer)
     {
     case EKRUILayer::GameMenu:
@@ -253,6 +266,7 @@ void UKRUIInputSubsystem::OnRouterRouteOpened(ULocalPlayer* LP, FName Route, EKR
 void UKRUIInputSubsystem::OnRouterRouteClosed(ULocalPlayer* LP, FName Route, EKRUILayer Layer)
 {
     if (LP != GetLocalPlayer()) return;
+    UE_LOG(LogTemp, Warning, TEXT("[UIInput] RouteClosed: %s, Layer: %d"), *Route.ToString(), (int32)Layer);
     switch (Layer)
     {
     case EKRUILayer::GameMenu:

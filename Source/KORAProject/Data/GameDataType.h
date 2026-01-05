@@ -21,4 +21,5 @@ enum class EGameDataType : uint8
 	WorldEventData,
 	CitizenData,
 	DialogueData,
+	LevelTransitionData,
 };
