@@ -25,7 +25,6 @@ void UKRPauseMenuWidget::NativeConstruct()
 
 	BindMenuButton(EquipmentButton);
 	BindMenuButton(InventoryButton);
-	BindMenuButton(SkillTreeButton);
 	BindMenuButton(SettingsButton);
 	BindMenuButton(QuitButton);
 
@@ -118,6 +117,15 @@ void UKRPauseMenuWidget::BindMenuButton(UKRMenuTabButton* Button)
 	   HandleMenuHovered(Button);
 		
 	   HandleSlotNamePrimary(EKRSlotNameContext::Menu);
+
+		if (Button == QuitButton)
+		{
+			APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+			if (PC)
+			{
+				UKismetSystemLibrary::QuitGame(this, PC, EQuitPreference::Quit, true);
+			}
+		}
 	});
 }
 
@@ -568,7 +576,6 @@ void UKRPauseMenuWidget::InitializeMenuTabArray()
 	MenuTabButtons.Empty();
 	MenuTabButtons.Add(EquipmentButton);
 	MenuTabButtons.Add(InventoryButton);
-	MenuTabButtons.Add(SkillTreeButton);
 	MenuTabButtons.Add(SettingsButton);
 	MenuTabButtons.Add(QuitButton);
 	

@@ -11,7 +11,6 @@ enum class EKRPauseMenuTab : uint8
 {
 	Equipment,
 	Inventory,
-	SkillTree,
 	Settings,
 	Quit
 };

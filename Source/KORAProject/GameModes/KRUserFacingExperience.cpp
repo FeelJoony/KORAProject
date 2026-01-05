@@ -3,7 +3,11 @@
 
 UCommonSession_HostSessionRequest* UKRUserFacingExperience::CreateHostingRequest() const
 {
-	const FString ExperienceName = ExperienceID.PrimaryAssetName.ToString();
+	FString ExperienceName = ExperienceID.PrimaryAssetName.ToString();
+	if (ExperienceName.Contains(TEXT("/")))
+	{
+		ExperienceName = FPaths::GetBaseFilename(ExperienceName);
+	}
 
 	UCommonSession_HostSessionRequest* Result = NewObject<UCommonSession_HostSessionRequest>();
 	Result->MapID = MapID;

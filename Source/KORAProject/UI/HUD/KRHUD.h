@@ -11,6 +11,7 @@ class UKRBossHealthWidget;
 class UKRQuestPanelWidget;
 class UKROnlyGearingPanel;
 class UKRQuickSlotWidget;
+class UKRLevelDeathSaveInfo;
 
 UCLASS()
 class KORAPROJECT_API UKRHUD : public UCommonActivatableWidget
@@ -23,6 +24,7 @@ protected:
 	UPROPERTY(meta = (BindWidget)) UKRQuestPanelWidget* QuestPanel = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKROnlyGearingPanel* CurrencyPanel = nullptr;
 	UPROPERTY(meta = (BindWidget)) UKRQuickSlotWidget* QuickSlot = nullptr;
+	UPROPERTY(meta = (BindWidget)) UKRLevelDeathSaveInfo* LevelDeathSaveInfo = nullptr;
 
 	virtual void NativeOnActivated() override;
 	virtual void NativeOnDeactivated() override;

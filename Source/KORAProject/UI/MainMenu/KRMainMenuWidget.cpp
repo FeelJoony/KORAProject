@@ -1,8 +1,12 @@
 #include "UI/MainMenu/KRMainMenuWidget.h"
 #include "UI/PauseMenu/KRMenuTabButton.h"
 #include "SubSystem/KRUIInputSubsystem.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
 #include "Groups/CommonButtonGroupBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "GameModes/KRFrontendStateComponent.h"
+#include "GameModes/KRBaseGameState.h"
 
 void UKRMainMenuWidget::NativeConstruct()
 {
@@ -19,6 +23,25 @@ void UKRMainMenuWidget::NativeConstruct()
 	}
 	
 	InitializeMenuButtons();
+	
+	if (UWorld* World = GetWorld())
+	{
+		if (AGameStateBase* GameState = World->GetGameState())
+		{
+			FrontendStateComponent = GameState->FindComponentByClass<UKRFrontendStateComponent>();
+		}
+		
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UGameplayMessageSubsystem* MessageSubsystem = GI->GetSubsystem<UGameplayMessageSubsystem>())
+			{
+				ConfirmListenerHandle = MessageSubsystem->RegisterListener<FKRUIMessage_Confirm>(
+					FKRUIMessageTags::Confirm(),
+					this,
+					&ThisClass::OnConfirmMessageReceived);
+			}
+		}
+	}
 	
 	if (ContinueButton && ContinueButton->GetVisibility() == ESlateVisibility::Visible)
 	{
@@ -38,6 +61,61 @@ void UKRMainMenuWidget::NativeConstruct()
 	if (QuitGameButton)
 	{
 		BindMenuButton(QuitGameButton);
+	}
+}
+
+void UKRMainMenuWidget::NativeDestruct()
+{
+	if (ConfirmListenerHandle.IsValid())
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (UGameInstance* GI = World->GetGameInstance())
+			{
+				if (UGameplayMessageSubsystem* MessageSubsystem = GI->GetSubsystem<UGameplayMessageSubsystem>())
+				{
+					MessageSubsystem->UnregisterListener(ConfirmListenerHandle);
+				}
+			}
+		}
+	}
+
+	Super::NativeDestruct();
+}
+
+void UKRMainMenuWidget::OnConfirmMessageReceived(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload)
+{
+	if (Payload.Context == EConfirmContext::NewGame && Payload.Result == EConfirmResult::Yes)
+	{
+		if (FrontendStateComponent)
+		{
+			FrontendStateComponent->TravelToGameplay();
+		}
+	}
+	else if (Payload.Context == EConfirmContext::QuitGame && Payload.Result == EConfirmResult::Yes)
+	{
+		if (APlayerController* PC = GetOwningPlayer())
+		{
+			UKismetSystemLibrary::QuitGame(GetWorld(), PC, EQuitPreference::Quit, false);
+		}
+	}
+	else if (Payload.Context == EConfirmContext::Continue && Payload.Result == EConfirmResult::Yes)
+	{
+		if (FrontendStateComponent)
+		{
+			FrontendStateComponent->TravelToContinue();
+		}
+	}
+	else if (Payload.Context == EConfirmContext::Generic && Payload.Result == EConfirmResult::Yes)
+	{
+		// Generic context from SettingButton - open Settings route
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+			{
+				Router->OpenRoute(FName("Settings"));
+			}
+		}
 	}
 }
 
@@ -166,11 +244,28 @@ void UKRMainMenuWidget::BindMenuButton(UCommonButtonBase* Button)
 		return;
 	}
 
-	Button->OnClicked().AddLambda([this, Button]()
+	// SettingButton 특별 처리 - 바로 Settings Route 열기 (PauseMenu 방식)
+	if (Button == SettingButton)
 	{
-		EConfirmContext Context = GetContextForButton(Button);
-		BP_OnMenuButtonInvoked(Context);
-	});
+		Button->OnClicked().AddLambda([this]()
+		{
+			if (UGameInstance* GI = GetGameInstance())
+			{
+				if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+				{
+					Router->OpenRoute(FName("Settings"));
+				}
+			}
+		});
+	}
+	else
+	{
+		Button->OnClicked().AddLambda([this, Button]()
+		{
+			EConfirmContext Context = GetContextForButton(Button);
+			BP_OnMenuButtonInvoked(Context);
+		});
+	}
 
 	// Bind hover to update selection (prevents dual selection visual)
 	Button->OnHovered().AddLambda([this, Button]()

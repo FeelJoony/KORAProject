@@ -21,6 +21,7 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag Confirm() { return KRTAG_UI_MESSAGE_CONFIRM; }
 	static const FGameplayTag Tutorial() { return KRTAG_UI_MESSAGE_TUTORIAL; }
 	static const FGameplayTag EquipmentUI() { return KRTAG_UI_MESSAGE_EQUIPMENTUI; }
+	static const FGameplayTag SaveDeathLevelInfo() { return KRTAG_UI_MESSAGE_INFO; }
 
 	static const FGameplayTag QuickSlot_North() { return KRTAG_UI_QUICKSLOT_NORTH; }
 	static const FGameplayTag QuickSlot_East() { return KRTAG_UI_QUICKSLOT_EAST; }
@@ -214,3 +215,20 @@ struct KORAPROJECT_API FKRUIMessage_EquipmentUI
 	UPROPERTY(BlueprintReadOnly) bool bIsOpen = false;
 };
 
+// ----- Save / Death / LevelTransition -----
+UENUM(BlueprintType)
+enum class EInfoContext : uint8
+{
+	SaveGame UMETA(DisplayName = "SaveGame"),
+	Death UMETA(DisplayName = "Death"),
+	LevelTransition UMETA(DisplayName = "LevelTransition"),
+};
+
+USTRUCT(BlueprintType)
+struct KORAPROJECT_API FKRUIMessage_Info
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite) EInfoContext Context = EInfoContext::SaveGame;
+	UPROPERTY(BlueprintReadWrite) FString StringTableKey = TEXT("");
+};

@@ -68,6 +68,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UIMode")
 	void ReleaseUIMode();
 
+	// 레벨 전환 시 UI 모드 강제 리셋
+	UFUNCTION(BlueprintCallable, Category = "UIMode")
+	void ForceResetUIMode();
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
