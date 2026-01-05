@@ -26,6 +26,9 @@ struct KORAPROJECT_API FDialogueDataStruct : public FTableRowBase, public ITable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Dialogue)
 	TArray<FName> DialogueTextKeys;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Dialogue)
+	TArray<TSoftObjectPtr<USoundBase>> VoiceAssets;
+
 	virtual uint32 GetKey() const override
 	{
 		return Index;
