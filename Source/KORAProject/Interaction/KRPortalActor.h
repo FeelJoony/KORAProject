@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "GameModes/KRUserFacingExperience.h"
 #include "KRPortalActor.generated.h"
 
 /**
@@ -27,7 +28,7 @@ protected:
 	FGameplayTag ActivationObjectiveTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal|Destination")
-	FString TargetUserFacingPath;
+	TSoftObjectPtr<UKRUserFacingExperience> TargetUserFacingPath;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> PortalMesh;

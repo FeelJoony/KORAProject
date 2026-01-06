@@ -1,0 +1,4 @@
+ObjectiveTag,StringTableKey,LevelEnterSoundTag
+NPC.Type.Clara,Info_Office,Sound.Stealth.Exit
+Event.ForgottenCity.MissionArea,Info_ForgottenCity,Sound.Stealth.Exit
+Event.ForgottenCity.FinalBossArena,Info_Barion,Sound.Stealth.Exit

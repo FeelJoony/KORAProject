@@ -22,6 +22,8 @@
 #include "Data/KRDataAssetTableRows.h"
 #include "Data/CitizenDataStruct.h"
 #include "Data/DialogueDataStruct.h"
+#include "Data/GameDataType.h"
+#include "Data/LevelTransitionDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -939,6 +941,48 @@ void UTableRowConvertFunctionContainer::CreateDialogueData(UDataTable* OutDataTa
 				}
 			}
 		}));
+}
+
+void UTableRowConvertFunctionContainer::CreateLevelTransitionData(UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, TEXT("LevelTransitionData"), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+	{
+		auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+		auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+		
+		for (int32 i = 0; i < Values.Num(); i++)
+		{
+			TArray<FString>& RowValue = Values[i];
+
+			const int32 ObjectiveTag_Index = GetHeaderIndex(Headers, TEXT("ObjectiveTag"));
+			const int32 StringTableKey_Index = GetHeaderIndex(Headers, TEXT("StringTableKey"));
+			const int32 LevelEnterSoundTag_Index = GetHeaderIndex(Headers, TEXT("LevelEnterSoundTag"));
+			
+			FLevelTransitionDataStruct LevelTransitionData;
+			
+			LevelTransitionData.ObjectiveTag = ParseGameplayTagValue(RowValue[ObjectiveTag_Index]);
+			LevelTransitionData.StringTableKey = ParseNameValue(RowValue[StringTableKey_Index]);
+
+			if (RowValue.IsValidIndex(LevelEnterSoundTag_Index) && !RowValue[LevelEnterSoundTag_Index].TrimStartAndEnd().IsEmpty())
+			{
+				LevelTransitionData.LevelEnterSoundTag = ParseGameplayTagValue(RowValue[LevelEnterSoundTag_Index]);
+			}
+			else
+			{
+				LevelTransitionData.LevelEnterSoundTag = FGameplayTag::EmptyTag;
+			}
+			
+			const FName RowName = *FString::Printf(TEXT("LevelTransition_%d"), i);
+			if (FLevelTransitionDataStruct* ExistingRow = OutDataTable->FindRow<FLevelTransitionDataStruct>(RowName, TEXT("")))
+			{
+				*ExistingRow = LevelTransitionData;
+			}
+			else
+			{
+				OutDataTable->AddRow(RowName, LevelTransitionData);
+			}
+		}
+	}));
 }
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)
