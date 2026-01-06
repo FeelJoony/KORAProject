@@ -37,3 +37,6 @@ Effect.Skill.AerialCombo.Launch,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Ski
 Effect.Skill.AerialCombo.Trail,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_AerialCombo_LineTrail.DA_Effect_Skill_AerialCombo_LineTrail,Aerial Trail,TRUE
 Effect.Skill.AerialCombo.Hit,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_AerialCombo_Impact.DA_Effect_Skill_AerialCombo_Impact,Aerial Impact,TRUE
 Effect.Skill.AerialCombo.Finish,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_AerialCombo_Finish.DA_Effect_Skill_AerialCombo_Finish,Aerial Finish,TRUE
+Effect.Combat.Gun.Fire,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_Shot.DA_Effect_Combat_Gun_Shot,Gun Shot,TRUE
+Effect.Combat.Gun.Shell,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_Shell.DA_Effect_Combat_Gun_Shell,Gun Shell,TRUE
+Effect.Combat.Gun.Tracer,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_Tracer.DA_Effect_Combat_Gun_Tracer,Gun Tracer,TRUE
