@@ -58,34 +58,19 @@ void UKRMapTravelSubsystem::TravelToExperience(const FString& UserFacingPath, FG
 	
 	UKRDataTablesSubsystem& DataTableSubsystem = UKRDataTablesSubsystem::Get(this);
 	
-	FName TableKey = NAME_None;
-
-	if (!ActivationTag.IsValid())
-	{
-		TableKey = FName(TEXT("NPC.Type.Clara"));
-	}
-	else
-	{
-		TableKey = ActivationTag.GetTagName();
-	}
+	FGameplayTag TableKey = ActivationTag.IsValid() ? ActivationTag : KRTAG_NPC_TYPE_CLARA;
 	
 	UCacheDataTable* CacheTable = DataTableSubsystem.GetTable(EGameDataType::LevelTransitionData);
 	FLevelTransitionDataStruct* TransitionData = nullptr;
 
-	if (CacheTable && CacheTable->GetTable())
+	if (CacheTable)
 	{
-		TransitionData = CacheTable->GetTable()->FindRow<FLevelTransitionDataStruct>(TableKey, TEXT("MapTravel"), false);
+		TransitionData = CacheTable->FindRowSafe<FLevelTransitionDataStruct>(TableKey, TEXT("MapTravel"), false);
 	}
 
 	// TransitionData가 없으면 기본값 사용
 	FLevelTransitionDataStruct DefaultTransitionData;
 	const FLevelTransitionDataStruct& TransitionDataRef = TransitionData ? *TransitionData : DefaultTransitionData;
-
-	if (!TransitionData)
-	{
-		UE_LOG(LogMapTravel, Warning, TEXT("No transition data found for key: %s. Using default values."), *TableKey.ToString());
-	}
-
 	StartTransitionSequence(Experience, TransitionDataRef, ActivationTag);
 }
 
