@@ -5,6 +5,7 @@
 #include "MediaPlayer.h"
 #include "MediaTexture.h"
 #include "MediaSoundComponent.h"
+#include "Styling/SlateBrush.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
 
 void UKRCutsceneWidget::NativeOnInitialized()
@@ -19,6 +20,30 @@ void UKRCutsceneWidget::NativeOnInitialized()
 void UKRCutsceneWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	MediaPlayer = NewObject<UMediaPlayer>(this);
+	if (MediaPlayer)
+	{
+		MediaPlayer->OnMediaOpened.AddDynamic(this, &UKRCutsceneWidget::OnMediaOpened);
+		MediaPlayer->OnEndReached.AddDynamic(this, &UKRCutsceneWidget::OnMediaEndReached);
+		MediaPlayer->OnMediaOpenFailed.AddDynamic(this, &UKRCutsceneWidget::OnMediaOpenFailed);
+	}
+
+	MediaTexture = NewObject<UMediaTexture>(this);
+	if (MediaTexture)
+	{
+		MediaTexture->SetMediaPlayer(MediaPlayer);
+		MediaTexture->UpdateResource();
+	}
+
+	if (CutsceneImage && MediaTexture)
+	{
+		FSlateBrush Brush;
+		Brush.SetResourceObject(MediaTexture);
+		Brush.ImageSize = FVector2D(1920.0f, 1080.0f);
+		CutsceneImage->SetBrush(Brush);
+	}
+
 	if (UWorld* World = GetWorld())
 	{
 		if (AActor* OwnerActor = World->GetFirstPlayerController())
@@ -31,12 +56,6 @@ void UKRCutsceneWidget::NativeConstruct()
 			}
 		}
 	}
-
-	if (MediaPlayer)
-	{
-		MediaPlayer->OnEndReached.AddDynamic(this, &UKRCutsceneWidget::OnMediaEndReached);
-		MediaPlayer->OnMediaOpenFailed.AddDynamic(this, &UKRCutsceneWidget::OnMediaOpenFailed);
-	}
 }
 
 void UKRCutsceneWidget::NativeDestruct()
@@ -45,6 +64,7 @@ void UKRCutsceneWidget::NativeDestruct()
 
 	if (MediaPlayer)
 	{
+		MediaPlayer->OnMediaOpened.RemoveDynamic(this, &UKRCutsceneWidget::OnMediaOpened);
 		MediaPlayer->OnEndReached.RemoveDynamic(this, &UKRCutsceneWidget::OnMediaEndReached);
 		MediaPlayer->OnMediaOpenFailed.RemoveDynamic(this, &UKRCutsceneWidget::OnMediaOpenFailed);
 	}
@@ -93,6 +113,7 @@ void UKRCutsceneWidget::PlayCutsceneWithTimings(UMediaSource* MediaSource, const
 {
 	if (!MediaPlayer || !MediaSource)
 	{
+		UE_LOG(LogTemp, Error, TEXT("KRCutsceneWidget::PlayCutsceneWithTimings - MediaPlayer or MediaSource is NULL!"));
 		return;
 	}
 
@@ -101,7 +122,6 @@ void UKRCutsceneWidget::PlayCutsceneWithTimings(UMediaSource* MediaSource, const
 	bCutscenePlaying = true;
 
 	MediaPlayer->OpenSource(MediaSource);
-	MediaPlayer->Play();
 	HideSubtitle();
 
 	if (SubtitleTimings.Num() > 0)
@@ -180,6 +200,14 @@ FText UKRCutsceneWidget::GetTextFromStringTable(FName Key) const
 	return FText::FromStringTable(SubtitleStringTable->GetStringTableId(), Key.ToString());
 }
 
+void UKRCutsceneWidget::OnMediaOpened(FString OpenedUrl)
+{
+	if (MediaPlayer && bCutscenePlaying)
+	{
+		MediaPlayer->Play();
+	}
+}
+
 void UKRCutsceneWidget::OnMediaEndReached()
 {
 	StopCutscene();
@@ -187,7 +215,6 @@ void UKRCutsceneWidget::OnMediaEndReached()
 
 void UKRCutsceneWidget::OnMediaOpenFailed(FString FailedUrl)
 {
-	UE_LOG(LogTemp, Error, TEXT("KRCutsceneWidget: Failed to open media: %s"), *FailedUrl);
 	StopCutscene();
 }
 

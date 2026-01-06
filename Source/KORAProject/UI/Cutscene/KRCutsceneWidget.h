@@ -82,11 +82,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cutscene")
 	TObjectPtr<UStringTable> SubtitleStringTable;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cutscene|Media")
-	TObjectPtr<UMediaPlayer> MediaPlayer;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cutscene|Media")
-	TObjectPtr<UMediaTexture> MediaTexture;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cutscene|Media")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cutscene")
 	TObjectPtr<UMediaSource> DefaultMediaSource;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cutscene|Subtitle")
 	TArray<FSubtitleTiming> SubtitleTimings;
@@ -94,8 +90,14 @@ protected:
 	FName CutsceneRouteName = "Cutscene";
 
 private:
+	UPROPERTY(Transient)
+	TObjectPtr<UMediaPlayer> MediaPlayer;
+	UPROPERTY(Transient)
+	TObjectPtr<UMediaTexture> MediaTexture;
 	FText GetTextFromStringTable(FName Key) const;
 
+	UFUNCTION()
+	void OnMediaOpened(FString OpenedUrl);
 	UFUNCTION()
 	void OnMediaEndReached();
 	UFUNCTION()
@@ -103,8 +105,10 @@ private:
 
 	void CheckSubtitleTiming();
 	
-	UPROPERTY()
+
+	UPROPERTY(Transient)
 	TObjectPtr<UMediaSoundComponent> MediaSoundComponent;
+
 	FTimerHandle SubtitleTimerHandle;
 
 	int32 CurrentTimingIndex;
