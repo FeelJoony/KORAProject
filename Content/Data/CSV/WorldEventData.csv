@@ -1,1 +1,7 @@
----,EventTag,WorldEventData,Description,bEnabled
+EventTag,WorldEventData,Description,bEnabled
+WorldEvent.Interaction.Box.Open,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Box_Open.DA_WorldEvent_Interaction_Box_Open,Box Open,TRUE
+WorldEvent.Interaction.PickUp,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Item_PickUp.DA_WorldEvent_Interaction_Item_PickUp,PickUp,TRUE
+WorldEvent.Interaction.Ladder.Climb,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Ladder_Climb.DA_WorldEvent_Interaction_Ladder_Climb,Ladder Climb,TRUE
+WorldEvent.Interaction.Save.Fire,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Save_Fire.DA_WorldEvent_Interaction_Save_Fire,Save Fire,TRUE
+WorldEvent.Interaction.Scan.Sense.Start,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Scan_Start.DA_WorldEvent_Interaction_Scan_Start,Scan Start,TRUE
+WorldEvent.Interaction.Scan.Sense.Enemy,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Scan_Enemy.DA_WorldEvent_Interaction_Scan_Enemy,Scan Enemy,TRUE
