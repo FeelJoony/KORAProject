@@ -19,6 +19,7 @@
 #include "Interaction/GrappleVolume.h"
 #include "Enemy/KRAIC_Enemy.h"
 #include "GameplayTag/KRAbilityTag.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 //CharacterMovement->AirControl = 0.35f;
 
@@ -61,6 +62,7 @@ void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle,
                                 bool bWasCancelled)
 {
     ApplyCableVisibility(false);
+	MontageStop(0.25);
 	
 	CachedTargetPawn = nullptr;
 
@@ -88,14 +90,14 @@ void UKRGA_Grapple::PerformLineTrace()
     FVector StartLocation = Camera->GetComponentLocation();
     FRotator StartRotation = Camera->GetComponentRotation();
     FVector EndLocation = StartLocation + (StartRotation.Vector() * TraceRange);
-	CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 200.f);
+	CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 2000.f);
 
     FHitResult HitResult;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(CachedPlayerCharacter);
 
     GetWorld()->LineTraceSingleByChannel(
-        HitResult, StartLocation, EndLocation, ECC_GameTraceChannel4, Params);
+        HitResult, StartLocation, EndLocation, ECC_Visibility, Params);
     
     DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 1.f);
     DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 5.f, 12, FColor::Red, false, 1.f);
@@ -151,10 +153,10 @@ void UKRGA_Grapple::StartPullLoopMontage()
 	LoopMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, TEXT("LoopPullMontage"), LoopPullMontage);
     
-	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
-	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
-	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
-	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::StartPullLoopMontage);
+	LoopMontageTask->OnCompleted.AddDynamic(this, &UKRGA_Grapple::CancelGrapple);
+	LoopMontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Grapple::CancelGrapple);
+	LoopMontageTask->OnCancelled.AddDynamic(this, &UKRGA_Grapple::CancelGrapple);
+	LoopMontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Grapple::CancelGrapple);
     
 	LoopMontageTask->ReadyForActivation();
 }
@@ -322,22 +324,59 @@ void UKRGA_Grapple::BeginEnemyGrapple()
 	CachedPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 
 	StartPullLoopMontage();
+	
+	FLatentActionInfo LatentInfo;
+	LatentInfo.CallbackTarget = this;
+	LatentInfo.ExecutionFunction = "CancelGrapple";
+	LatentInfo.Linkage = 0;
+	LatentInfo.UUID = 1001; // 고유값 부여
 
+	ACharacter* TargetCharacter = Cast<ACharacter>(CachedTargetPawn);
+	if (TargetCharacter)
+	{
+		UCharacterMovementComponent* EnemyMoveComp = TargetCharacter->GetCharacterMovement();
+		if (EnemyMoveComp)
+		{
+			EnemyMoveComp->SetMovementMode(MOVE_None); //
+			EnemyMoveComp->StopMovementImmediately();
+		}
+	}
+	
 	GetWorld()->GetTimerManager().SetTimer(
 		MoveToTimer,
 		this,
-		&UKRGA_Grapple::TickEnemyMovement,
+		&UKRGA_Grapple::TickEnemyGrapple,
 		0.01f,
 		true
 	);
+
+	
+	float Dist = FVector::Dist(
+		CachedPlayerCharacter->GetActorLocation(),
+		CachedGrapplePoint);
+	float Duration = Dist * TargetMoveInverseSpeed;
+
+	UKismetSystemLibrary::MoveComponentTo(
+		CachedTargetPawn->GetRootComponent(),
+		CachedPlayerCharacter->GetActorLocation(),
+		FRotator::ZeroRotator,
+		true,           // Ease Out
+		true,           // Ease In
+		Duration,           // 도달 시간
+		false,          // Force Shortest Rotation Path
+		EMoveComponentAction::Move,
+		LatentInfo
+	);
+	
 
 	GetWorld()->GetTimerManager().SetTimer(
 		MaxGrappleTimer,
 		this,
 		&UKRGA_Grapple::CancelGrapple,
-		EnemyGrappleDuration,
+		Duration+0.5f,
 		false
 	);
+	
 }
 
 void UKRGA_Grapple::FailEnemyGrapple()
@@ -431,7 +470,7 @@ void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 
 			FVector StartLocation = Camera->GetComponentLocation();
 			FRotator StartRotation = Camera->GetComponentRotation();
-			CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 200.f);
+			CachedGrapplePoint = StartLocation + (StartRotation.Vector() * 2000.f);
 		}
 		else
 		{
@@ -448,7 +487,7 @@ void UKRGA_Grapple::RemoveStunFromEnemy()
     ASC->RemoveLooseGameplayTag(KRTAG_STATE_HASCC_STUN);
 }
 
-void UKRGA_Grapple::TickEnemyMovement()
+void UKRGA_Grapple::TickEnemyGrapple()
 {
     if (!TargetCapsuleComp || !CachedTargetPawn)
     {
@@ -466,21 +505,6 @@ void UKRGA_Grapple::TickEnemyMovement()
     FVector PlayerLocation = PlayerCapsule->GetComponentLocation();
     PlayerLocation.Z -= PlayerCapsule->GetScaledCapsuleHalfHeight();
 	
-	ACharacter* TargetCharacter = Cast<ACharacter>(CachedTargetPawn);
-
-    FVector MoveDirection = (PlayerLocation - CachedGrapplePoint).GetSafeNormal();
-	
-	if (TargetCharacter && TargetCharacter->GetCharacterMovement())
-	{
-		TargetCharacter->GetCharacterMovement()->Velocity = MoveDirection * TargetMoveSpeed;
-		//TargetCharacter->GetCharacterMovement()->AddInputVector(MoveDirection * TargetMoveSpeed, true);
-	}
-	else
-	{
-		FVector MoveOffset = GetWorld()->GetDeltaSeconds() * MoveDirection * TargetMoveSpeed;
-		CachedTargetPawn->AddActorWorldOffset(MoveOffset, true);
-	}
-
     FVector LookDirection = (CachedGrapplePoint - PlayerLocation).GetSafeNormal();
     CachedPlayerCharacter->SetActorRotation(FRotator(0.2f, LookDirection.Rotation().Yaw, 0.f));
 
@@ -535,7 +559,7 @@ void UKRGA_Grapple::BeginActorGrapple()
 	float Dist = FVector::Dist(
 		CachedPlayerCharacter->GetActorLocation(),
 		CachedGrapplePoint);
-	float Duration = Dist * MoveToSpeed;
+	float Duration = Dist * MoveToInverseSpeed;
 	//UE_LOG(LogTemp,Warning,TEXT("[GA_Grapple] DistSquared : %f, Duration : %f"),Dist,Duration);
 
 	MoveToTask = UAbilityTask_ApplyRootMotionMoveToForce::ApplyRootMotionMoveToForce(
@@ -651,19 +675,27 @@ void UKRGA_Grapple::CancelGrapple()
 	FinishAbility();
 }
 
-void UKRGA_Grapple::CleanupAllTasks() const
+void UKRGA_Grapple::CleanupAllTasks()
 {
 	if (StartMontageTask && StartMontageTask->IsActive())
+	{
 		StartMontageTask->EndTask();
+	}
     
 	if (LoopMontageTask && LoopMontageTask->IsActive())
+	{
 		LoopMontageTask->EndTask();
+	}
     
 	if (MoveToTask && MoveToTask->IsActive())
+	{
 		MoveToTask->EndTask();
-    
+	}
+	
 	if (EndMontageTask && EndMontageTask->IsActive())
+	{
 		EndMontageTask->EndTask();
+	}
 }
 
 void UKRGA_Grapple::CleanupAllTimers()
