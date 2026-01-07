@@ -16,6 +16,9 @@ void UKRBossAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 void UKRBossAnimInstance::RecacheOwner()
 {
 	Super::RecacheOwner();
-	CachedBossCharacter = CachedCharacter;
-	CachedBossMoveComponent = CachedMoveComponent;
+	if (!CachedBossCharacter || !CachedBossMoveComponent)
+	{
+		CachedBossCharacter = CachedCharacter;
+		CachedBossMoveComponent = CachedMoveComponent;
+	}
 }
