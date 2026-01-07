@@ -71,13 +71,22 @@ UCommonActivatableWidget* UKRUIRouterSubsystem::OpenRoute(FName Route)
 
 	if (bFirstOpen)
 	{
-		UClass* Loaded = Spec->WidgetClass.LoadSynchronous();
-		if (!Loaded)
+		TSubclassOf<UCommonActivatableWidget> ClassToAdd = nullptr;
+		if (TSubclassOf<UCommonActivatableWidget>* CachedClass = CachedWidgetClasses.Find(Route))
 		{
-			UE_LOG(LogTemp, Error, TEXT("[Router] OpenRoute(%s) FAILED: LoadSynchronous() returned null"), *Route.ToString());
-			return nullptr;
+			ClassToAdd = *CachedClass;
 		}
-		TSubclassOf<UCommonActivatableWidget> ClassToAdd = Loaded;
+		else
+		{
+			UClass* Loaded = Spec->WidgetClass.LoadSynchronous();
+			if (!Loaded)
+			{
+				UE_LOG(LogTemp, Error, TEXT("[Router] OpenRoute(%s) FAILED: LoadSynchronous() returned null"), *Route.ToString());
+				return nullptr;
+			}
+			ClassToAdd = Loaded;
+			CachedWidgetClasses.Add(Route, ClassToAdd);
+		}
 
 #if (ENGINE_MAJOR_VERSION >= 5)
 		W = Stack->AddWidget(ClassToAdd);

@@ -23,4 +23,6 @@ enum class EGameDataType : uint8
 	EnemyData,
 	EnemyAbilityData,
 	EnemyAttributeData
+	DialogueData,
+	LevelTransitionData,
 };

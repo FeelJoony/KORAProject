@@ -1,6 +1,7 @@
 #include "KRGA_Interact.h"
 
 #include "AbilitySystemComponent.h"
+#include "SubSystem/KRUIRouterSubsystem.h"
 
 void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -10,7 +11,10 @@ void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+	bInputProcessed = false;
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
+	ProcessInteraction(Handle, ActorInfo, ActivationInfo);
 }
 
 void UKRGA_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -19,33 +23,49 @@ void UKRGA_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UKRGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UKRGA_Interact::ProcessInteraction(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-	// ASC 가져오기
+	if (bInputProcessed)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[KRGA_Interact] ProcessInteraction - Already processed, skipping"));
+		return;
+	}
+
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC) return;
-	
-	// GameplayAbilityMap에서 Has Tag 찾아서 GA 있으면 발동하기
+
 	for (FGameplayTag& Tag : GameplayAbilityTags)
 	{
 		if (ASC->HasMatchingGameplayTag(Tag))
 		{
 			FGameplayTagContainer TagContainer(Tag);
-			if (ASC->TryActivateAbilitiesByTag(TagContainer))
+			bool bActivated = ASC->TryActivateAbilitiesByTag(TagContainer);
+			if (bActivated)
 			{
+				bInputProcessed = true;
+				HideInteractionUI();
 				EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
+				return;
 			}
 		}
 	}
 	EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
 }
 
-void UKRGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo)
+void UKRGA_Interact::HideInteractionUI()
 {
-	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-	
-	EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
+	if (UWorld* World = GetWorld())
+	{
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+			{
+				if (Router->IsRouteOpen(InteractionUIRouteName))
+				{
+					Router->CloseRoute(InteractionUIRouteName);
+				}
+			}
+		}
+	}
 }

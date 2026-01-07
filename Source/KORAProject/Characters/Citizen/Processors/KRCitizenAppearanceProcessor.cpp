@@ -47,7 +47,7 @@ void UKRCitizenAppearanceProcessor::Execute(FMassEntityManager& EntityManager, F
 	UKRCitizenStreamingSubsystem* StreamSubsystem = GI->GetSubsystem<UKRCitizenStreamingSubsystem>();
 	if (!StreamSubsystem || !StreamSubsystem->IsPreloadCompleted()) return;
 
-	AppearanceQuery.ForEachEntityChunk(EntityManager, Context,
+	AppearanceQuery.ForEachEntityChunk(Context,
 		[this, StreamSubsystem](FMassExecutionContext& Context)
 		{
 			TArrayView<FKRCitizenAppearanceFragment> AppearanceList = Context.GetMutableFragmentView<FKRCitizenAppearanceFragment>();

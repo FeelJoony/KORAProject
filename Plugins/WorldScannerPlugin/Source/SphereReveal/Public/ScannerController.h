@@ -49,7 +49,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Scan")
 	FName ParamEditorOverride = TEXT("EditorOverride");
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Scan")
+	bool IsFollowPlayer0 = true;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Scan")
 	float StartRadius = 50.f;
 
@@ -104,10 +107,13 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	void ReCacheFollowActor();
+	UMaterialParameterCollectionInstance* GetMPCI() const;
 
 private:
-	UPROPERTY()
-	TObjectPtr<UMaterialParameterCollectionInstance> MPCI = nullptr;
+	//UPROPERTY()
+	//TObjectPtr<UMaterialParameterCollectionInstance> MPCI = nullptr;
+	
 	FVector CachedCenter = FVector::ZeroVector;
 	float Radius = 0.f;
 	float FXMeshRadius = 50.f;

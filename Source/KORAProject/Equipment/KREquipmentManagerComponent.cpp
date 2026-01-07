@@ -1,4 +1,5 @@
 #include "KREquipmentManagerComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "KREquipmentInstance.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -8,7 +9,6 @@
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
 #include "Inventory/Fragment/InventoryFragment_SetStats.h"
 #include "Inventory/Fragment/InventoryFragment_ModuleItem.h"
-#include "SubSystem/KRDataTablesSubsystem.h"
 #include "SubSystem/KRInventorySubsystem.h"
 #include "GameFramework/Character.h"
 #include "GameplayTag/KRItemTypeTag.h"
@@ -20,11 +20,11 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Data/EquipAbilityDataStruct.h"
-#include "Data/ModuleDataStruct.h"
-#include "Data/ItemDataStruct.h"
 #include "GameplayEffect.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
+#include "Engine/AssetManager.h"
+#include "Data/EquipDataStruct.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
@@ -123,7 +123,24 @@ void UKREquipmentManagerComponent::BeginPlay()
 
 void UKREquipmentManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UGameplayMessageSubsystem::Get(this).UnregisterListener(ConfirmMessageHandle);
+	if (ConfirmMessageHandle.IsValid())
+	{
+		UGameplayMessageSubsystem::Get(this).UnregisterListener(ConfirmMessageHandle);
+	}
+	
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PrewarmTimerHandle);
+		World->GetTimerManager().ClearTimer(EquipBroadcastDelayHandle);
+	}
+
+	if (MaterialPreloadHandle.IsValid())
+	{
+		MaterialPreloadHandle->CancelHandle();
+		MaterialPreloadHandle.Reset();
+	}
+	CachedMaterials.Empty();
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -213,6 +230,7 @@ void UKREquipmentManagerComponent::SpawnActorInstances()
 		}
 	}
 	AttachWeaponsToCharacter();
+	PrewarmWeaponEffects();
 }
 
 void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInstance)
@@ -270,7 +288,7 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 			TargetWeapon->ConfigureWeapon(ItemInstance);
 		}
 
-		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+		ScheduleEquipSlotBroadcast(SlotTag, ItemInstance);
 	}
 	else if (SlotTag == KRTAG_ITEMTYPE_EQUIP_COSTUME)
 	{
@@ -293,14 +311,37 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 					const FEquipDataStruct& EquipData = Instance->GetEquipData();
 					if (EquipData.OverrideMaterials.Num() >= 3)
 					{
-						SKMeshComp->SetMaterial(CostumeIndex1, EquipData.OverrideMaterials[0].LoadSynchronous());
-						SKMeshComp->SetMaterial(CostumeIndex2, EquipData.OverrideMaterials[1].LoadSynchronous());
-						SKMeshComp->SetMaterial(CostumeIndex3, EquipData.OverrideMaterials[2].LoadSynchronous());
+						if (UMaterialInterface* Mat0 = GetCachedMaterial(EquipData.OverrideMaterials[0]))
+						{
+							SKMeshComp->SetMaterial(CostumeIndex1, Mat0);
+						}
+						else if (UMaterialInterface* Mat0Sync = EquipData.OverrideMaterials[0].LoadSynchronous())
+						{
+							SKMeshComp->SetMaterial(CostumeIndex1, Mat0Sync);
+						}
+
+						if (UMaterialInterface* Mat1 = GetCachedMaterial(EquipData.OverrideMaterials[1]))
+						{
+							SKMeshComp->SetMaterial(CostumeIndex2, Mat1);
+						}
+						else if (UMaterialInterface* Mat1Sync = EquipData.OverrideMaterials[1].LoadSynchronous())
+						{
+							SKMeshComp->SetMaterial(CostumeIndex2, Mat1Sync);
+						}
+
+						if (UMaterialInterface* Mat2 = GetCachedMaterial(EquipData.OverrideMaterials[2]))
+						{
+							SKMeshComp->SetMaterial(CostumeIndex3, Mat2);
+						}
+						else if (UMaterialInterface* Mat2Sync = EquipData.OverrideMaterials[2].LoadSynchronous())
+						{
+							SKMeshComp->SetMaterial(CostumeIndex3, Mat2Sync);
+						}
 					}
 				}
 			}
 		}
-		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+		ScheduleEquipSlotBroadcast(SlotTag, ItemInstance);
 	}
 	else if (SlotTag == KRTAG_ITEMTYPE_EQUIP_HEAD)
 	{
@@ -318,18 +359,25 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 					const FEquipDataStruct& EquipData = Instance->GetEquipData();
 					if (EquipData.OverrideMaterials.Num() >= 1)
 					{
-						SKMeshComp->SetMaterial(HeadIndex, EquipData.OverrideMaterials[0].LoadSynchronous());
+						if (UMaterialInterface* Mat = GetCachedMaterial(EquipData.OverrideMaterials[0]))
+						{
+							SKMeshComp->SetMaterial(HeadIndex, Mat);
+						}
+						else if (UMaterialInterface* MatSync = EquipData.OverrideMaterials[0].LoadSynchronous())
+						{
+							SKMeshComp->SetMaterial(HeadIndex, MatSync);
+						}
 					}
 				}
 			}
 		}
-		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+		ScheduleEquipSlotBroadcast(SlotTag, ItemInstance);
 	}
 	else if (IsModuleSlot(SlotTag))
 	{
 		EquippedItemMap.Add(SlotTag, ItemInstance);
 		ApplyModuleStats(ItemInstance);
-		BroadcastEquipSlotMessage(SlotTag, ItemInstance);
+		ScheduleEquipSlotBroadcast(SlotTag, ItemInstance);
 	}
 }
 
@@ -656,11 +704,23 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 	
 	RemoveEquipmentStats(SlotTag);
 	
-	FString GEName = FString::Printf(TEXT("GE_Equip_%s"), *SlotTag.ToString().Replace(TEXT("."), TEXT("_")));
-	UGameplayEffect* GE = NewObject<UGameplayEffect>(this, FName(*GEName));
-	GE->DurationPolicy = EGameplayEffectDurationType::Infinite;
-	
-	EquipmentGEObjects.Add(SlotTag, GE); // GC
+	UGameplayEffect* GE = nullptr;
+	if (TObjectPtr<UGameplayEffect>* CachedGE = EquipmentGEObjects.Find(SlotTag))
+	{
+		GE = *CachedGE;
+		if (GE)
+		{
+			GE->Modifiers.Empty();
+		}
+	}
+
+	if (!GE)
+	{
+		FString GEName = FString::Printf(TEXT("GE_Equip_%s"), *SlotTag.ToString().Replace(TEXT("."), TEXT("_")));
+		GE = NewObject<UGameplayEffect>(this, FName(*GEName));
+		GE->DurationPolicy = EGameplayEffectDurationType::Infinite;
+		EquipmentGEObjects.Add(SlotTag, GE); // GC
+	}
 
 	int32 Idx = 0;
 	const float AttackPowerDelta = Stats.AttackPower - FWeaponStatsCache::DefaultAttackPower;
@@ -682,7 +742,7 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(AttackSpeedDelta));
 		Idx++;
 	}
-
+	
 	const float CritChanceDelta = Stats.CritChance - FWeaponStatsCache::DefaultCritChance;
 	if (!FMath::IsNearlyZero(CritChanceDelta))
 	{
@@ -710,6 +770,22 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetWeaponRangeAttribute();
 		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
 		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(RangeDelta));
+		Idx++;
+	}
+
+	const float MaxAmmoDelta = (float)Stats.Capacity;
+	if (MaxAmmoDelta > 0.f)
+	{
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetMaxAmmoAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MaxAmmoDelta));
+		Idx++;
+		
+		GE->Modifiers.Add(FGameplayModifierInfo());
+		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetCurrentAmmoAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MaxAmmoDelta));
 		Idx++;
 	}
 	
@@ -745,8 +821,6 @@ void UKREquipmentManagerComponent::RemoveEquipmentStats(const FGameplayTag& Slot
 		}
 		EquipmentGEHandles.Remove(SlotTag);
 	}
-	
-	EquipmentGEObjects.Remove(SlotTag);
 }
 
 void UKREquipmentManagerComponent::ApplyModuleStats(UKRInventoryItemInstance* ModuleInstance)
@@ -773,6 +847,19 @@ void UKREquipmentManagerComponent::ApplyModuleStats(UKRInventoryItemInstance* Mo
 	FWeaponStatsCache Stats = ConvertModifiersToStatsCache(Modifiers);
 
 	ApplyEquipmentStats(Stats, ItemTag);
+	
+	UAbilitySystemComponent* LocalASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
+
+	if (!LocalASC) return;
+
+	UKRCombatCommonSet* CombatSet = const_cast<UKRCombatCommonSet*>(LocalASC->GetSet<UKRCombatCommonSet>());
+
+	if (!CombatSet) return;
+
+	if (RangeActorInstance && !RangeActorInstance->IsHidden())
+	{
+		BroadcastWeaponMessage(EWeaponMessageAction::Equipped, RangeActorInstance->GetWeaponItemTag());
+	}
 }
 
 void UKREquipmentManagerComponent::RemoveModuleStats(UKRInventoryItemInstance* ModuleInstance)
@@ -904,19 +991,235 @@ void UKREquipmentManagerComponent::BroadcastEquipSlotMessage(const FGameplayTag&
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::EquipSlot(), Msg);
 }
 
+void UKREquipmentManagerComponent::ScheduleEquipSlotBroadcast(const FGameplayTag& SlotTag, UKRInventoryItemInstance* ItemInstance)
+{
+	PendingBroadcastSlotTag = SlotTag;
+	PendingBroadcastItem = ItemInstance;
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(EquipBroadcastDelayHandle);
+		World->GetTimerManager().SetTimer(
+			EquipBroadcastDelayHandle,
+			this,
+			&UKREquipmentManagerComponent::ExecutePendingBroadcast,
+			0.016f,  // 약 1프레임 후 (60fps 기준)
+			false
+		);
+	}
+}
+
+void UKREquipmentManagerComponent::ExecutePendingBroadcast()
+{
+	if (PendingBroadcastSlotTag.IsValid())
+	{
+		BroadcastEquipSlotMessage(PendingBroadcastSlotTag, PendingBroadcastItem);
+		PendingBroadcastSlotTag = FGameplayTag();
+		PendingBroadcastItem = nullptr;
+	}
+}
+
 void UKREquipmentManagerComponent::BroadcastWeaponMessage(EWeaponMessageAction Action, const FGameplayTag& WeaponTypeTag)
 {
 	FKRUIMessage_Weapon Msg;
 	Msg.Action = Action;
 	Msg.WeaponTypeTag = WeaponTypeTag;
 
-	// TODO: 총기 탄약 정보 추가
-	// if (Action != EWeaponMessageAction::Unequipped && WeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN) && RangeActorInstance)
-	// {
-	//     Msg.CurrentAmmo = ...;
-	//     Msg.MaxAmmo = ...;
-	// }
+	if (Action != EWeaponMessageAction::Unequipped && WeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN) && RangeActorInstance)
+	{
+		if (UAbilitySystemComponent* LocalASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
+		{
+			bool bFound = false;
+			float CurVal = LocalASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetCurrentAmmoAttribute(), bFound);
+			float MaxVal = LocalASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetMaxAmmoAttribute(), bFound);
+
+			Msg.CurrentAmmo = (int32)CurVal;
+			Msg.MaxAmmo = (int32)MaxVal;
+		}
+	}
 
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Weapon(), Msg);
+}
+
+void UKREquipmentManagerComponent::PreloadEquipmentMaterials(const TArray<UKRInventoryItemInstance*>& ItemsToPreload)
+{
+	if (MaterialPreloadHandle.IsValid() && MaterialPreloadHandle->IsLoadingInProgress())
+	{
+		return;
+	}
+
+	TArray<FSoftObjectPath> AssetsToLoad;
+
+	for (UKRInventoryItemInstance* ItemInstance : ItemsToPreload)
+	{
+		if (!ItemInstance) continue;
+
+		const UInventoryFragment_EquippableItem* EquippableFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_EquippableItem>();
+		if (!EquippableFragment) continue;
+
+		const UKREquipmentInstance* Instance = EquippableFragment->GetEquipInstance();
+		if (!Instance || !Instance->IsValid()) continue;
+
+		const FEquipDataStruct& EquipData = Instance->GetEquipData();
+		for (const TSoftObjectPtr<UMaterialInterface>& MatRef : EquipData.OverrideMaterials)
+		{
+			if (!MatRef.IsNull())
+			{
+				AssetsToLoad.AddUnique(MatRef.ToSoftObjectPath());
+			}
+		}
+	}
+
+	if (AssetsToLoad.Num() == 0)
+	{
+		return;
+	}
+	
+	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+	MaterialPreloadHandle = StreamableManager.RequestAsyncLoad(
+		AssetsToLoad,
+		FStreamableDelegate::CreateUObject(this, &UKREquipmentManagerComponent::OnMaterialsPreloaded),
+		FStreamableManager::AsyncLoadHighPriority
+	);
+}
+
+void UKREquipmentManagerComponent::OnMaterialsPreloaded()
+{
+	if (!MaterialPreloadHandle.IsValid())
+	{
+		return;
+	}
+	
+	TArray<UObject*> LoadedAssets;
+	MaterialPreloadHandle->GetLoadedAssets(LoadedAssets);
+
+	for (UObject* Asset : LoadedAssets)
+	{
+		if (UMaterialInterface* Mat = Cast<UMaterialInterface>(Asset))
+		{
+			FSoftObjectPath Path(Mat);
+			CachedMaterials.Add(Path, Mat);
+		}
+	}
+}
+
+UMaterialInterface* UKREquipmentManagerComponent::GetCachedMaterial(const TSoftObjectPtr<UMaterialInterface>& SoftPtr) const
+{
+	if (SoftPtr.IsNull())
+	{
+		return nullptr;
+	}
+
+	if (SoftPtr.IsValid())
+	{
+		return SoftPtr.Get();
+	}
+
+	if (const TObjectPtr<UMaterialInterface>* Found = CachedMaterials.Find(SoftPtr.ToSoftObjectPath()))
+	{
+		if (*Found)
+		{
+			return *Found;
+		}
+	}
+
+	return nullptr;
+}
+
+void UKREquipmentManagerComponent::PrewarmWeaponEffects()
+{
+	if (bPrewarmCompleted)
+	{
+		return;
+	}
+
+	if (!MeleeActorInstance && !RangeActorInstance)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	PrewarmStep = 0;
+	World->GetTimerManager().SetTimer(
+		PrewarmTimerHandle,
+		this,
+		&UKREquipmentManagerComponent::ExecutePrewarmStep,
+		0.1f,  // 0.1초 후 시작
+		false
+	);
+}
+
+void UKREquipmentManagerComponent::ExecutePrewarmStep()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	const bool bMeleeIsActive = bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD);
+	const bool bRangeIsActive = bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN);
+
+	switch (PrewarmStep)
+	{
+	case 0:
+		if (MeleeActorInstance && !bMeleeIsActive)
+		{
+			MeleeActorInstance->PlayEquipEffect();
+		}
+		PrewarmStep = 1;
+		World->GetTimerManager().SetTimer(PrewarmTimerHandle, this, &UKREquipmentManagerComponent::ExecutePrewarmStep, 0.05f, false);
+		break;
+
+	case 1:
+		if (MeleeActorInstance && !bMeleeIsActive)
+		{
+			MeleeActorInstance->PlayUnequipEffect();
+		}
+		PrewarmStep = 2;
+		World->GetTimerManager().SetTimer(PrewarmTimerHandle, this, &UKREquipmentManagerComponent::ExecutePrewarmStep, 0.05f, false);
+		break;
+
+	case 2:
+		if (RangeActorInstance && !bRangeIsActive)
+		{
+			RangeActorInstance->PlayEquipEffect();
+		}
+		PrewarmStep = 3;
+		World->GetTimerManager().SetTimer(PrewarmTimerHandle, this, &UKREquipmentManagerComponent::ExecutePrewarmStep, 0.05f, false);
+		break;
+
+	case 3:
+		if (RangeActorInstance && !bRangeIsActive)
+		{
+			RangeActorInstance->PlayUnequipEffect();
+		}
+		FinishPrewarm();
+		break;
+
+	default:
+		FinishPrewarm();
+		break;
+	}
+}
+
+void UKREquipmentManagerComponent::FinishPrewarm()
+{
+	bPrewarmCompleted = true;
+	PrewarmStep = 0;
+
+	// 현재 활성화된 무기는 숨기지 않음
+	if (MeleeActorInstance && !(bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD)))
+	{
+		MeleeActorInstance->SetWeaponVisibility(false);
+	}
+	if (RangeActorInstance && !(bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN)))
+	{
+		RangeActorInstance->SetWeaponVisibility(false);
+	}
 }
 

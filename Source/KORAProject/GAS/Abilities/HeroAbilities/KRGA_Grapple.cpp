@@ -204,34 +204,23 @@ APawn* UKRGA_Grapple::SearchLockOnTarget()
 {
 	UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo();
 	if (!KRASC) return nullptr;
-	
+
+	//락온 상태 체크 > 락온 GA에서 대상 return
 	if (KRASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_LOCKON))
 	{
-		FGameplayTagContainer TagContainer;
-		TagContainer.AddTag(KRTAG_ABILITY_LOCKON);
-		TArray<FGameplayAbilitySpec*> ActiveAbilities;
-		KRASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(TagContainer, ActiveAbilities);
-		
-		if (ActiveAbilities.Num() > 0)
-        {
-			FGameplayAbilitySpec* Spec = ActiveAbilities[0];
+		UKRGA_LockOn* LockOnGAInstance = KRASC->GetActiveAbilityByClass<UKRGA_LockOn>();
+        if (!LockOnGAInstance) return nullptr;
 
-			UGameplayAbility* FoundAbility = Spec->GetPrimaryInstance();
-			if (!FoundAbility) return nullptr;
-            
-            UKRGA_LockOn* LockOnGAInstance = Cast<UKRGA_LockOn>(FoundAbility);
-            if (!LockOnGAInstance) return nullptr;
+		AActor* Actor = LockOnGAInstance->GetLockedTarget();
+		CachedTargetPawn = Cast<APawn>(Actor);
+		if (!CachedTargetPawn) return nullptr;
 
-			AActor* Actor = LockOnGAInstance->GetLockedTarget();
-			CachedTargetPawn = Cast<APawn>(Actor);
-			if (!CachedTargetPawn) return nullptr;
-
-			TargetCapsuleComp = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
-			if (!TargetCapsuleComp)
-			{
-				HitState = EGrappleState::Default;
-			}
-        }
+		TargetCapsuleComp = CachedTargetPawn->GetComponentByClass<UCapsuleComponent>();
+		if (!TargetCapsuleComp)
+		{
+			HitState = EGrappleState::Default;
+		}
+        
 	}
 	return CachedTargetPawn;
 }
@@ -276,18 +265,18 @@ TArray<AGrappleVolume*> UKRGA_Grapple::ReturnGrappleVolume()
 		QueryParams
 	);
 	
-	DrawDebugCapsule(
-		World,                  // 월드 객체
-		CachedPlayerCharacter->GetActorLocation(),      // 캡슐의 중심 위치
-		100.f,             // 캡슐의 높이 (실제 캡슐의 절반 높이)
-		50.f,                 // 캡슐의 반지름
-		FQuat::Identity,
-		FColor::Red,             // 색상
-		false,                  // bPersistentLines (1프레임만 드로잉)
-		3.f,           // LifeTime (3초 동안 표시)
-		0,                      // Depth Priority
-		5.0f                    // 두께 (Thickness)
-	);
+	// DrawDebugCapsule(
+	// 	World,                  // 월드 객체
+	// 	CachedPlayerCharacter->GetActorLocation(),      // 캡슐의 중심 위치
+	// 	100.f,             // 캡슐의 높이 (실제 캡슐의 절반 높이)
+	// 	50.f,                 // 캡슐의 반지름
+	// 	FQuat::Identity,
+	// 	FColor::Red,             // 색상
+	// 	false,                  // bPersistentLines (1프레임만 드로잉)
+	// 	3.f,           // LifeTime (3초 동안 표시)
+	// 	0,                      // Depth Priority
+	// 	5.0f                    // 두께 (Thickness)
+	// );
 
 	if (bHit)
 	{

@@ -1,14 +1,24 @@
 #include "Inventory/Fragment/InventoryFragment_QuestItem.h"
-#include "Subsystem/KRDataTablesSubsystem.h"
 #include "Inventory/KRInventoryItemInstance.h"
-//#include "Data/QuestItemData.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "Data/ItemDataStruct.h"
+#include "Data/GameDataType.h"
 
 void UInventoryFragment_QuestItem::OnInstanceCreated(UKRInventoryItemInstance* Instance)
 {
-	if (QuestID < 0) return;
+	if (!Instance)
+	{
+		return;
+	}
 
-	//FQuestItemData* Row = DataTables->GetData<FQuestItemData>(EGameDataType:QuestData, QuestID);
-	//if (!Row) return;
+	FGameplayTag QuestItemTag = Instance->GetItemTag();
+	UObject* ContextObj = Instance->GetOwnerContext();
+	if (!ContextObj) return;
 
-	// Quest 값 매핑
+	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
+	const FItemDataStruct* ItemData = DataTablesSubsystem.GetDataSafe<FItemDataStruct>(QuestItemTag);
+	if (ItemData)
+	{
+		QuestID = ItemData->QuestID;
+	}
 }

@@ -6,7 +6,7 @@ void UKRGameInstance::Init()
 {
     Super::Init();
 
-    auto* DataTables = UKRDataTablesSubsystem::GetSafe(this);
+    /*auto* DataTables = UKRDataTablesSubsystem::GetSafe(this);
     auto* Streaming = GetSubsystem<UKRCitizenStreamingSubsystem>();
 
     if (!DataTables || !Streaming) return;
@@ -14,5 +14,5 @@ void UKRGameInstance::Init()
     if (UCacheDataTable* Cache = DataTables->GetTable(FCitizenDataStruct::StaticStruct()))
     {
         Streaming->SetAppearanceTable(Cache->GetTable(), true);
-    }
+    }*/
 }

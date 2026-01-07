@@ -3,10 +3,16 @@
 
 #include "UI/HUD/Modules/KRQuestPanelWidget.h"
 #include "Engine/World.h"
+#include "Internationalization/StringTable.h"
 
 void UKRQuestPanelWidget::OnHUDInitialized()
 {
 	Super::OnHUDInitialized();
+	
+	if (!QuestStringTable.IsNull() && QuestStringTable.IsPending())
+	{
+		QuestStringTable.LoadSynchronous();
+	}
 
 	if (UWorld* World = GetWorld())
 	{
@@ -33,7 +39,10 @@ void UKRQuestPanelWidget::UnbindAll()
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
-		Subsys.UnregisterListener(QuestListener);
+		if (QuestListener.IsValid())
+		{
+			Subsys.UnregisterListener(QuestListener);
+		}
 	}
 }
 
@@ -41,4 +50,20 @@ void UKRQuestPanelWidget::OnQuestMessageReceived(FGameplayTag Channel, const FKR
 {
 	SetVisibility(ESlateVisibility::Visible);
 	BP_OnUpdateQuestPanel(Message.QuestNameKey);
+}
+
+FText UKRQuestPanelWidget::GetQuestTextFromStringTable(FName Key) const
+{
+	if (QuestStringTable.IsNull())
+	{
+		return FText::FromName(Key);
+	}
+
+	UStringTable* LoadedTable = QuestStringTable.Get();
+	if (!LoadedTable)
+	{
+		return FText::FromName(Key);
+	}
+
+	return FText::FromStringTable(LoadedTable->GetStringTableId(), Key.ToString());
 }

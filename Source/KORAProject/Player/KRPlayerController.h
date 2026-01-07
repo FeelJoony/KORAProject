@@ -6,6 +6,8 @@
 
 class AKRPlayerState;
 class UKRAbilitySystemComponent;
+class AInteractableActorBase;
+class AKRQuestItemPickup;
 
 UCLASS()
 class KORAPROJECT_API AKRPlayerController : public ACommonPlayerController
@@ -26,4 +28,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "KR|PlayerController")
 	UKRAbilitySystemComponent* GetKRAbilitySystemComponent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "KR|Interaction")
+	void SetCurrentInteractableActor(AInteractableActorBase* InActor);
+
+	UFUNCTION(BlueprintPure, Category = "KR|Interaction")
+	AInteractableActorBase* GetCurrentInteractableActor() const;
+
+private:
+	UPROPERTY()
+	TWeakObjectPtr<AInteractableActorBase> CurrentInteractableActor;
 };

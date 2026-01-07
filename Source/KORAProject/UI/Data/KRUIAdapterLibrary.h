@@ -31,7 +31,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UIAdapter|Equipment", meta = (WorldContext = "WorldContextObject"))
 	static void GetEquippedCategoryUIData(UObject* WorldContextObject, const TArray<FGameplayTag>& SlotTagOrder, TArray<FKRItemUIData>& Out);
-
+	
     UFUNCTION(BlueprintCallable, Category = "UIAdapter|Equipment", meta = (WorldContext = "WorldContextObject"))
     static bool GetEquippedSlotUIData(UObject* WorldContextObject, const FGameplayTag& SlotTag, FKRItemUIData& Out);
+
+	UFUNCTION(BlueprintCallable, Category = "UIAdapter|QuickSlot", meta = (WorldContext = "WorldContextObject"))
+	static bool GetQuickSlotUIData(UObject* WorldContextObject, const FGameplayTag& SlotTag, FKRItemUIData& Out);
 };

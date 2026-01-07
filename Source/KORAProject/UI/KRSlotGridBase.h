@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CommonUserWidget.h"
@@ -27,9 +25,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotIndexEvent OnSelectionChanged;
 	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotIndexEvent OnHoverChanged;
-	UPROPERTY(BlueprintAssignable, Category = "Slots") FOnSlotClickedEvent OnSlotClicked;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slots") bool bSelectOnHover = true; // When Hovered == Selected
+	UPROPERTY(BlueprintAssignable, Category="Slots") FOnSlotClickedEvent OnSlotClicked;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slots") bool bSelectOnHover = true;
 
 	UFUNCTION(BlueprintCallable, Category = "Slots") void InitializeItemGrid(const TArray<FKRItemUIData>& InData);
 	UFUNCTION(BlueprintCallable, Category = "Slots") void BuildGrid();
@@ -43,8 +41,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Slots") bool SelectIndexSafe(int32 Index);
 	UFUNCTION(BlueprintCallable, Category = "Slots") bool HoverIndexSafe(int32 Index);
 	UFUNCTION(BlueprintPure, Category = "Slots") UWidget* GetSelectedWidget() const;
-	
 	UFUNCTION(BlueprintCallable, Category="Slots") void RebindButtonGroup();
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;

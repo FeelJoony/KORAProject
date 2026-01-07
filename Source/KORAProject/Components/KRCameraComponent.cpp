@@ -27,6 +27,15 @@ void UKRCameraComponent::RemoveCameraMode(TSubclassOf<UKRCameraMode> CameraModeC
 	}
 }
 
+UKRCameraMode* UKRCameraComponent::GetCameraModeInstanceByClass(TSubclassOf<UKRCameraMode> CameraModeClass) const
+{
+	if (CameraModeStack && CameraModeClass)
+	{
+		return CameraModeStack->GetCameraModeInstance(CameraModeClass);
+	}
+	return nullptr;
+}
+
 void UKRCameraComponent::DrawDebug(UCanvas* Canvas) const
 {
 	check(Canvas);
@@ -108,6 +117,12 @@ void UKRCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& Desire
 void UKRCameraComponent::UpdateCameraModes()
 {
 	check(CameraModeStack);
+
+	// 스킬 카메라 모드가 활성화된 경우 기본 모드 업데이트 건너뜀
+	if (bCameraModeUpdateLocked)
+	{
+		return;
+	}
 
 	if (CameraModeStack->IsStackActivate())
 	{

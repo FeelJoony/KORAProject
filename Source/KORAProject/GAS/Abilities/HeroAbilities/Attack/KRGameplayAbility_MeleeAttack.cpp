@@ -2,17 +2,19 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "MotionWarpingComponent.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Camera/CameraShakeBase.h"
+#include "Components/KRStaminaComponent.h"
+#include "Equipment/KREquipmentManagerComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
-#include "Camera/CameraShakeBase.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Equipment/KREquipmentManagerComponent.h"
 #include "GAS/Abilities/HeroAbilities/Libraries/KRMotionWarpingLibrary.h"
 #include "GAS/Abilities/HeroAbilities/KRGA_LockOn.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GameplayTag/KREventTag.h"
 #include "GameplayTag/KRSetByCallerTag.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "MotionWarpingComponent.h"
 
 UKRGameplayAbility_MeleeAttack::UKRGameplayAbility_MeleeAttack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -28,6 +30,21 @@ void UKRGameplayAbility_MeleeAttack::ActivateAbility(
 {
 	CheckComboTimeout();
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	// 스태미나 체크 및 소모
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (AvatarActor)
+	{
+		if (UKRStaminaComponent* StaminaComp = AvatarActor->FindComponentByClass<UKRStaminaComponent>())
+		{
+			if (!StaminaComp->HasEnoughStamina(AttackStaminaCost))
+			{
+				EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+				return;
+			}
+			StaminaComp->ConsumeStamina(AttackStaminaCost);
+		}
+	}
 
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -54,6 +71,9 @@ void UKRGameplayAbility_MeleeAttack::ActivateAbility(
 	// 히트 대상 초기화
 	HitActorsThisSwing.Empty();
 	bIsHitCheckActive = false;
+
+	// IncrementCombo 전에 현재 콤보 인덱스 저장 (AnimNotify에서 사용)
+	ActiveComboIndex = CurrentComboIndex;
 
 	// 모션 워핑 설정
 	if (bUseMotionWarping)
@@ -82,6 +102,9 @@ void UKRGameplayAbility_MeleeAttack::ActivateAbility(
 		MontageTask->OnBlendOut.AddDynamic(this, &ThisClass::OnMontageCompleted);
 		MontageTask->ReadyForActivation();
 	}
+
+	// GameplayEvent 리스너 설정 (AnimNotifyState에서 발송한 이벤트 수신)
+	SetupHitCheckEventListeners();
 
 	IncrementCombo();
 }
@@ -143,9 +166,10 @@ void UKRGameplayAbility_MeleeAttack::EndHitCheck()
 
 const FKRMeleeAttackConfig& UKRGameplayAbility_MeleeAttack::GetCurrentAttackConfig() const
 {
-	if (ComboAttackConfigs.IsValidIndex(CurrentComboIndex))
+	// ActiveComboIndex 사용 (IncrementCombo 전에 저장된 값)
+	if (ComboAttackConfigs.IsValidIndex(ActiveComboIndex))
 	{
-		return ComboAttackConfigs[CurrentComboIndex];
+		return ComboAttackConfigs[ActiveComboIndex];
 	}
 	return DefaultAttackConfig;
 }
@@ -180,8 +204,7 @@ UAnimMontage* UKRGameplayAbility_MeleeAttack::GetCurrentMontage() const
 
 	const FKRAppliedEquipmentEntry& Entry = EquipMgr->FindEntryByTag(ActiveWeaponTag);
 	if (!Entry.IsValid()) return nullptr;
-
-	// 파생 클래스에서 적절한 몽타주 배열 선택
+	
 	const TArray<TObjectPtr<UAnimMontage>>* Montages = GetMontageArrayFromEntry(Entry);
 	if (!Montages) return nullptr;
 
@@ -196,8 +219,6 @@ UAnimMontage* UKRGameplayAbility_MeleeAttack::GetCurrentMontage() const
 const TArray<TObjectPtr<UAnimMontage>>* UKRGameplayAbility_MeleeAttack::GetMontageArrayFromEntry(
 	const FKRAppliedEquipmentEntry& Entry) const
 {
-	// 기본 구현: LightAttack 몽타주 반환
-	// 파생 클래스에서 오버라이드하여 ChargeAttack 등 다른 몽타주 배열 반환
 	return &Entry.GetLightAttackMontages();
 }
 
@@ -211,7 +232,7 @@ void UKRGameplayAbility_MeleeAttack::SetupMotionWarping()
 	if (!AvatarActor) return;
 
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	AActor* TargetActor = FindBestTarget(Config);
+	AActor* TargetActor = FindBestTarget();
 
 	if (TargetActor)
 	{
@@ -228,7 +249,7 @@ void UKRGameplayAbility_MeleeAttack::SetupMotionWarping()
 				WarpTargetName,
 				TargetActor,
 				Config.MinApproachDistance,
-				true  // bFaceTarget
+				true
 			);
 		}
 		else
@@ -256,12 +277,11 @@ void UKRGameplayAbility_MeleeAttack::SetupMotionWarping()
 	}
 }
 
-AActor* UKRGameplayAbility_MeleeAttack::FindBestTarget(const FKRMeleeAttackConfig& Config) const
+AActor* UKRGameplayAbility_MeleeAttack::FindBestTarget() const
 {
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
 	if (!AvatarActor) return nullptr;
 
-	// 소울라이크 스타일: 락온 상태일 때만 타겟 반환, 아니면 전방으로 공격
 	return UKRGA_LockOn::GetLockedTargetFor(AvatarActor);
 }
 
@@ -289,8 +309,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformShapeTrace(TArray<FHitResult>& OutHi
 		bHit = PerformCapsuleTrace(OutHitResults);
 		break;
 	}
-
-	// 디버그 시각화
+	
 	if (bDrawDebugHitCheck)
 	{
 		AActor* AvatarActor = GetAvatarActorFromActorInfo();
@@ -302,7 +321,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformShapeTrace(TArray<FHitResult>& OutHi
 				AvatarActor->GetActorForwardVector(),
 				Config,
 				bHit ? FColor::Green : FColor::Red,
-				0.0f  // 한 프레임만 표시
+				0.0f
 			);
 		}
 	}
@@ -322,8 +341,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformConeTrace(TArray<FHitResult>& OutHit
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(AvatarActor);
 	QueryParams.bReturnPhysicalMaterial = false;
-
-	// 원뿔 형태: 여러 Line Trace로 구현
+	
 	const int32 NumRays = FMath::Max(5, static_cast<int32>(Config.ConeAngle / 15.0f));
 	const float AngleStep = Config.ConeAngle / (NumRays - 1);
 	const float StartAngle = -Config.ConeAngle * 0.5f;
@@ -448,15 +466,12 @@ void UKRGameplayAbility_MeleeAttack::ProcessHitResults(const TArray<FHitResult>&
 	{
 		AActor* HitActor = Hit.GetActor();
 		if (!HitActor) continue;
-
-		// 이미 히트한 대상 스킵
+		
 		if (HitActorsThisSwing.Contains(HitActor)) continue;
-
-		// 최대 히트 수 체크
+		
 		if (!Config.bCanHitMultiple && HitCount > 0) break;
 		if (Config.bCanHitMultiple && HitCount >= Config.MaxHitCount) break;
-
-		// 히트 처리
+		
 		ApplyHitToTarget(HitActor, Hit);
 		HitActorsThisSwing.Add(HitActor);
 		HitCount++;
@@ -467,26 +482,57 @@ void UKRGameplayAbility_MeleeAttack::ApplyHitToTarget(AActor* HitActor, const FH
 {
 	if (!HitActor) return;
 
-	// 1. HitReaction 이벤트 전송 (피격자에게)
-	SendHitReactionEvent(HitActor, HitResult);
-
-	// 2. 데미지 적용
+	// 1. 데미지 적용
 	ApplyDamage(HitActor, HitResult);
 
-	// 3. 히트 Cue 실행 (공격자 측 이펙트/사운드)
+	// 2. 히트 Cue 실행 (공격자 측 이펙트/사운드)
 	ExecuteHitCue(HitResult);
 
-	// 4. 히트스톱 적용
+	// 3. 히트스톱 적용
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
 	if (Config.bUseHitStop)
 	{
 		ApplyHitStop();
 	}
 
-	// 5. 카메라 쉐이크 적용
+	// 4. 카메라 쉐이크 적용
 	if (Config.bUseCameraShake && Config.HitCameraShake)
 	{
 		ApplyCameraShake();
+	}
+
+	// 5. 코어드라이브 충전 이벤트 전송 (공격자에게)
+	// 타겟이 유효한 전투 대상(ASC 보유)인 경우에만 충전
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
+	if (TargetASC)
+	{
+		AActor* AvatarActor = GetAvatarActorFromActorInfo();
+		if (AvatarActor)
+		{
+			// 기본 공격력 * 스킬 배율을 이벤트 데이터로 전달
+			UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+			float AttackPower = 1.0f;
+			if (SourceASC)
+			{
+				if (const UKRCombatCommonSet* CombatSet = SourceASC->GetSet<UKRCombatCommonSet>())
+				{
+					AttackPower = CombatSet->GetAttackPower();
+				}
+			}
+			float BaseDamage = AttackPower * Config.DamageMultiplier;
+
+			FGameplayEventData ChargeEvent;
+			ChargeEvent.EventTag = KRTAG_EVENT_COREDRIVE_CHARGE_ONHIT;
+			ChargeEvent.EventMagnitude = BaseDamage;
+			ChargeEvent.Instigator = AvatarActor;
+			ChargeEvent.Target = HitActor;
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				AvatarActor,
+				KRTAG_EVENT_COREDRIVE_CHARGE_ONHIT,
+				ChargeEvent
+			);
+		}
 	}
 }
 
@@ -530,19 +576,27 @@ void UKRGameplayAbility_MeleeAttack::SendHitReactionEvent(AActor* TargetActor, c
 {
 	if (!TargetActor) return;
 
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC) return;
+	// 공격자 ASC 확인
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	if (!SourceASC) return;
+
+	// 타겟 ASC 확인 (ASC가 없는 액터 - Floor 등 - 에게 이벤트 전송 시 에러 방지)
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (!TargetASC) return;
 
 	FGameplayEventData EventData;
 	EventData.EventTag = KRTAG_EVENT_COMBAT_HITREACTION;
 	EventData.Instigator = GetAvatarActorFromActorInfo();
 	EventData.Target = TargetActor;
-	EventData.ContextHandle = ASC->MakeEffectContext();
+	EventData.ContextHandle = SourceASC->MakeEffectContext();
 	EventData.ContextHandle.AddHitResult(HitResult);
 
-	// 히트 강도 전달
+	// 히트 강도 + 넉백 거리 패킹하여 전달
+	// EventMagnitude = HitIntensity(정수부) + KnockbackDistance * 0.001(소수부)
+	// 예: HitIntensity=2, KnockbackDistance=150 → 2.150
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	EventData.EventMagnitude = static_cast<float>(Config.HitIntensity);
+	float PackedMagnitude = static_cast<float>(Config.HitIntensity) + (Config.KnockbackDistance * 0.001f);
+	EventData.EventMagnitude = PackedMagnitude;
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		TargetActor,
@@ -637,4 +691,68 @@ void UKRGameplayAbility_MeleeAttack::OnMontageCompleted()
 void UKRGameplayAbility_MeleeAttack::OnMontageInterrupted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+// ─────────────────────────────────────────────────────
+// GameplayEvent 리스너
+// ─────────────────────────────────────────────────────
+
+void UKRGameplayAbility_MeleeAttack::SetupHitCheckEventListeners()
+{
+	// Begin 이벤트 리스너 (한 번만 수신)
+	HitCheckBeginTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		KRTAG_EVENT_MELEE_HITCHECK_BEGIN,
+		nullptr,
+		true,  // OnlyTriggerOnce = true
+		true   // OnlyMatchExact = true
+	);
+	if (HitCheckBeginTask)
+	{
+		HitCheckBeginTask->EventReceived.AddDynamic(this, &ThisClass::OnHitCheckBeginEvent);
+		HitCheckBeginTask->ReadyForActivation();
+	}
+
+	// Tick 이벤트 리스너 (여러 번 수신)
+	HitCheckTickTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		KRTAG_EVENT_MELEE_HITCHECK_TICK,
+		nullptr,
+		false,  // OnlyTriggerOnce = false (여러 번 수신)
+		true    // OnlyMatchExact = true
+	);
+	if (HitCheckTickTask)
+	{
+		HitCheckTickTask->EventReceived.AddDynamic(this, &ThisClass::OnHitCheckTickEvent);
+		HitCheckTickTask->ReadyForActivation();
+	}
+
+	// End 이벤트 리스너 (한 번만 수신)
+	HitCheckEndTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		KRTAG_EVENT_MELEE_HITCHECK_END,
+		nullptr,
+		true,  // OnlyTriggerOnce = true
+		true   // OnlyMatchExact = true
+	);
+	if (HitCheckEndTask)
+	{
+		HitCheckEndTask->EventReceived.AddDynamic(this, &ThisClass::OnHitCheckEndEvent);
+		HitCheckEndTask->ReadyForActivation();
+	}
+}
+
+void UKRGameplayAbility_MeleeAttack::OnHitCheckBeginEvent(FGameplayEventData Payload)
+{
+	BeginHitCheck();
+}
+
+void UKRGameplayAbility_MeleeAttack::OnHitCheckTickEvent(FGameplayEventData Payload)
+{
+	PerformHitCheck();
+}
+
+void UKRGameplayAbility_MeleeAttack::OnHitCheckEndEvent(FGameplayEventData Payload)
+{
+	EndHitCheck();
 }

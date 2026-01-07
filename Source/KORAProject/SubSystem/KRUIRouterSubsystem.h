@@ -65,6 +65,8 @@ private:
 	UPROPERTY() TMap<FName, int32> RouteRefCounts;
 	UPROPERTY() TMap<FName, TWeakObjectPtr<UCommonActivatableWidget>> ActiveWidgets;
 
+	UPROPERTY() TMap<FName, TSubclassOf<UCommonActivatableWidget>> CachedWidgetClasses;
+
 	int32 GlobalStopGameRefCount = 0;
 	int32 GlobalCinematicRefCount = 0;
 

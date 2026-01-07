@@ -293,7 +293,14 @@ TArray<FName> UKRGA_LockOn::GetTargetSockets(AActor* Target) const
 
 void UKRGA_LockOn::OnTick(float DeltaTime)
 {
-	if (!IsTargetValid(CurrentTarget) || GetAvatarActorFromActorInfo()->GetDistanceTo(CurrentTarget) > LockOnBreakDistance)
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (!AvatarActor)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+
+	if (!IsTargetValid(CurrentTarget) || AvatarActor->GetDistanceTo(CurrentTarget) > LockOnBreakDistance)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
@@ -303,13 +310,26 @@ void UKRGA_LockOn::OnTick(float DeltaTime)
 
 	if (AKRPlayerController* PC = GetKRPlayerControllerFromActorInfo())
 	{
-		FVector MyLoc = GetAvatarActorFromActorInfo()->GetActorLocation();
+		// [수정] 카메라 위치를 기준으로 LookAt 계산 (플레이어 발 위치가 아닌)
+		FVector CameraLoc;
+		FRotator CameraRot;
+		PC->GetPlayerViewPoint(CameraLoc, CameraRot);
+
+		FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(CameraLoc, TargetLoc);
 		
-		FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(MyLoc, TargetLoc);
+		if (bAdjustPitchBasedOnDistance)
+		{
+			float DistanceToTarget = FVector::Dist(AvatarActor->GetActorLocation(), TargetLoc);
+			float PitchOffset = FMath::GetMappedRangeValueClamped(FVector2D(0.f, 1000.f), FVector2D(10.f, 0.f), DistanceToTarget);
+
+			LookAtRot.Pitch += PitchOffset;
+		}
+
 		FRotator CurrentRot = PC->GetControlRotation();
 		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRot, DeltaTime, RotationInterpSpeed);
 
-		NewRot.Pitch = FMath::ClampAngle(NewRot.Pitch, -45.f, 45.f);
+		// [수정] 피치 범위 확장 (더 아래를 볼 수 있도록)
+		NewRot.Pitch = FMath::ClampAngle(NewRot.Pitch, -60.f, 30.f);
 
 		PC->SetControlRotation(NewRot);
 	}

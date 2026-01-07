@@ -1,6 +1,7 @@
 #include "KRAnimNotify_CombatEvent.h"
 #include "SubSystem/KRSoundSubsystem.h"
 #include "SubSystem/KREffectSubsystem.h"
+#include "Data/DataAssets/KREffectDefinition.h"
 
 void UKRAnimNotify_CombatEvent::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -23,16 +24,13 @@ void UKRAnimNotify_CombatEvent::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 		return;
 	}
 
-	// 이벤트 타입별 처리
 	switch (EventType)
 	{
 	case EKRCombatEventType::PlaySound:
 		{
 			if (UKRSoundSubsystem* SoundSubsystem = World->GetSubsystem<UKRSoundSubsystem>())
 			{
-				FVector Location = (SocketName != NAME_None)
-					? MeshComp->GetSocketLocation(SocketName)
-					: Owner->GetActorLocation();
+				FVector Location = Owner->GetActorLocation();
 				SoundSubsystem->PlaySoundByTag(EventTag, Location, Owner);
 			}
 		}
@@ -40,17 +38,41 @@ void UKRAnimNotify_CombatEvent::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 
 	case EKRCombatEventType::SpawnEffect:
 		{
-			if (UKREffectSubsystem* EffectSubsystem = World->GetSubsystem<UKREffectSubsystem>())
+			UKREffectSubsystem* EffectSubsystem = World->GetSubsystem<UKREffectSubsystem>();
+			if (!EffectSubsystem)
 			{
-				if (SocketName != NAME_None)
-				{
-					EffectSubsystem->SpawnEffectAttached(EventTag, MeshComp, SocketName);
-				}
-				else
-				{
-					FTransform SpawnTransform = Owner->GetActorTransform();
-					EffectSubsystem->SpawnEffectByTag(EventTag, SpawnTransform, Owner);
-				}
+				break;
+			}
+
+			UKREffectDefinition* EffectDef = EffectSubsystem->GetEffectDefinition(EventTag);
+			if (!EffectDef)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("CombatEvent: EffectDefinition not found for tag %s"), *EventTag.ToString());
+				break;
+			}
+
+			const FKREffectSpawnSettings& SpawnSettings = EffectDef->SpawnSettings;
+			FName SocketToUse = NAME_None;
+			if (SpawnSettings.bAttachToParent)
+			{
+				SocketToUse = SpawnSettings.AttachSocketName;
+			}
+
+			if (SocketToUse != NAME_None)
+			{
+				EffectSubsystem->SpawnEffectAttached(
+					EventTag,
+					MeshComp,
+					SocketToUse,
+					SpawnSettings.LocationOffset,
+					SpawnSettings.RotationOffset
+				);
+			}
+			else
+			{
+				FTransform SpawnTransform = Owner->GetActorTransform();
+				SpawnTransform.SetLocation(SpawnTransform.GetLocation() + SpawnSettings.LocationOffset);
+				EffectSubsystem->SpawnEffectByTag(EventTag, SpawnTransform, Owner);
 			}
 		}
 		break;

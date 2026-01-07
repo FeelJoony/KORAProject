@@ -41,4 +41,8 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash|Montage")
 	TMap<EDashDirection, class UAnimMontage*> DashMontages;
+
+	/** 대쉬 스태미나 소모량 */
+	UPROPERTY(EditDefaultsOnly, Category = "Dash|Stamina")
+	float DashStaminaCost = 18.0f;
 };

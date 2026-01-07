@@ -3,6 +3,9 @@
 #include "Player/KRPlayerState.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "Subsystem/KRQuestSubsystem.h"
+#include "SubSystem/KRUIInputSubsystem.h"
+#include "Interaction/InteractableActorBase.h"
+#include "Engine/LocalPlayer.h"
 
 AKRPlayerController::AKRPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -14,8 +17,21 @@ void AKRPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UKRQuestSubsystem& KRSubsystem = UKRQuestSubsystem::Get(this);
-	KRSubsystem.AcceptQuest(1);
+	// 레벨 로드 시 UIInputSubsystem 리셋 (모든 레벨 전환 방식에 대응)
+	if (ULocalPlayer* LP = GetLocalPlayer())
+	{
+		if (UKRUIInputSubsystem* UIInputSubsystem = LP->GetSubsystem<UKRUIInputSubsystem>())
+		{
+			UIInputSubsystem->ForceResetUIMode();
+			UE_LOG(LogTemp, Warning, TEXT("[PlayerController] BeginPlay - Reset UIInputSubsystem"));
+		}
+	}
+
+	// InputMode를 게임 모드로 설정
+	SetShowMouseCursor(false);
+	FInputModeGameOnly GameOnlyMode;
+	SetInputMode(GameOnlyMode);
+	UE_LOG(LogTemp, Warning, TEXT("[PlayerController] BeginPlay - Set InputMode to GameOnly"));
 }
 
 void AKRPlayerController::OnUnPossess()
@@ -52,4 +68,14 @@ UKRAbilitySystemComponent* AKRPlayerController::GetKRAbilitySystemComponent() co
 {
 	const AKRPlayerState* KRPS = GetKRPlayerState();
 	return (KRPS ? KRPS->GetKRAbilitySystemComponent() : nullptr);
+}
+
+void AKRPlayerController::SetCurrentInteractableActor(AInteractableActorBase* InActor)
+{
+	CurrentInteractableActor = InActor;
+}
+
+AInteractableActorBase* AKRPlayerController::GetCurrentInteractableActor() const
+{
+	return CurrentInteractableActor.Get();
 }

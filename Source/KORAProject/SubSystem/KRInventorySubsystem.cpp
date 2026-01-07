@@ -58,18 +58,16 @@ namespace
 		}
 	}
 
-	static const UInventoryFragment_ConsumableItem* GetConsumableFragmentFromItem(
-		const FKRInventoryEntry* Entry)
+	static const UInventoryFragment_ConsumableItem* GetConsumableFragmentFromItem(const FKRInventoryEntry* Entry)
 	{
-		if (!Entry) { return nullptr; }
+		if (!Entry) return nullptr;
 
 		const UKRInventoryItemInstance* ItemInstance = Entry->GetItemInstance();
-		if (!ItemInstance || !ItemInstance->GetItemDef()) { return nullptr; }
-		
-		const UKRInventoryItemFragment* BaseFrag =
-			ItemInstance->GetItemDef()->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_CONSUMABLE);
+		if (!ItemInstance) return nullptr;
 
-		return Cast<UInventoryFragment_ConsumableItem>(BaseFrag);
+		const UKRInventoryItemFragment* Frag = ItemInstance->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_CONSUMABLE);
+
+		return Cast<UInventoryFragment_ConsumableItem>(Frag);
 	}
 
 	float GetConsumableUITime(const UInventoryFragment_ConsumableItem* Frag)
@@ -216,6 +214,18 @@ void FKRInventoryList::Clear()
 	Entries.Empty();
 }
 
+void FKRInventoryList::AddEntryDirect(UKRInventoryItemInstance* NewInstance)
+{
+	if (!NewInstance || !NewInstance->GetItemTag().IsValid()) return;
+
+	FGameplayTag Tag = NewInstance->GetItemTag();
+
+	FKRInventoryEntry NewEntry(NewInstance, 1);
+
+	Entries.Add(Tag, NewEntry);
+	ItemTagContainer.AddTag(Tag);
+}
+
 void UKRInventorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -226,12 +236,13 @@ void UKRInventorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	InitializeItemDefinitionFragments();
 	InitializeQuickSlots();
-
 	
+	RegisterAllListeners();
 }
 
 void UKRInventorySubsystem::Deinitialize()
 {
+	EndListenQuickSlotAssignConfirm();
 	Super::Deinitialize();
 }
 
@@ -347,7 +358,9 @@ const UKRInventoryItemInstance* UKRInventorySubsystem::GetItem(const FGameplayTa
 
 int32 UKRInventorySubsystem::GetItemCountByTag(const FGameplayTag& InTag)
 {
-	return GetItemQuantity_Internal(InTag);
+	int32 ItemQuantity = GetItemQuantity_Internal(InTag);
+	
+	return ItemQuantity;
 }
 
 TArray<UKRInventoryItemInstance*> UKRInventorySubsystem::GetAllItems() const
@@ -402,14 +415,8 @@ bool UKRInventorySubsystem::BindItemByQuickSlotTag(FGameplayTag SlotTag, FGamepl
 	PlayerQuickSlot[SlotTag] = ItemTag;
 
 	const int32 ActualCount = GetItemQuantity_Internal(ItemTag);
-	int32 StackMax = GetConsumableStackMaxForItem(ItemTag);
+	const int32 QuickSlotCount = GetQuickSlotDisplayCount(ItemTag, ActualCount);
 
-	int32 QuickSlotCount = ActualCount;
-	if (StackMax > 0)
-	{
-		QuickSlotCount = FMath::Min(ActualCount, StackMax);
-	}
-	
 	PlayerQuickSlotStacks.FindOrAdd(SlotTag) = QuickSlotCount;
 
 	SendQuickSlotMessage(
@@ -445,11 +452,18 @@ bool UKRInventorySubsystem::GetQuickSlotData(FGameplayTag SlotTag, FGameplayTag&
 	if (!IsValidQuickSlot(SlotTag)) { return false; }
 	
 	OutItemTag = GetQuickSlotItemTag(SlotTag);
-	
+
 	if (!OutItemTag.IsValid()) { return false; }
-	
-	OutQuantity = GetItemQuantity_Internal(OutItemTag);
-	
+
+	if (const int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag))
+	{
+		OutQuantity = *SlotCountPtr;
+	}
+	else
+	{
+		OutQuantity = 0;
+	}
+
 	return true;
 }
 
@@ -469,22 +483,33 @@ UAbilitySystemComponent* UKRInventorySubsystem::GetPlayerASC() const
 		}
 	}
 
-	UE_LOG(LogInventorySubSystem, Warning, TEXT("GetPlayerASC: Failed to get Player ASC (World/PC/Hero null)"));
 	return nullptr;
 }
 
 bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
 {
-    if (!IsValidQuickSlot(SlotTag)) { return false; }
+	if (!IsValidQuickSlot(SlotTag))
+	{
+		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: invalid slot %s"), *SlotTag.ToString());
+		return false;
+	}
 
-    const FGameplayTag ItemTag = GetQuickSlotItemTag(SlotTag);
-    if (!ItemTag.IsValid()) { return false; }
+	const FGameplayTag ItemTag = GetQuickSlotItemTag(SlotTag);
+	if (!ItemTag.IsValid())
+	{
+		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: slot has no item %s"), *SlotTag.ToString());
+		return false;
+	}
 	
-    int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag);
-    if (!SlotCountPtr || *SlotCountPtr <= 0)
-    {
-        return false;
-    }
+	int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag);
+	if (!SlotCountPtr || *SlotCountPtr <= 0)
+	{
+		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: SlotCount<=0 Slot=%s Item=%s Stored=%d ActualInv=%d"),
+			*SlotTag.ToString(), *ItemTag.ToString(),
+			SlotCountPtr ? *SlotCountPtr : -1,
+			GetItemQuantity_Internal(ItemTag));
+		return false;
+	}
     int32& SlotCount = *SlotCountPtr;
 	
     int32 CurrentCount = GetItemQuantity_Internal(ItemTag);
@@ -496,24 +521,23 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
     UAbilitySystemComponent* ASC = GetPlayerASC();
     if (!ASC)
     {
-        UE_LOG(LogInventorySubSystem, Warning, TEXT("UseQuickSlotItem: ASC not found"));
         return false;
     }
 
     FText Reason;
     if (!CanUseConsumableItem(ItemTag, ASC, Reason))
     {
-        UE_LOG(LogInventorySubSystem, Log,
-            TEXT("UseQuickSlotItem blocked: %s"), *Reason.ToString());
         return false;
     }
+
+    const FGameplayTag ConsumableFragTag =
+        FGameplayTag::RequestGameplayTag(TEXT("Fragment.Item.Consumable"));
+
     const UInventoryFragment_ConsumableItem* ConsumableFragConst =
         Cast<UInventoryFragment_ConsumableItem>(Instance->FindFragmentByTag(KRTAG_FRAGMENT_ITEM_CONSUMABLE));
 
     if (!ConsumableFragConst)
     {
-        UE_LOG(LogInventorySubSystem, Warning,
-            TEXT("UseQuickSlotItem: Item %s has no Consumable fragment"), *ItemTag.ToString());
         return false;
     }
 
@@ -524,22 +548,51 @@ bool UKRInventorySubsystem::UseQuickSlotItem(FGameplayTag SlotTag)
     {
         return false;
     }
-	
+
+    // Decrease QuickSlot count
     SlotCount = FMath::Max(0, SlotCount - 1);
+
+    // Also subtract from inventory
     SubtractItem(ItemTag, 1);
 
-    const int32 ActualQuantityAfter = GetItemQuantity_Internal(ItemTag);
-    const float TimeForUI = GetConsumableUITime(ConsumableFrag);
+	const float RawTimeForUI = GetConsumableUITime(ConsumableFrag);
 
-    SendQuickSlotMessage(
-        EQuickSlotAction::ItemUsed,
-        SlotTag,
-        ItemTag,
-        SlotCount,
-        TimeForUI
-    );
+	float TimeForUI = RawTimeForUI;
+	if (SlotCount <= 0)
+	{
+		TimeForUI = 0.f;
+	}
 
-    return true;
+	// Send UI update message with QuickSlot count
+	SendQuickSlotMessage(
+		EQuickSlotAction::QuantityUpdated,
+		SlotTag,
+		ItemTag,
+		SlotCount
+	);
+
+	if (SlotCount > 0)
+	{
+		SendQuickSlotMessage(
+		EQuickSlotAction::ItemUsed,
+		SlotTag,
+		ItemTag,
+		SlotCount,
+		TimeForUI
+		);
+	}
+
+	if (SlotCount <= 0 && !IsPersistentQuickSlotItem(ItemTag))
+	{
+		HandleQuickSlotUnbind(SlotTag, ItemTag);
+
+		if (!SelectNextAvailableQuickSlot())
+		{
+			NotifySlotChanged(FGameplayTag());
+		}
+	}
+
+	return true;
 }
 
 bool UKRInventorySubsystem::SelectQuickSlotClockwise()
@@ -582,8 +635,7 @@ bool UKRInventorySubsystem::CanUseConsumableItem(
         OutReason = FText::FromString(TEXT("Not a consumable item"));
         return false;
     }
-
-    // 1) 쿨다운 체크
+	
     if (ConsumableFrag->IsOnCooldown(TargetASC))
     {
         const float Remaining = ConsumableFrag->GetRemainingCooldown(TargetASC);
@@ -594,11 +646,10 @@ bool UKRInventorySubsystem::CanUseConsumableItem(
         );
         return false;
     }
-
-    // 2) 스택 한도 체크 (← 여기서 StackMax 사용)
+	
     if (!ConsumableFrag->CanApplyMoreStacks(TargetASC))
     {
-        OutReason = FText::FromString(TEXT("Already in use")); // 혹은 "Max stacks reached"
+        OutReason = FText::FromString(TEXT("Already in use"));
         return false;
     }
 
@@ -664,7 +715,6 @@ bool UKRInventorySubsystem::UseConsumableItem(FGameplayTag ItemTag, UAbilitySyst
 	FText Reason;
 	if (!CanUseConsumableItem(ItemTag, TargetASC, Reason))
 	{
-		UE_LOG(LogInventorySubSystem, Warning, TEXT("UseConsumableItem blocked: %s"), *Reason.ToString());
 		return false;
 	}
 
@@ -689,25 +739,33 @@ bool UKRInventorySubsystem::UseConsumableItem(FGameplayTag ItemTag, UAbilitySyst
 	{
 		return false;
 	}
-
-	// 실제 GE + 쿨다운 적용
+	
 	if (!ConsumableFrag->UseConsumable(TargetASC))
 	{
 		return false;
 	}
-
-	// 스택 감소
+	
 	Entry->SubtractCount(1);
 	if (Entry->GetStackCount() <= 0)
 	{
-		// 수량이 0이면 인벤토리에서 제거
 		PlayerInventory.RemoveItem(ItemTag);
 	}
-
-	// 퀵슬롯 및 UI 업데이트
+	
 	NotifyQuickSlotQuantityChanged(ItemTag);
 
 	return true;
+}
+
+int32 UKRInventorySubsystem::GetQuickSlotItemCount(const FGameplayTag& SlotTag) const
+{
+	if (!IsValidQuickSlot(SlotTag)) { return 0; }
+
+	if (const int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag))
+	{
+		return *SlotCountPtr;
+	}
+
+	return 0;
 }
 
 void UKRInventorySubsystem::OnMessageReceived(const FGameplayTag Channel, const FAddItemMessage& Message)
@@ -723,7 +781,36 @@ void UKRInventorySubsystem::AddItemInstance(UKRInventoryItemInstance* InInstance
 {
 	if (!InInstance) return;
 
-	// 필요하면 메시지 브로드캐스트 해야함
+	PlayerInventory.AddEntryDirect(InInstance);
+}
+
+void UKRInventorySubsystem::BeginListenQuickSlotAssignConfirm()
+{
+	if (QuickSlotConfirmHandle.IsValid())
+	{
+		return;
+	}
+    
+	UGameplayMessageSubsystem& MsgSys = UGameplayMessageSubsystem::Get(this);
+
+	QuickSlotConfirmHandle = MsgSys.RegisterListener(
+		FKRUIMessageTags::Confirm(),
+		this,
+		&UKRInventorySubsystem::OnQuickSlotConfirmMessage
+	);
+}
+
+void UKRInventorySubsystem::EndListenQuickSlotAssignConfirm()
+{
+	if (!QuickSlotConfirmHandle.IsValid())
+	{
+		return;
+	}
+
+	UGameplayMessageSubsystem& MsgSys = UGameplayMessageSubsystem::Get(this);
+	MsgSys.UnregisterListener(QuickSlotConfirmHandle);
+
+	QuickSlotConfirmHandle = FGameplayMessageListenerHandle();
 }
 
 FKRInventoryList& UKRInventorySubsystem::GetInventory()
@@ -742,10 +829,6 @@ void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 	{
 		if (!FragmentRegistry.Contains(AbilityTag))
 		{
-			UE_LOG(LogInventorySubSystem, Warning,
-				TEXT("No exist %s Tag. You must create this tag Fragment"),
-				*AbilityTag.GetTagName().ToString());
-				
 			continue;
 		}
 		
@@ -756,7 +839,7 @@ void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 void UKRInventorySubsystem::InitializeItemDefinitionFragments()
 {
 	FragmentRegistry.Empty();
-
+	
 	InitialFragmentType(UInventoryFragment_EquippableItem::StaticClass());
 	InitialFragmentType(UInventoryFragment_SetStats::StaticClass());
 	InitialFragmentType(UInventoryFragment_QuickSlot::StaticClass());
@@ -778,10 +861,66 @@ void UKRInventorySubsystem::InitialFragmentType(TSubclassOf<UKRInventoryItemFrag
 	}
 }
 
+void UKRInventorySubsystem::RegisterAllListeners()
+{
+	UnregisterAllListeners();
+	
+	UGameplayMessageSubsystem& MsgSys = UGameplayMessageSubsystem::Get(this);
+	
+	if (ListenerHandles.Num() > 0)
+	{
+		return;
+	}
+	
+	ListenerHandles.Add(
+		MsgSys.RegisterListener(
+			FKRUIMessageTags::Confirm(),
+			this,
+			&UKRInventorySubsystem::OnQuickSlotConfirmMessage
+		)
+	);
+	
+	ListenerHandles.Add(
+		MsgSys.RegisterListener(
+			FGameplayTag::RequestGameplayTag(FName("Player.Action.AddItem")),
+			this,
+			&UKRInventorySubsystem::OnMessageReceived
+		)
+	);
+
+	ListenerHandles.Add(
+		MsgSys.RegisterListener(
+			FGameplayTag::RequestGameplayTag(FName("Player.Action.RemoveItem")),
+			this,
+			&UKRInventorySubsystem::OnMessageReceived
+		)
+	);
+}
+
+void UKRInventorySubsystem::UnregisterAllListeners()
+{
+	if (ListenerHandles.Num() == 0)
+	{
+		return;
+	}
+
+	UGameplayMessageSubsystem& MsgSys = UGameplayMessageSubsystem::Get(this);
+
+	for (FGameplayMessageListenerHandle& Handle : ListenerHandles)
+	{
+		if (Handle.IsValid())
+		{
+			MsgSys.UnregisterListener(Handle);
+		}
+	}
+
+	ListenerHandles.Reset();
+}
+
 bool UKRInventorySubsystem::IsPersistentQuickSlotItem(const FGameplayTag& ItemTag) const
 {
 	if (!ItemTag.IsValid()) { return false; }
-	return ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_FIRSTAID) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_STAMINA) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_COREBATTERY);
+	return ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_FIRSTAID) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_STAMINA) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_POTION_COREBATTERY) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_INSURANCE_COIN) || ItemTag.MatchesTagExact(KRTAG_ITEMTYPE_CONSUME_INSURANCE_WALLET);
 }
 
 bool UKRInventorySubsystem::IsAssignedQuickSlot() const
@@ -799,25 +938,20 @@ bool UKRInventorySubsystem::IsAssignedQuickSlot() const
 
 bool UKRInventorySubsystem::IsAssignedSelectedQuickSlot() const
 {
-	bool bSelectable = false;
+    bool bSelectable = false;
 
-	ForEachQuickSlot(PlayerQuickSlot,
-		[&](const FGameplayTag& SlotTag, const FGameplayTag& ItemTag)
-		{
-			if (!ItemTag.IsValid()) { return; }
+    ForEachQuickSlot(PlayerQuickSlot,
+        [&](const FGameplayTag& SlotTag, const FGameplayTag& ItemTag)
+        {
+            if (!ItemTag.IsValid()) { return; }
+            if (GetQuickSlotItemDisplayCount(ItemTag) > 0)
+            {
+                bSelectable = true;
+            }
+        });
 
-			if (const int32* SlotCount = PlayerQuickSlotStacks.Find(SlotTag))
-			{
-				if (*SlotCount > 0)
-				{
-					bSelectable = true;
-				}
-			}
-		});
-
-	return bSelectable;
+    return bSelectable;
 }
-
 
 bool UKRInventorySubsystem::SelectQuickSlotInternal(bool bClockwise)
 {
@@ -851,8 +985,8 @@ bool UKRInventorySubsystem::SelectQuickSlotInternal(bool bClockwise)
 		const FGameplayTag ItemTag = GetQuickSlotItemTag(CandidateSlot);
 		if (!ItemTag.IsValid()) { continue; }
 
-		const int32* SlotCountPtr = PlayerQuickSlotStacks.Find(CandidateSlot);
-		if (!SlotCountPtr || *SlotCountPtr <= 0) { continue; }
+		const int32 Count = GetQuickSlotItemDisplayCount(ItemTag);
+		if (Count <= 0) { continue; }
 
 		SelectedQuickSlot = CandidateSlot;
 		NotifySlotChanged(SelectedQuickSlot);
@@ -942,7 +1076,7 @@ bool UKRInventorySubsystem::SelectNextAvailableQuickSlot()
 		{
 			if (!FoundSlot.IsValid() && BoundTag.IsValid())
 			{
-				int32 Count = GetItemQuantity_Internal(BoundTag);
+				int32 Count = GetQuickSlotItemDisplayCount(BoundTag);
 				if (Count > 0)
 				{
 					FoundSlot = SlotTag;
@@ -962,80 +1096,40 @@ bool UKRInventorySubsystem::SelectNextAvailableQuickSlot()
 
 void UKRInventorySubsystem::NotifyQuickSlotQuantityChanged(const FGameplayTag& ItemTag)
 {
-    if (!ItemTag.IsValid()) { return; }
+	if (!ItemTag.IsValid()) { return; }
 
-    const int32 NewInventoryQuantity = GetItemQuantity_Internal(ItemTag);
+	const int32 ActualInventoryCount = GetItemQuantity_Internal(ItemTag);
 
-    FGameplayTag SlotWithThisItem;
-    bool bHadAnySlot = false;
+	// Only handle complete item removal from inventory
+	if (ActualInventoryCount <= 0)
+	{
+		ForEachQuickSlot(PlayerQuickSlot,
+			[&](const FGameplayTag& SlotTag, FGameplayTag& BoundItemTag)
+			{
+				if (BoundItemTag != ItemTag) { return; }
 
-    ForEachQuickSlot(PlayerQuickSlot,
-        [&](const FGameplayTag& SlotTag, FGameplayTag& BoundItemTag)
-        {
-            if (BoundItemTag != ItemTag) { return; }
+				// Item completely removed from inventory, unbind from quickslot
+				if (!IsPersistentQuickSlotItem(ItemTag))
+				{
+					PlayerQuickSlotStacks.FindOrAdd(SlotTag) = 0;
+					HandleQuickSlotUnbind(SlotTag, ItemTag);
+				}
+			});
 
-            bHadAnySlot = true;
+		const bool bHasAnyBound = IsAssignedQuickSlot();
+		const bool bHasAnySelectable = IsAssignedSelectedQuickSlot();
+		if (!bHasAnyBound || !bHasAnySelectable)
+		{
+			NotifySlotChanged(FGameplayTag());
+		}
 
-            if (!SlotWithThisItem.IsValid())
-            {
-                SlotWithThisItem = SlotTag;
-            }
-        	
-            int32& SlotCount = PlayerQuickSlotStacks.FindOrAdd(SlotTag);
-            int32 StackMax = GetConsumableStackMaxForItem(ItemTag);
-            int32 MaxAllowedByInventory = NewInventoryQuantity;
-
-            if (StackMax > 0)
-            {
-                MaxAllowedByInventory = FMath::Min(NewInventoryQuantity, StackMax);
-            }
-
-            if (MaxAllowedByInventory < 0)
-            {
-                MaxAllowedByInventory = 0;
-            }
-
-            SlotCount = FMath::Min(SlotCount, MaxAllowedByInventory);
-
-            // 인벤토리 0이고 비-영구 아이템 → 기존 로직대로 언바인드
-            if (NewInventoryQuantity <= 0 && !IsPersistentQuickSlotItem(ItemTag))
-            {
-                HandleQuickSlotUnbind(SlotTag, ItemTag);
-            }
-
-            SendQuickSlotMessage(
-                EQuickSlotAction::QuantityUpdated,
-                SlotTag,
-                ItemTag,
-                SlotCount
-            );
-        });
-
-    // 밑에 SelectedQuickSlot 처리 로직은 그대로 두되,
-    // NotifySlotChanged 내부에서 ItemCount 대신 슬롯 스택을 쓰게 고치면 더 깔끔함.
-    if (NewInventoryQuantity <= 0)
-    {
-        const bool bHasAnyBound      = IsAssignedQuickSlot();
-        const bool bHasAnySelectable = IsAssignedSelectedQuickSlot();
-
-        if (!bHasAnyBound || !bHasAnySelectable)
-        {
-            NotifySlotChanged(FGameplayTag());
-        }
-
-        if (bHasAnyBound)
-        {
-            SelectNextAvailableQuickSlot();
-        }
-
-        return;
-    }
-
-    if (!SelectedQuickSlot.IsValid() && SlotWithThisItem.IsValid())
-    {
-        SelectedQuickSlot = SlotWithThisItem;
-        NotifySlotChanged(SlotWithThisItem);
-    }
+		if (bHasAnyBound)
+		{
+			SelectNextAvailableQuickSlot();
+		}
+	}
+	// If item still exists in inventory, don't update QuickSlot count
+	// QuickSlot count is managed independently
 }
 
 bool UKRInventorySubsystem::IsValidQuickSlot(const FGameplayTag& SlotTag) const
@@ -1076,13 +1170,21 @@ bool UKRInventorySubsystem::HandleQuickSlotUnbind(FGameplayTag SlotTag, FGamepla
 		UnboundItem = FGameplayTag();
 
 		SendQuickSlotMessage(
+				EQuickSlotAction::ItemUsed,
+				SlotTag,
+				ItemTag,
+				0,
+				0.1f
+				);
+        
+		SendQuickSlotMessage(
 			EQuickSlotAction::ItemUnregistered,
 			SlotTag,
 			ItemTag,
 			0
 		);
 	}
-	
+
 	if (!IsAssignedQuickSlot())
 	{
 		NotifySlotChanged(FGameplayTag());
@@ -1125,6 +1227,28 @@ int32 UKRInventorySubsystem::GetItemQuantity_Internal(const FGameplayTag& ItemTa
 	return 0;
 }
 
+int32 UKRInventorySubsystem::GetQuickSlotItemDisplayCount(const FGameplayTag& ItemTag) const
+{
+	if (!ItemTag.IsValid()) { return 0; }
+
+	// Check if this item is bound to any quick slot
+	for (const auto& Pair : PlayerQuickSlot)
+	{
+		const FGameplayTag& SlotTag = Pair.Key;
+		const FGameplayTag& BoundTag = Pair.Value;
+
+		if (BoundTag != ItemTag) { continue; }
+
+		// Found the item, return the count from PlayerQuickSlotStacks
+		if (const int32* SlotCountPtr = PlayerQuickSlotStacks.Find(SlotTag))
+		{
+			return *SlotCountPtr;
+		}
+	}
+
+	return 0;
+}
+
 int32 UKRInventorySubsystem::GetConsumableStackMaxForItem(const FGameplayTag& ItemTag) const
 {
 	if (!ItemTag.IsValid())
@@ -1149,20 +1273,17 @@ int32 UKRInventorySubsystem::GetConsumableStackMaxForItem(const FGameplayTag& It
 	return StackMax;
 }
 
-void UKRInventorySubsystem::OnConfirmMessage(FGameplayTag MessageTag, const FKRUIMessage_Confirm& Payload)
+void UKRInventorySubsystem::OnQuickSlotConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload)
 {
-	if (Payload.Context == EConfirmContext::QuickSlotAssign)
-	{
-		BindItemByQuickSlotTag(Payload.ItemTag, Payload.SlotTag);
-	}
-	else if (Payload.Context == EConfirmContext::InventoryItemUse)
-	{
-		UAbilitySystemComponent* ASC = GetPlayerASC();
-		if (!ASC)
-		{
-			return;
-		}
-
-		UseConsumableItem(Payload.ItemTag, ASC);
-	}
+    if (Payload.Context == EConfirmContext::QuickSlotAssign)
+    {
+        EndListenQuickSlotAssignConfirm();
+        
+        if (Payload.Result != EConfirmResult::Yes)
+        {
+            return;
+        }
+        
+        BindItemByQuickSlotTag(Payload.SlotTag, Payload.ItemTag);
+    }
 }

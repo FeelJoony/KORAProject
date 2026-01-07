@@ -23,6 +23,7 @@ class KORAPROJECT_API UKRSlotNameWidget : public UCommonUserWidget
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Localization")	FName StringTableId = TEXT("/Game/UI/StringTable/ST_UIBaseTexts");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Localization")	FName ItemTableId = TEXT("/Game/UI/StringTable/ST_ItemList");
 	UPROPERTY(BlueprintReadOnly, Category = "SlotName")						EKRSlotNameContext Context = EKRSlotNameContext::Menu;
 
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UCommonTextBlock> LabelText;
@@ -44,6 +45,7 @@ public:
 protected:
 	virtual void NativeConstruct() override;
 	FText MakeText(FName Key) const;
+	FText MakeItemName(FName ItemNameKey) const;
 
 	UFUNCTION() void HandlePrimaryClicked();
 	UFUNCTION() void HandleSecondaryClicked();

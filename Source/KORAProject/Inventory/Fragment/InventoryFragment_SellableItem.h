@@ -19,8 +19,10 @@ public:
 		return FGameplayTag::RequestGameplayTag("Ability.Item.Sellable");
 	}
 
-	FORCEINLINE int32 GetBasePrice() const
+	virtual void OnInstanceCreated(UKRInventoryItemInstance* Instance) override;
+	
+	FORCEINLINE int32 GetSellPrice() const
 	{
-		return BasePrice;
+		return BasePrice*0.8f;
 	}
 };

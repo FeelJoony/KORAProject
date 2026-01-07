@@ -21,3 +21,19 @@ Effect.Movement.Landing.Heavy.Default,/Game/Data/DataAssets/Effect/Movement/DA_E
 Effect.Movement.Landing.Heavy.Concrete,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Concrete.DA_Effect_Landing_Heavy_Concrete,Landing Heavy Concrete,TRUE
 Effect.Movement.Landing.Heavy.Dirt,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Dirt.DA_Effect_Landing_Heavy_Dirt,Landing Heavy Dirt,TRUE
 Effect.Movement.Landing.Heavy.Wood,/Game/Data/DataAssets/Effect/Movement/DA_Effect_Landing_Heavy_Wood.DA_Effect_Landing_Heavy_Wood,Landing Heavy Wood,TRUE
+Effect.Defense.Guard.Impact,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Guard_Impact.DA_Effect_Combat_Guard_Impact,Guard Impact,TRUE
+Effect.Defense.Guard.Deflect,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Guard_Deflect.DA_Effect_Combat_Guard_Deflect,Guard Deflect,TRUE
+Effect.Combat.Sword.Attack.Light,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Attack_Light.DA_Effect_Combat_Sword_Attack_Light,Attack Light,TRUE
+Effect.Combat.Sword.Attack.Combo1,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Attack_Combo1.DA_Effect_Combat_Sword_Attack_Combo1,Attack Combo1,TRUE
+Effect.Combat.Sword.Attack.Combo2,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Attack_Combo2.DA_Effect_Combat_Sword_Attack_Combo2,Attack Combo2,TRUE
+Effect.Combat.Sword.Attack.Combo3,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Attack_Combo3.DA_Effect_Combat_Sword_Attack_Combo3,Attack Combo3,TRUE
+Effect.Damage.Hit.Enemy,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Hit_Blood.DA_Effect_Combat_Hit_Blood,Hit Blood,TRUE
+Effect.Combat.Sword.Charge.Start,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_ChargeStart.DA_Effect_Combat_Sword_ChargeStart,Charge Start,TRUE
+Effect.Combat.Sword.Charge.Release,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_ChargeAttack.DA_Effect_Combat_Sword_ChargeAttack,Charge Attack,TRUE
+Effect.Skill.StarDash.Line,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_StarDash_Line.DA_Effect_Skill_StarDash_Line,StarDash Line,TRUE
+Effect.Skill.StarDash.AfterImage,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_StarDash_AfterImage.DA_Effect_Skill_StarDash_AfterImage,StarDash AfterImage,TRUE
+Effect.Skill.StarDash.Finish,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_StarDash_Finish.DA_Effect_Skill_StarDash_Finish,StarDash Finish,TRUE
+Effect.Skill.AerialCombo.Launch,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_AerialCombo_Launch.DA_Effect_Skill_AerialCombo_Launch,Aerial Launch,TRUE
+Effect.Skill.AerialCombo.Trail,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_AerialCombo_LineTrail.DA_Effect_Skill_AerialCombo_LineTrail,Aerial Trail,TRUE
+Effect.Skill.AerialCombo.Hit,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_AerialCombo_Impact.DA_Effect_Skill_AerialCombo_Impact,Aerial Impact,TRUE
+Effect.Skill.AerialCombo.Finish,/Game/Data/DataAssets/Effect/Skill/DA_Effect_Skill_AerialCombo_Finish.DA_Effect_Skill_AerialCombo_Finish,Aerial Finish,TRUE
