@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
 	FName SectionName_Fire = FName("Fire");
 
+	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
+	FName SectionName_FireFull = FName("Fire_Full");
+
 private:
 	UPROPERTY()
 	TObjectPtr<UKRAbilityTask_WaitTick> ChargeTickTask;

@@ -93,6 +93,18 @@ const TArray<TObjectPtr<UAnimMontage>>* UKRGameplayAbility_RangeBase::GetMontage
 	return nullptr; 
 }
 
+UGameplayEffect* UKRGameplayAbility_RangeBase::GetCostGameplayEffect() const
+{
+	if (AmmoCostEffectClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT(">> [CostCheck] Custom Cost Found: %s"), *AmmoCostEffectClass->GetName());
+		return AmmoCostEffectClass.GetDefaultObject();
+	}
+	
+	UE_LOG(LogTemp, Error, TEXT(">> [CostCheck] Custom Cost is NULL! Falling back to default."));
+	return Super::GetCostGameplayEffect();
+}
+
 UAnimMontage* UKRGameplayAbility_RangeBase::GetMontageFromEquipment(int32 MontageIndex) const
 {
 	UKREquipmentManagerComponent* EquipMgr = GetEquipmentManager();

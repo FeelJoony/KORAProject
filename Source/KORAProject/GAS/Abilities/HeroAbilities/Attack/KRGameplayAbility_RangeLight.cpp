@@ -4,6 +4,7 @@
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
+#include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 
 UKRGameplayAbility_RangeLight::UKRGameplayAbility_RangeLight(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -13,14 +14,13 @@ UKRGameplayAbility_RangeLight::UKRGameplayAbility_RangeLight(const FObjectInitia
 
 void UKRGameplayAbility_RangeLight::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		if (UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo())
 		{
 			bool bFound = false;
-			float CurrentAmmo = KRASC->GetNumericAttribute(UKRCombatCommonSet::GetCurrentAmmoAttribute()); 
-			float MaxAmmo = KRASC->GetNumericAttribute(UKRCombatCommonSet::GetMaxAmmoAttribute());
+			float CurrentAmmo = KRASC->GetNumericAttribute(UKRPlayerAttributeSet::GetCurrentAmmoAttribute());
+			float MaxAmmo = KRASC->GetNumericAttribute(UKRPlayerAttributeSet::GetMaxAmmoAttribute());
 		}
 
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -28,6 +28,10 @@ void UKRGameplayAbility_RangeLight::ActivateAbility(const FGameplayAbilitySpecHa
 		return;
 	}
 	
+	if (UWorld* World = GetWorld())
+	{
+		LastFireTime = World->GetTimeSeconds();
+	}
 	
     UAnimMontage* FireMontage = GetMontageFromEquipment(0);
 
@@ -49,6 +53,30 @@ void UKRGameplayAbility_RangeLight::ActivateAbility(const FGameplayAbilitySpecHa
 	}
 	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+bool UKRGameplayAbility_RangeLight::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+	
+	UWorld* World = GetWorld();
+	
+	if (!World)
+	{
+		return false;
+	}
+    
+	double CurrentTime = World->GetTimeSeconds();
+	
+	if (CurrentTime - LastFireTime < FireDelay)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 const TArray<TObjectPtr<UAnimMontage>>* UKRGameplayAbility_RangeLight::GetMontageArrayFromEntry(const FKRAppliedEquipmentEntry& Entry) const
