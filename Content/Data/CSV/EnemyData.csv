@@ -1,0 +1,5 @@
+EnemyTag,StateTree,AttackMontage,HitMontage,DeathMontage
+Enemy.Type.FerroLoader,,,,
+Enemy.Type.Arbid,,,,
+Enemy.Type.SpinderBreed,,,,
+Enemy.Type.Nerras,,,,

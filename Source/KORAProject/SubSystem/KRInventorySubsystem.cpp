@@ -220,6 +220,8 @@ void UKRInventorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
+	Collection.InitializeDependency<UKRDataTablesSubsystem>();
+
 	PlayerInventory.SetOwnerContext(this);
 
 	InitializeItemDefinitionFragments();
@@ -731,10 +733,9 @@ FKRInventoryList& UKRInventorySubsystem::GetInventory()
 
 void UKRInventorySubsystem::InitFragment(FGameplayTag ItemTag)
 {
-	UKRDataTablesSubsystem* DataTableSubsystem = GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
-	if (!DataTableSubsystem) { return; }
+	UKRDataTablesSubsystem& DataTableSubsystem = UKRDataTablesSubsystem::Get(this);
 
-	FItemDataStruct* ItemData = DataTableSubsystem->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	FItemDataStruct* ItemData = DataTableSubsystem.GetData<FItemDataStruct>(ItemTag);
 	if (!ItemData) { return; }
 
 	for (const FGameplayTag& AbilityTag : ItemData->FragmentTags)

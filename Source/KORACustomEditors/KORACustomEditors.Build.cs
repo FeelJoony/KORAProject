@@ -20,6 +20,7 @@ public class KORACustomEditors: ModuleRules
             "Core",
             "CoreUObject",
             "Engine",
+            "GameplayTagsEditor",
             "UnrealEd",
             "Slate",
             "SlateCore",
@@ -39,7 +40,11 @@ public class KORACustomEditors: ModuleRules
             "GameplayTags",
             "KORAProject",
             "DirectoryWatcher",
-            "KRUtilManager"
+            "KRUtilManager",
+            "EditorFramework",
+            "PropertyEditor",
+            "AdvancedPreviewScene",
+            "InputCore"
         });
     }
 }

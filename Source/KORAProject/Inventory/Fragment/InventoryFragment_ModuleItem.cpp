@@ -21,8 +21,8 @@ void UInventoryFragment_ModuleItem::InitializeFromData(UKRInventoryItemInstance*
 
 	const FGameplayTag& ItemTag = Instance->GetItemTag();
 	
-	UKRDataTablesSubsystem& DataSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
-	const FModuleDataStruct* ModuleData = DataSubsystem.GetDataSafe<FModuleDataStruct>(EGameDataType::ModuleData, ItemTag);
+	UKRDataTablesSubsystem& DataSubsystem = UKRDataTablesSubsystem::Get(this);
+	const FModuleDataStruct* ModuleData = DataSubsystem.GetDataSafe<FModuleDataStruct>(ItemTag);
 
 	if (!ModuleData)
 	{
@@ -39,7 +39,7 @@ void UInventoryFragment_ModuleItem::InitializeFromData(UKRInventoryItemInstance*
 		TargetWeaponSlotTag = KRTAG_ITEMTYPE_EQUIP_GUN;
 	}
 	
-	const FEquipAbilityDataStruct* AbilityData = DataSubsystem.GetData<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, static_cast<uint32>(ModuleData->EquipAbilityID), TEXT("ModuleFragment"), false);
+	const FEquipAbilityDataStruct* AbilityData = DataSubsystem.GetData<FEquipAbilityDataStruct>(static_cast<uint32>(ModuleData->EquipAbilityID), TEXT("ModuleFragment"), false);
 
 	if (AbilityData)
 	{

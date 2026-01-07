@@ -130,17 +130,17 @@ void UInventoryFragment_ConsumableItem::LoadFromDataTable(UKRInventoryItemInstan
 	UGameInstance* GI = Cast<UGameInstance>(ContextObj);
 	if (!GI) { return; }
 
-	UKRDataTablesSubsystem* DT = GI->GetSubsystem<UKRDataTablesSubsystem>();
+	UKRDataTablesSubsystem* DT = UKRDataTablesSubsystem::GetSafe(this);
 	if (!DT) { return; }
 	
 	const FGameplayTag ItemTag = Instance->GetItemTag();
-	FItemDataStruct* ItemRow = DT->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	FItemDataStruct* ItemRow = DT->GetData<FItemDataStruct>(ItemTag);
 	if (!ItemRow) { return; }
 
 	ConsumeID = ItemRow->ConsumeID;
 	if (ConsumeID < 0) { return; }
 	
-	FConsumeDataStruct* ConsumeRow = DT->GetData<FConsumeDataStruct>(EGameDataType::ConsumeData, ConsumeID);
+	FConsumeDataStruct* ConsumeRow = DT->GetData<FConsumeDataStruct>(ConsumeID);
 
 	if (!ConsumeRow) { return; }
 

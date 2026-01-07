@@ -140,8 +140,8 @@ void UKRQuestSubsystem::OnProgressBroadcast(EQuestType Type, int32 OrderIndex, c
 
 TSubclassOf<AKRQuestActor> UKRQuestSubsystem::LoadQuestActorClass(int32 Index)
 {
-	UKRDataTablesSubsystem* DataTableSubsystem = GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
-	if (FQuestDataStruct* QuestData = DataTableSubsystem->GetData<FQuestDataStruct>(EGameDataType::QuestData, Index))
+	UKRDataTablesSubsystem& DataTableSubsystem = UKRDataTablesSubsystem::Get(this);
+	if (FQuestDataStruct* QuestData = DataTableSubsystem.GetData<FQuestDataStruct>(Index))
 	{
 		FPrimaryAssetId PrimaryAssetId;
 		if (!PrimaryAssetId.IsValid())

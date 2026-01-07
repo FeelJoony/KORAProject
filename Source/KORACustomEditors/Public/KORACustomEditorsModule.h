@@ -12,9 +12,17 @@ public:
 
 private:
 	void RegisterMenus();
+	void RegisterTabs();
+
+	void UnregisterTabs();
+
+	TSharedRef<SDockTab> OnSpawnConstructMonsterTab(const FSpawnTabArgs& SpawnTabArgs);
 
 	static void RegisterMyToolsMenu(FMenuBuilder& MenuBuilder);
+	
 	static void OnConvertCSVToDataTablesClicked();
+	static void OnOpenToolWindowThatConstructMonster();
+	
 	void OnConvertCSVToDataTablesClicked(double EditorLoadTime);
 
 	void SetOnDirectoryChangeWatcherCallbacks();

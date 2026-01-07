@@ -1,0 +1,5 @@
+EnemyTag,AttackGA,HitGA,DeathGA,StunGA,SlashGA,AlertGA
+Enemy.Type.FerroLoader,,,,,,
+Enemy.Type.Arbid,,,,,,
+Enemy.Type.SpinderBreed,,,,,,
+Enemy.Type.Nerras,,,,,,

@@ -12,7 +12,7 @@ class KORAPROJECT_API UCacheDataTable : public UObject
 	GENERATED_BODY()
 
 public:
-	void Init(EGameDataType InDataType, UDataTable* NewDataTable);
+	//void Init(UScriptStruct* InScript, UDataTable* NewDataTable);
 
 	FORCEINLINE UDataTable* GetTable() const
 	{
@@ -76,30 +76,33 @@ public:
 		KeyList.GetKeys(OutKeys);
 	}
 
+	template<typename TRow>
+	void InitKeyList(UDataTable* NewDataTable);
+
 private:
 	UPROPERTY()
 	TMap<uint32, FName> KeyList;
 	UPROPERTY()
 	TObjectPtr<UDataTable> CachedDataTable;
-
-	template<typename TRow>
-	void InitKeyList(UDataTable* NewDataTable)
-	{
-		static_assert(std::is_base_of_v<class ITableKey, TRow>, "TRow must be a child of ITableKey");
-
-		CachedDataTable = NewDataTable;
-
-		if (!NewDataTable)
-		{
-			return;
-		}
-
-		const TArray<FName>& RowNames = NewDataTable->GetRowNames();
-		for (const auto& RowName : RowNames)
-		{
-			const TRow* Row = reinterpret_cast<const TRow*>(NewDataTable->FindRowUnchecked(RowName));
-
-			KeyList.Add(Row->GetKey(), RowName);
-		}
-	}
 };
+
+template <typename TRow>
+void UCacheDataTable::InitKeyList(UDataTable* NewDataTable)
+{
+	static_assert(std::is_base_of_v<class ITableKey, TRow>, "TRow must be a child of ITableKey");
+
+	CachedDataTable = NewDataTable;
+
+	if (!NewDataTable)
+	{
+		return;
+	}
+
+	const TArray<FName>& RowNames = NewDataTable->GetRowNames();
+	for (const auto& RowName : RowNames)
+	{
+		const TRow* Row = reinterpret_cast<const TRow*>(NewDataTable->FindRowUnchecked(RowName));
+
+		KeyList.Add(Row->GetKey(), RowName);
+	}
+}

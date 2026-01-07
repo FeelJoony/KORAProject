@@ -7,9 +7,6 @@ void UInventoryFragment_QuestItem::OnInstanceCreated(UKRInventoryItemInstance* I
 {
 	if (QuestID < 0) return;
 
-	auto DataTables = Instance->GetWorld()->GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
-	if (!DataTables) return;
-
 	//FQuestItemData* Row = DataTables->GetData<FQuestItemData>(EGameDataType:QuestData, QuestID);
 	//if (!Row) return;
 

@@ -34,5 +34,13 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Enemy")
 	FGameplayAttributeData PoiseRecoveryDelay;
 	ATTRIBUTE_ACCESSORS(UKREnemyAttributeSet, PoiseRecoveryDelay)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Enemy")
+	FGameplayAttributeData CanAttackRange;
+	ATTRIBUTE_ACCESSORS(UKREnemyAttributeSet, CanAttackRange)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Enemy")
+	FGameplayAttributeData EnterRageStatusRate;
+	ATTRIBUTE_ACCESSORS(UKREnemyAttributeSet, EnterRageStatusRate)
 	
 };

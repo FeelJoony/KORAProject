@@ -12,9 +12,9 @@ UKRQuestInstance::UKRQuestInstance()
 
 void UKRQuestInstance::Initialize(int32 QuestIndex)
 {
-	UKRDataTablesSubsystem* DataTableSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
-	CurrentQuestData = *DataTableSubsystem->GetData<FQuestDataStruct>(EGameDataType::QuestData, QuestIndex);
-	CurrentSubQuestData = *DataTableSubsystem->GetData<FSubQuestDataStruct>(EGameDataType::SubQuestData, QuestIndex);
+	UKRDataTablesSubsystem& DataTableSubsystem = UKRDataTablesSubsystem::Get(this);
+	CurrentQuestData = *DataTableSubsystem.GetData<FQuestDataStruct>(QuestIndex);
+	CurrentSubQuestData = *DataTableSubsystem.GetData<FSubQuestDataStruct>(QuestIndex);
 	CurrentSubOrder = CurrentSubQuestData.EvalDatas[0].OrderIndex;
 	CurrentState = EQuestState::NotStarted;
 

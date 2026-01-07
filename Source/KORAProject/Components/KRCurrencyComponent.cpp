@@ -45,7 +45,7 @@ void UKRCurrencyComponent::InitializeDataTables()
 
 	if (!GI) return;
 
-	DataTables = GI->GetSubsystem<UKRDataTablesSubsystem>();
+	DataTables = UKRDataTablesSubsystem::GetSafe(this);
 }
 
 void UKRCurrencyComponent::InitializeCurrencyLossRules()
@@ -60,14 +60,14 @@ void UKRCurrencyComponent::InitializeCurrencyLossRules()
 		{
 			if (UGameInstance* GI = World->GetGameInstance())
 			{
-				DataTables = GI->GetSubsystem<UKRDataTablesSubsystem>();
+				DataTables = UKRDataTablesSubsystem::GetSafe(this);
 			}
 		}
 	}
 
 	if (!DataTables) return;
 	
-	UCacheDataTable* Cache = DataTables->GetTable(EGameDataType::CurrencyData);
+	UCacheDataTable* Cache = DataTables->GetTable(FCurrencyDataStruct::StaticStruct());
 	if (!Cache) return;
 	
 	UDataTable* DT = Cache->GetTable();

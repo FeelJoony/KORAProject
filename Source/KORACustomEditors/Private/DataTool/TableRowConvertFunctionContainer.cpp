@@ -21,6 +21,9 @@
 #include "Data/ModuleDataStruct.h"
 #include "Data/KRDataAssetTableRows.h"
 #include "Data/CitizenDataStruct.h"
+#include "Data/EnemyAbilityDataStruct.h"
+#include "Data/EnemyAttributeDataStruct.h"
+#include "Data/EnemyDataStruct.h"
 
 struct FConsumeDataStruct;
 
@@ -29,6 +32,7 @@ UTableRowConvertFunctionContainer::UTableRowConvertFunctionContainer()
 
 }
 
+#pragma region ItemDataFunction
 void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
     CreateData(InCSVString, FString(TEXT("ItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -91,6 +95,9 @@ void UTableRowConvertFunctionContainer::CreateItemData(class UDataTable* OutData
         }));
 }
 
+#pragma endregion 
+
+#pragma region QuestDataFunction
 void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
     CreateData(InCSVString, FString(TEXT("QuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -129,6 +136,9 @@ void UTableRowConvertFunctionContainer::CreateQuestData(class UDataTable* OutDat
         }));
 }
 
+#pragma endregion 
+
+#pragma region SubQuestDataFunction
 void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
     CreateData(InCSVString, FString(TEXT("SubQuestData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -192,6 +202,9 @@ void UTableRowConvertFunctionContainer::CreateSubQuestData(class UDataTable* Out
         }));
 }
 
+#pragma endregion 
+
+#pragma region WeaponEnhanceDataFunction
 void UTableRowConvertFunctionContainer::CreateWeaponEnhanceData(class UDataTable* OutDataTable,
     const FString& InCSVString)
 {
@@ -235,6 +248,9 @@ void UTableRowConvertFunctionContainer::CreateWeaponEnhanceData(class UDataTable
         }));
 }
 
+#pragma endregion
+
+#pragma region TutorialDataFunction
 void UTableRowConvertFunctionContainer::CreateTutorialData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
     CreateData(InCSVString, FString(TEXT("TutorialData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -279,6 +295,9 @@ void UTableRowConvertFunctionContainer::CreateTutorialData(class UDataTable* Out
         }));
 }
 
+#pragma endregion 
+
+#pragma region ShopItemDataFunction
 void UTableRowConvertFunctionContainer::CreateShopItemData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
     CreateData(InCSVString, FString(TEXT("ShopItemData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -317,6 +336,9 @@ void UTableRowConvertFunctionContainer::CreateShopItemData(class UDataTable* Out
         }));
 }
 
+#pragma endregion 
+
+#pragma region ConsumeDataFunction
 void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("ConsumeData")), FParseMethod::CreateLambda(
@@ -514,6 +536,9 @@ void UTableRowConvertFunctionContainer::CreateConsumeData(UDataTable* OutDataTab
 		}));
 }
 
+#pragma endregion 
+
+#pragma region CurrencyDataFunction
 void UTableRowConvertFunctionContainer::CreateCurrencyData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("CurrencyData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -550,6 +575,9 @@ void UTableRowConvertFunctionContainer::CreateCurrencyData(class UDataTable* Out
 		}));
 }
 
+#pragma endregion 
+
+#pragma region EquipDataFunction
 void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("EquipData")), FParseMethod::CreateLambda(
@@ -604,6 +632,9 @@ void UTableRowConvertFunctionContainer::CreateEquipData(class UDataTable* OutDat
 		}));
 }
 
+#pragma endregion 
+
+#pragma region EquipAbilityDataFunction
 void UTableRowConvertFunctionContainer::CreateEquipAbilityData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("EquipAbilityData")), FParseMethod::CreateLambda(
@@ -659,6 +690,9 @@ void UTableRowConvertFunctionContainer::CreateEquipAbilityData(class UDataTable*
 		}));
 }
 
+#pragma endregion 
+
+#pragma region ModuleDataFunction
 void UTableRowConvertFunctionContainer::CreateModuleData(class UDataTable* OutDataTable, const FString& InCSVString)
 {	CreateData(InCSVString, FString(TEXT("ModuleData")), FParseMethod::CreateLambda(
 		[&](FParseMethodParams Params)
@@ -695,6 +729,9 @@ void UTableRowConvertFunctionContainer::CreateModuleData(class UDataTable* OutDa
 		}));
 }
 
+#pragma endregion 
+
+#pragma region SoundDataFunction
 void UTableRowConvertFunctionContainer::CreateSoundDefinitionData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("SoundDefinitionData")), FParseMethod::CreateLambda(
@@ -732,6 +769,9 @@ void UTableRowConvertFunctionContainer::CreateSoundDefinitionData(class UDataTab
 		}));
 }
 
+#pragma endregion 
+
+#pragma region ItemDataFunction
 void UTableRowConvertFunctionContainer::CreateEffectDefinitionData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("EffectDefinitionData")), FParseMethod::CreateLambda(
@@ -769,6 +809,9 @@ void UTableRowConvertFunctionContainer::CreateEffectDefinitionData(class UDataTa
 		}));
 }
 
+#pragma endregion 
+
+#pragma region WorldEventDataFunction
 void UTableRowConvertFunctionContainer::CreateWorldEventData(class UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("WorldEventData")), FParseMethod::CreateLambda(
@@ -806,6 +849,9 @@ void UTableRowConvertFunctionContainer::CreateWorldEventData(class UDataTable* O
 		}));
 }
 
+#pragma endregion 
+
+#pragma region CitizenDataFunction
 void UTableRowConvertFunctionContainer::CreateCitizenData(UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("CitizenData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -878,6 +924,149 @@ void UTableRowConvertFunctionContainer::CreateCitizenData(UDataTable* OutDataTab
 		}));
 
 }
+
+#pragma endregion 
+
+#pragma region EnemyDataFunction
+
+void UTableRowConvertFunctionContainer::CreateEnemyData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("EnemyData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 EnemyTag_Index = GetHeaderIndex(Headers, TEXT("EnemyTag"));
+				int32 StateTree_Index = GetHeaderIndex(Headers, TEXT("StateTree"));
+				int32 AttackMontage_Index = GetHeaderIndex(Headers, TEXT("AttackMontage"));
+				int32 HitMontage_Index = GetHeaderIndex(Headers, TEXT("HitMontage"));
+				int32 DeathMontage_Index = GetHeaderIndex(Headers, TEXT("DeathMontage"));
+
+				FEnemyDataStruct EnemyData;
+
+				EnemyData.EnemyTag = ParseGameplayTagValue(RowValue[EnemyTag_Index]);
+				//EnemyData.StateTree = ParseSoftObjectValue<UStateTree>(RowValue[StateTree_Index]);
+				//EnemyData.AttackMontage = ParseSoftObjectValue<UAnimMontage>(RowValue[AttackMontage_Index]);
+				//EnemyData.HitMontage = ParseSoftObjectValue<UAnimMontage>(RowValue[HitMontage_Index]);
+				//EnemyData.DeathMontage = ParseSoftObjectValue<UAnimMontage>(RowValue[DeathMontage_Index]);
+				
+				FName RowName = *FString::Printf(TEXT("Enemy_%d"), i);
+				if (FEnemyDataStruct* FindRow = OutDataTable->FindRow<FEnemyDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = EnemyData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, EnemyData);
+				}
+			}
+		}));
+}
+
+#pragma endregion
+
+#pragma region EquipAbilityDataFunction
+
+void UTableRowConvertFunctionContainer::CreateEnemyAbilityData(class UDataTable* OutDataTable,
+	const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("EnemyAbilityData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 EnemyTag_Index = GetHeaderIndex(Headers, TEXT("EnemyTag"));
+				int32 AttackGA_Index = GetHeaderIndex(Headers, TEXT("AttackGA"));
+				int32 HitGA_Index = GetHeaderIndex(Headers, TEXT("HitGA"));
+				int32 DeathGA_Index = GetHeaderIndex(Headers, TEXT("DeathGA"));
+				int32 StunGA_Index = GetHeaderIndex(Headers, TEXT("StunGA"));
+				int32 SlashGA_Index = GetHeaderIndex(Headers, TEXT("SlashGA"));
+				int32 AlertGA_Index = GetHeaderIndex(Headers, TEXT("AlertGA"));
+
+				FEnemyAbilityDataStruct EnemyAbilityData;
+
+				EnemyAbilityData.EnemyTag = ParseGameplayTagValue(RowValue[EnemyTag_Index]);
+				//EnemyAbilityData.AttackGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[AttackGA_Index]);
+				//EnemyAbilityData.HitGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[HitGA_Index]);
+				//EnemyAbilityData.DeathGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[DeathGA_Index]);
+				//EnemyAbilityData.StunGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[StunGA_Index]);
+				//EnemyAbilityData.SlashGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[SlashGA_Index]);
+				//EnemyAbilityData.AlertGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[AlertGA_Index]);
+				
+				FName RowName = *FString::Printf(TEXT("Enemy_%d"), i);
+				if (FEnemyAbilityDataStruct* FindRow = OutDataTable->FindRow<FEnemyAbilityDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = EnemyAbilityData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, EnemyAbilityData);
+				}
+			}
+		}));
+}
+
+#pragma endregion
+
+#pragma region EquipAttributeDataFunction
+
+void UTableRowConvertFunctionContainer::CreateEnemyAttributeData(class UDataTable* OutDataTable,
+	const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("EnemyData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 EnemyTag_Index = GetHeaderIndex(Headers, TEXT("EnemyTag"));
+				int32 MaxHealth_Index = GetHeaderIndex(Headers, TEXT("MaxHealth"));
+				int32 AttackPower_Index = GetHeaderIndex(Headers, TEXT("AttackPower"));
+				int32 DefensePower_Index = GetHeaderIndex(Headers, TEXT("DefensePower"));
+				int32 DealDamageMultiply_Index = GetHeaderIndex(Headers, TEXT("DealDamageMultiply"));
+				int32 TakeDamageMultiply_Index = GetHeaderIndex(Headers, TEXT("TakeDamageMultiply"));
+				int32 DamageTaken_Index = GetHeaderIndex(Headers, TEXT("DamageTaken"));
+				int32 CanAttackRange_Index = GetHeaderIndex(Headers, TEXT("CanAttackRange"));
+				int32 EnterRageStatusRate_Index = GetHeaderIndex(Headers, TEXT("EnterRageStatusRate"));
+
+				FEnemyAttributeDataStruct EnemyAttributeData;
+
+				EnemyAttributeData.EnemyTag = ParseGameplayTagValue(RowValue[EnemyTag_Index]);
+				EnemyAttributeData.MaxHealth = ParseFloatValue(RowValue[MaxHealth_Index]);
+				EnemyAttributeData.AttackPower = ParseFloatValue(RowValue[AttackPower_Index]);
+				EnemyAttributeData.DefensePower = ParseFloatValue(RowValue[DefensePower_Index]);
+				EnemyAttributeData.DealDamageMultiply = ParseFloatValue(RowValue[DealDamageMultiply_Index]);
+				EnemyAttributeData.TakeDamageMultiply = ParseFloatValue(RowValue[TakeDamageMultiply_Index]);
+				EnemyAttributeData.DamageTaken = ParseFloatValue(RowValue[DamageTaken_Index]);
+				EnemyAttributeData.CanAttackRange = ParseFloatValue(RowValue[CanAttackRange_Index]);
+				EnemyAttributeData.EnterRageStatusRate = ParseFloatValue(RowValue[EnterRageStatusRate_Index]);
+				
+				FName RowName = *FString::Printf(TEXT("Enemy_%d"), i);
+				if (FEnemyAttributeDataStruct* FindRow = OutDataTable->FindRow<FEnemyAttributeDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = EnemyAttributeData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, EnemyAttributeData);
+				}
+			}
+		}));
+}
+
+#pragma endregion 
+
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)
 {

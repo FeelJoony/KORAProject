@@ -1,12 +1,22 @@
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/CacheDataTable.h"
-#include "Data/GameDataType.h"
+#include "Data/CitizenDataStruct.h"
+#include "Data/ConsumeDataStruct.h"
+#include "Data/CurrencyDataStruct.h"
+#include "Data/EnemyAbilityDataStruct.h"
+#include "Data/EnemyAttributeDataStruct.h"
+#include "Data/EnemyDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/EquipDataStruct.h"
 #include "Data/ModuleDataStruct.h"
 #include "Data/EquipAbilityDataStruct.h"
+#include "Data/KRDataAssetTableRows.h"
+#include "Data/QuestDataStruct.h"
+#include "Data/ShopItemDataStruct.h"
+#include "Data/SubQuestDataStruct.h"
+#include "Data/TutorialDataStruct.h"
+#include "Data/WeaponEnhanceDataStruct.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogDataTablesSubsystem, Log, All);
 DEFINE_LOG_CATEGORY(LogDataTablesSubsystem);
 
 UKRDataTablesSubsystem::UKRDataTablesSubsystem()
@@ -18,25 +28,7 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	AddDataTable(EGameDataType::ItemData, FString(TEXT("ItemData")));
-	AddDataTable(EGameDataType::WeaponEnhanceData, FString(TEXT("WeaponEnhanceData")));
-	AddDataTable(EGameDataType::TutorialData, FString(TEXT("TutorialData")));
-	AddDataTable(EGameDataType::ShopItemData, FString(TEXT("ShopItemData")));
-	AddDataTable(EGameDataType::ConsumeData, FString(TEXT("ConsumeData")));
-	AddDataTable(EGameDataType::QuestData, FString(TEXT("QuestData")));
-	AddDataTable(EGameDataType::SubQuestData, FString(TEXT("SubQuestData")));
-	AddDataTable(EGameDataType::EquipData, FString(TEXT("EquipData")));
-	AddDataTable(EGameDataType::EquipAbilityData, FString(TEXT("EquipAbilityData")));
-	AddDataTable(EGameDataType::ModuleData, FString(TEXT("ModuleData")));
-	AddDataTable(EGameDataType::CurrencyData, FString(TEXT("CurrencyData")));
-	AddDataTable(EGameDataType::SoundDefinitionData, FString(TEXT("SoundDefinitionData")));
-	AddDataTable(EGameDataType::EffectDefinitionData, FString(TEXT("EffectDefinitionData")));
-	AddDataTable(EGameDataType::WorldEventData, FString(TEXT("WorldEventData")));
-	AddDataTable(EGameDataType::CitizenData, FString(TEXT("CitizenData")));
-
-#if !UE_BUILD_SHIPPING
-	ValidateDataReferences();
-#endif
+	InitializeDataTables();
 }
 
 void UKRDataTablesSubsystem::Deinitialize()
@@ -53,7 +45,7 @@ UKRDataTablesSubsystem& UKRDataTablesSubsystem::Get(const UObject* WorldContextO
 	return *DataTablesSubsystem;
 }
 
-UKRDataTablesSubsystem* UKRDataTablesSubsystem::GetSafe()
+UKRDataTablesSubsystem* UKRDataTablesSubsystem::GetSafe(const UObject* WorldContextObject)
 {
 	UWorld* World = GEngine ? GEngine->GetCurrentPlayWorld() : nullptr;
 	if (!World)
@@ -70,9 +62,9 @@ UKRDataTablesSubsystem* UKRDataTablesSubsystem::GetSafe()
 	return GameInstance->GetSubsystem<UKRDataTablesSubsystem>();
 }
 
-UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
+UCacheDataTable* UKRDataTablesSubsystem::GetTable(UScriptStruct* InStruct)
 {
-	TSoftObjectPtr<UCacheDataTable>& CacheDataTable = DataTables[InDataType];
+	TSoftObjectPtr<UCacheDataTable>& CacheDataTable = DataTables[InStruct];
 	if (!CacheDataTable)
 	{
 		return nullptr;
@@ -86,29 +78,13 @@ UCacheDataTable* UKRDataTablesSubsystem::GetTable(EGameDataType InDataType)
 	return CacheDataTable.Get();
 }
 
-void UKRDataTablesSubsystem::AddDataTable(EGameDataType InType, const FString& TableName)
-{
-	UDataTable* DataTable = Cast<class UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *FPaths::Combine(*TablePath, *FString::Printf(TEXT("%s.%s"), *TableName, *TableName))));
-
-	if (!DataTable)
-	{
-		UE_LOG(LogDataTablesSubsystem, Warning, TEXT("DataTable not found: %s"), *TableName);
-		return;
-	}
-
-	UCacheDataTable* CacheTable = NewObject<UCacheDataTable>(this);
-	CacheTable->Init(InType, DataTable);
-
-	DataTables.Add(InType, CacheTable);
-}
-
 void UKRDataTablesSubsystem::ValidateDataReferences()
 {
 	int32 ErrorCount = 0;
 
-	UCacheDataTable* EquipTable = GetTable(EGameDataType::EquipData);
-	UCacheDataTable* ModuleTable = GetTable(EGameDataType::ModuleData);
-	UCacheDataTable* AbilityTable = GetTable(EGameDataType::EquipAbilityData);
+	UCacheDataTable* EquipTable = GetTable(FEquipDataStruct::StaticStruct());
+	UCacheDataTable* ModuleTable = GetTable(FModuleDataStruct::StaticStruct());
+	UCacheDataTable* AbilityTable = GetTable(FEquipAbilityDataStruct::StaticStruct());
 
 	if (!AbilityTable)
 	{
@@ -187,24 +163,52 @@ void UKRDataTablesSubsystem::ValidateDataReferences()
 	}
 }
 
+void UKRDataTablesSubsystem::InitializeDataTables()
+{
+	DataTables.Empty();
+	
+	AddDataTable<FItemDataStruct>(FString(TEXT("ItemData")));
+	AddDataTable<FWeaponEnhanceDataStruct>(FString(TEXT("WeaponEnhanceData")));
+	AddDataTable<FTutorialDataStruct>(FString(TEXT("TutorialData")));
+	AddDataTable<FShopItemDataStruct>(FString(TEXT("ShopItemData")));
+	AddDataTable<FConsumeDataStruct>(FString(TEXT("ConsumeData")));
+	AddDataTable<FQuestDataStruct>(FString(TEXT("QuestData")));
+	AddDataTable<FSubQuestDataStruct>(FString(TEXT("SubQuestData")));
+	AddDataTable<FEquipDataStruct>(FString(TEXT("EquipData")));
+	AddDataTable<FEquipAbilityDataStruct>(FString(TEXT("EquipAbilityData")));
+	AddDataTable<FModuleDataStruct>(FString(TEXT("ModuleData")));
+	AddDataTable<FCurrencyDataStruct>(FString(TEXT("CurrencyData")));
+	AddDataTable<FSoundDefinitionDataStruct>(FString(TEXT("SoundDefinitionData")));
+	AddDataTable<FEffectDefinitionDataStruct>(FString(TEXT("EffectDefinitionData")));
+	AddDataTable<FWorldEventDataStruct>(FString(TEXT("WorldEventData")));
+	AddDataTable<FCitizenDataStruct>(FString(TEXT("CitizenData")));
+	AddDataTable<FEnemyDataStruct>(FString(TEXT("EnemyData")));
+	AddDataTable<FEnemyAbilityDataStruct>(FString(TEXT("EnemyAbilityData")));
+	AddDataTable<FEnemyAttributeDataStruct>(FString(TEXT("EnemyAttributeData")));
+
+#if !UE_BUILD_SHIPPING
+	ValidateDataReferences();
+#endif
+}
+
 const FEquipDataStruct* UKRDataTablesSubsystem::GetEquipDataByItemTag(const FGameplayTag& ItemTag)
 {
-	const FItemDataStruct* ItemData = GetDataSafe<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	const FItemDataStruct* ItemData = GetDataSafe<FItemDataStruct>(ItemTag);
 	if (!ItemData)
 	{
 		return nullptr;
 	}
 
-	return GetDataSafe<FEquipDataStruct>(EGameDataType::EquipData, static_cast<uint32>(ItemData->EquipID), TEXT(""), false);
+	return GetDataSafe<FEquipDataStruct>(static_cast<uint32>(ItemData->EquipID), TEXT(""), false);
 }
 
 const FModuleDataStruct* UKRDataTablesSubsystem::GetModuleDataByItemTag(const FGameplayTag& ItemTag)
 {
-	const FItemDataStruct* ItemData = GetDataSafe<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	const FItemDataStruct* ItemData = GetDataSafe<FItemDataStruct>(ItemTag);
 	if (!ItemData)
 	{
 		return nullptr;
 	}
 
-	return GetDataSafe<FModuleDataStruct>(EGameDataType::ModuleData, static_cast<uint32>(ItemData->ModuleID), TEXT(""), false);
+	return GetDataSafe<FModuleDataStruct>(static_cast<uint32>(ItemData->ModuleID), TEXT(""), false);
 }

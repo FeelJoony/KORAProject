@@ -16,7 +16,7 @@ void UInventoryFragment_EquippableItem::InitializeEquipInstance(UKRInventoryItem
 	if (!Instance) return;
 	if (EquipInstance && EquipInstance->IsValid()) return;
 
-	UKRDataTablesSubsystem* DataTablesSubsystem = UKRDataTablesSubsystem::GetSafe();
+	UKRDataTablesSubsystem* DataTablesSubsystem = UKRDataTablesSubsystem::GetSafe(this);
 	if (!DataTablesSubsystem)
 	{
 		return;

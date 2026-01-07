@@ -26,21 +26,21 @@ void UInventoryFragment_SetStats::InitializeWeaponStats(UKRInventoryItemInstance
 	UObject* ContextObj = Instance->GetOwnerContext();
 	if (!ContextObj) return;
 	
-	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
+	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
 
-	const FItemDataStruct* ItemData = DataTablesSubsystem.GetData<FItemDataStruct>(EGameDataType::ItemData, Instance->GetItemTag());
+	const FItemDataStruct* ItemData = DataTablesSubsystem.GetData<FItemDataStruct>(Instance->GetItemTag());
 	if (!ItemData)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ItemData Missing"));
 		return;
 	}
-	const FEquipDataStruct* EquipData = DataTablesSubsystem.GetData<FEquipDataStruct>(EGameDataType::EquipData, ItemData->EquipID);
+	const FEquipDataStruct* EquipData = DataTablesSubsystem.GetData<FEquipDataStruct>(ItemData->EquipID);
 	if (!EquipData)
 	{
 		UE_LOG(LogTemp, Error, TEXT("EquipData Missing"));
 		return;
 	}
-	const FEquipAbilityDataStruct* AbilityData = DataTablesSubsystem.GetData<FEquipAbilityDataStruct>(EGameDataType::EquipAbilityData, EquipData->EquipAbilityID);
+	const FEquipAbilityDataStruct* AbilityData = DataTablesSubsystem.GetData<FEquipAbilityDataStruct>(EquipData->EquipAbilityID);
 	if (!AbilityData)
 	{
 		UE_LOG(LogTemp, Error, TEXT("EquipAbilityData Missing"));

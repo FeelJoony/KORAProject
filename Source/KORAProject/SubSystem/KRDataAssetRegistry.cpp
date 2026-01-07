@@ -29,22 +29,15 @@ void UKRDataAssetRegistry::Deinitialize()
 FKRDataAssetRegistrationResult UKRDataAssetRegistry::RegisterAllFromDataTablesSubsystem()
 {
 	FKRDataAssetRegistrationResult Result;
-
-	UGameInstance* GameInstance = GetGameInstance();
-	if (!GameInstance)
-	{
-		UE_LOG(LogKRDataAssetRegistry, Warning, TEXT("RegisterAllFromDataTablesSubsystem: GameInstance is null"));
-		return Result;
-	}
-
-	UKRDataTablesSubsystem* DataTablesSubsystem = GameInstance->GetSubsystem<UKRDataTablesSubsystem>();
+	
+	UKRDataTablesSubsystem* DataTablesSubsystem = UKRDataTablesSubsystem::GetSafe(this);
 	if (!DataTablesSubsystem)
 	{
 		UE_LOG(LogKRDataAssetRegistry, Warning, TEXT("RegisterAllFromDataTablesSubsystem: DataTablesSubsystem is null"));
 		return Result;
 	}
 
-	if (UCacheDataTable* SoundCacheTable = DataTablesSubsystem->GetTable(EGameDataType::SoundDefinitionData))
+	if (UCacheDataTable* SoundCacheTable = DataTablesSubsystem->GetTable(FSoundDefinitionDataStruct::StaticStruct()))
 	{
 		if (UDataTable* SoundTable = SoundCacheTable->GetTable())
 		{
@@ -52,7 +45,7 @@ FKRDataAssetRegistrationResult UKRDataAssetRegistry::RegisterAllFromDataTablesSu
 		}
 	}
 
-	if (UCacheDataTable* EffectCacheTable = DataTablesSubsystem->GetTable(EGameDataType::EffectDefinitionData))
+	if (UCacheDataTable* EffectCacheTable = DataTablesSubsystem->GetTable(FEffectDefinitionDataStruct::StaticStruct()))
 	{
 		if (UDataTable* EffectTable = EffectCacheTable->GetTable())
 		{
@@ -60,7 +53,7 @@ FKRDataAssetRegistrationResult UKRDataAssetRegistry::RegisterAllFromDataTablesSu
 		}
 	}
 
-	if (UCacheDataTable* WorldEventCacheTable = DataTablesSubsystem->GetTable(EGameDataType::WorldEventData))
+	if (UCacheDataTable* WorldEventCacheTable = DataTablesSubsystem->GetTable(FWorldEventDataStruct::StaticStruct()))
 	{
 		if (UDataTable* WorldEventTable = WorldEventCacheTable->GetTable())
 		{

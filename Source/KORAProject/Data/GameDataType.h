@@ -20,4 +20,7 @@ enum class EGameDataType : uint8
 	EffectDefinitionData,
 	WorldEventData,
 	CitizenData,
+	EnemyData,
+	EnemyAbilityData,
+	EnemyAttributeData
 };

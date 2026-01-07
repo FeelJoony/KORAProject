@@ -7,9 +7,6 @@ void UInventoryFragment_MaterialItem::OnInstanceCreated(UKRInventoryItemInstance
 {
 	if (MaterialID < 0) return;
 
-	auto DataTables = Instance->GetWorld()->GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
-	if (!DataTables) return;
-
 	//FMaterialItemData* Row = DataTables->GetData<FMaterialItemData>(EGameDataType::MaterialData, MaterialID);
 	//if (!Row) return;
 

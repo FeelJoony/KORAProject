@@ -4,11 +4,14 @@
 #include "Core/DirectoryChangeWatcher.h"
 #include "DataTool/CSVToDataTableToolSubsystem.h"
 #include "DataTool/DataTableToolSettings.h"
+#include "Slate/ConstructMonsterWidget.h"
 
 
 //#include "Widgets/Notifications/SNotificationList.h"
 //#include "Framework/Notifications/NotificationManager.h"
+#include "Slate/ConstructMonsterWindow.h"
 #include "Styling/AppStyle.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "FPlayfabTestEditorModule"
 
@@ -20,6 +23,8 @@ void FKORACustomEditors::StartupModule()
 		FSimpleDelegate::CreateRaw(this, &FKORACustomEditors::RegisterMenus)
 	);
 
+	RegisterTabs();
+
 	SetOnDirectoryChangeWatcherCallbacks();
 	SetOnInitializedEditorCallbacks();
 }
@@ -27,7 +32,7 @@ void FKORACustomEditors::StartupModule()
 void FKORACustomEditors::ShutdownModule()
 {
 	UToolMenus::UnregisterOwner(TEXT("KORACustomEditorsModule"));
-
+	
 	if (ToolMenuExtensibilityManagerDelegateHandle.IsValid())
 	{
 		UToolMenus::UnRegisterStartupCallback(ToolMenuExtensibilityManagerDelegateHandle);
@@ -46,13 +51,36 @@ void FKORACustomEditors::RegisterMenus()
 	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Tools");
 	{
 		FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
+		
 		Section.AddSubMenu(
-			"DataTool",
-			LOCTEXT("MyToolMenuTitle", "Data Tools"),
+			"MyTool",
+			LOCTEXT("MyToolMenuTitle", "My Tools"),
 			LOCTEXT("MyToolsMenuTooltip", "Common custom editor tools for my project."),
 			FNewMenuDelegate::CreateStatic(&FKORACustomEditors::RegisterMyToolsMenu)
 		);
 	}
+}
+
+void FKORACustomEditors::RegisterTabs()
+{
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner
+	(
+		FName(TEXT("ConstructMonsterTool")),
+		FOnSpawnTab::CreateRaw(this, &FKORACustomEditors::OnSpawnConstructMonsterTab)
+	).SetDisplayName(FText::FromString(TEXT("ConstructMonsterTool")));
+}
+
+void FKORACustomEditors::UnregisterTabs()
+{
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(FName("ConstructMonsterTool"));
+}
+
+TSharedRef<SDockTab> FKORACustomEditors::OnSpawnConstructMonsterTab(const FSpawnTabArgs& SpawnTabArgs)
+{
+	return SNew(SDockTab).TabRole(ETabRole::NomadTab)
+	[
+		SNew(SConstructMonsterWindow)
+	];
 }
 
 void FKORACustomEditors::RegisterMyToolsMenu(FMenuBuilder& MenuBuilder)
@@ -62,6 +90,13 @@ void FKORACustomEditors::RegisterMyToolsMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ConvertCSVToDataTablesTooltip", "Converts all CSV files in the specified folder to Data Tables."),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "ContentBrowser.ImportAsset"),
 		FUIAction(FExecuteAction::CreateStatic(&FKORACustomEditors::OnConvertCSVToDataTablesClicked))
+	);
+
+	MenuBuilder.AddMenuEntry(
+			FText::FromString("Construct Monster"),
+			LOCTEXT("ConstructMonsterTooltip", "Construct Monster"),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "ContentBrowser.ImportAsset"),
+			FUIAction(FExecuteAction::CreateStatic(&FKORACustomEditors::OnOpenToolWindowThatConstructMonster))
 	);
 }
 
@@ -86,6 +121,14 @@ void FKORACustomEditors::OnConvertCSVToDataTablesClicked()
 		FSlateNotificationManager::Get().AddNotification(Info);
 		UE_LOG(LogTemp, Error, TEXT("UCSVToDataTableToolSubsystem not found or not initialized!"));
 	}
+
+	// UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
+	// DataTablesSubsystem.InitializeDataTables();
+}
+
+void FKORACustomEditors::OnOpenToolWindowThatConstructMonster()
+{
+	FGlobalTabmanager::Get()->TryInvokeTab(FName("ConstructMonsterTool"));
 }
 
 void FKORACustomEditors::OnConvertCSVToDataTablesClicked(double EditorLoadTime)

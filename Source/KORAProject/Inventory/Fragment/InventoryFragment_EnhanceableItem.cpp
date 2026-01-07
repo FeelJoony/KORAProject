@@ -27,10 +27,10 @@ void UInventoryFragment_EnhanceableItem::OnInstanceCreated(UKRInventoryItemInsta
 	UGameInstance* GI = Cast<UGameInstance>(ContextObj);
 	if (!GI) { return; }
 	
-	auto* DT = GI->GetSubsystem<UKRDataTablesSubsystem>();
+	auto* DT = UKRDataTablesSubsystem::GetSafe(this);
 	if (!DT) { return; }
 
-	FWeaponEnhanceDataStruct* Row = DT->GetData<FWeaponEnhanceDataStruct>(EGameDataType::WeaponEnhanceData, WeaponTypeTag);
+	FWeaponEnhanceDataStruct* Row = DT->GetData<FWeaponEnhanceDataStruct>(WeaponTypeTag);
 	if (!Row) { return; }
 
 }

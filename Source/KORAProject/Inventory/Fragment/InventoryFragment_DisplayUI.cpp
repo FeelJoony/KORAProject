@@ -18,10 +18,10 @@ void UInventoryFragment_DisplayUI::OnInstanceCreated(UKRInventoryItemInstance* I
 	UGameInstance* GI = Cast<UGameInstance>(ContextObj);
 	if (!GI) { return; }
 	
-	auto* DT = GI->GetSubsystem<UKRDataTablesSubsystem>();
+	auto* DT = UKRDataTablesSubsystem::GetSafe(this);
 	if (!DT) { return; }
 
-	FItemDataStruct* Row = DT->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	FItemDataStruct* Row = DT->GetData<FItemDataStruct>(ItemTag);
 	if (!Row) { return; }
 
 	DisplayNameKey  = Row->DisplayNameKey;
