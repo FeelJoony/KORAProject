@@ -4,8 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Game\n"
-"POT-Creation-Date: 2026-01-04 12:44\n"
-"PO-Revision-Date: 2026-01-04 12:44\n"
+"POT-Creation-Date: 2026-01-07 13:59\n"
+"PO-Revision-Date: 2026-01-07 13:59\n"
 "Language-Team: \n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -811,6 +811,34 @@ msgctxt "ST_QuestList,DLG_Clara_008"
 msgid "Find the truth, Agent Kora. The fate of Barion rests on your shoulders. Good luck."
 msgstr "진실을 찾아라, 요원 코라. 바리온의 운명이 당신의 어깨에 달려 있습니다. 행운을 빕니다."
 
+#. Key:	DLG_VILLAIN_001
+#. SourceLocation:	/Game/UI/StringTable/ST_QuestList.ST_QuestList
+#: /Game/UI/StringTable/ST_QuestList.ST_QuestList
+msgctxt "ST_QuestList,DLG_VILLAIN_001"
+msgid "Was it you… the one who ruined my plan?"
+msgstr ""
+
+#. Key:	DLG_VILLAIN_002
+#. SourceLocation:	/Game/UI/StringTable/ST_QuestList.ST_QuestList
+#: /Game/UI/StringTable/ST_QuestList.ST_QuestList
+msgctxt "ST_QuestList,DLG_VILLAIN_002"
+msgid "Ha—how ridiculous."
+msgstr ""
+
+#. Key:	DLG_VILLAIN_003
+#. SourceLocation:	/Game/UI/StringTable/ST_QuestList.ST_QuestList
+#: /Game/UI/StringTable/ST_QuestList.ST_QuestList
+msgctxt "ST_QuestList,DLG_VILLAIN_003"
+msgid "I’ll erase you—along with this city."
+msgstr ""
+
+#. Key:	DLG_VILLAIN_004
+#. SourceLocation:	/Game/UI/StringTable/ST_QuestList.ST_QuestList
+#: /Game/UI/StringTable/ST_QuestList.ST_QuestList
+msgctxt "ST_QuestList,DLG_VILLAIN_004"
+msgid "Come at me!"
+msgstr ""
+
 #. Key:	Main_AccessPoint
 #. SourceLocation:	/Game/UI/StringTable/ST_QuestList.ST_QuestList
 #: /Game/UI/StringTable/ST_QuestList.ST_QuestList
@@ -1391,60 +1419,4 @@ msgstr "대화"
 msgctxt "ST_UIBaseTexts,WeaponUpgrade_Upgrade"
 msgid "Upgrade"
 msgstr "강화"
-
-#. Key:	Apply
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsActionButton.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsActionButton.cpp
-msgctxt "Settings,Apply"
-msgid "APPLY"
-msgstr "적용"
-
-#. Key:	Reset
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsActionButton.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsActionButton.cpp
-msgctxt "Settings,Reset"
-msgid "RESET"
-msgstr "초기화"
-
-#. Key:	Back
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsActionButton.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsActionButton.cpp
-msgctxt "Settings,Back"
-msgid "BACK"
-msgstr "뒤로"
-
-#. Key:	VideoTab
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-msgctxt "Settings,VideoTab"
-msgid "Video"
-msgstr "비디오"
-
-#. Key:	GraphicsTab
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-msgctxt "Settings,GraphicsTab"
-msgid "Graphics"
-msgstr "그래픽"
-
-#. Key:	ControlTab
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-msgctxt "Settings,ControlTab"
-msgid "Control"
-msgstr "조작"
-
-#. Key:	AudioTab
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-msgctxt "Settings,AudioTab"
-msgid "Audio"
-msgstr "오디오"
-
-#. Key:	GameplayTab
-#. SourceLocation:	Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-#: Source/KORAProject/UI/Settings/KRSettingsMenuWidget.cpp
-msgctxt "Settings,GameplayTab"
-msgid "Gameplay"
-msgstr "게임플레이"
 
