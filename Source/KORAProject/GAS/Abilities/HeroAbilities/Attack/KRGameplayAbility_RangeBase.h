@@ -29,6 +29,8 @@ protected:
 	
 	virtual const TArray<TObjectPtr<UAnimMontage>>* GetMontageArrayFromEntry(const FKRAppliedEquipmentEntry& Entry) const;
 
+	virtual UGameplayEffect* GetCostGameplayEffect() const override;
+	
 	UAnimMontage* GetMontageFromEquipment(int32 MontageIndex = 0) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Effects")

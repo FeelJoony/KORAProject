@@ -17,8 +17,6 @@ UKRCombatCommonSet::UKRCombatCommonSet()
 	InitCritChance(0.f);
 	InitCritMulti(1.5f);
 	InitWeaponRange(200.f);
-	InitCurrentAmmo(0.f);
-	InitMaxAmmo(0.f);
 }
 
 void UKRCombatCommonSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -28,11 +26,6 @@ void UKRCombatCommonSet::PreAttributeChange(const FGameplayAttribute& Attribute,
 	if (Attribute == GetCurrentHealthAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
-	}
-
-	if (Attribute == GetCurrentAmmoAttribute())
-	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxAmmo());
 	}
 }
 

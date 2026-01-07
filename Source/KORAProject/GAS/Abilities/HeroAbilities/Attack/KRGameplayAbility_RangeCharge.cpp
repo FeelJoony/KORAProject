@@ -129,15 +129,21 @@ void UKRGameplayAbility_RangeCharge::StartReleaseSequence(bool bIsFullCharge)
 	FRotator AimRot = GetFinalAimRotation(MaxRange);
 	
 	FireWeaponActor(AimRot);
+
+	FName TargetSection = SectionName_Fire;
+	if (bIsFullCharge)
+	{
+		TargetSection = FName("Fire_Full");
+	}
 	
 	ReleasePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this,
-		FName("ReleasePhase"),
-		ChargeMontage,
-		1.0f,
-		SectionName_Fire,
-		true
-	);
+		   this,
+		   FName("ReleasePhase"),
+		   ChargeMontage,
+		   1.0f,
+		   TargetSection,
+		   true
+		);
 
 	if (ReleasePlayTask)
 	{

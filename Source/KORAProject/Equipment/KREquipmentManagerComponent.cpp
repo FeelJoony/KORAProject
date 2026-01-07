@@ -25,6 +25,7 @@
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "Engine/AssetManager.h"
 #include "Data/EquipDataStruct.h"
+#include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KREquipmentManagerComponent)
 
@@ -773,19 +774,18 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 		Idx++;
 	}
 
-	const float MaxAmmoDelta = (float)Stats.Capacity;
-	if (MaxAmmoDelta > 0.f)
+	float BaseAmmoCapacity = 0.0f;
+	if (SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	{
+		BaseAmmoCapacity = 30.0f;
+	}
+
+	if (BaseAmmoCapacity > 0.f)
 	{
 		GE->Modifiers.Add(FGameplayModifierInfo());
-		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetMaxAmmoAttribute();
-		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
-		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MaxAmmoDelta));
-		Idx++;
-		
-		GE->Modifiers.Add(FGameplayModifierInfo());
-		GE->Modifiers[Idx].Attribute = UKRCombatCommonSet::GetCurrentAmmoAttribute();
-		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
-		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MaxAmmoDelta));
+		GE->Modifiers[Idx].Attribute = UKRPlayerAttributeSet::GetMaxAmmoAttribute();
+		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Override;
+		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(BaseAmmoCapacity));
 		Idx++;
 	}
 	
@@ -801,6 +801,11 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 	if (Handle.IsValid())
 	{
 		EquipmentGEHandles.Add(SlotTag, Handle);
+
+		if (BaseAmmoCapacity > 0.f)
+		{
+			ASC->SetNumericAttributeBase(UKRPlayerAttributeSet::GetCurrentAmmoAttribute(), BaseAmmoCapacity);
+		}
 	}
 
 	UE_LOG(LogEquipmentManagerComponent, Log, TEXT("ApplyEquipmentStats [%s]: Applied GE with ATK=%.1f, Speed=%.2f, Crit=%.2f"),
@@ -1030,8 +1035,8 @@ void UKREquipmentManagerComponent::BroadcastWeaponMessage(EWeaponMessageAction A
 		if (UAbilitySystemComponent* LocalASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
 		{
 			bool bFound = false;
-			float CurVal = LocalASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetCurrentAmmoAttribute(), bFound);
-			float MaxVal = LocalASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetMaxAmmoAttribute(), bFound);
+			float CurVal = LocalASC->GetGameplayAttributeValue(UKRPlayerAttributeSet::GetCurrentAmmoAttribute(), bFound);
+			float MaxVal = LocalASC->GetGameplayAttributeValue(UKRPlayerAttributeSet::GetMaxAmmoAttribute(), bFound);
 
 			Msg.CurrentAmmo = (int32)CurVal;
 			Msg.MaxAmmo = (int32)MaxVal;
