@@ -24,7 +24,7 @@ void UKRInventoryFragment_SellableItem::OnInstanceCreated(UKRInventoryItemInstan
 	auto* DT = GI->GetSubsystem<UKRDataTablesSubsystem>();
 	if (!DT) { return; }
 
-	FItemDataStruct* Row = DT->GetData<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+	FItemDataStruct* Row = DT->GetData<FItemDataStruct>(ItemTag);
 	if (!Row) { return; }
 
 	BasePrice = Row->BasePrice;

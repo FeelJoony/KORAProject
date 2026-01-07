@@ -22,7 +22,7 @@ enum class EGameDataType : uint8
 	CitizenData,
 	EnemyData,
 	EnemyAbilityData,
-	EnemyAttributeData
+	EnemyAttributeData,
 	DialogueData,
 	LevelTransitionData,
 };

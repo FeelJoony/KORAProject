@@ -71,7 +71,7 @@ void UKRMapTravelSubsystem::TravelToExperience(const FString& UserFacingPath, FG
 	FName RowName = FName(*ActivationTag.ToString());
 
 	// GetTable로 직접 DataTable 접근
-	UCacheDataTable* CacheTable = DataTableSubsystem.GetTable(EGameDataType::LevelTransitionData);
+	UCacheDataTable* CacheTable = DataTableSubsystem.GetTable(FLevelTransitionData::StaticStruct());
 	FLevelTransitionData* TransitionData = nullptr;
 
 	if (CacheTable && CacheTable->GetTable())

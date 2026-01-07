@@ -126,7 +126,7 @@ FDialogueDataStruct UKRGA_QuestDialogue::LoadDialogueData(int32 DialogueIndex, F
 		return Result;
 	}
 
-	FDialogueDataStruct* DialogueData = DataTableSubsystem->GetDataSafe<FDialogueDataStruct>(EGameDataType::DialogueData, DialogueIndex);
+	FDialogueDataStruct* DialogueData = DataTableSubsystem->GetDataSafe<FDialogueDataStruct>(DialogueIndex);
 	if (DialogueData)
 	{
 		Result = *DialogueData;

@@ -28,48 +28,12 @@ void UKRDataTablesSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-<<<<<<< HEAD
 	InitializeDataTables();
-=======
-	InitializeTableNames();
-
-	// TableNames 맵을 순회하면서 모든 테이블 로드
-	for (const auto& Pair : TableNames)
-	{
-		AddDataTable(Pair.Key, Pair.Value);
-	}
-
-#if !UE_BUILD_SHIPPING
-	ValidateDataReferences();
-#endif
->>>>>>> 99546d8a5c6df5a2d5d9a3df723f4e28ccc8df87
 }
 
 void UKRDataTablesSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
-}
-
-void UKRDataTablesSubsystem::InitializeTableNames()
-{
-	TableNames.Empty();
-	TableNames.Add(EGameDataType::ItemData, TEXT("ItemData"));
-	TableNames.Add(EGameDataType::WeaponEnhanceData, TEXT("WeaponEnhanceData"));
-	TableNames.Add(EGameDataType::TutorialData, TEXT("TutorialData"));
-	TableNames.Add(EGameDataType::ShopItemData, TEXT("ShopItemData"));
-	TableNames.Add(EGameDataType::ConsumeData, TEXT("ConsumeData"));
-	TableNames.Add(EGameDataType::QuestData, TEXT("QuestData"));
-	TableNames.Add(EGameDataType::SubQuestData, TEXT("SubQuestData"));
-	TableNames.Add(EGameDataType::EquipData, TEXT("EquipData"));
-	TableNames.Add(EGameDataType::EquipAbilityData, TEXT("EquipAbilityData"));
-	TableNames.Add(EGameDataType::ModuleData, TEXT("ModuleData"));
-	TableNames.Add(EGameDataType::CurrencyData, TEXT("CurrencyData"));
-	TableNames.Add(EGameDataType::SoundDefinitionData, TEXT("SoundDefinitionData"));
-	TableNames.Add(EGameDataType::EffectDefinitionData, TEXT("EffectDefinitionData"));
-	TableNames.Add(EGameDataType::WorldEventData, TEXT("WorldEventData"));
-	TableNames.Add(EGameDataType::CitizenData, TEXT("CitizenData"));
-	TableNames.Add(EGameDataType::DialogueData, TEXT("DialogueData"));
-	TableNames.Add(EGameDataType::LevelTransitionData, TEXT("LevelTransitionData"));
 }
 
 UKRDataTablesSubsystem& UKRDataTablesSubsystem::Get(const UObject* WorldContextObject)
@@ -101,39 +65,17 @@ UKRDataTablesSubsystem* UKRDataTablesSubsystem::GetSafe(const UObject* WorldCont
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(UScriptStruct* InStruct)
 {
 	TSoftObjectPtr<UCacheDataTable>& CacheDataTable = DataTables[InStruct];
-	if (!CacheDataTable)
+	if (!CacheDataTable.IsValid())
 	{
-		UE_LOG(LogDataTablesSubsystem, Warning, TEXT("GetTable: Table not found or invalid for type %d, reinitializing..."), (int32)InDataType);
-
-		const FString* TableName = TableNames.Find(InDataType);
-		if (TableName)
-		{
-			UE_LOG(LogDataTablesSubsystem, Log, TEXT("GetTable: Found TableName '%s' for type %d, calling AddDataTable..."), **TableName, (int32)InDataType);
-			AddDataTable(InDataType, *TableName);
-			CacheDataTablePtr = DataTables.Find(InDataType);
-
-			if (!CacheDataTablePtr)
-			{
-				UE_LOG(LogDataTablesSubsystem, Error, TEXT("GetTable: AddDataTable failed - CacheDataTablePtr is still null!"));
-				return nullptr;
-			}
-		}
-		else
-		{
-			UE_LOG(LogDataTablesSubsystem, Error, TEXT("GetTable: Unknown data type %d - TableName not found in TableNames map"), (int32)InDataType);
-			return nullptr;
-		}
+		return nullptr;
 	}
 
-	if (CacheDataTablePtr && CacheDataTablePtr->IsPending())
+	if (CacheDataTable.IsPending())
 	{
-		UE_LOG(LogDataTablesSubsystem, Log, TEXT("GetTable: Table is pending, loading synchronously..."));
-		CacheDataTablePtr->LoadSynchronous();
+		CacheDataTable.LoadSynchronous();
 	}
 
-	UCacheDataTable* Result = CacheDataTablePtr ? CacheDataTablePtr->Get() : nullptr;
-	UE_LOG(LogDataTablesSubsystem, Verbose, TEXT("GetTable returning %s for type %d"), Result ? TEXT("valid table") : TEXT("nullptr"), (int32)InDataType);
-	return Result;
+	return CacheDataTable.Get();
 }
 
 void UKRDataTablesSubsystem::ValidateDataReferences()

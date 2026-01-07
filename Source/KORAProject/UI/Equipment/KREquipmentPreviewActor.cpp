@@ -888,10 +888,10 @@ void AKREquipmentPreviewActor::PreloadEquipmentAssets()
 		if (UKRInventoryItemInstance* Inst = HeroEquipMgr->GetEquippedItemInstanceBySlotTag(SlotTag))
 		{
 			const FGameplayTag& ItemTag = Inst->GetItemTag();
-			const FItemDataStruct* ItemData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FItemDataStruct>(EGameDataType::ItemData, ItemTag);
+			const FItemDataStruct* ItemData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FItemDataStruct>(ItemTag);
 			if (!ItemData) continue;
 
-			const FEquipDataStruct* EquipData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FEquipDataStruct>(EGameDataType::EquipData, static_cast<uint32>(ItemData->EquipID));
+			const FEquipDataStruct* EquipData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FEquipDataStruct>(ItemData->EquipID);
 			if (!EquipData) continue;
 			
 			if (!EquipData->EquipmentMesh.IsNull())
