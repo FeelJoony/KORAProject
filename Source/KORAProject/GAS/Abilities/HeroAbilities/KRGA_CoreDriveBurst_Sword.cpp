@@ -1,12 +1,13 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_CoreDriveBurst_Sword.h"
+#include "Data/DataAssets/KRStarDashData.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Components/KRCoreDriveComponent.h"
-#include "Components/KRCameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/KRCameraMode.h"
 #include "Camera/KRCameraMode_Burst.h"
+#include "Components/KRCameraComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/Abilities/HeroAbilities/KRGA_LockOn.h"
@@ -18,6 +19,8 @@
 #include "TimerManager.h"
 #include "Engine/OverlapResult.h"
 #include "DrawDebugHelpers.h"
+#include "Characters/KRHeroCharacter.h"
+#include "Components/KRHeroComponent.h"
 
 UKRGA_CoreDriveBurst_Sword::UKRGA_CoreDriveBurst_Sword(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -30,7 +33,6 @@ UKRGA_CoreDriveBurst_Sword::UKRGA_CoreDriveBurst_Sword(const FObjectInitializer&
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
-	// 기본 Cue 태그 설정
 	StartupCueTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.CoreDrive.Burst.Startup"), false);
 	AttackCueTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.CoreDrive.Burst.Attack"), false);
 	HitCueTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.CoreDrive.Burst.Hit"), false);
@@ -48,9 +50,6 @@ void UKRGA_CoreDriveBurst_Sword::ActivateAbility(
 	UKRCoreDriveComponent* CoreDriveComp = GetCoreDriveComponent();
 	if (!CoreDriveComp || !CoreDriveComp->CanUseCoreDriveBurst())
 	{
-#if !UE_BUILD_SHIPPING
-		UE_LOG(LogTemp, Warning, TEXT("[CoreDriveBurst] CoreDrive not full - cannot use Burst"));
-#endif
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -60,24 +59,49 @@ void UKRGA_CoreDriveBurst_Sword::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(KRTAG_STATE_ACTING_UNINTERRUPTIBLE);
+	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(KRTAG_STATE_ACTING_COREDRIVE_BURST);
 	
 	CoreDriveComp->ConsumeAllCoreDrive();
 
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (AvatarActor)
+	if (AActor* AvatarActor = GetAvatarActorFromActorInfo())
 	{
 		BurstAnchorLocation = AvatarActor->GetActorLocation();
 		BurstAnchorRotation = AvatarActor->GetActorRotation();
+
+		if (AbilityCameraModeClass)
+		{
+			if (UKRHeroComponent* HeroComponent = AvatarActor->FindComponentByClass<UKRHeroComponent>())
+			{
+				if (AKRHeroCharacter* HeroCharacter = Cast<AKRHeroCharacter>(AvatarActor))
+				{
+					if (UKRCameraComponent* CameraComp = HeroCharacter->GetCameraComponent())
+					{
+						// 1. 카메라 업데이트 잠금 (설정 중 튀는 현상 방지)
+						CameraComp->SetCameraModeUpdateLocked(true);
+	
+						// 2. 카메라 모드 직접 Push (즉시 적용)
+						CameraComp->PushCameraMode(AbilityCameraModeClass);
+	
+						// 3. 인스턴스 가져와서 초기화 (필수 단계)
+						if (UKRCameraMode* ModeInstance = CameraComp->GetCameraModeInstanceByClass(AbilityCameraModeClass))
+						{
+							if (UKRCameraMode_Burst* BurstMode = Cast<UKRCameraMode_Burst>(ModeInstance))
+							{
+								BurstMode->SetupBurstCamera(AvatarActor->GetActorLocation(), AvatarActor->GetActorForwardVector());
+								BurstMode->SetPlayerActor(AvatarActor);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	SetIgnorePawnCollision(true);
 	DisableMovement();
-	PushCameraMode();
 	TransitionToPhase(EKRCoreDriveBurstPhase::Startup);
-
-#if !UE_BUILD_SHIPPING
-	UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Activated - Starting Startup Phase"));
-#endif
 }
 
 void UKRGA_CoreDriveBurst_Sword::EndAbility(
@@ -87,14 +111,34 @@ void UKRGA_CoreDriveBurst_Sword::EndAbility(
 	bool bReplicateEndAbility,
 	bool bWasCancelled)
 {
-	// 타이머 정리
+	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_UNINTERRUPTIBLE);
+	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_COREDRIVE_BURST);
+
+	if (LoopCueTag.IsValid())
+	{
+		GetAbilitySystemComponentFromActorInfo()->RemoveGameplayCue(LoopCueTag);
+	}
+
 	StopMultiHitSequence();
 
-	// 워프 타겟 정리
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (AvatarActor)
+	if (AActor* AvatarActor = GetAvatarActorFromActorInfo())
 	{
 		UKRMotionWarpingLibrary::RemoveWarpTarget(AvatarActor, FName("BurstTarget"));
+		
+		if (AbilityCameraModeClass)
+		{
+			if (UKRHeroComponent* HeroComponent = AvatarActor->FindComponentByClass<UKRHeroComponent>())
+			{
+				if (AKRHeroCharacter* HeroCharacter = Cast<AKRHeroCharacter>(AvatarActor))
+				{
+					if (UKRCameraComponent* CameraComp = HeroCharacter->GetCameraComponent())
+					{
+						CameraComp->RemoveCameraMode(AbilityCameraModeClass);
+						CameraComp->SetCameraModeUpdateLocked(false);
+					}
+				}
+			}
+		}
 	}
 
 	// 현재 페이즈에 따라 정리
@@ -111,13 +155,7 @@ void UKRGA_CoreDriveBurst_Sword::EndAbility(
 	}
 
 	SetIgnorePawnCollision(false);
-	
-	// 이동 활성화
 	EnableMovement();
-
-	// 카메라 모드 제거
-	RemoveCameraMode();
-	
 	CurrentPhase = EKRCoreDriveBurstPhase::None;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -125,22 +163,11 @@ void UKRGA_CoreDriveBurst_Sword::EndAbility(
 
 UKRCoreDriveComponent* UKRGA_CoreDriveBurst_Sword::GetCoreDriveComponent() const
 {
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor)
-	{
-		return nullptr;
-	}
-
-	return AvatarActor->FindComponentByClass<UKRCoreDriveComponent>();
+	return GetAvatarActorFromActorInfo() ? GetAvatarActorFromActorInfo()->FindComponentByClass<UKRCoreDriveComponent>() : nullptr;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 페이즈 전환
-// ─────────────────────────────────────────────────────────────────────────────
 
 void UKRGA_CoreDriveBurst_Sword::TransitionToPhase(EKRCoreDriveBurstPhase NewPhase)
 {
-	// 이전 페이즈 정리
 	switch (CurrentPhase)
 	{
 	case EKRCoreDriveBurstPhase::Startup:
@@ -156,7 +183,6 @@ void UKRGA_CoreDriveBurst_Sword::TransitionToPhase(EKRCoreDriveBurstPhase NewPha
 
 	CurrentPhase = NewPhase;
 
-	// 새 페이즈 시작
 	switch (NewPhase)
 	{
 	case EKRCoreDriveBurstPhase::Startup:
@@ -171,11 +197,6 @@ void UKRGA_CoreDriveBurst_Sword::TransitionToPhase(EKRCoreDriveBurstPhase NewPha
 	default:
 		break;
 	}
-
-#if !UE_BUILD_SHIPPING
-	static const TCHAR* PhaseNames[] = { TEXT("None"), TEXT("Startup"), TEXT("Attack"), TEXT("Finished") };
-	UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Transitioned to Phase: %s"), PhaseNames[static_cast<int32>(NewPhase)]);
-#endif
 }
 
 void UKRGA_CoreDriveBurst_Sword::StartStartupPhase()
@@ -189,7 +210,6 @@ void UKRGA_CoreDriveBurst_Sword::StartStartupPhase()
 	}
 	else
 	{
-		// 몽타주 없으면 바로 Attack 페이즈로
 		TransitionToPhase(EKRCoreDriveBurstPhase::Attack);
 	}
 }
@@ -199,21 +219,26 @@ void UKRGA_CoreDriveBurst_Sword::StartAttackPhase()
 	ApplyFullInvincibility();
 	ExecuteCue(AttackCueTag);
 
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (AvatarActor)
+	if (AActor* AvatarActor = GetAvatarActorFromActorInfo())
 	{
-		AActor* LockedTarget = UKRGA_LockOn::GetLockedTargetFor(AvatarActor);
-		if (LockedTarget)
+		if (AActor* LockedTarget = UKRGA_LockOn::GetLockedTargetFor(AvatarActor))
 		{
-			// 워핑은 유지 (첫 타격을 위해 방향 보정)
 			FVector DirectionToTarget = UKRMotionWarpingLibrary::GetDirectionToActor(AvatarActor, LockedTarget, true);
 			FRotator TargetRotation = UKRMotionWarpingLibrary::GetRotationFromDirection(DirectionToTarget);
-
 			UKRMotionWarpingLibrary::SetWarpTargetRotation(AvatarActor, FName("BurstTarget"), TargetRotation);
-			
-			// [중요] 타겟이 있다면 앵커 회전도 타겟 방향으로 보정
 			BurstAnchorRotation = TargetRotation; 
 		}
+	}
+
+	CalculateStarPoints();
+
+	if (LoopCueTag.IsValid())
+	{
+		// GCN이 Ability를 찾을 수 있도록 함
+		FGameplayCueParameters CueParams;
+		CueParams.Instigator = GetAvatarActorFromActorInfo();
+		CueParams.SourceObject = this; // Ability Instance를 SourceObject로 전달 (EffectCauser는 Actor 타입이라 불가)
+		GetAbilitySystemComponentFromActorInfo()->AddGameplayCue(LoopCueTag, CueParams);
 	}
 
 	CurrentHitIndex = 0;
@@ -225,93 +250,54 @@ void UKRGA_CoreDriveBurst_Sword::StartAttackPhase()
 	}
 }
 
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 상태 태그 관리
-// ─────────────────────────────────────────────────────────────────────────────
-
 void UKRGA_CoreDriveBurst_Sword::ApplyHyperArmor()
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		// 히트리액션만 면역 (데미지는 받음)
 		ASC->AddLooseGameplayTag(KRTAG_STATE_IMMUNE_HITREACTION);
-		ASC->AddLooseGameplayTag(KRTAG_STATE_ACTING_COREDRIVEBURST);
 	}
 }
 
 void UKRGA_CoreDriveBurst_Sword::RemoveHyperArmor()
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		ASC->RemoveLooseGameplayTag(KRTAG_STATE_IMMUNE_HITREACTION);
-		ASC->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_COREDRIVEBURST);
 	}
 }
 
 void UKRGA_CoreDriveBurst_Sword::ApplyFullInvincibility()
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		ASC->AddLooseGameplayTag(KRTAG_STATE_IMMUNE_DAMAGE);
 		ASC->AddLooseGameplayTag(KRTAG_STATE_IMMUNE_HITREACTION);
-		ASC->AddLooseGameplayTag(KRTAG_STATE_ACTING_COREDRIVEBURST);
 	}
 }
 
 void UKRGA_CoreDriveBurst_Sword::RemoveFullInvincibility()
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		ASC->RemoveLooseGameplayTag(KRTAG_STATE_IMMUNE_DAMAGE);
 		ASC->RemoveLooseGameplayTag(KRTAG_STATE_IMMUNE_HITREACTION);
-		ASC->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_COREDRIVEBURST);
 	}
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 다단 히트
-// ─────────────────────────────────────────────────────────────────────────────
-
 void UKRGA_CoreDriveBurst_Sword::StartMultiHitSequence()
 {
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor)
+	if (AActor* AvatarActor = GetAvatarActorFromActorInfo())
 	{
-		return;
+		if (UWorld* World = AvatarActor->GetWorld())
+		{
+			World->GetTimerManager().SetTimer(MultiHitTimerHandle, this, &ThisClass::PerformMultiHit, AttackConfig.HitInterval, true, 0.0f);
+		}
 	}
-
-	UWorld* World = AvatarActor->GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	// 타이머로 일정 간격 다단 히트
-	World->GetTimerManager().SetTimer(
-		MultiHitTimerHandle,
-		this,
-		&ThisClass::PerformMultiHit,
-		AttackConfig.HitInterval,
-		true,  // 반복
-		0.0f   // 즉시 시작
-	);
 }
 
 void UKRGA_CoreDriveBurst_Sword::StopMultiHitSequence()
 {
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor)
-	{
-		return;
-	}
-
-	UWorld* World = AvatarActor->GetWorld();
-	if (World)
+	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(MultiHitTimerHandle);
 		World->GetTimerManager().ClearTimer(FinalHitTimerHandle);
@@ -320,94 +306,65 @@ void UKRGA_CoreDriveBurst_Sword::StopMultiHitSequence()
 
 void UKRGA_CoreDriveBurst_Sword::PerformMultiHit()
 {
-	const int32 NormalHitCount = AttackConfig.HitCount - 1;
-
-	if (CurrentHitIndex >= NormalHitCount)
-	{
-		AActor* AvatarActor = GetAvatarActorFromActorInfo();
-		if (AvatarActor && AvatarActor->GetWorld())
-		{
-			AvatarActor->GetWorld()->GetTimerManager().ClearTimer(MultiHitTimerHandle);
-		}
-		ScheduleFinalHit();
-		return;
-	}
-
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
 	if (!AvatarActor || !AvatarActor->GetWorld()) return;
 
 	HitActorsThisHit.Empty();
-
-	// [난무 단계 1~5타]
-	// 캐릭터가 애니메이션(루트모션)으로 움직여도 판정 박스는 'Anchor'에 고정합니다.
 	FVector Origin = BurstAnchorLocation + BurstAnchorRotation.Vector() * AttackConfig.ForwardOffset;
-	FQuat Rotation = BurstAnchorRotation.Quaternion();
-
+	
+	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(AvatarActor);
 
-	TArray<FOverlapResult> OverlapResults;
-	UWorld* World = AvatarActor->GetWorld();
-
 	if (AttackConfig.AttackShape == EKRAttackShapeType::Sphere)
 	{
-		World->OverlapMultiByChannel(
-			OverlapResults, Origin, FQuat::Identity, ECC_Pawn,
-			FCollisionShape::MakeSphere(AttackConfig.SphereRadius), QueryParams);
+		AvatarActor->GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(AttackConfig.SphereRadius), QueryParams);
 	}
 	else if (AttackConfig.AttackShape == EKRAttackShapeType::Box)
 	{
-		World->OverlapMultiByChannel(
-			OverlapResults, Origin, Rotation, ECC_Pawn,
-			FCollisionShape::MakeBox(AttackConfig.BoxExtent), QueryParams);
+		AvatarActor->GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, BurstAnchorRotation.Quaternion(), ECC_Pawn, FCollisionShape::MakeBox(AttackConfig.BoxExtent), QueryParams);
 	}
 
 	DrawDebugAttackShape();
 
-	const float CurrentMultiplier = AttackConfig.DamageMultiplierPerHit;
-
 	for (const FOverlapResult& Overlap : OverlapResults)
 	{
 		AActor* HitActor = Overlap.GetActor();
-		if (!HitActor || HitActorsThisHit.Contains(HitActor)) continue;
-
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
-		if (!TargetASC || TargetASC == GetAbilitySystemComponentFromActorInfo()) continue;
-
-		ApplyDamageToTarget(HitActor, CurrentMultiplier);
-		ExecuteCueAtLocation(HitCueTag, HitActor->GetActorLocation());
-		HitActorsThisHit.Add(HitActor);
+		if (HitActor && !HitActorsThisHit.Contains(HitActor))
+		{
+			if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor))
+			{
+				if (TargetASC != GetAbilitySystemComponentFromActorInfo())
+				{
+					ApplyDamageToTarget(HitActor, AttackConfig.DamageMultiplierPerHit);
+					ExecuteCueAtLocation(HitCueTag, HitActor->GetActorLocation());
+					HitActorsThisHit.Add(HitActor);
+				}
+			}
+		}
 	}
 
+	// BurstCueTag 실행 로직 제거 (Loop GCN에서 통합 처리)
+	
 	CurrentHitIndex++;
+
+	// 다음 공격이 마지막이면 타이머를 중지하고 FinalHitDelay만큼 대기
+	if (CurrentHitIndex >= (AttackConfig.HitCount - 1))
+	{
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(MultiHitTimerHandle);
+		}
+		ScheduleFinalHit();
+	}
 }
 
 void UKRGA_CoreDriveBurst_Sword::ScheduleFinalHit()
 {
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor)
+	if (UWorld* World = GetWorld())
 	{
-		return;
+		World->GetTimerManager().SetTimer(FinalHitTimerHandle, this, &ThisClass::PerformFinalHit, AttackConfig.FinalHitDelay, false);
 	}
-
-	UWorld* World = AvatarActor->GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	// 마지막 히트는 추가 딜레이 후 실행 (애니메이션 피니셔와 동기화)
-	World->GetTimerManager().SetTimer(
-		FinalHitTimerHandle,
-		this,
-		&ThisClass::PerformFinalHit,
-		AttackConfig.FinalHitDelay,
-		false  // 반복 안함
-	);
-
-#if !UE_BUILD_SHIPPING
-	UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Final hit scheduled after %.2f seconds"), AttackConfig.FinalHitDelay);
-#endif
 }
 
 void UKRGA_CoreDriveBurst_Sword::PerformFinalHit()
@@ -416,47 +373,69 @@ void UKRGA_CoreDriveBurst_Sword::PerformFinalHit()
 	if (!AvatarActor || !AvatarActor->GetWorld()) return;
 
 	HitActorsThisHit.Empty();
-
-	// [수정 완료 - 피니시 단계 6타]
-	// 사용자 요청 반영: 피니시 공격도 캐릭터 현재 위치가 아닌, 처음 지정된 'Anchor'를 기준으로 합니다.
-	// 즉, 1~5타와 동일한 공격 범위를 가집니다. (캐릭터가 엉뚱한 곳에 착지해도 판정은 원래 위치에 남음)
-	
 	FVector Origin = BurstAnchorLocation + BurstAnchorRotation.Vector() * AttackConfig.ForwardOffset;
-	FQuat Rotation = BurstAnchorRotation.Quaternion(); 
-
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(AvatarActor);
 
 	TArray<FOverlapResult> OverlapResults;
-	UWorld* World = AvatarActor->GetWorld();
-
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(AvatarActor);
+	
 	if (AttackConfig.AttackShape == EKRAttackShapeType::Sphere)
 	{
-		// 피니시는 보통 범위가 더 크므로 1.5배 (선택 사항 - Config로 빼도 됨)
-		World->OverlapMultiByChannel(OverlapResults, Origin, FQuat::Identity, ECC_Pawn,
-			FCollisionShape::MakeSphere(AttackConfig.SphereRadius * 1.5f), QueryParams);
+		AvatarActor->GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(AttackConfig.SphereRadius * 1.5f), QueryParams);
 	}
 	else if (AttackConfig.AttackShape == EKRAttackShapeType::Box)
 	{
-		World->OverlapMultiByChannel(OverlapResults, Origin, Rotation, ECC_Pawn,
-			FCollisionShape::MakeBox(AttackConfig.BoxExtent * 1.5f), QueryParams);
+		AvatarActor->GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, BurstAnchorRotation.Quaternion(), ECC_Pawn, FCollisionShape::MakeBox(AttackConfig.BoxExtent * 1.5f), QueryParams);
 	}
 
 	DrawDebugAttackShape();
 
-	const float FinalMultiplier = AttackConfig.FinalHitDamageMultiplier;
-
 	for (const FOverlapResult& Overlap : OverlapResults)
 	{
-		AActor* HitActor = Overlap.GetActor();
-		if (!HitActor || HitActorsThisHit.Contains(HitActor)) continue;
-		
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
-		if (!TargetASC || TargetASC == GetAbilitySystemComponentFromActorInfo()) continue;
+		if (AActor* HitActor = Overlap.GetActor())
+		{
+			if (!HitActorsThisHit.Contains(HitActor))
+			{
+				if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor))
+				{
+					if (TargetASC != GetAbilitySystemComponentFromActorInfo())
+					{
+						ApplyDamageToTarget(HitActor, AttackConfig.FinalHitDamageMultiplier);
+						ExecuteCueAtLocation(HitCueTag, HitActor->GetActorLocation());
+						HitActorsThisHit.Add(HitActor);
+					}
+				}
+			}
+		}
+	}
 
-		ApplyDamageToTarget(HitActor, FinalMultiplier);
-		ExecuteCueAtLocation(HitCueTag, HitActor->GetActorLocation());
-		HitActorsThisHit.Add(HitActor);
+	// Finish Cue 실행 (Lightning)
+	FGameplayTag CueTag = (StarDashData && StarDashData->Effects.SlashLineEffectTag.IsValid()) 
+		? StarDashData->Effects.SlashLineEffectTag // GCN Hit 하나로 처리하되 Magnitude로 구분
+		: BurstCueTag;
+
+	if (CueTag.IsValid())
+	{
+		if (AvatarActor)
+		{
+			// 피니시 이펙트 위치 계산 (중심점 + 오프셋)
+			FVector Center = AvatarActor->GetActorLocation() + (AvatarActor->GetActorForwardVector() * AttackConfig.StarCenterDistance);
+			if (StarDashData)
+			{
+				Center = BurstAnchorLocation + (BurstAnchorRotation.Vector() * AttackConfig.StarCenterDistance);
+			}
+			
+			FVector TargetLoc = Center + AttackConfig.FinisherLocationOffset;
+
+			FGameplayCueParameters CueParams;
+			CueParams.Location = AvatarActor->GetActorLocation(); // Start (Player)
+			CueParams.EffectContext = GetAbilitySystemComponentFromActorInfo()->MakeEffectContext();
+			CueParams.EffectContext.AddOrigin(TargetLoc); // End (Target)
+			CueParams.RawMagnitude = 1.0f; // Finisher
+			CueParams.SourceObject = StarDashData; // Pass DataAsset to GCN
+
+			GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(CueTag, CueParams);
+		}
 	}
 
 	CurrentHitIndex++;
@@ -464,33 +443,15 @@ void UKRGA_CoreDriveBurst_Sword::PerformFinalHit()
 
 void UKRGA_CoreDriveBurst_Sword::ApplyDamageToTarget(AActor* TargetActor, float DamageMultiplier)
 {
-	if (!DamageEffectClass)
-	{
-#if !UE_BUILD_SHIPPING
-		UE_LOG(LogTemp, Warning, TEXT("[CoreDriveBurst] DamageEffectClass is not set!"));
-#endif
-		return;
-	}
+	if (!DamageEffectClass) return;
 
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (!SourceASC || !TargetASC) return;
 
-	if (!SourceASC || !TargetASC)
-	{
-		return;
-	}
-
-	// 기본 공격력 가져오기
-	float BaseAttackPower = 0.f;
-	if (const UKRCombatCommonSet* CombatSet = SourceASC->GetSet<UKRCombatCommonSet>())
-	{
-		BaseAttackPower = CombatSet->GetAttackPower();
-	}
-
-	// 데미지 계산
+	float BaseAttackPower = SourceASC->GetSet<UKRCombatCommonSet>() ? SourceASC->GetSet<UKRCombatCommonSet>()->GetAttackPower() : 0.f;
 	const float FinalDamage = BaseAttackPower * DamageMultiplier;
 
-	// GE 적용
 	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass, GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
@@ -499,82 +460,42 @@ void UKRGA_CoreDriveBurst_Sword::ApplyDamageToTarget(AActor* TargetActor, float 
 	}
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GameplayCue
-// ─────────────────────────────────────────────────────────────────────────────
-
 void UKRGA_CoreDriveBurst_Sword::ExecuteCue(const FGameplayTag& CueTag)
 {
-	if (!CueTag.IsValid())
+	if (CueTag.IsValid() && GetAbilitySystemComponentFromActorInfo())
 	{
-		return;
+		FGameplayCueParameters CueParams;
+		if (AActor* AvatarActor = GetAvatarActorFromActorInfo())
+		{
+			CueParams.Location = AvatarActor->GetActorLocation();
+		}
+		GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(CueTag, CueParams);
 	}
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return;
-	}
-
-	FGameplayCueParameters CueParams;
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (AvatarActor)
-	{
-		CueParams.Location = AvatarActor->GetActorLocation();
-	}
-
-	ASC->ExecuteGameplayCue(CueTag, CueParams);
 }
 
 void UKRGA_CoreDriveBurst_Sword::ExecuteCueAtLocation(const FGameplayTag& CueTag, const FVector& Location)
 {
-	if (!CueTag.IsValid())
+	if (CueTag.IsValid() && GetAbilitySystemComponentFromActorInfo())
 	{
-		return;
+		FGameplayCueParameters CueParams;
+		CueParams.Location = Location;
+		GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(CueTag, CueParams);
 	}
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return;
-	}
-
-	FGameplayCueParameters CueParams;
-	CueParams.Location = Location;
-
-	ASC->ExecuteGameplayCue(CueTag, CueParams);
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 몽타주 재생
-// ─────────────────────────────────────────────────────────────────────────────
 
 void UKRGA_CoreDriveBurst_Sword::PlayMontageWithCallback(UAnimMontage* Montage, void(UKRGA_CoreDriveBurst_Sword::*Callback)())
 {
-	if (!Montage)
-	{
-		return;
-	}
+	if (!Montage) return;
 
-	// 기존 태스크 정리
 	if (MontageTask)
 	{
 		MontageTask->EndTask();
 		MontageTask = nullptr;
 	}
 
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this,
-		NAME_None,
-		Montage,
-		1.0f,
-		NAME_None,
-		false
-	);
-
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, Montage, 1.0f, NAME_None, false);
 	if (MontageTask)
 	{
-		// 콜백 타입에 따라 바인딩
 		if (Callback == &ThisClass::OnStartupMontageCompleted)
 		{
 			MontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnStartupMontageCompleted);
@@ -585,46 +506,35 @@ void UKRGA_CoreDriveBurst_Sword::PlayMontageWithCallback(UAnimMontage* Montage, 
 			MontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnAttackMontageCompleted);
 			MontageTask->OnBlendOut.AddDynamic(this, &ThisClass::OnAttackMontageCompleted);
 		}
-
 		MontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
 		MontageTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageInterrupted);
-
 		MontageTask->ReadyForActivation();
 	}
 }
 
 void UKRGA_CoreDriveBurst_Sword::SetIgnorePawnCollision(bool bIgnore)
 {
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
-		UCapsuleComponent* Capsule = Character->GetCapsuleComponent();
-		if (!Capsule) return;
-
-		if (bIgnore)
+		if (UCapsuleComponent* Capsule = Character->GetCapsuleComponent())
 		{
-			// 현재 충돌 설정을 백업하고 Pawn 무시 설정
-			PreviousCollisionResponses.Empty();
-			PreviousCollisionResponses.Add(ECC_Pawn, Capsule->GetCollisionResponseToChannel(ECC_Pawn));
-			
-			Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-			// 필요하다면 적 캐릭터 전용 채널(예: GameTraceChannel1)도 여기서 Ignore 처리
-		}
-		else
-		{
-			// 원래 설정으로 복구
-			for (const auto& Pair : PreviousCollisionResponses)
+			if (bIgnore)
 			{
-				Capsule->SetCollisionResponseToChannel(Pair.Key, Pair.Value);
+				PreviousCollisionResponses.Empty();
+				PreviousCollisionResponses.Add(ECC_Pawn, Capsule->GetCollisionResponseToChannel(ECC_Pawn));
+				Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			}
-			PreviousCollisionResponses.Empty();
+			else
+			{
+				for (const auto& Pair : PreviousCollisionResponses)
+				{
+					Capsule->SetCollisionResponseToChannel(Pair.Key, Pair.Value);
+				}
+				PreviousCollisionResponses.Empty();
+			}
 		}
 	}
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 몽타주 콜백
-// ─────────────────────────────────────────────────────────────────────────────
 
 void UKRGA_CoreDriveBurst_Sword::OnStartupMontageCompleted()
 {
@@ -633,7 +543,6 @@ void UKRGA_CoreDriveBurst_Sword::OnStartupMontageCompleted()
 
 void UKRGA_CoreDriveBurst_Sword::OnAttackMontageCompleted()
 {
-	// 공격 + 종료가 합쳐진 몽타주이므로 바로 Finished로 전환
 	ExecuteCue(FinishCueTag);
 	TransitionToPhase(EKRCoreDriveBurstPhase::Finished);
 }
@@ -643,208 +552,118 @@ void UKRGA_CoreDriveBurst_Sword::OnMontageInterrupted()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 이동 제어
-// ─────────────────────────────────────────────────────────────────────────────
-
 void UKRGA_CoreDriveBurst_Sword::DisableMovement()
 {
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	ACharacter* Character = Cast<ACharacter>(AvatarActor);
-	if (!Character)
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
-		return;
-	}
-
-	UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement();
-	if (!MovementComp)
-	{
-		return;
-	}
-
-	if (bUseRootMotion)
-	{
-		// 루트 모션 사용 시: 플레이어 입력으로 인한 이동만 막고, 루트 모션은 허용
-		// 현재 속도만 멈추고 이동 모드는 유지
-		MovementComp->StopMovementImmediately();
-
-#if !UE_BUILD_SHIPPING
-		UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Movement input disabled (root motion enabled)"));
-#endif
-	}
-	else
-	{
-		// 루트 모션 미사용 시: 이동 완전 비활성화
-		MovementComp->StopMovementImmediately();
-		MovementComp->DisableMovement();
-
-#if !UE_BUILD_SHIPPING
-		UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Movement fully disabled"));
-#endif
+		if (UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement())
+		{
+			if (bUseRootMotion)
+			{
+				MovementComp->StopMovementImmediately();
+			}
+			else
+			{
+				MovementComp->StopMovementImmediately();
+				MovementComp->DisableMovement();
+			}
+		}
 	}
 }
 
 void UKRGA_CoreDriveBurst_Sword::EnableMovement()
 {
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	ACharacter* Character = Cast<ACharacter>(AvatarActor);
-	if (!Character)
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
-		return;
+		if (UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement())
+		{
+			if (!bUseRootMotion)
+			{
+				MovementComp->SetMovementMode(MOVE_Walking);
+			}
+		}
 	}
-
-	UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement();
-	if (!MovementComp)
-	{
-		return;
-	}
-
-	// 루트 모션 미사용 시에만 이동 모드 복원 필요
-	if (!bUseRootMotion)
-	{
-		MovementComp->SetMovementMode(MOVE_Walking);
-	}
-
-#if !UE_BUILD_SHIPPING
-	UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Movement enabled"));
-#endif
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 카메라 모드
-// ─────────────────────────────────────────────────────────────────────────────
-
-void UKRGA_CoreDriveBurst_Sword::PushCameraMode()
-{
-	if (!bUseCameraMode || !BurstCameraModeClass) return;
-
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor) return;
-
-	UKRCameraComponent* CameraComp = UKRCameraComponent::FindCameraComponent(AvatarActor);
-	if (!CameraComp) return;
-
-	CameraComp->PushCameraMode(BurstCameraModeClass);
-
-	if (UKRCameraMode_Burst* BurstCameraMode = CameraComp->GetCameraModeInstance<UKRCameraMode_Burst>())
-	{
-		BurstCameraMode->SetPlayerActor(AvatarActor);
-		// 카메라는 스킬 시전 시작 위치(Anchor)를 기준으로 잡습니다.
-		BurstCameraMode->SetupBurstCamera(BurstAnchorLocation, BurstAnchorRotation.Vector());
-	}
-	CameraComp->SetCameraModeUpdateLocked(true);
-
-#if !UE_BUILD_SHIPPING
-	UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Camera mode pushed: %s"), *BurstCameraModeClass->GetName());
-#endif
-}
-
-void UKRGA_CoreDriveBurst_Sword::RemoveCameraMode()
-{
-	if (!bUseCameraMode || !BurstCameraModeClass)
-	{
-		return;
-	}
-
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor)
-	{
-		return;
-	}
-
-	UKRCameraComponent* CameraComp = UKRCameraComponent::FindCameraComponent(AvatarActor);
-	if (!CameraComp)
-	{
-		return;
-	}
-
-	// 카메라 모드 업데이트 잠금 해제
-	CameraComp->SetCameraModeUpdateLocked(false);
-
-	// Burst 카메라 모드 정리
-	if (UKRCameraMode_Burst* BurstCameraMode = CameraComp->GetCameraModeInstance<UKRCameraMode_Burst>())
-	{
-		BurstCameraMode->ClearBurstCamera();
-	}
-
-	CameraComp->RemoveCameraMode(BurstCameraModeClass);
-
-#if !UE_BUILD_SHIPPING
-	UE_LOG(LogTemp, Log, TEXT("[CoreDriveBurst] Camera mode removed: %s"), *BurstCameraModeClass->GetName());
-#endif
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 디버그 시각화
-// ─────────────────────────────────────────────────────────────────────────────
 
 void UKRGA_CoreDriveBurst_Sword::DrawDebugAttackShape()
 {
-	if (!bShowDebugShape)
-	{
-		return;
-	}
+	if (!bShowDebugShape || !GetWorld()) return;
 
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor)
-	{
-		return;
-	}
-
-	UWorld* World = AvatarActor->GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	// 공격 원점 계산
-	const FVector Origin = BurstAnchorLocation + BurstAnchorRotation.Vector() * AttackConfig.ForwardOffset;
-
-	FQuat Rotation = BurstAnchorRotation.Quaternion();
+	if (!AvatarActor) return;
 	
-	// 히트 횟수에 따른 색상 변화
+	const FVector Origin = BurstAnchorLocation + BurstAnchorRotation.Vector() * AttackConfig.ForwardOffset;
 	const float ColorLerp = static_cast<float>(CurrentHitIndex) / static_cast<float>(AttackConfig.HitCount);
 	const FColor DebugColor = FColor::MakeRedToGreenColorFromScalar(1.0f - ColorLerp);
 
 	if (AttackConfig.AttackShape == EKRAttackShapeType::Sphere)
 	{
-		DrawDebugSphere(
-			World,
-			Origin,
-			AttackConfig.SphereRadius,
-			16,
-			DebugColor,
-			false,
-			DebugDrawDuration,
-			0,
-			2.0f
-		);
+		DrawDebugSphere(GetWorld(), Origin, AttackConfig.SphereRadius, 16, DebugColor, false, DebugDrawDuration, 0, 2.0f);
 	}
 	else if (AttackConfig.AttackShape == EKRAttackShapeType::Box)
 	{
-		DrawDebugBox(
-			World,
-			Origin,
-			AttackConfig.BoxExtent,
-			Rotation,
-			DebugColor,
-			false,
-			DebugDrawDuration,
-			0,
-			2.0f
-		);
+		DrawDebugBox(GetWorld(), Origin, AttackConfig.BoxExtent, BurstAnchorRotation.Quaternion(), DebugColor, false, DebugDrawDuration, 0, 2.0f);
 	}
+	DrawDebugSphere(GetWorld(), AvatarActor->GetActorLocation(), 20.0f, 8, FColor::White, false, DebugDrawDuration, 0, 1.0f);
+}
 
-	// 캐릭터 위치 표시
-	DrawDebugSphere(
-		World,
-		AvatarActor->GetActorLocation(),
-		20.0f,
-		8,
-		FColor::White,
-		false,
-		DebugDrawDuration,
-		0,
-		1.0f
-	);
+void UKRGA_CoreDriveBurst_Sword::CalculateStarPoints()
+{
+	CachedWorldPoints.Empty();
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (!AvatarActor) return;
+
+	if (StarDashData)
+	{
+		const float OuterRadius = StarDashData->Pattern.OuterRadius;
+		const FVector Forward = BurstAnchorRotation.Vector();
+		const FVector Right = FRotationMatrix(BurstAnchorRotation).GetScaledAxis(EAxis::Y);
+		
+		// 중심점: 앵커 위치 + 전방 거리
+		const FVector Center = BurstAnchorLocation + (Forward * AttackConfig.StarCenterDistance);
+		
+		// 5포인트 별 그리기 순서 (Top 시작 -> 오른쪽 아래 -> 왼쪽 위 -> 오른쪽 위 -> 왼쪽 아래 -> Top)
+		// 언리얼 좌표계: X Forward, Y Right. 
+		// 0도 = X축(Forward). 
+		// Top(0번)을 Forward 방향으로 잡기 위해 각도 조정
+		
+		const int32 PointCount = 5;
+		// 0, 2, 4, 1, 3, 0 순서로 연결하면 별이 그려짐
+		TArray<int32> DrawOrder = {0, 2, 4, 1, 3, 0}; 
+
+		TArray<FVector> Vertices;
+		for (int32 i = 0; i < PointCount; ++i)
+		{
+			// 0번 포인트가 정면(0도)이 되도록 설정. 시계방향(-72도씩)
+			// i=0: 0도 (Forward)
+			// i=1: -72도 (Right-Back)
+			// ...
+			float AngleDeg = -(i * 360.0f / PointCount); 
+			float AngleRad = FMath::DegreesToRadians(AngleDeg);
+
+			FVector Offset = (Forward * FMath::Cos(AngleRad) * OuterRadius) + (Right * FMath::Sin(AngleRad) * OuterRadius);
+			Vertices.Add(Center + Offset);
+		}
+
+		for (int32 Index : DrawOrder)
+		{
+			if (Vertices.IsValidIndex(Index))
+			{
+				CachedWorldPoints.Add(Vertices[Index]);
+			}
+		}
+	}
+	else
+	{
+		// Fallback to AttackConfig manually set points
+		const FVector Forward = AvatarActor->GetActorForwardVector();
+		const FVector Center = AvatarActor->GetActorLocation() + (Forward * AttackConfig.StarCenterDistance);
+		const FRotator Rotation = AvatarActor->GetActorRotation();
+
+		for (const FVector& LocalPoint : AttackConfig.StarPatternPoints)
+		{
+			FVector WorldPoint = Center + Rotation.RotateVector(LocalPoint);
+			CachedWorldPoints.Add(WorldPoint);
+		}
+	}
 }
