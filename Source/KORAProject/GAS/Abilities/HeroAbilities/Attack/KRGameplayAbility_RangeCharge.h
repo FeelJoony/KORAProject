@@ -16,9 +16,7 @@ public:
 	UKRGameplayAbility_RangeCharge(const FObjectInitializer& ObjectInitializer);
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 protected:
@@ -28,29 +26,29 @@ protected:
 	void OnChargeTick(float DeltaTime);
 
 	UFUNCTION()
-	void OnChargePhaseEnded();
+	void OnChargePhaseCompleted();
 
 	UFUNCTION()
-	void OnReleasePhaseEnded();
+	void OnChargePhaseInterrupted();
 
-	void StartReleaseSequence(bool bIsFullCharge);
+	UFUNCTION()
+	void OnReleasePhaseCompleted();
+
+	UFUNCTION()
+	void OnReleasePhaseInterrupted();
+	
+	void StartReleaseMontage(bool bSuccess);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
 	float FullChargeTime = 1.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
-	FName SectionName_Start = FName("Start");
-
-	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
-	FName SectionName_Fire = FName("Fire");
-
-	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
-	FName SectionName_FireFull = FName("Fire_Full");
-
 private:
 	UPROPERTY()
 	TObjectPtr<UKRAbilityTask_WaitTick> ChargeTickTask;
+	
+	UPROPERTY()
+	TObjectPtr<UAnimMontage> CurrentChargeMontage;
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> ChargePlayTask;
@@ -58,9 +56,13 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> ReleasePlayTask;
 
+	bool bIsChargeSuccess = false;
+	bool bIsFullyCharged = false;
 	bool bIsCharging = false;
 	
-	bool bIsFullyCharged = false;
-	
 	float CurrentChargeTime = 0.0f;
+	
+	static const FName SECTION_START;
+	static const FName SECTION_FAIL;
+	static const FName SECTION_SUCCESS;
 };
