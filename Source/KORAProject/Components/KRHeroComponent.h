@@ -24,22 +24,23 @@ public:
 	UKRHeroComponent(const FObjectInitializer& ObjectInitializer);
 
 	static const FName NAME_ActorFeatureName;
-
 	static const FName NAME_BindInputsNow;
 
-	//~ Begin IGameFrameworkInitStateInterface
 	virtual FName GetFeatureName() const override { return NAME_ActorFeatureName; }
 	virtual bool CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const override;
 	virtual void HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) override;
 	virtual void OnActorInitStateChanged(const FActorInitStateChangedParams& Params) override;
 	virtual void CheckDefaultInitialization() override;
-	//~ End IGameFrameworkInitStateInterface
 
 	UFUNCTION(BlueprintCallable, Category = "KR|Input")
 	FVector2D GetLastLookInput() const { return LastLookInput; }
 	
 	UFUNCTION(BlueprintCallable, Category = "KR|Input")
 	FVector2D GetLastMoveInput() const { return LastMoveInput; }
+
+	/** 어빌리티에서 일시적으로 카메라 모드를 재정의하기 위해 호출합니다. */
+	void SetAbilityCameraMode(TSubclassOf<UKRCameraMode> InCameraMode);
+
 protected:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
