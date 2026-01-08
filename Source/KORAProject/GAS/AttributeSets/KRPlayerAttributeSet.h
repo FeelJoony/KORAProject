@@ -43,7 +43,17 @@ public:
 	FGameplayAttributeData CoreDrive;
 	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, CoreDrive)
 
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Player|Ammo")
+	FGameplayAttributeData CurrentAmmo;
+	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, CurrentAmmo)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Player|Ammo")
+	FGameplayAttributeData MaxAmmo;
+	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, MaxAmmo)
+
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Player")
 	FGameplayAttributeData MaxCoreDrive;
 	ATTRIBUTE_ACCESSORS(UKRPlayerAttributeSet, MaxCoreDrive)
+
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 };
