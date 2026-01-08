@@ -33,13 +33,13 @@ EKRHitDirection UKRHitReactionLibrary::CalculateHitDirectionFromVector(AActor* V
 	// 45도 기준으로 방향 결정
 	if (FMath::Abs(ForwardDot) > FMath::Abs(RightDot))
 	{
-		// 앞/뒤
-		return (ForwardDot > 0.0f) ? EKRHitDirection::Front : EKRHitDirection::Back;
+		// 앞/뒤 (HitDir와 Forward가 반대 방향(내적 < 0)이어야 앞에서 맞은 것)
+		return (ForwardDot < 0.0f) ? EKRHitDirection::Front : EKRHitDirection::Back;
 	}
 	else
 	{
-		// 좌/우
-		return (RightDot > 0.0f) ? EKRHitDirection::Right : EKRHitDirection::Left;
+		// 좌/우 (HitDir와 Right가 반대 방향(내적 < 0)이어야 오른쪽에서 맞은 것)
+		return (RightDot < 0.0f) ? EKRHitDirection::Right : EKRHitDirection::Left;
 	}
 }
 
