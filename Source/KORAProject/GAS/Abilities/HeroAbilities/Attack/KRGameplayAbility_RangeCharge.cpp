@@ -4,6 +4,10 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
 
+const FName UKRGameplayAbility_RangeCharge::SECTION_START = FName("Start");
+const FName UKRGameplayAbility_RangeCharge::SECTION_FAIL = FName("Fire");
+const FName UKRGameplayAbility_RangeCharge::SECTION_SUCCESS = FName("Fire_Full");
+
 UKRGameplayAbility_RangeCharge::UKRGameplayAbility_RangeCharge(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -24,49 +28,45 @@ void UKRGameplayAbility_RangeCharge::ActivateAbility(const FGameplayAbilitySpecH
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-
 		return;
 	}
 
-	UAnimMontage* ChargeMontage = GetMontageFromEquipment(0);
-
-	if (!ChargeMontage)
+	CurrentChargeMontage = GetMontageFromEquipment(0);
+	if (!CurrentChargeMontage)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-
 		return;
 	}
-	
-	bIsCharging = true;
+
+	bIsChargeSuccess = false;
 	bIsFullyCharged = false;
+	bIsCharging = true;
 	CurrentChargeTime = 0.0f;
-	
+
 	ChargePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,
 		FName("ChargePhase"),
-		ChargeMontage,
+		CurrentChargeMontage,
 		1.0f,
-		SectionName_Start, 
+		SECTION_START, 
 		false 
 	);
 
 	if (ChargePlayTask)
 	{
-		ChargePlayTask->OnBlendOut.AddDynamic(this, &ThisClass::OnChargePhaseEnded);
-		ChargePlayTask->OnInterrupted.AddDynamic(this, &ThisClass::OnChargePhaseEnded);
-		ChargePlayTask->OnCancelled.AddDynamic(this, &ThisClass::OnChargePhaseEnded);
+		ChargePlayTask->OnCompleted.AddDynamic(this, &ThisClass::OnChargePhaseCompleted);
+		ChargePlayTask->OnInterrupted.AddDynamic(this, &ThisClass::OnChargePhaseInterrupted);
+		ChargePlayTask->OnCancelled.AddDynamic(this, &ThisClass::OnChargePhaseInterrupted);
 		ChargePlayTask->ReadyForActivation();
 	}
 	
 	else
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-
 		return;
 	}
-	
-	ChargeTickTask = UKRAbilityTask_WaitTick::WaitTick(this, FName("RangeChargeTick"));
 
+	ChargeTickTask = UKRAbilityTask_WaitTick::WaitTick(this, FName("RangeChargeTick"));
 	if (ChargeTickTask)
 	{
 		ChargeTickTask->OnTick.AddDynamic(this, &ThisClass::OnChargeTick);
@@ -84,10 +84,20 @@ void UKRGameplayAbility_RangeCharge::OnChargeTick(float DeltaTime)
 	if (!bIsCharging) return;
 
 	CurrentChargeTime += DeltaTime;
-
+	
 	if (!bIsFullyCharged && CurrentChargeTime >= FullChargeTime)
 	{
 		bIsFullyCharged = true;
+		bIsChargeSuccess = true;
+		bIsCharging = false;
+
+		if (ChargeTickTask)
+		{
+			ChargeTickTask->EndTask();
+			ChargeTickTask = nullptr;
+		}
+
+		StartReleaseMontage(true);
 	}
 }
 
@@ -98,59 +108,61 @@ void UKRGameplayAbility_RangeCharge::InputReleased(const FGameplayAbilitySpecHan
 	if (!bIsCharging) return;
 	
 	bIsCharging = false;
+
 	if (ChargeTickTask)
 	{
 		ChargeTickTask->EndTask();
 		ChargeTickTask = nullptr;
 	}
 	
-	bool bSuccess = (CurrentChargeTime >= FullChargeTime);
+	bIsChargeSuccess = false;
 	
-	StartReleaseSequence(bSuccess);
+	StartReleaseMontage(false);
 }
 
-void UKRGameplayAbility_RangeCharge::StartReleaseSequence(bool bIsFullCharge)
+void UKRGameplayAbility_RangeCharge::StartReleaseMontage(bool bSuccess)
 {
+	ACharacter* Char = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!Char || !CurrentChargeMontage)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+
 	if (ChargePlayTask)
 	{
 		ChargePlayTask->EndTask();
 		ChargePlayTask = nullptr;
 	}
 
-	UAnimMontage* ChargeMontage = GetMontageFromEquipment(0);
-	
-	if (!ChargeMontage)
+	if (UAnimInstance* AnimInst = Char->GetMesh() ? Char->GetMesh()->GetAnimInstance() : nullptr)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-
-		return;
+		if (AnimInst->Montage_IsPlaying(CurrentChargeMontage))
+		{
+			AnimInst->Montage_Stop(0.1f, CurrentChargeMontage);
+		}
 	}
-	
+
 	FRotator AimRot = GetFinalAimRotation(MaxRange);
-	
 	FireWeaponActor(AimRot);
 
-	FName TargetSection = SectionName_Fire;
-	if (bIsFullCharge)
-	{
-		TargetSection = FName("Fire_Full");
-	}
+	const FName ReleaseSection = bSuccess ? SECTION_SUCCESS : SECTION_FAIL;
 	
 	ReleasePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		   this,
 		   FName("ReleasePhase"),
-		   ChargeMontage,
+		   CurrentChargeMontage,
 		   1.0f,
-		   TargetSection,
+		   ReleaseSection,
 		   true
 		);
 
 	if (ReleasePlayTask)
 	{
-		ReleasePlayTask->OnBlendOut.AddDynamic(this, &ThisClass::OnReleasePhaseEnded);
-		ReleasePlayTask->OnCompleted.AddDynamic(this, &ThisClass::OnReleasePhaseEnded);
-		ReleasePlayTask->OnInterrupted.AddDynamic(this, &ThisClass::OnReleasePhaseEnded);
-		ReleasePlayTask->OnCancelled.AddDynamic(this, &ThisClass::OnReleasePhaseEnded);
+		ReleasePlayTask->OnBlendOut.AddDynamic(this, &ThisClass::OnReleasePhaseCompleted);
+		ReleasePlayTask->OnCompleted.AddDynamic(this, &ThisClass::OnReleasePhaseCompleted);
+		ReleasePlayTask->OnInterrupted.AddDynamic(this, &ThisClass::OnReleasePhaseInterrupted);
+		ReleasePlayTask->OnCancelled.AddDynamic(this, &ThisClass::OnReleasePhaseInterrupted);
 		ReleasePlayTask->ReadyForActivation();
 	}
 	
@@ -160,17 +172,26 @@ void UKRGameplayAbility_RangeCharge::StartReleaseSequence(bool bIsFullCharge)
 	}
 }
 
-void UKRGameplayAbility_RangeCharge::OnChargePhaseEnded()
+void UKRGameplayAbility_RangeCharge::OnChargePhaseCompleted()
 {
-	if (bIsCharging)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-	}
 }
 
-void UKRGameplayAbility_RangeCharge::OnReleasePhaseEnded()
+void UKRGameplayAbility_RangeCharge::OnChargePhaseInterrupted()
 {
+	if (!IsActive()) return;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UKRGameplayAbility_RangeCharge::OnReleasePhaseCompleted()
+{
+	if (!IsActive()) return;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UKRGameplayAbility_RangeCharge::OnReleasePhaseInterrupted()
+{
+	if (!IsActive()) return;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UKRGameplayAbility_RangeCharge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
