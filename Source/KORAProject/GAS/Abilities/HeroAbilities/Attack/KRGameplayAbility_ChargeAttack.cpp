@@ -90,6 +90,9 @@ void UKRGameplayAbility_ChargeAttack::ActivateAbility(
 		ChargeTickTask->ReadyForActivation();
 	}
 
+	// GameplayEvent 리스너 설정 (MeleeAttack의 ActivateAbility를 건너뛰므로 수동 호출)
+	SetupHitCheckEventListeners();
+
 	IncrementCombo();
 }
 
