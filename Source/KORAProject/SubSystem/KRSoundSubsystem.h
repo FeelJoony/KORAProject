@@ -201,6 +201,4 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UAudioComponent> CurrentBGMComponent;
-
-	FTimerHandle BGMSwapTimerHandle;
 };

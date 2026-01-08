@@ -437,21 +437,7 @@ void UKRSoundSubsystem::PlayBGMForWorldEvent(const FGameplayTag& WorldEventTag)
 	CurrentWorldCategoryTag = *CategoryTag;
 	CurrentBGMIndex = 0;
 
-	//PlayNextBGM();
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(BGMSwapTimerHandle);
-
-		// 10초마다 다음 BGM
-		World->GetTimerManager().SetTimer(
-			BGMSwapTimerHandle,
-			this,
-			&UKRSoundSubsystem::PlayNextBGM,
-			10.0f,
-			true
-		);
-	}
+	PlayNextBGM();
 }
 
 void UKRSoundSubsystem::PlayNextBGM()
@@ -539,10 +525,10 @@ UAudioComponent* UKRSoundSubsystem::PlayBGM(const UKRSoundDefinition* SoundDef)
 		return nullptr;
 	}
 
-	/*AudioComp->OnAudioFinished.AddDynamic(
+	AudioComp->OnAudioFinished.AddDynamic(
 		this,
 		&UKRSoundSubsystem::PlayNextBGM
-	);*/
+	);
 
 	// 루프 & 페이드 인
 	AudioComp->bIsUISound = true;
@@ -568,11 +554,6 @@ bool UKRSoundSubsystem::CanPlayBGM(const FGameplayTag& BGMTag) const
 
 void UKRSoundSubsystem::StopBGM(float FadeOutTime)
 {
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(BGMSwapTimerHandle);
-	}
-
 	if (CurrentBGMComponent)
 	{
 		CurrentBGMComponent->FadeOut(FadeOutTime, 0.0f);
