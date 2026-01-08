@@ -15,8 +15,7 @@
 
 AKRGameplayCueNotify_CoreDriveSurge::AKRGameplayCueNotify_CoreDriveSurge()
 {
-	// bAllowMultipleInstances는 블루프린트 디폴트에서 설정하는 것이 더 안전합니다.
-	GameplayCueTag = KRTAG_GAMEPLAYCUE_COREDRIVE_SURGE_LOOP;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 bool AKRGameplayCueNotify_CoreDriveSurge::OnActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
