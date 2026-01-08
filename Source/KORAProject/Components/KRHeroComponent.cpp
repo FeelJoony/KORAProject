@@ -268,6 +268,10 @@ void UKRHeroComponent::Input_Look(const FInputActionValue& InputActionValue)
 	AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
 	if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
 	{
+		if (ASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_DEAD) || ASC->HasMatchingGameplayTag(KRTAG_STATE_RESTRICT_INPUT))
+		{
+			return;
+		}
 		if (ASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_LOCKON))
 		{
 			return;
