@@ -8,6 +8,9 @@
 #include "GameplayTagContainer.h"
 #include "KREnemyPawn.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSelectAttack, TSubclassOf<class UGameplayAbility>, float);
+DECLARE_MULTICAST_DELEGATE(FOnUnselectAttack);
+
 UCLASS()
 class KORAPROJECT_API AKREnemyPawn : public AModularPawn, public IAbilitySystemInterface 
 {
@@ -29,9 +32,12 @@ public:
 	void InitializeComponents();
 
 	UFUNCTION(BlueprintCallable)
-	bool TryActivateAbility(const FGameplayTagContainer& GameplayTagContainer);
+	bool TryActivateAbility(TSubclassOf<class UGameplayAbility> AbilityClass);
 
 	FORCEINLINE FGameplayTag GetEnemyTag() const { return EnemyTag; }
+
+	FOnSelectAttack OnSelectAttack;
+	FOnUnselectAttack OnUnselectAttack;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
@@ -51,15 +57,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Combat)
 	TObjectPtr<class UKRCombatComponent> CombatComponent;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = StateTree)
-	TObjectPtr<class UStateTreeAIComponent> StateTreeComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<class UKRCombatCommonSet> CombatCommonSet;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<class UKREnemyAttributeSet> EnemyAttributeSet;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = GAS)
+	TArray<TSubclassOf<class UGameplayAbility>> ApplyAbilityClasses;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Animation)

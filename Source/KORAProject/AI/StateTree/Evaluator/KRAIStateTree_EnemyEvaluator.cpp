@@ -16,6 +16,12 @@ void UKRAIStateTree_EnemyEvaluator::TreeStart(FStateTreeExecutionContext& Contex
 
 	if (UAbilitySystemComponent* ASC = Actor->GetAbilitySystemComponent())
 	{
+		if (const UKRCombatCommonSet* CombatCommonSet = ASC->GetSet<UKRCombatCommonSet>())
+		{
+			CurrentHealthPercent = CombatCommonSet->GetCurrentHealth() / CombatCommonSet->GetMaxHealth();
+			MaxHealth = CombatCommonSet->GetMaxHealth();
+		}
+		
 		if (const UKREnemyAttributeSet* EnemyAttributeSet = ASC->GetSet<UKREnemyAttributeSet>())
 		{
 			CanAttackRange = EnemyAttributeSet->GetCanAttackRange();
@@ -39,6 +45,18 @@ void UKRAIStateTree_EnemyEvaluator::Tick(FStateTreeExecutionContext& Context, co
 		{
 			bool bFound = false;
 			float CurrentHealth = ASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetCurrentHealthAttribute(), bFound);
+			CurrentHealthPercent = FMath::Max(0.f, CurrentHealth / MaxHealth);
+			if (!bIsRageStatus && CurrentHealthPercent <= EnterRageStatusRate)
+			{
+				bIsRageStatus = true;
+
+				Context.SendEvent(KRTAG_ENEMY_AISTATE_RAGE);
+			}
+			else if (bIsRageStatus && CurrentHealthPercent > EnterRageStatusRate)
+			{
+				bIsRageStatus = false;
+			}
+			
 			if (bFound && CurrentHealth <= 0.f)
 			{
 				bIsEnemyDead = true;

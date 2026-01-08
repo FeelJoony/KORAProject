@@ -39,7 +39,8 @@ public class KORAProject : ModuleRules
             "MassActors",
             "MassSpawner",
             "MassRepresentation",
-			"MotionWarping"
+			"MotionWarping",
+			"NavigationSystem"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[]

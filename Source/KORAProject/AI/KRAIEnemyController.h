@@ -12,14 +12,13 @@ class KORAPROJECT_API AKRAIEnemyController : public AModularAIController
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	AKRAIEnemyController();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = StateTree)
+	TObjectPtr<class UStateTreeAIComponent> StateTreeComponent;
 
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AIPerception)
+	TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
 };

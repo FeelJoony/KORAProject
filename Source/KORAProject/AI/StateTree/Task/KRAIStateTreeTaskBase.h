@@ -9,4 +9,6 @@ class KORAPROJECT_API UKRAIStateTreeTaskBase : public UStateTreeTaskBlueprintBas
 {
 	GENERATED_BODY()
 
+	
+
 };

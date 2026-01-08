@@ -993,7 +993,7 @@ void UTableRowConvertFunctionContainer::CreateEnemyData(class UDataTable* OutDat
 				FEnemyDataStruct EnemyData;
 
 				EnemyData.EnemyTag = ParseGameplayTagValue(RowValue[EnemyTag_Index]);
-				//EnemyData.StateTree = ParseSoftObjectValue<UStateTree>(RowValue[StateTree_Index]);
+				EnemyData.StateTree = ParseSoftObjectValue<UStateTree>(RowValue[StateTree_Index]);
 				//EnemyData.AttackMontage = ParseSoftObjectValue<UAnimMontage>(RowValue[AttackMontage_Index]);
 				//EnemyData.HitMontage = ParseSoftObjectValue<UAnimMontage>(RowValue[HitMontage_Index]);
 				//EnemyData.DeathMontage = ParseSoftObjectValue<UAnimMontage>(RowValue[DeathMontage_Index]);

@@ -46,6 +46,9 @@ public:
 	bool bIsEnemyDead = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
+	bool bIsRageStatus = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
 	float CanAttackRange = 0.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
@@ -53,7 +56,15 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
 	float EnterRageStatusRate = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
+	float CurrentHealthPercent = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Parameter")
+	float EnterRageHealthPercent = 0.f;
 	
 private:
 	void SetDefaultValues();
+
+	float MaxHealth = 0.f;
 };

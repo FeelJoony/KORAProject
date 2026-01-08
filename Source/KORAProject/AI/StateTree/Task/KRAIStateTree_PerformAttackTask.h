@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "KRAIStateTreeTaskBase.h"
@@ -27,8 +25,20 @@ struct KORAPROJECT_API FKRAIStateTree_PerformAttackAbilityInfo
 	
 };
 
-UCLASS()
+UCLASS(Category = "KRAI", meta = (DisplayName = "Perform Select Attack", ToolTip = "", Keywords = "Attack, Task, AI, KRAI"))
 class KORAPROJECT_API UKRAIStateTree_PerformAttackTask : public UKRAIStateTreeTaskBase
 {
 	GENERATED_BODY()
+
+public:
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) override;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Context, meta = (Context))
+	TObjectPtr<class AKREnemyPawn> Actor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TSubclassOf<class UGameplayAbility> AbilityClass;
 };

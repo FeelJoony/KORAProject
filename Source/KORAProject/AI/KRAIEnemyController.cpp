@@ -1,26 +1,64 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "KRAIEnemyController.h"
+
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "KREnemyPawn.h"
+#include "Components/StateTreeAIComponent.h"
+#include "Data/EnemyDataStruct.h"
+#include "Perception/AIPerceptionComponent.h"
 
 
-#include "KRAIEnemyController.h"
-
-
-// Sets default values
 AKRAIEnemyController::AKRAIEnemyController()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	StateTreeComponent = CreateDefaultSubobject<UStateTreeAIComponent>(TEXT("StateTreeComponent"));
+	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 }
 
-// Called when the game starts or when spawned
-void AKRAIEnemyController::BeginPlay()
+void AKRAIEnemyController::OnPossess(APawn* InPawn)
 {
-	Super::BeginPlay();
-	
-}
+	Super::OnPossess(InPawn);
 
-// Called every frame
-void AKRAIEnemyController::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	if (AKREnemyPawn* EnemyPawn = Cast<AKREnemyPawn>(InPawn))
+	{
+		FGameplayTag EnemyTag = EnemyPawn->GetEnemyTag();
+
+		const FEnemyDataStruct* EnemyDataStruct = nullptr;
+
+		UWorld* World = GetWorld();
+		if (World == nullptr)
+		{
+			static const FString TablePath = TEXT("/Game/Data/DataTables");
+
+			static const FString EnemyTableName = TEXT("EnemyData");
+
+			UDataTable* DataTable = Cast<class UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *FPaths::Combine(TablePath, EnemyTableName)));
+
+			TArray<FEnemyDataStruct*> DataArray;
+			DataTable->GetAllRows(TEXT(""), DataArray);
+
+			for (const FEnemyDataStruct* Data : DataArray)
+			{
+				if (Data->EnemyTag == EnemyTag)
+				{
+					EnemyDataStruct = Data;
+
+					break;
+				}
+			}
+		}
+		else
+		{
+			UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
+		
+			EnemyDataStruct = DataTablesSubsystem.GetData<FEnemyDataStruct>(EnemyTag);
+		}
+
+		if (EnemyDataStruct)
+		{
+			if (UStateTree* StateTree = EnemyDataStruct->StateTree.LoadSynchronous())
+			{
+				StateTreeComponent->SetStateTree(StateTree);
+			}	
+		}
+	}
 }
 

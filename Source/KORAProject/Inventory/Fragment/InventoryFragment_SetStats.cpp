@@ -26,7 +26,7 @@ void UInventoryFragment_SetStats::InitializeWeaponStats(UKRInventoryItemInstance
 	UObject* ContextObj = Instance->GetOwnerContext();
 	if (!ContextObj) return;
 	
-	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
+	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
 
 	const FItemDataStruct* ItemData = DataTablesSubsystem.GetData<FItemDataStruct>(Instance->GetItemTag());
 	if (!ItemData)

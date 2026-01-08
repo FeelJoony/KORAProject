@@ -28,7 +28,6 @@ AKREnemyPawn::AKREnemyPawn(const FObjectInitializer& ObjectInitializer)
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
 	EnemyASC = CreateDefaultSubobject<UKRAbilitySystemComponent>(TEXT("EnemyASC"));
 	CombatComponent = CreateDefaultSubobject<UKRCombatComponent>(TEXT("CombatComponent"));
-	StateTreeComponent = CreateDefaultSubobject<UStateTreeAIComponent>(TEXT("StateTreeComponent"));
 	
 	SetRootComponent(CapsuleComponent);
 	Mesh->SetupAttachment(CapsuleComponent);
@@ -79,7 +78,7 @@ void AKREnemyPawn::InitializeComponents()
 	const FEnemyAttributeDataStruct* EnemyAttributeDataStruct = nullptr;
 
 	UWorld* World = GetWorld();
-	if (World == nullptr)
+	if (World == nullptr || World->GetGameInstance() == nullptr)
 	{
 		static const FString TablePath = TEXT("/Game/Data/DataTables");
 
@@ -100,33 +99,30 @@ void AKREnemyPawn::InitializeComponents()
 		EnemyAttributeDataStruct = DataTablesSubsystem.GetData<FEnemyAttributeDataStruct>(EnemyTag);
 	}
 
-	if (EnemyDataStruct)
+	for (const TSubclassOf<UGameplayAbility>& AbilityClass : ApplyAbilityClasses)
 	{
-		if (UStateTree* StateTree = EnemyDataStruct->StateTree.LoadSynchronous())
-		{
-			StateTreeComponent->SetStateTree(StateTree);
-		}	
+		EnemyASC->K2_GiveAbility(AbilityClass);
 	}
 
-	if (EnemyAbilityDataStruct)
-	{
-		if (EnemyASC)
-		{
-			auto GiveAbilityToEnemyASC = [this](const TSoftObjectPtr<UKRGameplayAbility>& InGA)
-			{
-				UKRGameplayAbility* GA = InGA.LoadSynchronous();
-				EnemyASC->GiveAbility(*GA->GetCurrentAbilitySpec());
-			};
-
-			GiveAbilityToEnemyASC(EnemyAbilityDataStruct->AttackGA);	
-			GiveAbilityToEnemyASC(EnemyAbilityDataStruct->HitGA);	
-			GiveAbilityToEnemyASC(EnemyAbilityDataStruct->DeathGA);	
-			GiveAbilityToEnemyASC(EnemyAbilityDataStruct->StunGA);	
-			GiveAbilityToEnemyASC(EnemyAbilityDataStruct->StunGA);	
-			GiveAbilityToEnemyASC(EnemyAbilityDataStruct->SlashGA);	
-			GiveAbilityToEnemyASC(EnemyAbilityDataStruct->AlertGA);
-		}
-	}
+	// if (EnemyAbilityDataStruct)
+	// {
+	// 	if (EnemyASC)
+	// 	{
+	// 		auto GiveAbilityToEnemyASC = [this](const TSoftObjectPtr<UKRGameplayAbility>& InGA)
+	// 		{
+	// 			UKRGameplayAbility* GA = InGA.LoadSynchronous();
+	// 			EnemyASC->GiveAbility(*GA->GetCurrentAbilitySpec());
+	// 		};
+	//
+	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->AttackGA);	
+	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->HitGA);	
+	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->DeathGA);	
+	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->StunGA);	
+	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->StunGA);	
+	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->SlashGA);	
+	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->AlertGA);
+	// 	}
+	// }
 
 	if (EnemyAttributeDataStruct)
 	{
@@ -142,14 +138,20 @@ void AKREnemyPawn::InitializeComponents()
 	}
 }
 
-bool AKREnemyPawn::TryActivateAbility(const FGameplayTagContainer& GameplayTagContainer)
+bool AKREnemyPawn::TryActivateAbility(TSubclassOf<UGameplayAbility> AbilityClass)
 {
 	if (!EnemyASC)
 	{
 		return false;
 	}
 
-	return EnemyASC->TryActivateAbilitiesByTag(GameplayTagContainer);
+	FGameplayAbilitySpec* Spec = EnemyASC->FindAbilitySpecFromClass(AbilityClass);
+	if (Spec == nullptr)
+	{
+		return false;
+	}
+	
+	return EnemyASC->TryActivateAbility(Spec->Handle);
 }
 
 
