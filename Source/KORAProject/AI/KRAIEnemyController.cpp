@@ -98,9 +98,14 @@ void AKRAIEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimu
 	if (Stimulus.WasSuccessfullySensed())
 	{
 		TargetActor = PlayerPawn0;
+		SetFocus(PlayerPawn0);
 	}
 	else
 	{
+		if (GetFocusActor() == Actor)
+		{
+			ClearFocus(EAIFocusPriority::Gameplay);
+		}
 		TargetActor = nullptr;
 	}
 }
@@ -113,9 +118,7 @@ bool AKRAIEnemyController::IsPlayerCharacter(AActor* InActor)
 	if (!PlayerPawn) return false;
 
 	APawn* SensedPawn = ResolveToPawn(InActor);
-	if (!SensedPawn) return false;
-	
-	return SensedPawn == PlayerPawn;
+	return (SensedPawn && SensedPawn == PlayerPawn);
 }
 
 APawn* AKRAIEnemyController::ResolveToPawn(AActor* InActor) const
@@ -127,7 +130,10 @@ APawn* AKRAIEnemyController::ResolveToPawn(AActor* InActor) const
 	AActor* OwnerActor = InActor->GetOwner();
 	while (OwnerActor)
 	{
-		if (APawn* OwnerPawn = Cast<APawn>(Owner)) return OwnerPawn;
+		if (APawn* OwnerPawn = Cast<APawn>(OwnerActor))
+		{
+			return OwnerPawn;
+		}
 		OwnerActor = OwnerActor->GetOwner();
 	}
 	return nullptr;
