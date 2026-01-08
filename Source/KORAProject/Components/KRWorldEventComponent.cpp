@@ -2,6 +2,7 @@
 #include "SubSystem/KRSoundSubsystem.h"
 #include "SubSystem/KREffectSubsystem.h"
 #include "Components/AudioComponent.h"
+#include "Subsystem/KRDataAssetRegistry.h"
 
 UKRWorldEventComponent::UKRWorldEventComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -83,11 +84,29 @@ void UKRWorldEventComponent::RegisterWorldEventData(UKRWorldEventData* EventData
 
 UKRWorldEventData* UKRWorldEventComponent::GetWorldEventData(const FGameplayTag& EventTag) const
 {
-	if (const TObjectPtr<UKRWorldEventData>* Found = RegisteredEvents.Find(EventTag))
+	if (!GetWorld())
+	{
+		return nullptr;
+	}
+
+	UGameInstance* GI = GetWorld()->GetGameInstance();
+	if (!GI)
+	{
+		return nullptr;
+	}
+
+	UKRDataAssetRegistry* Registry = GI->GetSubsystem<UKRDataAssetRegistry>();
+	if (!Registry)
+	{
+		return nullptr;
+	}
+
+	return Registry->GetWorldEventData(EventTag);
+	/*if (const TObjectPtr<UKRWorldEventData>* Found = RegisteredEvents.Find(EventTag))
 	{
 		return *Found;
 	}
-	return nullptr;
+	return nullptr;*/
 }
 
 UKRSoundSubsystem* UKRWorldEventComponent::GetSoundSubsystem() const
@@ -183,13 +202,20 @@ void UKRWorldEventComponent::PlayEventEffects(const UKRWorldEventData* EventData
 	const FKRWorldEventEffects& Effects = EventData->Effects;
 	FVector Location = Owner->GetActorLocation();
 	
-	if (UKRSoundSubsystem* SoundSubsystem = GetSoundSubsystem(); SoundSubsystem && Effects.SoundTag.IsValid())
+	if (UKRSoundSubsystem* SoundSubsystem = GetSoundSubsystem(); SoundSubsystem)
 	{
-		UAudioComponent* AudioComp = SoundSubsystem->PlaySoundByTag(Effects.SoundTag, Location, Owner, !Effects.bLoopSound);
-
-		if (Effects.bLoopSound && AudioComp)
+		if (Effects.SoundTag.IsValid())
 		{
-			ActiveEventSounds.Add(EventData->EventTag, AudioComp);
+			UAudioComponent* AudioComp = SoundSubsystem->PlaySoundByTag(Effects.SoundTag, Location, Owner, !Effects.bLoopSound);
+
+			if (Effects.bLoopSound && AudioComp)
+			{
+				ActiveEventSounds.Add(EventData->EventTag, AudioComp);
+			}
+		}
+		else if (Effects.BGMGroupTag.IsValid())
+		{
+			SoundSubsystem->PlayBGMForWorldEvent(Effects.BGMGroupTag);
 		}
 	}
 	
