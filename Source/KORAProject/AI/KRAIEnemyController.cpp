@@ -76,6 +76,7 @@ void AKRAIEnemyController::OnPossess(APawn* InPawn)
 			if (UStateTree* StateTree = EnemyDataStruct->StateTree.LoadSynchronous())
 			{
 				StateTreeComponent->SetStateTree(StateTree);
+				StateTreeComponent->StartLogic();
 			}	
 		}
 	}

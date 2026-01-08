@@ -23,15 +23,15 @@ AKREnemyPawn::AKREnemyPawn(const FObjectInitializer& ObjectInitializer)
 
 	PrimaryActorTick.bCanEverTick = false;
 
-	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionCylinder"));
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh0"));
-	ArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
+	//CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionCylinder"));
+	//Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh0"));
+	//ArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
 	EnemyASC = CreateDefaultSubobject<UKRAbilitySystemComponent>(TEXT("EnemyASC"));
 	CombatComponent = CreateDefaultSubobject<UKRCombatComponent>(TEXT("CombatComponent"));
 	
-	SetRootComponent(CapsuleComponent);
-	Mesh->SetupAttachment(CapsuleComponent);
-	ArrowComponent->SetupAttachment(CapsuleComponent);
+	// SetRootComponent(CapsuleComponent);
+	// Mesh->SetupAttachment(CapsuleComponent);
+	// ArrowComponent->SetupAttachment(CapsuleComponent);
 	
 	CombatCommonSet = CreateDefaultSubobject<UKRCombatCommonSet>(TEXT("CombatCommonSet"));
 	EnemyAttributeSet = CreateDefaultSubobject<UKREnemyAttributeSet>(TEXT("EnemyAttributeSet"));

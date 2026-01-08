@@ -28,7 +28,7 @@ public:
 	TObjectPtr<class AKRAIEnemyController> AIController;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
-	TObjectPtr<class AActor> PlayerActor = nullptr;
+	TObjectPtr<AActor> PlayerActor = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
 	float DistanceToPlayer = 0.f;

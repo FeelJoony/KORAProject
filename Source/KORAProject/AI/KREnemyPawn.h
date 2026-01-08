@@ -3,16 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ModularPawn.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "ModularCharacter.h"
 #include "KREnemyPawn.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSelectAttack, TSubclassOf<class UGameplayAbility>, float);
 DECLARE_MULTICAST_DELEGATE(FOnUnselectAttack);
 
 UCLASS()
-class KORAPROJECT_API AKREnemyPawn : public AModularPawn, public IAbilitySystemInterface 
+class KORAPROJECT_API AKREnemyPawn : public AModularCharacter, public IAbilitySystemInterface 
 {
 	GENERATED_BODY()
 
@@ -40,14 +40,14 @@ public:
 	FOnUnselectAttack OnUnselectAttack;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class UCapsuleComponent> CapsuleComponent;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-    TObjectPtr<class USkeletalMeshComponent> Mesh;
-    	
-    UPROPERTY()
-    TObjectPtr<class UArrowComponent> ArrowComponent;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	// TObjectPtr<class UCapsuleComponent> CapsuleComponent;
+	//
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	// TObjectPtr<class USkeletalMeshComponent> Mesh;
+	//    	
+	// UPROPERTY()
+	// TObjectPtr<class UArrowComponent> ArrowComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Tag, meta = (categories = "Enemy.Type"))
 	FGameplayTag EnemyTag; 

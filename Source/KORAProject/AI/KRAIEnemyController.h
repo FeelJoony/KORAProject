@@ -25,7 +25,7 @@ public:
 	TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
-	TWeakObjectPtr<AActor> TargetActor;
+	TObjectPtr<AActor> TargetActor = nullptr;
 
 protected:
 	UFUNCTION()

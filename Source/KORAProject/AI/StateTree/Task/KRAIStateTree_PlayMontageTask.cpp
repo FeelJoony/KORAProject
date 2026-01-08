@@ -1,6 +1,7 @@
 ﻿#include "KRAIStateTree_PlayMontageTask.h"
 #include "AI/KRAIEnemyController.h"
 #include "AI/KREnemyPawn.h"
+#include "EnvironmentQuery/EnvQueryManager.h"
 
 UKRAIStateTree_PlayMontageTask::UKRAIStateTree_PlayMontageTask(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

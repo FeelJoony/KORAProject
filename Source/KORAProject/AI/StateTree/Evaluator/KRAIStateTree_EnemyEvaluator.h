@@ -36,7 +36,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Context)
 	TObjectPtr<class AKRAIEnemyController> AIController;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<AActor> TargetActor = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
