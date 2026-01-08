@@ -224,7 +224,7 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 		}
 	}
 	
-	if (AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
+	if (KRPS)
 	{
 		if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
 		{
@@ -234,8 +234,6 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 			}
 		}
 	}
-
-	
 	
 	AController* PC = Pawn->GetController();
 
