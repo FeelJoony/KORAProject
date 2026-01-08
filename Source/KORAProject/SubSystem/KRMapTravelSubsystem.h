@@ -8,10 +8,6 @@
 DECLARE_MULTICAST_DELEGATE(FOnMapTravelStarted);
 DECLARE_MULTICAST_DELEGATE(FOnMapTravelCompleted);
 
-/**
- * 맵 전환을 중앙에서 관리하는 서브시스템
- * - 페이드 효과, UI 메시지, 사운드를 통합 처리
- */
 UCLASS()
 class KORAPROJECT_API UKRMapTravelSubsystem : public UGameInstanceSubsystem
 {
@@ -38,7 +34,12 @@ private:
 
 	void OnLevelLoadComplete(FName StringTableKey, FGameplayTag SoundTag, float DisplayDuration);
 	void ExecuteServerTravel(const class UKRUserFacingExperience* Experience);
-
+	void BeginAsyncLoadingCheck();
+	void CheckAsyncLoading();
+	void OnAsyncLoadingFinished();
+	void OnMinLoadingTimeElapsed();
+	void TryFinishLoading();
+	
 	// 레벨 로드 완료 감지용
 	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IVS);
 	FDelegateHandle WorldInitHandle;
@@ -50,4 +51,12 @@ private:
 	bool bIsTransitioning;
 	float FadeInDuration = 1.5f;
 	float FadeOutDuration = 1.0f;
+	float MinLoadingDuration = 3.0f;
+	bool bMinLoadingTimeElapsed = false;
+	bool bAsyncLoadingFinished = false;
+
+	FTimerHandle FadeTimerHandle;
+	FTimerHandle MinLoadingTimerHandle;
+	FTimerHandle AsyncLoadingCheckTimer;
+	bool bWaitingForAsyncLoading = false;
 };
