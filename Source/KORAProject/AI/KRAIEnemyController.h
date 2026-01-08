@@ -6,13 +6,15 @@
 #include "ModularAIController.h"
 #include "KRAIEnemyController.generated.h"
 
+struct FAIStimulus;
+
 UCLASS()
 class KORAPROJECT_API AKRAIEnemyController : public AModularAIController
 {
 	GENERATED_BODY()
 
 public:
-	AKRAIEnemyController();
+	AKRAIEnemyController(const FObjectInitializer& ObjectInitializer);
 
 	virtual void OnPossess(APawn* InPawn) override;
 	
@@ -21,4 +23,18 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AIPerception)
 	TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
+	TWeakObjectPtr<AActor> TargetActor;
+
+protected:
+	UFUNCTION()
+	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
+	UPROPERTY()
+	TObjectPtr<class UAISenseConfig_Sight> SightConfig;
+
+private:
+	bool IsPlayerCharacter(AActor* InActor);
+	APawn* ResolveToPawn(AActor* InActor) const;
 };
