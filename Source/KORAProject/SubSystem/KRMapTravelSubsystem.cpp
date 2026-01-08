@@ -1,8 +1,7 @@
 #include "SubSystem/KRMapTravelSubsystem.h"
 #include "SubSystem/KRDataTablesSubsystem.h"
-#include "SubSystem/KRUIRouterSubsystem.h"
+#include "SubSystem/KRLoadingSubsystem.h"
 #include "SubSystem/KRUIInputSubsystem.h"
-#include "SubSystem/KRQuestSubsystem.h"
 #include "Data/LevelTransitionDataStruct.h"
 #include "Data/GameDataType.h"
 #include "Data/CacheDataTable.h"
@@ -10,10 +9,8 @@
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "CommonSessionSubsystem.h"
-#include "KRSoundSubsystem.h"
 #include "Engine/LocalPlayer.h"
 #include "GameplayTag/KRNPCTag.h"
-#include "GameplayTag/KRSoundTag.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMapTravel, Log, All);
 
@@ -22,8 +19,7 @@ void UKRMapTravelSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	Collection.InitializeDependency<UKRDataTablesSubsystem>();
-	Collection.InitializeDependency<UKRUIRouterSubsystem>();
-	
+
 	WorldInitHandle = FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UKRMapTravelSubsystem::OnWorldInitialized);
 
 	bIsTransitioning = false;
@@ -89,23 +85,9 @@ void UKRMapTravelSubsystem::StartTransitionSequence(
     PendingLevelSoundTag = TransitionData.LevelEnterSoundTag;
 	PendingLevelNameKey = FName(TransitionData.StringTableKey.ToString());
 
-    if (UKRUIRouterSubsystem* UIRouter = GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>())
-    {
-        UIRouter->OpenRoute(FName(TEXT("FadeOut")));
-    }
+    UKRLoadingSubsystem::Get().ShowLoadingScreen();
 
 	ExecuteServerTravel(Experience);
-
-	// 우선 이 부분 때문에 원래 약간 늦게 다음 레벨로 넘어가졌고
-    // GetGameInstance()->GetTimerManager().SetTimer(
-    //     FadeTimerHandle,
-    //     [this, Experience]()
-    //     {
-    //     	ExecuteServerTravel(Experience);
-    //     },
-    //     FadeOutDuration,
-    //     false
-    // );
 }
 
 void UKRMapTravelSubsystem::ExecuteServerTravel(const UKRUserFacingExperience* Experience)
@@ -196,11 +178,7 @@ void UKRMapTravelSubsystem::TryFinishLoading()
 		return;
 	}
 
-	if (UKRUIRouterSubsystem* UIRouter =
-		GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>())
-	{
-		UIRouter->CloseRoute(FName(TEXT("Loading")));
-	}
+	UKRLoadingSubsystem::Get().HideLoadingScreen();
 
 	if (UWorld* World = GetWorld())
 	{
@@ -235,30 +213,17 @@ void UKRMapTravelSubsystem::OnWorldInitialized(
 
 	bIsTransitioning = false;
 
-	// Loading UI는 다음 Tick에서 열기 (UIRouter 안정화)
-	GetGameInstance()->GetTimerManager().SetTimerForNextTick(
-		FTimerDelegate::CreateLambda([this]()
-		{
-			if (UKRUIRouterSubsystem* UIRouter = GetGameInstance()->GetSubsystem<UKRUIRouterSubsystem>())
-			{
-				UIRouter->OpenRoute(FName(TEXT("Loading")));
-			}
-
-			// 최소 로딩 시간 타이머
-			bMinLoadingTimeElapsed = false;
-			GetGameInstance()->GetTimerManager().SetTimer(
-				MinLoadingTimerHandle,
-				this,
-				&UKRMapTravelSubsystem::OnMinLoadingTimeElapsed,
-				MinLoadingDuration,
-				false
-			);
-
-			// Async / Streaming 체크
-			bAsyncLoadingFinished = false;
-			BeginAsyncLoadingCheck();
-		})
+	bMinLoadingTimeElapsed = false;
+	GetGameInstance()->GetTimerManager().SetTimer(
+		MinLoadingTimerHandle,
+		this,
+		&UKRMapTravelSubsystem::OnMinLoadingTimeElapsed,
+		MinLoadingDuration,
+		false
 	);
+
+	bAsyncLoadingFinished = false;
+	BeginAsyncLoadingCheck();
 }
 
 void UKRMapTravelSubsystem::OnLevelLoadComplete(FName StringTableKey, FGameplayTag SoundTag, float DisplayDuration)
@@ -275,36 +240,4 @@ void UKRMapTravelSubsystem::OnLevelLoadComplete(FName StringTableKey, FGameplayT
 		FKRUIMessageTags::SaveDeathLevelInfo(),
 		Message
 	);
-
-	//SoundTag = KRTAG_SOUND_UI_MAPTRANSITION;
-	
-	if (SoundTag.IsValid())
-	{
-		UE_LOG(LogMapTravel, Log, TEXT("Playing sound: %s"), *SoundTag.ToString());
-
-		// if (UWorld* World = GetWorld())
-		// {
-		// 	if (UKRSoundSubsystem* SoundSubsystem =
-		// 		World->GetSubsystem<UKRSoundSubsystem>())
-		// 	{
-		// 		FVector Location = FVector::ZeroVector;
-		//
-		// 		if (APlayerController* PC = World->GetFirstPlayerController())
-		// 		{
-		// 			if (APawn* Pawn = PC->GetPawn())
-		// 			{
-		// 				Location = Pawn->GetActorLocation();
-		// 			}
-		// 		}
-		//
-		// 		SoundSubsystem->PlaySoundByTag(
-		// 			SoundTag,
-		// 			Location, 
-		// 			nullptr, 
-		// 			true  
-		// 		);
-		// 	}
-		// }
-	}
-
 }

@@ -44,19 +44,19 @@ private:
 	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IVS);
 	FDelegateHandle WorldInitHandle;
 
-	// 현재 전환 데이터 저장
 	FName PendingLevelNameKey;
 	FGameplayTag PendingLevelSoundTag;
-	float PendingDisplayDuration;
-	bool bIsTransitioning;
-	float FadeInDuration = 1.5f;
-	float FadeOutDuration = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Loading")
+	float PendingDisplayDuration = 3.0f;
+	UPROPERTY(EditAnywhere, Category = "Loading")
 	float MinLoadingDuration = 3.0f;
+
+	bool bIsTransitioning = false;
 	bool bMinLoadingTimeElapsed = false;
 	bool bAsyncLoadingFinished = false;
+	bool bWaitingForAsyncLoading = false;
 
-	FTimerHandle FadeTimerHandle;
 	FTimerHandle MinLoadingTimerHandle;
 	FTimerHandle AsyncLoadingCheckTimer;
-	bool bWaitingForAsyncLoading = false;
 };
