@@ -120,14 +120,14 @@ bool AKRAIEnemyController::IsPlayerCharacter(AActor* InActor)
 APawn* AKRAIEnemyController::ResolveToPawn(AActor* InActor) const
 {
 	if (!InActor) return nullptr;
-	if (APawn* Pawn = Cast<APawn>(InActor)) return Pawn;
+	if (APawn* AsPawn = Cast<APawn>(InActor)) return AsPawn;
 	if (APawn* InstigatorPawn = InActor->GetInstigator()) return InstigatorPawn;
 
-	AActor* Owner = InActor->GetOwner();
-	while (Owner)
+	AActor* OwnerActor = InActor->GetOwner();
+	while (OwnerActor)
 	{
 		if (APawn* OwnerPawn = Cast<APawn>(Owner)) return OwnerPawn;
-		Owner = Owner->GetOwner();
+		OwnerActor = OwnerActor->GetOwner();
 	}
 	return nullptr;
 }
