@@ -60,3 +60,18 @@ Sound.Combat.Gun.DryFire,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Gun_
 Sound.Combat.Gun.Reload.Start,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Gun_Reload_Start.DA_Sound_Combat_Gun_Reload_Start,Gun Reload Start,TRUE
 Sound.Combat.Gun.Reload.Loop,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Gun_Reload_Load.DA_Sound_Combat_Gun_Reload_Load,Gun Reload Load,TRUE
 Sound.Combat.Gun.Reload.End,/Game/Data/DataAssets/Sound/Combat/DA_Sound_Combat_Gun_Reload_End.DA_Sound_Combat_Gun_Reload_End,Gun Reload End,TRUE
+Sound.BGM.MainMenu.WakeUp,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_MainMenu_WakeUp.DA_Sound_BGM_MainMenu_WakeUp,BGM MainMenu WakeUp,TRUE
+Sound.BGM.MainMenu.Inspire,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_MainMenu_Inspire.DA_Sound_BGM_MainMenu_Inspire,BGM MainMenu Inspire,TRUE
+Sound.BGM.MainMenu.War,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_MainMenu_War.DA_Sound_BGM_MainMenu_War,BGM MainMenu War,TRUE
+Sound.BGM.DirectorRoom.Whispers,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_DirectorRoom_Whispers.DA_Sound_BGM_DirectorRoom_Whispers,BGM DirectionRoom Whispers,TRUE
+Sound.BGM.DirectorRoom.Hurry,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_DirectorRoom_Hurry.DA_Sound_BGM_DirectorRoom_Hurry,BGM DirectionRoom Hurry,TRUE
+Sound.BGM.DirectorRoom.Solemn,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_DirectorRoom_Solemn.DA_Sound_BGM_DirectorRoom_Solemn,BGM DirectionRoom Solemn,TRUE
+Sound.BGM.Barion.Night,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Barion_Night.DA_Sound_BGM_Barion_Night,BGM Barion Night,TRUE
+Sound.BGM.Barion.Tempo,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Barion_Tempo.DA_Sound_BGM_Barion_Tempo,BGM Barion Tempo,TRUE
+Sound.BGM.Barion.Raven,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Barion_Raven.DA_Sound_BGM_Barion_Raven,BGM Barion Raven,TRUE
+Sound.BGM.Forgotten.DownTown.Discovery,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_DownTown_Discovery.DA_Sound_BGM_Forgotten_DownTown_Discovery,BGM Forgotten DownTown Discovery,TRUE
+Sound.BGM.Forgotten.DownTown.Darkness,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_DownTown_Darkness.DA_Sound_BGM_Forgotten_DownTown_Darkness,BGM Forgotten DownTown Darkness,TRUE
+Sound.BGM.Forgotten.DownTown.Maesta,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_DownTown_Maesta.DA_Sound_BGM_Forgotten_DownTown_Maesta,BGM Forgotten DownTown Maesta,TRUE
+Sound.BGM.Forgotten.Beach.TimeLess,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_Beach_TimeLess.DA_Sound_BGM_Forgotten_Beach_TimeLess,BGM Forgotten Beach TimeLess,TRUE
+Sound.BGM.Forgotten.Beach.Eternal,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_Beach_Eternal.DA_Sound_BGM_Forgotten_Beach_Eternal,BGM Forgotten Beach Eternal,TRUE
+Sound.BGM.Forgotten.Beach.Sendero,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_Beach_Sendero.DA_Sound_BGM_Forgotten_Beach_Sendero,BGM Forgotten Beach Sendero,TRUE
