@@ -150,7 +150,7 @@ bool AKREnemyPawn::TryActivateAbility(TSubclassOf<UGameplayAbility> AbilityClass
 	{
 		return false;
 	}
-	
+
 	return EnemyASC->TryActivateAbility(Spec->Handle);
 }
 

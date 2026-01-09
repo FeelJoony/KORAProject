@@ -4,9 +4,6 @@
 #include "Animation/AnimInstance.h"
 #include "KRBaseAnimInstance.generated.h"
 
-class AKRBaseCharacter;
-class UCharacterMovementComponent;
-
 UCLASS()
 class KORAPROJECT_API UKRBaseAnimInstance : public UAnimInstance
 {
@@ -36,10 +33,10 @@ protected:
 	float Direction;
 	
 	UPROPERTY()
-	TObjectPtr<AKRBaseCharacter> CachedCharacter = nullptr;
+	TObjectPtr<class ACharacter> CachedCharacter = nullptr;
 	
 	UPROPERTY()
-	TObjectPtr<UCharacterMovementComponent> CachedMoveComponent = nullptr;
+	TObjectPtr<class UCharacterMovementComponent> CachedMoveComponent = nullptr;
 
 	virtual void RecacheOwner();
 };

@@ -10,6 +10,8 @@ UKRGA_EnemyPlayMontage::UKRGA_EnemyPlayMontage(const FObjectInitializer& Initial
 	PlayRates.Empty();
 	AppliedEffects.Empty();
 	CurrentSectionIndex = 0;
+
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
 void UKRGA_EnemyPlayMontage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -45,6 +47,11 @@ void UKRGA_EnemyPlayMontage::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 			}
 		}
 
+		if (SectionNames.IsEmpty())
+		{
+			SectionNames.Add(NAME_None);
+		}
+
 		PlayNextSection();
 		
 		//float const Duration = AnimInstance->Montage_Play(MontageToPlay, PlayRates[CurrentSectionIndex]);
@@ -75,6 +82,8 @@ void UKRGA_EnemyPlayMontage::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	
 	if (ActorInfo->OwnerActor.IsValid())
 	{
 		if (AActor* OwnerActor = ActorInfo->OwnerActor.Get())
@@ -92,8 +101,6 @@ void UKRGA_EnemyPlayMontage::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	OnMontageEnded(MontageToPlay, bWasCancelled, ActorInfo->AbilitySystemComponent);
-	
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UKRGA_EnemyPlayMontage::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted, TWeakObjectPtr<UAbilitySystemComponent> AbilitySystemComponent)
@@ -128,7 +135,7 @@ void UKRGA_EnemyPlayMontage::PlayNextSection()
 	}
 
 	float PlayRate = PlayRates.IsEmpty() ? 1.f : PlayRates[CurrentSectionIndex];
-	FName SectionName = SectionNames.IsEmpty() ? NAME_None : SectionNames[CurrentSectionIndex];
+	FName SectionName = SectionNames[CurrentSectionIndex];
 
 	UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,

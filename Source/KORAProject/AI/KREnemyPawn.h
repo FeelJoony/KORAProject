@@ -39,6 +39,9 @@ public:
 	FOnSelectAttack OnSelectAttack;
 	FOnUnselectAttack OnUnselectAttack;
 
+	UPROPERTY()
+	TObjectPtr<AActor> TargetActor = nullptr;
+
 protected:
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	// TObjectPtr<class UCapsuleComponent> CapsuleComponent;

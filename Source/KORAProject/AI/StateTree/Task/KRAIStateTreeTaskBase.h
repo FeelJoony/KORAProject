@@ -9,6 +9,7 @@ class KORAPROJECT_API UKRAIStateTreeTaskBase : public UStateTreeTaskBlueprintBas
 {
 	GENERATED_BODY()
 
-	
+public:
+	UKRAIStateTreeTaskBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 };

@@ -41,4 +41,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TSubclassOf<class UGameplayAbility> AbilityClass;
+
+private:
+	bool bEndedAbility = false;
+
+	void OnGameplayAbilityEndedCallback(const struct FAbilityEndedData& EndedData);
 };

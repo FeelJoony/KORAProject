@@ -11,17 +11,16 @@ EStateTreeRunStatus FKRAIStateTree_SendEventTask::EnterState(FStateTreeExecution
 
 	if (InstanceData.EventTag.IsValid())
 	{
-		// if (AKRAIEnemyController* KRAIController = Cast<AKRAIEnemyController>(Context.GetOwner()))
-		// {
-		// 	if (UStateTreeAIComponent* StateTreeComp = KRAIController->FindComponentByClass<UStateTreeAIComponent>())
-		// 	{
-		// 		const FConstStructView Payload = FConstStructView::Make(InstanceData.Payload);
-		// 		FStateTreeEvent Event(InstanceData.EventTag, Payload, NAME_None);
-		// 		StateTreeComp->SendStateTreeEvent(Event);
-		// 	}
-		// }
+		if (AKRAIEnemyController* KRAIController = Cast<AKRAIEnemyController>(Context.GetOwner()))
+		{
+			if (UStateTreeAIComponent* StateTreeComp = KRAIController->FindComponentByClass<UStateTreeAIComponent>())
+			{
+				FStateTreeEvent Event(InstanceData.EventTag);
+				StateTreeComp->SendStateTreeEvent(Event);
+			}
+		}
 
-		Context.SendEvent(InstanceData.EventTag, FConstStructView::Make(InstanceData.Payload));
+		// Context.SendEvent(InstanceData.EventTag, FConstStructView::Make(InstanceData.Payload));
 	}
 	
 	return EStateTreeRunStatus::Succeeded;

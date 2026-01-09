@@ -15,10 +15,10 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
-	TObjectPtr<AKRBaseCharacter> CachedBossCharacter = nullptr;
+	TObjectPtr<class ACharacter> CachedBossCharacter = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimData|LocomotionData")
-	TObjectPtr<UCharacterMovementComponent> CachedBossMoveComponent = nullptr;
+	TObjectPtr<class UCharacterMovementComponent> CachedBossMoveComponent = nullptr;
 
 	virtual void RecacheOwner() override;
 };

@@ -4,6 +4,7 @@
 #include "KREnemyPawn.h"
 #include "Components/StateTreeAIComponent.h"
 #include "Data/EnemyDataStruct.h"
+#include "GameplayTag/KREnemyTag.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Sight.h"
@@ -17,7 +18,7 @@ AKRAIEnemyController::AKRAIEnemyController(const FObjectInitializer& ObjectIniti
 	SetPerceptionComponent(*AIPerceptionComponent);
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	SightConfig->SightRadius = 2000.f;
+	SightConfig->SightRadius = 1000.f;
 	//SightConfig->LoseSightRadius = 2400.f;
 	SightConfig->PeripheralVisionAngleDegrees = 75.f;
 	SightConfig->SetMaxAge(1.8f);
@@ -98,6 +99,11 @@ void AKRAIEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimu
 	if (Stimulus.WasSuccessfullySensed())
 	{
 		TargetActor = PlayerPawn0;
+
+		if (StateTreeComponent)
+		{
+			StateTreeComponent->SendStateTreeEvent(KRTAG_ENEMY_AISTATE_COMBAT);
+		}
 	}
 	else
 	{

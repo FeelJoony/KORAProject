@@ -45,7 +45,7 @@ void UKRBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 void UKRBaseAnimInstance::RecacheOwner()
 {
 	APawn* PawnOwner = TryGetPawnOwner();
-	CachedCharacter = PawnOwner ? Cast<AKRBaseCharacter>(PawnOwner) : nullptr;
+	CachedCharacter = PawnOwner ? Cast<ACharacter>(PawnOwner) : nullptr;
 
 	if (CachedCharacter)
 	{

@@ -17,9 +17,6 @@ struct FSendEventTaskInstanceData
 
 	UPROPERTY(EditAnywhere, Category = "Send Event")
 	FGameplayTag EventTag;
-
-	UPROPERTY(EditAnywhere, Category = "Send Event")
-	FInstancedPropertyBag Payload;
 };
 
 USTRUCT(Category = "KRAI", meta = (DisplayName = "Send State Tree Event", ToolTip = "A task that sends an event to the StateTree.", Keywords = "Event, Task, AI, KRAI"))
