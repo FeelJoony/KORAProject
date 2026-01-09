@@ -15,6 +15,7 @@
 #include "CurrencyDataStruct.h"
 
 #include "KRDataAssetTableRows.h"
+#include "Data/LevelTransitionDataStruct.h"
 #include "Data/CitizenDataStruct.h"
 #include "Data/DialogueDataStruct.h"
 
@@ -110,13 +111,19 @@ void UCacheDataTable::Init(EGameDataType InDataType, UDataTable* NewDataTable)
 
 	case EGameDataType::CitizenData:
 		{
-		InitKeyList<FCitizenDataStruct>(NewDataTable);
+			InitKeyList<FCitizenDataStruct>(NewDataTable);
 		}
 		break;
 
 	case EGameDataType::DialogueData:
 		{
-		InitKeyList<FDialogueDataStruct>(NewDataTable);
+			InitKeyList<FDialogueDataStruct>(NewDataTable);
+		}
+		break;
+
+	case EGameDataType::LevelTransitionData:
+		{
+			InitKeyList<FLevelTransitionDataStruct>(NewDataTable);
 		}
 		break;
 	}

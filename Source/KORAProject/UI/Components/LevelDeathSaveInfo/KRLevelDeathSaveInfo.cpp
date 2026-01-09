@@ -4,7 +4,9 @@
 #include "CommonTextBlock.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "GameplayTag/KRSoundTag.h"
 #include "Internationalization/StringTable.h"
+#include "SubSystem/KRSoundSubsystem.h"
 
 void UKRLevelDeathSaveInfo::NativeOnInitialized()
 {
@@ -84,6 +86,33 @@ void UKRLevelDeathSaveInfo::ShowInfo(EInfoContext Context, const FString& String
 		PlayAnimation(ShowAnim);
 	}
 
+	if (Context == EInfoContext::LevelTransition)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (UKRSoundSubsystem* SoundSubsystem =
+				World->GetSubsystem<UKRSoundSubsystem>())
+			{
+				FVector Location = FVector::ZeroVector;
+
+				if (APlayerController* PC = World->GetFirstPlayerController())
+				{
+					if (APawn* Pawn = PC->GetPawn())
+					{
+						Location = Pawn->GetActorLocation();
+					}
+				}
+
+				SoundSubsystem->PlaySoundByTag(
+					KRTAG_SOUND_UI_MAPTRANSITION,
+					Location,
+					nullptr,
+					true
+				);
+			}
+		}
+	}
+	
 	if (AutoHideDuration > 0.f && GetWorld())
 	{
 		GetWorld()->GetTimerManager().SetTimer(
@@ -103,6 +132,18 @@ void UKRLevelDeathSaveInfo::HideInfo()
 		return;
 	}
 
+	if (UWorld* World = GetWorld())
+	{
+		if (UKRSoundSubsystem* SoundSubsystem =
+			World->GetSubsystem<UKRSoundSubsystem>())
+		{
+			SoundSubsystem->StopSoundByTag(
+				KRTAG_SOUND_UI_MAPTRANSITION,
+				0.2f
+			);
+		}
+	}
+	
 	if (HideAnim)
 	{
 		PlayAnimation(HideAnim);

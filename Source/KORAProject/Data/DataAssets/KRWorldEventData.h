@@ -55,6 +55,22 @@ struct FKRWorldEventEffects
 	// 이펙트 지속 시간 (0이면 무한)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects", meta = (EditCondition = "bPersistentEffect"))
 	float EffectDuration = 0.0f;
+
+	//BGM 태그
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
+	FGameplayTag BGMGroupTag;
+
+	// BGM 루프 여부
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
+	bool bLoopBGM = true;
+
+	// BGM 페이드 인 시간
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
+	float BGMFadeInTime = 2.f;
+
+	// BGM 페이드 아웃 시간
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
+	float BGMFadeOutTime = 2.f;
 };
 
 /**
