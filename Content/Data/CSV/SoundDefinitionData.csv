@@ -75,3 +75,5 @@ Sound.BGM.Forgotten.DownTown.Maesta,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM
 Sound.BGM.Forgotten.Beach.TimeLess,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_Beach_TimeLess.DA_Sound_BGM_Forgotten_Beach_TimeLess,BGM Forgotten Beach TimeLess,TRUE
 Sound.BGM.Forgotten.Beach.Eternal,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_Beach_Eternal.DA_Sound_BGM_Forgotten_Beach_Eternal,BGM Forgotten Beach Eternal,TRUE
 Sound.BGM.Forgotten.Beach.Sendero,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_Beach_Sendero.DA_Sound_BGM_Forgotten_Beach_Sendero,BGM Forgotten Beach Sendero,TRUE
+Sound.BGM.SemiBoss.Commend,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_SemiBoss_Commend.DA_Sound_BGM_SemiBoss_Commend,BGM SemiBoss Commend,TRUE
+Sound.BGM.SemiBoss.Epic,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_SemiBoss_Epic.DA_Sound_BGM_SemiBoss_Epic,BGM SemiBoss Epic,TRUE
