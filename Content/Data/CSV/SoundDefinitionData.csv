@@ -77,3 +77,10 @@ Sound.BGM.Forgotten.Beach.Eternal,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_F
 Sound.BGM.Forgotten.Beach.Sendero,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_Forgotten_Beach_Sendero.DA_Sound_BGM_Forgotten_Beach_Sendero,BGM Forgotten Beach Sendero,TRUE
 Sound.BGM.SemiBoss.Commend,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_SemiBoss_Commend.DA_Sound_BGM_SemiBoss_Commend,BGM SemiBoss Commend,TRUE
 Sound.BGM.SemiBoss.Epic,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_SemiBoss_Epic.DA_Sound_BGM_SemiBoss_Epic,BGM SemiBoss Epic,TRUE
+Sound.BGM.FinalBoss.Phase1.Find,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase1_Find.DA_Sound_BGM_FinalBoss_Phase1_Find,BGM FinalBoss Find,TRUE
+Sound.BGM.FinalBoss.Phase1.Chase,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase1_Chase.DA_Sound_BGM_FinalBoss_Phase1_Chase,BGM FinalBoss Chase,TRUE
+Sound.BGM.FinalBoss.Phase2.God,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase2_God.DA_Sound_BGM_FinalBoss_Phase2_God,BGM FinalBoss God,TRUE
+Sound.BGM.FinalBoss.Phase2.Badass,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase2_Badass.DA_Sound_BGM_FinalBoss_Phase2_Badass,BGM FinalBoss Badass,TRUE
+Sound.BGM.FinalBoss.Phase2.Fight,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase2_Fight.DA_Sound_BGM_FinalBoss_Phase2_Fight,BGM FinalBoss Fight,TRUE
+Sound.BGM.FinalBoss.Phase3.Honor,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase3_Honor.DA_Sound_BGM_FinalBoss_Phase3_Honor,BGM FinalBoss Honor,TRUE
+Sound.BGM.FinalBoss.Phase3.Epic,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase3_Epic.DA_Sound_BGM_FinalBoss_Phase3_Epic,BGM FinalBoss Epic,TRUE
