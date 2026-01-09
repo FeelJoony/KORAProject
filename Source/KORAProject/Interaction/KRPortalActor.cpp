@@ -1,4 +1,4 @@
-#include "GameModes/KRPortalActor.h"
+#include "Interaction/KRPortalActor.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "SubSystem/KRMapTravelSubsystem.h"
 #include "Components/StaticMeshComponent.h"
@@ -126,11 +126,11 @@ void AKRPortalActor::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	// 플레이어 체크
 	if (OtherActor && OtherActor->ActorHasTag(TEXT("Player")))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Portal] Player entered portal! Target: %s"), *TargetUserFacingPath);
+		UE_LOG(LogTemp, Warning, TEXT("[Portal] Player entered portal! Target: %s"), *TargetUserFacingPath.ToString());
 
 		// MapTravelSubsystem 호출
 		UKRMapTravelSubsystem& TravelSubsystem = UKRMapTravelSubsystem::Get(this);
-		TravelSubsystem.TravelToExperience(TargetUserFacingPath, ActivationObjectiveTag);
+		TravelSubsystem.TravelToExperience(TargetUserFacingPath.ToString());
 	}
 }
 
@@ -148,26 +148,4 @@ void AKRPortalActor::ActivatePortalIfMatch(FGameplayTag Channel)
 	if (PortalVFX) PortalVFX->Activate();
 
 	UE_LOG(LogTemp, Warning, TEXT("[Portal] Activated by tag: %s"), *Channel.ToString());
-}
-
-void AKRPortalActor::ActivatePortalForTesting()
-{
-	if (bIsActivated)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Portal] Already activated!"));
-		return;
-	}
-
-	// 활성화
-	bIsActivated = true;
-	SetActorHiddenInGame(false);
-	SetActorEnableCollision(true);
-
-	// VFX 활성화
-	if (PortalVFX)
-	{
-		PortalVFX->Activate();
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[Portal] Manually activated for testing!"));
 }
