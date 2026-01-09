@@ -7,6 +7,9 @@
 #include "SubSystem/KRQuestSubsystem.h"
 #include "GameplayTag/KREventTag.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Settings/KRSettingsSubsystem.h"
 
 void UKRDialogueWidget::NativeOnInitialized()
 {
@@ -65,6 +68,8 @@ void UKRDialogueWidget::NativeOnDeactivated()
 {
 	Super::NativeOnDeactivated();
 
+	StopCurrentVoice();
+
 	if (bDialogueActive)
 	{
 		EndDialogue();
@@ -77,6 +82,8 @@ void UKRDialogueWidget::AdvanceDialogue()
 	{
 		return;
 	}
+	
+	StopCurrentVoice();
 
 	CurrentLineIndex++;
 
@@ -104,10 +111,13 @@ void UKRDialogueWidget::DisplayCurrentLine()
 	{
 		DialogueText->SetText(LineText);
 	}
+	PlayCurrentVoice();
 }
 
 void UKRDialogueWidget::EndDialogue()
 {
+	StopCurrentVoice();
+
 	bDialogueActive = false;
 	CurrentLineIndex = 0;
 	OnDialogueCompleted.Broadcast(CurrentDialogueData.NPCTag);
@@ -155,4 +165,61 @@ void UKRDialogueWidget::OnDialogueStartMessage(FGameplayTag Channel, const FDial
 	bDialogueActive = true;
 
 	DisplayCurrentLine();
+}
+
+void UKRDialogueWidget::PlayCurrentVoice()
+{
+	StopCurrentVoice();
+	if (!CurrentDialogueData.VoiceAssets.IsValidIndex(CurrentLineIndex))
+	{
+		return;
+	}
+
+	TSoftObjectPtr<USoundBase> VoiceAssetPtr = CurrentDialogueData.VoiceAssets[CurrentLineIndex];
+	if (VoiceAssetPtr.IsNull())
+	{
+		return;
+	}
+
+	USoundBase* VoiceSound = VoiceAssetPtr.LoadSynchronous();
+	if (!VoiceSound)
+	{
+		return;
+	}
+
+	float VolumeMultiplier = 1.0f;
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UKRSettingsSubsystem* Settings = GI->GetSubsystem<UKRSettingsSubsystem>())
+		{
+			VolumeMultiplier = Settings->GetAppliedSettings().Audio.MasterVolume;
+		}
+	}
+
+	CurrentVoiceComponent = UGameplayStatics::SpawnSound2D(this, VoiceSound, VolumeMultiplier, 1.0f, 0.0f, nullptr, false, false);
+	if (CurrentVoiceComponent)
+	{
+		CurrentVoiceComponent->OnAudioFinished.AddDynamic(this, &UKRDialogueWidget::OnVoiceFinished);
+		CurrentVoiceComponent->Play();
+	}
+}
+
+void UKRDialogueWidget::StopCurrentVoice()
+{
+	if (CurrentVoiceComponent && CurrentVoiceComponent->IsPlaying())
+	{
+		CurrentVoiceComponent->OnAudioFinished.RemoveDynamic(this, &UKRDialogueWidget::OnVoiceFinished);
+		CurrentVoiceComponent->Stop();
+	}
+	CurrentVoiceComponent = nullptr;
+}
+
+bool UKRDialogueWidget::IsVoicePlaying() const
+{
+	return CurrentVoiceComponent && CurrentVoiceComponent->IsPlaying();
+}
+
+void UKRDialogueWidget::OnVoiceFinished()
+{
+	AdvanceDialogue();
 }

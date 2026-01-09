@@ -8,6 +8,7 @@
 
 class UCommonTextBlock;
 class UStringTable;
+class UAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueCompleted, FGameplayTag, NPCTag);
 
@@ -28,6 +29,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Dialogue")
 	bool IsDialogueActive() const { return bDialogueActive; }
+
+	UFUNCTION(BlueprintPure, Category = "Dialogue")
+	bool IsVoicePlaying() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Dialogue")
 	FOnDialogueCompleted OnDialogueCompleted;
@@ -51,13 +55,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dialogue")
 	FName DialogueRouteName = "Quest";
 
+private:
 	void DisplayCurrentLine();
 	void EndDialogue();
+	void PlayCurrentVoice();
+	void StopCurrentVoice();
 
 	FText GetTextFromStringTable(FName Key) const;
 
 	void OnDialogueStartMessage(FGameplayTag Channel, const FDialogueDataStruct& DialogueData);
 
-private:
+	UFUNCTION()
+	void OnVoiceFinished();
+	
 	FGameplayMessageListenerHandle DialogueListenerHandle;
-};
+
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> CurrentVoiceComponent;
+};	

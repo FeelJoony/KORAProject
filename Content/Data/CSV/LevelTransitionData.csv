@@ -1,0 +1,4 @@
+ObjectiveTag,StringTableKey,LevelEnterSoundTag
+NPC.Type.Clara,Info_Office,Sound.UI.MapTransition
+Event.ForgottenCity.MissionArea,Info_ForgottenCity,Sound.UI.MapTransition
+Event.ForgottenCity.FinalBossArena,Info_Barion,Sound.UI.MapTransition
