@@ -78,12 +78,11 @@ void AKRWorldSpawner::SpawnNext()
 			if (LoadedClass)
 			{
 				FVector SpawnLocation = FindFloorLocation(Data.SpawnTransform.GetLocation());
-				SpawnLocation.Z += Data.ZOffset;
 				FTransform SpawnTransform = Data.SpawnTransform;
 				SpawnTransform.SetLocation(SpawnLocation);
 
 				FActorSpawnParameters SpawnParams;
-				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 				AActor* NewActor = GetWorld()->SpawnActor<AActor>(
 					LoadedClass,
@@ -108,7 +107,7 @@ void AKRWorldSpawner::SpawnNext()
 	}
 }
 
-FVector AKRWorldSpawner::FindFloorLocation(const FVector& InLocation) const
+FVector AKRWorldSpawner::FindFloorLocation(const FVector& InLocation)
 {
 	if (!GetWorld())
 	{
@@ -121,8 +120,21 @@ FVector AKRWorldSpawner::FindFloorLocation(const FVector& InLocation) const
 	FHitResult HitResult;
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex = false;
+	QueryParams.AddIgnoredActor(this);
 
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, QueryParams))
+	for (const TWeakObjectPtr<AActor>& WeakActor : SpawnedActors)
+	{
+		if (AActor* Actor = WeakActor.Get())
+		{
+			QueryParams.AddIgnoredActor(Actor);
+		}
+	}
+
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+
+	if (GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ObjectQueryParams, QueryParams))
 	{
 		return HitResult.Location;
 	}

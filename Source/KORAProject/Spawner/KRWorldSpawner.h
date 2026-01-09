@@ -15,9 +15,6 @@ struct FKRSpawnData
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform SpawnTransform;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float ZOffset = 0.f;
 };
 
 UCLASS()
@@ -51,7 +48,7 @@ protected:
 	float FloorTraceHeight = 2000.f;
 
 private:
-	FVector FindFloorLocation(const FVector& InLocation) const;
+	FVector FindFloorLocation(const FVector& InLocation);
 	void SpawnNext();
 
 	UPROPERTY()
