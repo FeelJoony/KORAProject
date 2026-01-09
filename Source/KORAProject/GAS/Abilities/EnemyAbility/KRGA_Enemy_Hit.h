@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/KRHitReactionTypes.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
 #include "KRGA_Enemy_Hit.generated.h"
 
@@ -21,9 +22,29 @@ public:
 	UFUNCTION()
 	void OnMontageEnded();
 
+	/** GameplayCue */
+	//void ExecuteHitReactionCue(const FKRHitReactionCueParams& CueParams);
+
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* MontageTask;
 
 	UPROPERTY(EditDefaultsOnly, Category = KRState)
+	TObjectPtr<UAnimMontage> HitMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = KRState)
 	FGameplayTag HitAbilityTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "HitReaction|Cue")
+	FGameplayTag HitReactionCueTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "HitReaction|Cue")
+	FGameplayTag HitEffectTag;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "HitReaction|Cue")
+	FGameplayTag HitSoundTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "HitReaction|Cue")
+	EKRHitIntensity DefaultHitIntensity = EKRHitIntensity::Light;
+	
+	FKRHitReactionCueParams CachedCueParams;
 };

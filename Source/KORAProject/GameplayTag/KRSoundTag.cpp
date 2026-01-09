@@ -79,6 +79,12 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_DRYFIRE, "Sound.Combat.Gun.DryFire
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_GUN_RICOCHET, "Sound.Combat.Gun.Ricochet");
 
 // ============================================================
+// SOUND TAGS - Combat Enemy
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_ENEMY_ATTACK_NORMAL, "Sound.Combat.Enemy.Attack.Normal");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_COMBAT_ENEMY_ATTACK_ARBID, "Sound.Combat.Enemy.Attack.Arbid");
+
+// ============================================================
 // SOUND TAGS - Defense
 // ============================================================
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DEFENSE_GUARD_START, "Sound.Defense.Guard.Start");
@@ -95,6 +101,8 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_PLAYER_LIGHT, "Sound.Damage.Hit.Pl
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_PLAYER_MEDIUM, "Sound.Damage.Hit.Player.Medium");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_PLAYER_HEAVY, "Sound.Damage.Hit.Player.Heavy");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_PLAYER_DEATH, "Sound.Damage.Player.Death");
+
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY, "Sound.Damage.Hit.Enemy");
 
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_HUMAN_LIGHT, "Sound.Damage.Hit.Enemy.Human.Light");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_DAMAGE_HIT_ENEMY_HUMAN_MEDIUM, "Sound.Damage.Hit.Enemy.Human.Medium");

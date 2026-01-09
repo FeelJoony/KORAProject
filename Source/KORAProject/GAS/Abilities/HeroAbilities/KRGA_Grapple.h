@@ -72,7 +72,7 @@ public:
 	
 	void RemoveStunFromEnemy();
 
-	void TickEnemyMovement();
+	void TickEnemyGrapple();
 	
 	void CleanupEnemyGrapple();
 	
@@ -85,10 +85,11 @@ public:
 	void CleanupActorGrapple();
 	
 	void BeginLaunchMontage();
-	
+
+	UFUNCTION()
 	void CancelGrapple();
 	
-	void CleanupAllTasks() const;
+	void CleanupAllTasks();
 	
 	void CleanupAllTimers();
 
@@ -142,10 +143,10 @@ private:
 	float TraceRange = 5000.f; //수정할 때 GrappleVolume도 수정
 
 	UPROPERTY(EditDefaultsOnly)
-	float TargetMoveSpeed = 200.f;
+	float TargetMoveInverseSpeed = 200.f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float MoveToSpeed = 0.1f;
+	float MoveToInverseSpeed = 0.1f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float EnemyGrappleDuration = 1.5f;

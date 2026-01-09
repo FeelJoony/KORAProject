@@ -53,6 +53,9 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_ATTACK_HEAVY, "Effect.Combat.Sw
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_CHARGE, "Effect.Combat.Sword.Charge");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_CHARGE_START, "Effect.Combat.Sword.Charge.Start");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_CHARGE_RELEASE, "Effect.Combat.Sword.Charge.Release");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_BOSSATTACK_PHASE1, "Effect.Combat.Sword.BossAttack.Phase1");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_BOSSATTACK_PHASE2_NORMAL, "Effect.Combat.Sword.BossAttack.Phase2.Normal");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_BOSSATTACK_PHASE2_SPECIAL, "Effect.Combat.Sword.BossAttack.Phase2.Special");
 
 // ============================================================
 // EFFECT TAGS - Combat Gun
@@ -60,6 +63,12 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_SWORD_CHARGE_RELEASE, "Effect.Combat.
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_GUN_FIRE, "Effect.Combat.Gun.Fire");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_GUN_SHELL, "Effect.Combat.Gun.Shell");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_GUN_TRACER, "Effect.Combat.Gun.Tracer");
+
+// ============================================================
+// EFFECT TAGS - Combat Melee
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_MELEE_SEMIBOSS_LEFT, "Effect.Combat.Melee.SemiBoss.Left");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_COMBAT_MELEE_SEMIBOSS_RIGHT, "Effect.Combat.Melee.SemiBoss.Right");
 
 // ============================================================
 // EFFECT TAGS - Defense
@@ -73,6 +82,7 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_DEFENSE_PARRY_SUCCESS, "Effect.Defense.Parry
 // EFFECT TAGS - Damage & Impact
 // ============================================================
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_DAMAGE_HIT_PLAYER, "Effect.Damage.Hit.Player");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_DAMAGE_HIT_ENEMY, "Effect.Damage.Hit.Enemy");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_DAMAGE_HIT_ENEMY_HUMAN, "Effect.Damage.Hit.Enemy.Human");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_DAMAGE_HIT_ENEMY_MONSTER, "Effect.Damage.Hit.Enemy.Monster");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_DAMAGE_HIT_ENEMY_SEMIBOSS, "Effect.Damage.Hit.Enemy.SemiBoss");
@@ -132,3 +142,4 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_IMPACT, "Effect.Category.Impact");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_ENVIRONMENT, "Effect.Category.Environment");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_UI, "Effect.Category.UI");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_SKILL, "Effect.Category.Skill");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_EFFECT_CATEGORY_ENEMY_HIT, "Effect.Category.Enemy.Hit");

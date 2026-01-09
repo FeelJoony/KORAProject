@@ -1,7 +1,5 @@
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Stun.h"
-#include "Characters/KREnemyCharacter.h"
 #include "GAS/KRAbilitySystemComponent.h"
-#include "GameplayTag/KREnemyTag.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 
@@ -17,20 +15,12 @@ void UKRGA_Enemy_Stun::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
-	if (!Character)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
-
-	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
-	if (Enemy->StunMontage)
+	if (StunMontage)
 	{
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
 			NAME_None,
-			Enemy->StunMontage,
+			StunMontage,
 			1.f,
 			NAME_None
 		);
@@ -73,6 +63,7 @@ void UKRGA_Enemy_Stun::ExternalAbilityEnded()
 	}
 	else
 	{
+		MontageStop(0.25);
 		bPendingEnd = true;
 	}
 }

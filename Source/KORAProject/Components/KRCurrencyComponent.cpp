@@ -44,7 +44,7 @@ void UKRCurrencyComponent::InitializeDataTables()
 
 	if (!GI) return;
 
-	DataTables = UKRDataTablesSubsystem::GetSafe(this);
+	DataTables = &UKRDataTablesSubsystem::Get(this);
 }
 
 void UKRCurrencyComponent::InitializeCurrencyLossRules()
@@ -59,7 +59,7 @@ void UKRCurrencyComponent::InitializeCurrencyLossRules()
 		{
 			if (UGameInstance* GI = World->GetGameInstance())
 			{
-				DataTables = UKRDataTablesSubsystem::GetSafe(this);
+				DataTables = &UKRDataTablesSubsystem::Get(this);
 			}
 		}
 	}

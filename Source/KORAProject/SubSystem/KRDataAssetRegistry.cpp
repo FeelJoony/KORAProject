@@ -30,14 +30,8 @@ FKRDataAssetRegistrationResult UKRDataAssetRegistry::RegisterAllFromDataTablesSu
 {
 	FKRDataAssetRegistrationResult Result;
 	
-	UKRDataTablesSubsystem* DataTablesSubsystem = UKRDataTablesSubsystem::GetSafe(this);
-	if (!DataTablesSubsystem)
-	{
-		UE_LOG(LogKRDataAssetRegistry, Warning, TEXT("RegisterAllFromDataTablesSubsystem: DataTablesSubsystem is null"));
-		return Result;
-	}
-
-	if (UCacheDataTable* SoundCacheTable = DataTablesSubsystem->GetTable(FSoundDefinitionDataStruct::StaticStruct()))
+	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
+	if (UCacheDataTable* SoundCacheTable = DataTablesSubsystem.GetTable(FSoundDefinitionDataStruct::StaticStruct()))
 	{
 		if (UDataTable* SoundTable = SoundCacheTable->GetTable())
 		{
@@ -45,7 +39,7 @@ FKRDataAssetRegistrationResult UKRDataAssetRegistry::RegisterAllFromDataTablesSu
 		}
 	}
 
-	if (UCacheDataTable* EffectCacheTable = DataTablesSubsystem->GetTable(FEffectDefinitionDataStruct::StaticStruct()))
+	if (UCacheDataTable* EffectCacheTable = DataTablesSubsystem.GetTable(FEffectDefinitionDataStruct::StaticStruct()))
 	{
 		if (UDataTable* EffectTable = EffectCacheTable->GetTable())
 		{
@@ -53,7 +47,7 @@ FKRDataAssetRegistrationResult UKRDataAssetRegistry::RegisterAllFromDataTablesSu
 		}
 	}
 
-	if (UCacheDataTable* WorldEventCacheTable = DataTablesSubsystem->GetTable(FWorldEventDataStruct::StaticStruct()))
+	if (UCacheDataTable* WorldEventCacheTable = DataTablesSubsystem.GetTable(FWorldEventDataStruct::StaticStruct()))
 	{
 		if (UDataTable* WorldEventTable = WorldEventCacheTable->GetTable())
 		{

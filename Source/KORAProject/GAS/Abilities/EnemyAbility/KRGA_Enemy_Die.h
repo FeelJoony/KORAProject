@@ -40,5 +40,8 @@ public:
 	UAbilityTask_PlayMontageAndWait* MontageTask;
 
 	UPROPERTY(EditDefaultsOnly, Category = KRState)
+	TObjectPtr<UAnimMontage> DieMontage;
+	
+	UPROPERTY(EditDefaultsOnly, Category = KRState)
 	FGameplayTag DieAbilityTag;
 };
