@@ -115,12 +115,9 @@ void AKRDropItem::GiveItemToPlayer()
 			FKRUIMessage_ItemLog Payload;
 			Payload.EventType = EItemLogEvent::AcquiredNormal;
 			Payload.ItemTag = ItemTag;
-			Payload.NewTotalQuantity = InvSystem->GetItemCountByTag(ItemTag);
+			Payload.AcquiredQuantity = Quantity;
 			
-			if (const UKRInventoryItemDefinition* Def = InvSystem->GetItemDefinition(ItemTag))
-			{
-				UGameplayMessageSubsystem::Get(GetWorld()).BroadcastMessage(FKRUIMessageTags::ItemLog(), Payload);
-			}
+			UGameplayMessageSubsystem::Get(GetWorld()).BroadcastMessage(FKRUIMessageTags::ItemLog(), Payload);
 		}
 	}
 
