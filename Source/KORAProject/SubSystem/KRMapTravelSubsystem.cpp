@@ -9,8 +9,10 @@
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "CommonSessionSubsystem.h"
+#include "KRQuestSubsystem.h"
 #include "Engine/LocalPlayer.h"
 #include "GameplayTag/KRNPCTag.h"
+#include "Quest/KRQuestInstance.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMapTravel, Log, All);
 
@@ -45,7 +47,32 @@ UKRMapTravelSubsystem& UKRMapTravelSubsystem::Get(const UObject* WorldContextObj
 	return *MapTravelSubsystem;
 }
 
-void UKRMapTravelSubsystem::TravelToExperience(const FString& UserFacingPath, FGameplayTag ActivationTag)
+FGameplayTag UKRMapTravelSubsystem::ResolveObjectiveTag() const
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return FGameplayTag();
+	}
+
+	UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(World);
+
+	if (UKRQuestInstance* ActiveQuest = QuestSubsystem.GetActiveInstance())
+	{
+		const FGameplayTag QuestObjectiveTag =
+			ActiveQuest->GetSubQuestEvalDataStruct().ObjectiveTag;
+
+		if (QuestObjectiveTag.IsValid())
+		{
+			return QuestObjectiveTag;
+		}
+	}
+
+	return KRTAG_NPC_TYPE_CLARA;
+}
+
+
+void UKRMapTravelSubsystem::TravelToExperience(const FString& UserFacingPath)
 {
 	UKRUserFacingExperience* Experience = LoadObject<UKRUserFacingExperience>(nullptr, *UserFacingPath);
 	if (!Experience)
@@ -53,23 +80,23 @@ void UKRMapTravelSubsystem::TravelToExperience(const FString& UserFacingPath, FG
 		UE_LOG(LogMapTravel, Error, TEXT("Failed to load UserFacingExperience: %s"), *UserFacingPath);
 		return;
 	}
+
+	const FGameplayTag ObjectiveTag = ResolveObjectiveTag();
 	
 	UKRDataTablesSubsystem& DataTableSubsystem = UKRDataTablesSubsystem::Get(this);
-	
-	FGameplayTag TableKey = ActivationTag.IsValid() ? ActivationTag : KRTAG_NPC_TYPE_CLARA;
-	
 	UCacheDataTable* CacheTable = DataTableSubsystem.GetTable(EGameDataType::LevelTransitionData);
+	
 	FLevelTransitionDataStruct* TransitionData = nullptr;
 
 	if (CacheTable)
 	{
-		TransitionData = CacheTable->FindRowSafe<FLevelTransitionDataStruct>(TableKey, TEXT("MapTravel"), false);
+		TransitionData = CacheTable->FindRowSafe<FLevelTransitionDataStruct>(ObjectiveTag, TEXT("MapTravel"), false);
 	}
-
-	// TransitionData가 없으면 기본값 사용
+	
 	FLevelTransitionDataStruct DefaultTransitionData;
 	const FLevelTransitionDataStruct& TransitionDataRef = TransitionData ? *TransitionData : DefaultTransitionData;
-	StartTransitionSequence(Experience, TransitionDataRef, ActivationTag);
+	
+	StartTransitionSequence(Experience, TransitionDataRef, ObjectiveTag);
 }
 
 void UKRMapTravelSubsystem::StartTransitionSequence(
@@ -229,7 +256,7 @@ void UKRMapTravelSubsystem::OnWorldInitialized(
 void UKRMapTravelSubsystem::OnLevelLoadComplete(FName StringTableKey, FGameplayTag SoundTag, float DisplayDuration)
 {
 	OnMapTravelCompleted.Broadcast();
-	
+
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 
 	FKRUIMessage_Info Message;
@@ -240,4 +267,21 @@ void UKRMapTravelSubsystem::OnLevelLoadComplete(FName StringTableKey, FGameplayT
 		FKRUIMessageTags::SaveDeathLevelInfo(),
 		Message
 	);
+
+	// Restore Quest UI after level transition
+	UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(GetWorld());
+	if (UKRQuestInstance* ActiveQuest = QuestSubsystem.GetActiveInstance())
+	{
+		if (ActiveQuest->GetQuestState() == EQuestState::InProgress)
+		{
+			const FSubQuestEvalDataStruct& CurrentEvalData = ActiveQuest->GetSubQuestEvalDataStruct();
+
+			if (CurrentEvalData.UIRowName.IsValid())
+			{
+				FKRUIMessage_Quest QuestMessage;
+				QuestMessage.QuestNameKey = CurrentEvalData.UIRowName;
+				MessageSubsystem.BroadcastMessage(FKRUIMessageTags::Quest(), QuestMessage);
+			}
+		}
+	}
 }

@@ -82,8 +82,7 @@ void UKRFrontendStateComponent::TravelToGameplay()
 				GI->GetSubsystem<UKRMapTravelSubsystem>())
 			{
 				MapTravel->TravelToExperience(
-					Experience->GetPathName(),
-					FGameplayTag::EmptyTag
+					Experience->GetPathName()
 				);
 				return;
 			}

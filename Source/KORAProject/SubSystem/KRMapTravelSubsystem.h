@@ -19,9 +19,10 @@ public:
 
 	static UKRMapTravelSubsystem& Get(const UObject* WorldContextObject);
 
+	FGameplayTag ResolveObjectiveTag() const;
 	// ObjectiveTag도 함께 받아서 전환 데이터 로드
 	UFUNCTION(BlueprintCallable, Category = "MapTravel|Gameplay")
-	void TravelToExperience(const FString& UserFacingPath, FGameplayTag ActivationTag);
+	void TravelToExperience(const FString& UserFacingPath);
 
 	// 델리게이트
 	FOnMapTravelStarted OnMapTravelStarted;

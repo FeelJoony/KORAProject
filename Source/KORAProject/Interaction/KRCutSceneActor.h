@@ -4,43 +4,31 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-#include "GameModes/KRUserFacingExperience.h"
-#include "KRPortalActor.generated.h"
+#include "KRCutSceneActor.generated.h"
 
-/**
- * 레벨에 직접 배치하는 포탈 액터
- * - ObjectiveTag로 활성화 조건 설정
- * - UserFacingPath로 이동 대상 설정
- */
 UCLASS()
-class KORAPROJECT_API AKRPortalActor : public AActor
+class KORAPROJECT_API AKRCutSceneActor : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	AKRPortalActor();
-	
+	AKRCutSceneActor();
+
+protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal|Activation")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CutScene|Activation")
 	FGameplayTag ActivationObjectiveTag;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal|Destination")
-	TSoftObjectPtr<UKRUserFacingExperience> TargetUserFacingPath;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<class UStaticMeshComponent> PortalMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<class UNiagaraComponent> PortalVFX;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CutScene")
+	FName RouteToOpen;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UBoxComponent> TriggerBox;
 
 	// ===== 메시지 리스닝 =====
-
+	
 	UFUNCTION()
 	void OnKilledMonster(FGameplayTag Channel, const struct FKillMonsterMessage& Message);
 
@@ -58,9 +46,9 @@ protected:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void ActivatePortalIfMatch(FGameplayTag Channel);
-
+	void ActivateCutSceneIfMatch(FGameplayTag Channel);
+	
 private:
-	FGameplayMessageListenerHandle ListenerHandle;
 	bool bIsActivated = false;
+	FGameplayMessageListenerHandle ListenerHandle;
 };
