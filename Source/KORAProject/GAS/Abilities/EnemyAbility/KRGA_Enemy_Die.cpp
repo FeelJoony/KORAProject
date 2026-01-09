@@ -7,7 +7,6 @@
 #include "BrainComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-#include "GameplayTag/KREnemyTag.h"
 
 void UKRGA_Enemy_Die::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 										const FGameplayAbilityActorInfo* ActorInfo, 
@@ -21,20 +20,12 @@ void UKRGA_Enemy_Die::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
-	if (!Character)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
-
-	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
-	if (Enemy->DieMontage)
+	if (DieMontage)
 	{
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
 			NAME_None,
-			Enemy->DieMontage,
+			DieMontage,
 			1.f,
 			NAME_None
 		);

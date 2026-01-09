@@ -32,5 +32,8 @@ public:
 	UAbilityTask_PlayMontageAndWait* MontageTask;
 
 	UPROPERTY(EditDefaultsOnly, Category=KRState)
+	TObjectPtr<UAnimMontage> StunMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category=KRState)
 	FGameplayTag StunAbilityTag;
 };
