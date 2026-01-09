@@ -270,6 +270,7 @@ void UKRMapTravelSubsystem::OnLevelLoadComplete(FName StringTableKey, FGameplayT
 
 	// Restore Quest UI after level transition
 	UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(GetWorld());
+	QuestSubsystem.RespawnQuestActorForLevelTransition();
 	if (UKRQuestInstance* ActiveQuest = QuestSubsystem.GetActiveInstance())
 	{
 		if (ActiveQuest->GetQuestState() == EQuestState::InProgress)

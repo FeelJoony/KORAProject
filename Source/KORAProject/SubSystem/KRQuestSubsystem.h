@@ -32,6 +32,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Quest)
 	bool AbandonQuest(int32 Index);
+	
+	UFUNCTION(BlueprintCallable, Category = Quest)
+	void RespawnQuestActorForLevelTransition();
 
 	UFUNCTION(BlueprintCallable, Category = Quest)
 	void NotifyObjectiveEvent(FGameplayTag TargetTag, int32 Count = 1);
