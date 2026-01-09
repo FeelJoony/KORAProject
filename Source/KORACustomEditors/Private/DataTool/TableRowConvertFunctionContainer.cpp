@@ -631,15 +631,15 @@ void UTableRowConvertFunctionContainer::CreateEquipAbilityData(class UDataTable*
 
 				for (int32 j = 0; j < Count; j++)
 				{
-					int32 AbilityeTypeTag_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("AbilityTypeTag%d"), j + 1));
+					int32 AbilityTypeTag_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("AbilityTypeTag%d"), j + 1));
 					int32 BaseValue_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("BaseValue%d"), j + 1));
 					int32 IncValue_Index = GetHeaderIndex(Headers, *FString::Printf(TEXT("IncValue%d"), j + 1));
 
-					const FString TagStr = RowValue[AbilityeTypeTag_Index].TrimStartAndEnd();
+					const FString TagStr = RowValue[AbilityTypeTag_Index].TrimStartAndEnd();
 					if (TagStr.IsEmpty() || TagStr == TEXT("-1")) continue;
 
 					FKREquipAbilityModifierRow EquipAbilityModifierRow;
-					EquipAbilityModifierRow.AbilityTypeTag = ParseGameplayTagValue(RowValue[AbilityeTypeTag_Index]);
+					EquipAbilityModifierRow.AbilityTypeTag = ParseGameplayTagValue(RowValue[AbilityTypeTag_Index]);
 					EquipAbilityModifierRow.BaseValue = ParseFloatValue(RowValue[BaseValue_Index]);
 					EquipAbilityModifierRow.IncValue = ParseFloatValue(RowValue[IncValue_Index]);
 
