@@ -47,6 +47,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KR|MeleeAttack")
 	const FKRMeleeAttackConfig& GetCurrentAttackConfig() const;
 
+	UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
+	float PlayRates = 1.f;
+
 protected:
 	// ─────────────────────────────────────────────────────
 	// 공격 설정
@@ -124,7 +127,7 @@ protected:
 	
 	UKREquipmentManagerComponent* GetEquipmentManager() const;
 	UMotionWarpingComponent* GetMotionWarpingComponent() const;
-	UAnimMontage* GetCurrentMontage() const;
+	virtual UAnimMontage* GetCurrentMontage() const;
 	void SetupMotionWarping();
 	AActor* FindBestTarget() const;
 	bool PerformShapeTrace(TArray<FHitResult>& OutHitResults) const;
@@ -162,4 +165,5 @@ protected:
 
 	bool bIsHitCheckActive = false;
 	int32 ActiveComboIndex = 0;
+	bool BeginOnlyTriggerOnce = true;
 };

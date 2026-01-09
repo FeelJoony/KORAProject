@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/KRCombatComponent.h"
 #include "Components/StateTreeAIComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Data/EnemyAbilityDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
@@ -12,7 +13,9 @@
 #include "GAS/Abilities/KRGameplayAbility.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
+#include "Kismet/GameplayStatics.h"
 #include "Subsystem/KRDataTablesSubsystem.h"
+#include "UI/Components/KREnemyHPWidget.h"
 
 
 AKREnemyPawn::AKREnemyPawn(const FObjectInitializer& ObjectInitializer)
@@ -52,11 +55,38 @@ void AKREnemyPawn::PostInitializeComponents()
 void AKREnemyPawn::BeginPlay()
 {
 	Super::BeginPlay();
+	if (EnemyASC)
+	{
+		// EnemyASC->GetGameplayAttributeValueChangeDelegate(
+		// 	UKRCombatCommonSet::GetCurrentHealthAttribute()
+		// ).AddUObject(this, &AKREnemyPawn::OnGEAdded);
+
+		HPWidgetComp = FindComponentByClass<UWidgetComponent>();
+		if (!HPWidgetComp) return;
+
+		UKREnemyHPWidget* HPWidget = Cast<UKREnemyHPWidget>(HPWidgetComp->GetUserWidgetObject());
+		if (!HPWidget) return;
+
+		HPWidget->InitFromASC(EnemyASC, this);
+	}
 }
 
 void AKREnemyPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!HPWidgetComp) return;
+
+	APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	if (!Cam) return;
+
+	FVector CamLocation = Cam->GetCameraLocation();
+	FRotator LookAtRot = (CamLocation - HPWidgetComp->GetComponentLocation()).Rotation();
+
+	LookAtRot.Pitch = 0.0f;
+	LookAtRot.Roll = 0.0f;
+
+	HPWidgetComp->SetWorldRotation(LookAtRot);
 }
 
 void AKREnemyPawn::InitializeComponents()

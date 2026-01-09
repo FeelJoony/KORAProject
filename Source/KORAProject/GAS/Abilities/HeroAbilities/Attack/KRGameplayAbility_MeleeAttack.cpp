@@ -89,7 +89,7 @@ void UKRGameplayAbility_MeleeAttack::ActivateAbility(
 		this,
 		FName("MeleeAttack"),
 		MontageToPlay,
-		1.0f,
+		PlayRates,
 		NAME_None,
 		true
 	);
@@ -162,6 +162,8 @@ void UKRGameplayAbility_MeleeAttack::PerformHitCheck()
 void UKRGameplayAbility_MeleeAttack::EndHitCheck()
 {
 	bIsHitCheckActive = false;
+	// 다음 NotifyState에서 같은 액터를 다시 히트할 수 있도록 초기화
+	HitActorsThisSwing.Empty();
 }
 
 const FKRMeleeAttackConfig& UKRGameplayAbility_MeleeAttack::GetCurrentAttackConfig() const
@@ -699,12 +701,12 @@ void UKRGameplayAbility_MeleeAttack::OnMontageInterrupted()
 
 void UKRGameplayAbility_MeleeAttack::SetupHitCheckEventListeners()
 {
-	// Begin 이벤트 리스너 (한 번만 수신)
+	// Begin 이벤트 리스너
 	HitCheckBeginTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this,
 		KRTAG_EVENT_MELEE_HITCHECK_BEGIN,
 		nullptr,
-		true,  // OnlyTriggerOnce = true
+		BeginOnlyTriggerOnce,  // true : 한 번 지원(Player) , False : 여러 NotifyState 지원(Enemy)
 		true   // OnlyMatchExact = true
 	);
 	if (HitCheckBeginTask)
@@ -744,11 +746,13 @@ void UKRGameplayAbility_MeleeAttack::SetupHitCheckEventListeners()
 
 void UKRGameplayAbility_MeleeAttack::OnHitCheckBeginEvent(FGameplayEventData Payload)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[MeleeAttack] HitCheck BEGIN received"));
 	BeginHitCheck();
 }
 
 void UKRGameplayAbility_MeleeAttack::OnHitCheckTickEvent(FGameplayEventData Payload)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[MeleeAttack] HitCheck TICK received"));
 	PerformHitCheck();
 }
 

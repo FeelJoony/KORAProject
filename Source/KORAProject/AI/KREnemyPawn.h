@@ -71,14 +71,17 @@ protected:
 	TArray<TSubclassOf<class UGameplayAbility>> ApplyAbilityClasses;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	TObjectPtr<UAnimMontage> StunMontage;
+	// UPROPERTY(EditDefaultsOnly, Category = Animation)
+	// TObjectPtr<UAnimMontage> StunMontage;
+	//
+	// UPROPERTY(EditDefaultsOnly, Category = Animation)
+	// TObjectPtr<UAnimMontage> HitMontage;
+	//
+	// UPROPERTY(EditDefaultsOnly, Category = Animation)
+	// TObjectPtr<UAnimMontage> DieMontage;
 
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	TObjectPtr<UAnimMontage> HitMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	TObjectPtr<UAnimMontage> DieMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = WBP)
+	TObjectPtr<class UWidgetComponent> HPWidgetComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = LockOn)
 	TArray<FName> LockOnSockets;
