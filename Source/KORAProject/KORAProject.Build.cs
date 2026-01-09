@@ -10,7 +10,7 @@ public class KORAProject : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] { "KORAProject" });
 	
-		PublicDependencyModuleNames.AddRange(new string[] { 
+		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",
 			"Engine",
@@ -39,7 +39,9 @@ public class KORAProject : ModuleRules
             "MassActors",
             "MassSpawner",
             "MassRepresentation",
-			"MotionWarping"
+			"MotionWarping",
+			"MediaAssets",
+			"AudioMixer"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[]

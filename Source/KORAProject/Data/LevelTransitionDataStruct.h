@@ -3,38 +3,31 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
+#include "Interface/TableKey.h"
 #include "LevelTransitionDataStruct.generated.h"
 
-/**
- * 레벨 전환 시 필요한 데이터
- * CSV RowName: ObjectiveTag (예: "NPC.Clara", "Enemy.Boss.Dead")
- */
 USTRUCT(BlueprintType)
-struct KORAPROJECT_API FLevelTransitionData : public FTableRowBase
+struct KORAPROJECT_API FLevelTransitionDataStruct : public FTableRowBase, public ITableKey
 {
 	GENERATED_BODY()
 
-	FLevelTransitionData()
-		: LevelNameStringTableKey(NAME_None)
-		, FadeOutDuration(1.5f)
-		, FadeInDuration(1.0f)
+	FLevelTransitionDataStruct()
+		: ObjectiveTag(FGameplayTag::EmptyTag)
+		, StringTableKey(TEXT(""))
 		, LevelEnterSoundTag(FGameplayTag::EmptyTag)
 	{}
-
-	// 레벨 이름 (StringTable 키)
-	// 예: ST_UIBase_Info_Office → StringTable에서 "본부장실" / "Director's Office"
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	FName LevelNameStringTableKey;
-
-	// 페이드 아웃 시간
+	FGameplayTag ObjectiveTag;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	float FadeOutDuration;
-
-	// 페이드 인 시간
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	float FadeInDuration;
-
-	// 레벨 진입 사운드 태그
+	FName StringTableKey;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
 	FGameplayTag LevelEnterSoundTag;
+
+	virtual uint32 GetKey() const override
+	{
+		return GetTypeHash(ObjectiveTag);
+	}
 };

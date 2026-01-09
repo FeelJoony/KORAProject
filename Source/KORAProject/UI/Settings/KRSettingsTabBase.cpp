@@ -48,12 +48,10 @@ void UKRSettingsTabBase::CollectFocusableWidgets()
 		});
 	}
 
-	FocusableWidgets.Sort([](const TObjectPtr<UWidget>& A, const TObjectPtr<UWidget>& B)
+	FocusableWidgets.Sort([](const UWidget& A, const UWidget& B)
 	{
-		if (!A || !B) return false;
-
-		FGeometry GeoA = A->GetCachedGeometry();
-		FGeometry GeoB = B->GetCachedGeometry();
+		FGeometry GeoA = A.GetCachedGeometry();
+		FGeometry GeoB = B.GetCachedGeometry();
 
 		FVector2D PosA = GeoA.GetAbsolutePosition();
 		FVector2D PosB = GeoB.GetAbsolutePosition();
