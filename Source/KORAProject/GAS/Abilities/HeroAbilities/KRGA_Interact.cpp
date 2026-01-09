@@ -3,6 +3,29 @@
 #include "AbilitySystemComponent.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
 
+bool UKRGA_Interact::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+	FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+
+	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
+	{
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		for (const FGameplayTag& Tag : GameplayAbilityTags)
+		{
+			if (ASC->HasMatchingGameplayTag(Tag))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void UKRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
