@@ -11,6 +11,7 @@
 #include "Data/ModuleDataStruct.h"
 #include "Data/EquipAbilityDataStruct.h"
 #include "Data/KRDataAssetTableRows.h"
+#include "Data/LevelTransitionDataStruct.h"
 #include "Data/QuestDataStruct.h"
 #include "Data/ShopItemDataStruct.h"
 #include "Data/SubQuestDataStruct.h"
@@ -180,6 +181,7 @@ void UKRDataTablesSubsystem::InitializeDataTables()
 	AddDataTable<FEnemyDataStruct>(FString(TEXT("EnemyData")));
 	AddDataTable<FEnemyAttributeDataStruct>(FString(TEXT("EnemyAttributeData")));
 	AddDataTable<FDialogueDataStruct>(FString(TEXT("DialogueData")));
+	AddDataTable<FLevelTransitionDataStruct>(FString(TEXT("LevelTransitionData")));
 
 #if !UE_BUILD_SHIPPING
 	ValidateDataReferences();
