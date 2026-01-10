@@ -9,9 +9,11 @@
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
 #include "GameplayTag/KREnemyTag.h"
+#include "GameplayTag/KRStateTag.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Hit.h"
+#include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Stun.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
@@ -147,6 +149,9 @@ void AKREnemyPawn::InitializeComponents()
 
 	// CurrentHealth 변경 감지 바인딩
 	BindHealthChangedDelegate();
+
+	// 태그 이벤트 등록
+	RegisterTagEvent();
 }
 
 bool AKREnemyPawn::TryActivateAbility(TSubclassOf<UGameplayAbility> AbilityClass)
@@ -228,4 +233,73 @@ void AKREnemyPawn::OnHealthChanged(const FOnAttributeChangeData& Data)
 	}
 }
 
+void AKREnemyPawn::RegisterTagEvent()
+{
+	if (!EnemyASC) return;
 
+	StateTags.AddTag(KRTAG_STATE_HASCC_STUN);
+	StateTags.AddTag(KRTAG_ENEMY_ACTION_SLASH);
+	StateTags.AddTag(KRTAG_ENEMY_AISTATE_COMBAT);
+	StateTags.AddTag(KRTAG_ENEMY_AISTATE_ALERT);
+	StateTags.AddTag(KRTAG_ENEMY_AISTATE_PATROL);
+	StateTags.AddTag(KRTAG_ENEMY_AISTATE_CHASE);
+	StateTags.AddTag(KRTAG_ENEMY_AISTATE_HITREACTION);
+	StateTags.AddTag(KRTAG_ENEMY_AISTATE_DEAD);
+
+	for (const FGameplayTag& Tag : StateTags)
+	{
+		EnemyASC->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AKREnemyPawn::HandleTagEvent);
+	}
+}
+
+void AKREnemyPawn::HandleTagEvent(FGameplayTag Tag, int32 Count)
+{
+	if (!StateTags.HasTag(Tag)) return;
+
+	if (EnemyASC->HasMatchingGameplayTag(Tag) && Count > 0)
+	{
+		SetEnemyState(Tag);
+	}
+	else if (Count == 0)
+	{
+		ExternalGAEnded(Tag);
+	}
+}
+
+void AKREnemyPawn::SetEnemyState(FGameplayTag StateTag)
+{
+	AController* AIController = GetController();
+	if (!AIController) return;
+
+	UStateTreeAIComponent* StateTreeComp = AIController->GetComponentByClass<UStateTreeAIComponent>();
+	if (!StateTreeComp) return;
+
+	FStateTreeEvent Event;
+	Event.Tag = StateTag;
+
+	StateTreeComp->SendStateTreeEvent(Event);
+}
+
+void AKREnemyPawn::ExternalGAEnded(FGameplayTag Tag)
+{
+	if (!EnemyASC) return;
+
+	for (FGameplayAbilitySpec& Spec : EnemyASC->GetActivatableAbilities())
+	{
+		if (Tag == KRTAG_STATE_HASCC_STUN)
+		{
+			if (Spec.Ability && Spec.Ability->IsA(UKRGA_Enemy_Stun::StaticClass()))
+			{
+				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				{
+					if (UKRGA_Enemy_Stun* StunGA = Cast<UKRGA_Enemy_Stun>(Instance))
+					{
+						StunGA->ExternalAbilityEnded();
+						return;
+					}
+				}
+			}
+		}
+	}
+}
