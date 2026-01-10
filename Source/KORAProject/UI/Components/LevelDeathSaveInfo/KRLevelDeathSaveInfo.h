@@ -51,4 +51,6 @@ private:
 	FGameplayMessageListenerHandle InfoMessageListener;
 	FTimerHandle AutoHideTimerHandle;
 	bool bIsShowing = false;
-};
+
+	UPROPERTY()
+	TObjectPtr<UStringTable> CachedStringTable;

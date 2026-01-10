@@ -16,7 +16,7 @@ void UKRLevelDeathSaveInfo::NativeOnInitialized()
 	
 	if (!StringTableAsset.IsNull())
 	{
-		StringTableAsset.LoadSynchronous();
+		CachedStringTable = StringTableAsset.LoadSynchronous();
 	}
 
 	if (UWorld* World = GetWorld())
