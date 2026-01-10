@@ -1663,7 +1663,7 @@ Subsystem.BroadcastMessage(FKRUIMessageTags::Boss(), Message);
 
 ### 개발팀 정보
 
-<img width="415" height="453" alt="image" src="https://github.com/user-attachments/assets/26478a04-4f9a-47b3-8bd3-ade89f2d51d5" />
+<img width="432" height="465" alt="image" src="https://github.com/user-attachments/assets/af792f64-256e-435f-bca5-ea6afc7a4889" />
 
 
 ---
