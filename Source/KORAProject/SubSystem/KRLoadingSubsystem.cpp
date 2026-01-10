@@ -116,8 +116,8 @@ void UKRLoadingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	
-	LevelTransitionCutscenes.FindOrAdd(FName("MainMenu")).Add(FName("Office"), FName("Tutorial_Info"));
-	LevelTransitionCutscenes.FindOrAdd(FName("ForgottenCity")).Add(FName("Barion"), FName("Finalboss"));
+	LevelTransitionCutscenes.FindOrAdd(FName("MainMenu")).Add(FName("General_Manager_office1"), FName("Tutorial_Intro"));
+	LevelTransitionCutscenes.FindOrAdd(FName("ForgottenCity")).Add(FName("Tutorial_Map"), FName("Finalboss"));
 }
 
 void UKRLoadingSubsystem::Deinitialize()
@@ -172,8 +172,6 @@ void UKRLoadingSubsystem::HideLoadingScreen()
 	bIsVisible = false;
 
 	CheckLevelTransitionCutscene();
-
-	OnLoadingScreenHidden.Broadcast();
 }
 
 void UKRLoadingSubsystem::CheckLevelTransitionCutscene()
