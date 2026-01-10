@@ -51,6 +51,10 @@ public:
 	FORCEINLINE void SetRage(bool bInRage) { bIsRage = bInRage; }
 	FORCEINLINE bool IsRage() const { return bIsRage; }
 
+	FORCEINLINE void HasCC() { bIsDuringCC = true; }
+	FORCEINLINE void EndCC() { bIsDuringCC = false; }
+	FORCEINLINE bool IsDuringCC() const { return bIsDuringCC; }
+
 protected:	
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	// TObjectPtr<class UCapsuleComponent> CapsuleComponent;
@@ -83,6 +87,8 @@ protected:
 	TArray<TSubclassOf<class UGameplayAbility>> ApplyAbilityClasses;
 
 	bool bIsRage = false;
+
+	bool bIsDuringCC = false;
 
 protected:
 	// UPROPERTY(EditDefaultsOnly, Category = Animation)
