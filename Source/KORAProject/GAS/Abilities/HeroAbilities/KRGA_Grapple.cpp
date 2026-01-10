@@ -7,6 +7,8 @@
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "AI/KREnemyPawn.h"
+#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/KREnemyCharacter.h"
 #include "Components/CapsuleComponent.h"
@@ -19,6 +21,7 @@
 #include "Interaction/GrappleVolume.h"
 #include "Enemy/KRAIC_Enemy.h"
 #include "GameplayTag/KRAbilityTag.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 //CharacterMovement->AirControl = 0.35f;
@@ -46,7 +49,17 @@ void UKRGA_Grapple::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	
 	if (SearchLockOnTarget())
 	{
-		HitState = EGrappleState::HitEnemy;
+		UAbilitySystemComponent* ASC = ReturnKRASC(CachedTargetPawn);
+		if (!ASC) return;
+
+		if (ASC->HasMatchingGameplayTag(KRTAG_ENEMY_IMMUNE_GRAPPLE))
+		{
+			HitState = EGrappleState::HitEnemy;
+		}
+		else
+		{
+			HitState = EGrappleState::HitEnemyFail;
+		}		
 		BeginStartMontage();
 	}
 	else
@@ -222,21 +235,24 @@ APawn* UKRGA_Grapple::SearchLockOnTarget()
 		{
 			HitState = EGrappleState::Default;
 		}
-        
+
+		return CachedTargetPawn;
 	}
-	return CachedTargetPawn;
+
+	// LockOn 상태가 아니면 nullptr 반환
+	return nullptr;
 }
 
-AKREnemyCharacter* UKRGA_Grapple::IsEnemy(const FHitResult& HitResult)
+AKREnemyPawn* UKRGA_Grapple::IsEnemy(const FHitResult& HitResult)
 {
 	AActor* HitActor = HitResult.GetActor();
 	if (!HitActor) return nullptr;
 
-	AKREnemyCharacter* TargetEnemy = Cast<AKREnemyCharacter>(HitActor);
+	AKREnemyPawn* TargetEnemy = Cast<AKREnemyPawn>(HitActor);
 	return TargetEnemy;
 }
 
-bool UKRGA_Grapple::IsGrappleableEnemy(AKREnemyCharacter* TargetEnemy)
+bool UKRGA_Grapple::IsGrappleableEnemy(AKREnemyPawn* TargetEnemy)
 {
 	UAbilitySystemComponent* ASC = ReturnKRASC(TargetEnemy);
 	if (!ASC) return false;
@@ -356,8 +372,11 @@ void UKRGA_Grapple::BeginEnemyGrapple()
 		CachedGrapplePoint);
 	float Duration = Dist * TargetMoveInverseSpeed;
 
+	USceneComponent* RootComponent = CachedTargetPawn->GetRootComponent(); 
+	if (!RootComponent) CancelGrapple();
+		
 	UKismetSystemLibrary::MoveComponentTo(
-		CachedTargetPawn->GetRootComponent(),
+		RootComponent,
 		CachedPlayerCharacter->GetActorLocation(),
 		FRotator::ZeroRotator,
 		true,           // Ease Out
@@ -436,7 +455,7 @@ bool UKRGA_Grapple::ApplyStunToEnemy()
 
 void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 {
-	if (AKREnemyCharacter* TargetEnemy = IsEnemy(HitResult))
+	if (AKREnemyPawn* TargetEnemy = IsEnemy(HitResult))
 	{
 		TargetCapsuleComp = TargetEnemy->GetComponentByClass<UCapsuleComponent>();
 		if (!TargetCapsuleComp)
@@ -446,8 +465,8 @@ void UKRGA_Grapple::JudgeEnumState(FHitResult& HitResult)
 		}
 		CachedTargetPawn = TargetEnemy;
 		
-		AKRAIC_Enemy* EnemyAIC = Cast<AKRAIC_Enemy>(CachedTargetPawn->GetController());
-		if (!IsValid(EnemyAIC)) return;
+		// AKRAIC_Enemy* EnemyAIC = Cast<AKRAIC_Enemy>(CachedTargetPawn->GetController());
+		// if (!IsValid(EnemyAIC)) return;
 		// EnemyAIC->SetAttackTarget(GetAvatarActorFromActorInfo());
 		
 		if (IsGrappleableEnemy(TargetEnemy))
@@ -705,6 +724,14 @@ void UKRGA_Grapple::CleanupAllTimers()
 
 	World->GetTimerManager().ClearTimer(MoveToTimer);
 	World->GetTimerManager().ClearTimer(MaxGrappleTimer);
+}
+
+void UKRGA_Grapple::PlayGrappleSound(USoundWave* SoundWave)
+{
+	UWorld* World = GetWorld();
+	if (!World || !SoundWave) return;
+	
+	UGameplayStatics::PlaySound2D(World,SoundWave);
 }
 
 UKRAbilitySystemComponent* UKRGA_Grapple::ReturnKRASC(APawn* APawn)

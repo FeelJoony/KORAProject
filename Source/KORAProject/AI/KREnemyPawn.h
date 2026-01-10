@@ -48,7 +48,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<AActor> TargetActor = nullptr;
 
-protected:
+protected:	
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	// TObjectPtr<class UCapsuleComponent> CapsuleComponent;
 	//
@@ -60,6 +60,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Tag, meta = (categories = "Enemy.Type"))
 	FGameplayTag EnemyTag; 
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Tag)
+	FGameplayTagContainer DefaultTags;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<class UKRAbilitySystemComponent> EnemyASC;
