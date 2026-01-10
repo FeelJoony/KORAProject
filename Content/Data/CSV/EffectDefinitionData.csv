@@ -46,4 +46,4 @@ Effect.Combat.Gun.Fire,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_
 Effect.Combat.Gun.Shell,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_Shell.DA_Effect_Combat_Gun_Shell,Gun Shell,TRUE
 Effect.Combat.Gun.Tracer,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_Tracer.DA_Effect_Combat_Gun_Tracer,Gun Tracer,TRUE
 Effect.Combat.Gun.Charge,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_Charge.DA_Effect_Combat_Gun_Charge,Gun Charge,TRUE
-Effect.Combat.Gun.ChargeShot,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_ChargeShot.DA_Effect_Combat_Gun_ChargeShot,Gun ChargeShot,TRUE
+Effect.Combat.Gun.ChargeFire,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Gun_ChargeShot.DA_Effect_Combat_Gun_ChargeShot,Gun ChargeShot,TRUE
