@@ -116,8 +116,8 @@ void UKRLoadingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	
-	LevelTransitionCutscenes.FindOrAdd(FName("MainMenu")).Add(FName("General_Manager_office1"), FName("Tutorial_Intro"));
-	LevelTransitionCutscenes.FindOrAdd(FName("ForgottenCity")).Add(FName("Tutorial_Map"), FName("Finalboss"));
+	LevelTransitionCutscenes.FindOrAdd(FName("MainMenu")).Add(FName("General_Manager_office"), FName("Tutorial_Intro"));
+	LevelTransitionCutscenes.FindOrAdd(FName("Forgotten_City")).Add(FName("Tutorial_Map"), FName("Finalboss"));
 }
 
 void UKRLoadingSubsystem::Deinitialize()
@@ -144,6 +144,13 @@ void UKRLoadingSubsystem::ShowLoadingScreen()
 	if (!GEngine || !GEngine->GameViewport)
 	{
 		return;
+	}
+	
+	if (UWorld* World = GEngine->GetCurrentPlayWorld())
+	{
+		FString MapName = World->GetMapName();
+		MapName.RemoveFromStart(World->StreamingLevelsPrefix);
+		PreviousLevelName = FName(*MapName);
 	}
 
 	LoadingScreenSlateWidget = SNew(SKRLoadingScreen);
@@ -172,6 +179,11 @@ void UKRLoadingSubsystem::HideLoadingScreen()
 	bIsVisible = false;
 
 	CheckLevelTransitionCutscene();
+
+	if (!bWaitingForCutscene)
+	{
+		OnLoadingScreenHidden.Broadcast();
+	}
 }
 
 void UKRLoadingSubsystem::CheckLevelTransitionCutscene()
@@ -193,6 +205,9 @@ void UKRLoadingSubsystem::CheckLevelTransitionCutscene()
 			{
 				if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
 				{
+					bWaitingForCutscene = true;
+					PendingCutsceneRoute = *CutsceneRoute;
+					Router->OnRouteClosed.AddDynamic(this, &UKRLoadingSubsystem::OnCutsceneRouteClosed);
 					Router->ToggleRoute(*CutsceneRoute);
 				}
 			}
@@ -200,5 +215,28 @@ void UKRLoadingSubsystem::CheckLevelTransitionCutscene()
 	}
 
 	PreviousLevelName = CurrentLevel;
+}
+
+void UKRLoadingSubsystem::OnCutsceneRouteClosed(ULocalPlayer* LocalPlayer, FName Route, EKRUILayer Layer)
+{
+	if (Route != PendingCutsceneRoute)
+	{
+		return;
+	}
+	bWaitingForCutscene = false;
+	PendingCutsceneRoute = NAME_None;
+
+	if (UWorld* World = GEngine ? GEngine->GetCurrentPlayWorld() : nullptr)
+	{
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+			{
+				Router->OnRouteClosed.RemoveDynamic(this, &UKRLoadingSubsystem::OnCutsceneRouteClosed);
+			}
+		}
+	}
+
+	OnLoadingScreenHidden.Broadcast();
 }
 

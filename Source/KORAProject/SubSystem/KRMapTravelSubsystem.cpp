@@ -255,13 +255,21 @@ void UKRMapTravelSubsystem::OnWorldInitialized(
 void UKRMapTravelSubsystem::OnLevelLoadComplete(FName StringTableKey, FGameplayTag SoundTag, float DisplayDuration)
 {
 	OnMapTravelCompleted.Broadcast();
-	UKRLoadingSubsystem::Get().HideLoadingScreen();
 	
+	LoadingScreenHiddenHandle = UKRLoadingSubsystem::Get().OnLoadingScreenHidden.AddUObject(
+		this, &UKRMapTravelSubsystem::OnLoadingScreenHiddenCallback);
+
+	UKRLoadingSubsystem::Get().HideLoadingScreen();
+}
+
+void UKRMapTravelSubsystem::OnLoadingScreenHiddenCallback()
+{
+	UKRLoadingSubsystem::Get().OnLoadingScreenHidden.Remove(LoadingScreenHiddenHandle);
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 
 	FKRUIMessage_Info Message;
 	Message.Context = EInfoContext::LevelTransition;
-	Message.StringTableKey = StringTableKey.ToString();
+	Message.StringTableKey = PendingLevelNameKey.ToString();
 
 	MessageSubsystem.BroadcastMessage(
 		FKRUIMessageTags::SaveDeathLevelInfo(),
