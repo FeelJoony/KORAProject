@@ -49,6 +49,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
 	float DamageMulti_Success = 2.0f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
+	FGameplayTag ChargeEffectTag;
+
 private:
 	UPROPERTY()
 	TObjectPtr<UKRAbilityTask_WaitTick> ChargeTickTask;
