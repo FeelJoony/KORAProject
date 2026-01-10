@@ -54,3 +54,4 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UStringTable> CachedStringTable;
+};

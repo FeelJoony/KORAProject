@@ -4,6 +4,8 @@
 #include "Subsystems/EngineSubsystem.h"
 #include "KRLoadingSubsystem.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnLoadingScreenHidden);
+
 UCLASS()
 class KORAPROJECT_API UKRLoadingSubsystem : public UEngineSubsystem
 {
@@ -24,6 +26,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Loading")
 	bool IsLoadingScreenVisible() const { return bIsVisible; }
 
+	FOnLoadingScreenHidden OnLoadingScreenHidden;
+	
 private:
 	TSharedPtr<SWidget> LoadingScreenSlateWidget;
 	bool bIsVisible = false;

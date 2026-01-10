@@ -46,6 +46,9 @@ protected:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
+	void OnLoadingScreenHidden();
+	
+	UFUNCTION()
 	void ActivateCutSceneIfMatch(FGameplayTag Channel);
 	
 private:

@@ -166,5 +166,7 @@ void UKRLoadingSubsystem::HideLoadingScreen()
 
 	LoadingScreenSlateWidget.Reset();
 	bIsVisible = false;
+	
+	OnLoadingScreenHidden.Broadcast();
 }
 

@@ -5,7 +5,9 @@
 #include "Quest/KRQuestEventTriggerBox.h"
 #include "Quest/Condition/QuestTalkNPCChecker.h"
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Die.h"
+#include "Kismet/GameplayStatics.h"
 #include "SubSystem/KRInventorySubsystem.h"
+#include "SubSystem/KRLoadingSubsystem.h"
 #include "Subsystem/KRUIRouterSubsystem.h"
 
 AKRCutSceneActor::AKRCutSceneActor()
@@ -23,8 +25,17 @@ void AKRCutSceneActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorHiddenInGame(true);
-	SetActorEnableCollision(false);
+	if (ActivationObjectiveTag.IsValid())
+	{
+		SetActorHiddenInGame(true);
+		SetActorEnableCollision(false);
+	}
+
+	if (UKRLoadingSubsystem::Get().IsLoadingScreenVisible())
+	{
+		// 로딩이 끝나면 호출될 함수 등록
+		UKRLoadingSubsystem::Get().OnLoadingScreenHidden.AddUObject(this, &AKRCutSceneActor::OnLoadingScreenHidden);
+	}
 	
 	if (ActivationObjectiveTag.IsValid())
 	{
@@ -114,6 +125,9 @@ void AKRCutSceneActor::OnTriggerBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
+	if (UKRLoadingSubsystem::Get().IsLoadingScreenVisible())
+		return;
+	
 	if (!OtherActor || !OtherActor->ActorHasTag(TEXT("Player")))
 	{
 		return;
@@ -132,6 +146,34 @@ void AKRCutSceneActor::OnTriggerBeginOverlap(
 		{
 			if (UKRUIRouterSubsystem* Router =
 				GI->GetSubsystem<UKRUIRouterSubsystem>())
+			{
+				Router->ToggleRoute(RouteToOpen);
+			}
+		}
+	}
+
+	Destroy();
+}
+
+void AKRCutSceneActor::OnLoadingScreenHidden()
+{
+	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!PlayerActor || !TriggerBox->IsOverlappingActor(PlayerActor))
+		return;
+
+	if (RouteToOpen.IsNone())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[CutSceneActor] RouteToOpen is None"));
+		Destroy();
+		return;
+	}
+
+	// ✅ 실제 컷씬 실행 부분 (기존과 동일하게 사용)
+	if (UWorld* World = GetWorld())
+	{
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
 			{
 				Router->ToggleRoute(RouteToOpen);
 			}

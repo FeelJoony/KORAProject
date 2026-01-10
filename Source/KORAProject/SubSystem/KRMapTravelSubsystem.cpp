@@ -205,9 +205,7 @@ void UKRMapTravelSubsystem::TryFinishLoading()
 	{
 		return;
 	}
-
-	UKRLoadingSubsystem::Get().HideLoadingScreen();
-
+	
 	if (UWorld* World = GetWorld())
 	{
 		if (APlayerController* PC = World->GetFirstPlayerController())
@@ -257,7 +255,8 @@ void UKRMapTravelSubsystem::OnWorldInitialized(
 void UKRMapTravelSubsystem::OnLevelLoadComplete(FName StringTableKey, FGameplayTag SoundTag, float DisplayDuration)
 {
 	OnMapTravelCompleted.Broadcast();
-
+	UKRLoadingSubsystem::Get().HideLoadingScreen();
+	
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 
 	FKRUIMessage_Info Message;

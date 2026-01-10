@@ -189,13 +189,13 @@ void AKRBaseGameMode::OnExperienceLoaded(const UKRExperienceDefinition* CurrentE
 	RegisterDataAssets();
 
 	// 리스폰 또는 레벨 로드 완료 시 로딩 화면 숨기기
-	if (GEngine)
-	{
-		if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
-		{
-			LoadingSys->HideLoadingScreen();
-		}
-	}
+	// if (GEngine)
+	// {
+	// 	if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
+	// 	{
+	// 		LoadingSys->HideLoadingScreen();
+	// 	}
+	// }
 
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 	{
