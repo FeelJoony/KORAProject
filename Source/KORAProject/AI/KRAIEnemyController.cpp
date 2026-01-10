@@ -9,6 +9,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Sight.h"
 #include "Kismet/GameplayStatics.h"
+#include "Perception/AISenseConfig_Damage.h"
 
 AKRAIEnemyController::AKRAIEnemyController(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -26,8 +27,12 @@ AKRAIEnemyController::AKRAIEnemyController(const FObjectInitializer& ObjectIniti
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	
+	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
 
 	PerceptionComponent->ConfigureSense(*SightConfig);
+	PerceptionComponent->ConfigureSense(*DamageConfig);
+	
 	PerceptionComponent->SetDominantSense(UAISense_Sight::StaticClass());
 
 	PerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ThisClass::HandleTargetPerceptionUpdated);
@@ -88,10 +93,17 @@ void AKRAIEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimu
 	if (!Actor || !GetWorld()) return;
 
 	const bool bIsSight = (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>()) && IsPlayerCharacter(Actor);
-	if (!bIsSight) return;
+	const bool bIsDamage = (Stimulus.Type == UAISense::GetSenseID<UAISense_Damage>()) && IsPlayerCharacter(Actor);
+	
+	if (!bIsSight && !bIsDamage) return;
 	
 	APawn* PlayerPawn0 = UGameplayStatics::GetPlayerPawn(this, 0);
 	if (!PlayerPawn0)
+	{
+		return;
+	}
+
+	if (TargetActor)
 	{
 		return;
 	}

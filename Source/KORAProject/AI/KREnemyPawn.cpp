@@ -8,12 +8,14 @@
 #include "Components/WidgetComponent.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
+#include "GameplayTag/KREnemyTag.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Hit.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
+#include "Perception/AISense_Damage.h"
 #include "Subsystem/KRDataTablesSubsystem.h"
 #include "UI/Components/KREnemyHPWidget.h"
 
@@ -195,24 +197,36 @@ void AKREnemyPawn::OnHealthChanged(const FOnAttributeChangeData& Data)
 	// 체력이 감소했을 때만 Hit Ability 실행
 	if (NewHealth < OldHealth && EnemyASC)
 	{
-		//TryActivateAbility(UKRGA_Enemy_Hit::StaticClass());
+		if (ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+		{
+			UAISense_Damage::ReportDamageEvent(
+			GetWorld(),
+			this,
+			PlayerCharacter,
+			OldHealth - NewHealth,
+			PlayerCharacter->GetActorLocation(),
+			GetActorLocation()
+		);	
+		}
 		
-		// 현재 바인딩된 Ability 중에서 KRGA_Enemy_Hit 찾아서 실행
-		// TArray<FGameplayAbilitySpec*> ActivatableAbilities;
-		// EnemyASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(FGameplayTagContainer(), ActivatableAbilities);
-		//
-		// for (FGameplayAbilitySpec* Spec : ActivatableAbilities)
-		// {
-		// 	if (Spec && Spec->Ability && Spec->Ability->IsA(UKRGA_Enemy_Hit::StaticClass()))
-		// 	{
-		// 		EnemyASC->TryActivateAbility(Spec->Handle);
-		// 		break;
-		// 	}
-		// }
-
 		FGameplayTagContainer TagContainer;
 		TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.HitReaction")));
 		EnemyASC->TryActivateAbilitiesByTag(TagContainer);
+
+		if (AController* AIController = GetController())
+		{
+			if (UStateTreeAIComponent* StateTreeComp = Cast<UStateTreeAIComponent>(AIController->GetComponentByClass<UStateTreeAIComponent>()))
+			{
+				if (NewHealth <= 0.f)
+				{
+					StateTreeComp->SendStateTreeEvent(KRTAG_ENEMY_AISTATE_DEAD);
+				}
+				else
+				{
+					StateTreeComp->SendStateTreeEvent(KRTAG_ENEMY_AISTATE_HITREACTION);
+				}
+			}
+		}
 	}
 }
 
