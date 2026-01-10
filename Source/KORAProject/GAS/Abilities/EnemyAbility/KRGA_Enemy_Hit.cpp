@@ -1,14 +1,15 @@
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Hit.h"
-#include "Characters/KREnemyCharacter.h"
 #include "GameplayTag/KREnemyTag.h"
 #include "GAS/KRAbilitySystemComponent.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void UKRGA_Enemy_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-										const FGameplayAbilityActorInfo* ActorInfo,
-										const FGameplayAbilityActivationInfo ActivationInfo,
-										const FGameplayEventData* TriggerEventData)
+                                      const FGameplayAbilityActorInfo* ActorInfo,
+                                      const FGameplayAbilityActivationInfo ActivationInfo,
+                                      const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
@@ -76,6 +77,17 @@ void UKRGA_Enemy_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 		ActivationHit();
 	}
+
+	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (Character)
+	{
+		UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement();
+		if (MoveComp)
+		{
+			MoveComp->SetMovementMode(MOVE_None);
+			MoveComp->StopMovementImmediately();
+		}
+	}
 }
 
 void UKRGA_Enemy_Hit::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -89,6 +101,16 @@ void UKRGA_Enemy_Hit::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	if (EnemyASC && EnemyASC->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_HITREACTION))
 	{
 		EnemyASC->RemoveLooseGameplayTag(KRTAG_ENEMY_AISTATE_HITREACTION);
+	}
+
+	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (Character)
+	{
+		UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement();
+		if (MoveComp)
+		{
+			MoveComp->SetDefaultMovementMode();
+		}
 	}
 }
 
