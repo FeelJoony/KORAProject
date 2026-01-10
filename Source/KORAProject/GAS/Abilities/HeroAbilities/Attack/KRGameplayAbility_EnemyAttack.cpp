@@ -3,6 +3,8 @@
 #include "AbilitySystemComponent.h"
 #include "Components/StateTreeAIComponent.h"
 #include "Characters/KRHeroCharacter.h"
+#include "GameplayTag/KREventTag.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 
 void UKRGameplayAbility_EnemyAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -39,6 +41,8 @@ void UKRGameplayAbility_EnemyAttack::ActivateAbility(const FGameplayAbilitySpecH
 	}
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
+	SetupEndSectionEventListener();
 
 	if (ActorInfo->OwnerActor.IsValid())
 	{
@@ -111,5 +115,27 @@ void UKRGameplayAbility_EnemyAttack::ProcessHitResults(const TArray<FHitResult>&
 	}
 
 	Super::ProcessHitResults(FilteredHits);
+}
+
+void UKRGameplayAbility_EnemyAttack::SetupEndSectionEventListener()
+{
+	EndSectionTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		KRTAG_EVENT_ENEMY_ATTACK_END_SECTION,
+		nullptr,
+		true,   // OnlyTriggerOnce = true
+		true    // OnlyMatchExact = true
+	);
+	if (EndSectionTask)
+	{
+		EndSectionTask->EventReceived.AddDynamic(this, &ThisClass::OnEndSectionReached);
+		EndSectionTask->ReadyForActivation();
+	}
+}
+
+void UKRGameplayAbility_EnemyAttack::OnEndSectionReached(FGameplayEventData Payload)
+{
+	AActor* Owner = GetAvatarActorFromActorInfo();
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
