@@ -43,6 +43,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
 	float FullChargeTime = 1.0f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
+	float DamageMulti_Fail = 0.5f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "KR|Charge")
+	float DamageMulti_Success = 2.0f;
+
 private:
 	UPROPERTY()
 	TObjectPtr<UKRAbilityTask_WaitTick> ChargeTickTask;

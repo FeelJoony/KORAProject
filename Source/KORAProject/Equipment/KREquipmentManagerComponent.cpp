@@ -267,13 +267,6 @@ void UKREquipmentManagerComponent::EquipItem(UKRInventoryItemInstance* ItemInsta
 		}
 		EquippedItemMap.Add(SlotTag, ItemInstance);
 
-		const UInventoryFragment_SetStats* SetStatFragment = ItemInstance->FindFragmentByClass<UInventoryFragment_SetStats>();
-		if (SetStatFragment && SetStatFragment->IsInitialized())
-		{
-			const FWeaponStatsCache& Stats = SetStatFragment->GetWeaponStats();
-			ApplyEquipmentStats(Stats, SlotTag);
-		}
-
 		AKRWeaponBase* TargetWeapon = nullptr;
 		if (ItemTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_SWORD))
 		{
@@ -533,6 +526,17 @@ bool UKREquipmentManagerComponent::ActivateCombatMode(const FGameplayTag& Weapon
 		DeactivateCombatMode();
 	}
 
+	if (UKRInventoryItemInstance* WeaponItem = GetEquippedItemInstanceBySlotTag(WeaponTypeTag))
+	{
+		if (const UInventoryFragment_SetStats* SetStatFragment = WeaponItem->FindFragmentByClass<UInventoryFragment_SetStats>())
+		{
+			if (SetStatFragment->IsInitialized())
+			{
+				ApplyEquipmentStats(SetStatFragment->GetWeaponStats(), WeaponTypeTag);
+			}
+		}
+	}
+	
 	const FKRAppliedEquipmentEntry& Entry = FindEntryByTag(WeaponTypeTag);
 	if (!Entry.IsValid())
 	{
@@ -686,7 +690,11 @@ void UKREquipmentManagerComponent::DeactivateCombatMode()
 	{
 		RangeActorInstance->PlayUnequipEffect();
 	}
-
+	if (ActiveWeaponTypeTag.IsValid())
+	{
+		RemoveEquipmentStats(ActiveWeaponTypeTag);
+	}
+	
 	// 상태 업데이트
 	bCombatModeActive = false;
 	ActiveWeaponTypeTag = FGameplayTag();
@@ -773,19 +781,31 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(RangeDelta));
 		Idx++;
 	}
-
-	float BaseAmmoCapacity = 0.0f;
-	if (SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
-	{
-		BaseAmmoCapacity = 30.0f;
-	}
-
-	if (BaseAmmoCapacity > 0.f)
+	
+	if (Stats.Capacity > 0.f)
 	{
 		GE->Modifiers.Add(FGameplayModifierInfo());
 		GE->Modifiers[Idx].Attribute = UKRPlayerAttributeSet::GetMaxAmmoAttribute();
-		GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Override;
-		GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(BaseAmmoCapacity));
+		
+		if (SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+		{
+			GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Additive;
+			GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(Stats.Capacity));
+		}
+
+		else
+		{
+			float CurrentMax = ASC->GetNumericAttribute(UKRPlayerAttributeSet::GetMaxAmmoAttribute());
+			if (CurrentMax <= 0.f) CurrentMax = 0.f;
+			float CalculatedVal = CurrentMax * Stats.Capacity; 
+			float FinalValue = FMath::CeilToFloat(CalculatedVal);
+			
+			GE->Modifiers[Idx].ModifierOp = EGameplayModOp::Override;
+			GE->Modifiers[Idx].ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(FinalValue));
+			
+			UE_LOG(LogTemp, Warning, TEXT(">> Module Fix (Ceil): Base(%f) * Mod(%f) = %f -> Ceil(%f)"), CurrentMax, Stats.Capacity, CalculatedVal, FinalValue);
+		}
+		
 		Idx++;
 	}
 	
@@ -801,15 +821,19 @@ FActiveGameplayEffectHandle UKREquipmentManagerComponent::ApplyEquipmentStats(co
 	if (Handle.IsValid())
 	{
 		EquipmentGEHandles.Add(SlotTag, Handle);
-
-		if (BaseAmmoCapacity > 0.f)
+		
+		if (ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN) || SlotTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
 		{
-			ASC->SetNumericAttributeBase(UKRPlayerAttributeSet::GetCurrentAmmoAttribute(), BaseAmmoCapacity);
+			FTimerHandle WaitHandle;
+			GetWorld()->GetTimerManager().SetTimer(WaitHandle, [this, ASC]()
+			{
+				float NewMax = ASC->GetNumericAttribute(UKRPlayerAttributeSet::GetMaxAmmoAttribute());
+				ASC->SetNumericAttributeBase(UKRPlayerAttributeSet::GetCurrentAmmoAttribute(), NewMax);
+				
+				BroadcastWeaponMessage(EWeaponMessageAction::AmmoUpdated, ActiveWeaponTypeTag);
+			}, 0.1f, false);
 		}
 	}
-
-	UE_LOG(LogEquipmentManagerComponent, Log, TEXT("ApplyEquipmentStats [%s]: Applied GE with ATK=%.1f, Speed=%.2f, Crit=%.2f"),
-		*SlotTag.ToString(), Stats.AttackPower, Stats.AttackSpeed, Stats.CritChance);
 
 	return Handle;
 }
@@ -852,19 +876,6 @@ void UKREquipmentManagerComponent::ApplyModuleStats(UKRInventoryItemInstance* Mo
 	FWeaponStatsCache Stats = ConvertModifiersToStatsCache(Modifiers);
 
 	ApplyEquipmentStats(Stats, ItemTag);
-	
-	UAbilitySystemComponent* LocalASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
-
-	if (!LocalASC) return;
-
-	UKRCombatCommonSet* CombatSet = const_cast<UKRCombatCommonSet*>(LocalASC->GetSet<UKRCombatCommonSet>());
-
-	if (!CombatSet) return;
-
-	if (RangeActorInstance && !RangeActorInstance->IsHidden())
-	{
-		BroadcastWeaponMessage(EWeaponMessageAction::Equipped, RangeActorInstance->GetWeaponItemTag());
-	}
 }
 
 void UKREquipmentManagerComponent::RemoveModuleStats(UKRInventoryItemInstance* ModuleInstance)
@@ -886,52 +897,38 @@ FWeaponStatsCache UKREquipmentManagerComponent::ConvertModifiersToStatsCache(con
 {
 	FWeaponStatsCache Stats;
 
+	UE_LOG(LogTemp, Warning, TEXT("=== [1] ConvertModifiersToStatsCache Start ==="));
+
 	for (const FKREquipAbilityModifierRow& Modifier : Modifiers)
 	{
-		if (!Modifier.AbilityTypeTag.IsValid())
-		{
-			continue;
-		}
+		if (!Modifier.AbilityTypeTag.IsValid()) continue;
 
 		const float Value = Modifier.GetFinalValue();
+		
+		UE_LOG(LogTemp, Warning, TEXT("  - Modifier Tag: %s, Value: %f"), *Modifier.AbilityTypeTag.ToString(), Value);
+
 		auto ApplyModifier = [&Modifier, Value](float& StatValue)
 		{
 			switch (Modifier.Op)
 			{
-			case EModifierOp::Absolute:
-				StatValue = Value;
-				break;
-			case EModifierOp::AdditiveDelta:
-				StatValue += Value;
-				break;
-			case EModifierOp::Multiplier:
-				StatValue *= Value;
-				break;
+			case EModifierOp::Absolute: StatValue = Value; break;
+			case EModifierOp::AdditiveDelta: StatValue += Value; break;
+			case EModifierOp::Multiplier: StatValue *= Value; break;
 			}
 		};
 
-		if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATK))
+		if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATK)) ApplyModifier(Stats.AttackPower);
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATTACKSPEED)) ApplyModifier(Stats.AttackSpeed);
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITCHANCE)) ApplyModifier(Stats.CritChance);
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITMULTI)) ApplyModifier(Stats.CritMulti);
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_RANGE)) ApplyModifier(Stats.Range);
+		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CAPACITY))
 		{
-			ApplyModifier(Stats.AttackPower);
-		}
-		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_ATTACKSPEED))
-		{
-			ApplyModifier(Stats.AttackSpeed);
-		}
-		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITCHANCE))
-		{
-			ApplyModifier(Stats.CritChance);
-		}
-		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_CRITMULTI))
-		{
-			ApplyModifier(Stats.CritMulti);
-		}
-		else if (Modifier.AbilityTypeTag.MatchesTag(KRTAG_WEAPON_STAT_RANGE))
-		{
-			ApplyModifier(Stats.Range);
+			ApplyModifier(Stats.Capacity); 
 		}
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("=== [1] Result Stats.Capacity: %f ==="), Stats.Capacity);
 	Stats.MarkInitialized();
 	return Stats;
 }
@@ -955,6 +952,13 @@ void UKREquipmentManagerComponent::OnAbilitySystemInitialized()
 	bASCInitCallbackProcessed = true;
 
 	SpawnActorInstances();
+	
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (ASC)
+	{
+		ASC->GetGameplayAttributeValueChangeDelegate(UKRPlayerAttributeSet::GetCurrentAmmoAttribute())
+		   .AddUObject(this, &UKREquipmentManagerComponent::OnCurrentAmmoChanged);
+	}
 }
 
 void UKREquipmentManagerComponent::OnEquipmentConfirmMessage(FGameplayTag Channel, const FKRUIMessage_Confirm& Payload)
@@ -1225,6 +1229,14 @@ void UKREquipmentManagerComponent::FinishPrewarm()
 	if (RangeActorInstance && !(bCombatModeActive && ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN)))
 	{
 		RangeActorInstance->SetWeaponVisibility(false);
+	}
+}
+
+void UKREquipmentManagerComponent::OnCurrentAmmoChanged(const FOnAttributeChangeData& Data)
+{
+	if (ActiveWeaponTypeTag.MatchesTag(KRTAG_ITEMTYPE_EQUIP_GUN))
+	{
+		BroadcastWeaponMessage(EWeaponMessageAction::AmmoUpdated, ActiveWeaponTypeTag);
 	}
 }
 

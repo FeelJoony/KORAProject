@@ -5,6 +5,7 @@
 
 class AActor;
 class USceneComponent;
+class UKRSoundDefinition;
 
 /**
  * 원거리 무기 Actor
@@ -26,7 +27,7 @@ public:
 
 	virtual FTransform GetMuzzleTransform() const;
 
-	virtual void FireProjectile(const FRotator& InOverrideRotation);
+	virtual void FireProjectile(const FRotator& InOverrideRotation, float InDamageMultiplier = 1.0f);
 	
 protected:
 	/** 발사체 스폰 위치 */

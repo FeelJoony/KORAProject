@@ -143,9 +143,11 @@ void UKRGameplayAbility_RangeCharge::StartReleaseMontage(bool bSuccess)
 		}
 	}
 
+	float FinalMultiplier = bSuccess ? DamageMulti_Success : DamageMulti_Fail;
+	
 	FRotator AimRot = GetFinalAimRotation(MaxRange);
-	FireWeaponActor(AimRot);
-
+	FireWeaponActor(AimRot, FinalMultiplier);
+	
 	const FName ReleaseSection = bSuccess ? SECTION_SUCCESS : SECTION_FAIL;
 	
 	ReleasePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(

@@ -14,7 +14,7 @@ struct KORAPROJECT_API FWeaponStatsCache
 	static constexpr float DefaultRange = 200.f;
 	static constexpr float DefaultCritChance = 0.f;
 	static constexpr float DefaultCritMulti = 1.5f;
-	static constexpr int32 DefaultCapacity = 0;
+	static constexpr float DefaultCapacity = 0;
 	static constexpr float DefaultReloadTime = 0.f;
 
 	FWeaponStatsCache()
@@ -45,7 +45,7 @@ struct KORAPROJECT_API FWeaponStatsCache
 	float CritMulti;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Gun")
-	int32 Capacity;
+	float Capacity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Gun")
 	float ReloadTime;
@@ -60,18 +60,19 @@ struct KORAPROJECT_API FWeaponStatsCache
 			!FMath::IsNearlyEqual(Range, DefaultRange) ||
 			!FMath::IsNearlyEqual(CritChance, DefaultCritChance) ||
 			!FMath::IsNearlyEqual(CritMulti, DefaultCritMulti) ||
-			Capacity != DefaultCapacity ||
-			!FMath::IsNearlyEqual(ReloadTime, DefaultReloadTime)
+			!FMath::IsNearlyEqual(ReloadTime, DefaultReloadTime) ||
+			!FMath::IsNearlyEqual(Capacity, DefaultCapacity)
 		);
 	}
 	
 	bool HasAnyModifier() const
 	{
 		return !FMath::IsNearlyEqual(AttackPower, DefaultAttackPower) ||
-			!FMath::IsNearlyEqual(AttackSpeed, DefaultAttackSpeed) ||
-			!FMath::IsNearlyEqual(CritChance, DefaultCritChance) ||
-			!FMath::IsNearlyEqual(CritMulti, DefaultCritMulti) ||
-			!FMath::IsNearlyEqual(Range, DefaultRange);
+				  !FMath::IsNearlyEqual(AttackSpeed, DefaultAttackSpeed) ||
+				  !FMath::IsNearlyEqual(CritChance, DefaultCritChance) ||
+				  !FMath::IsNearlyEqual(CritMulti, DefaultCritMulti) ||
+				  !FMath::IsNearlyEqual(Range, DefaultRange) ||
+				  	!FMath::IsNearlyEqual(Capacity, DefaultCapacity);
 	}
 
 	void Reset()
