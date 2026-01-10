@@ -28,6 +28,7 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 	UFUNCTION(BlueprintPure, Category = "Guard")
@@ -82,6 +83,9 @@ private:
 	/** 넉백에 대한 모션 워핑을 적용합니다. */
 	void ApplyKnockback(AActor* Attacker, float KnockbackDistance);
 
+	/** HitReaction 완료 후 일반 가드 상태로 복귀합니다. */
+	void RestartGuard();
+
 	UKRStaminaComponent* GetStaminaComponent() const;
 	AKRHeroCharacter* GetKRHeroCharacter() const;
 
@@ -103,8 +107,15 @@ private:
 	UFUNCTION()
 	void OnMontageInterrupted();
 
+	/** HitReaction 몽타주 완료 시 호출 (퍼펙트/일반 가드 공통) */
+	UFUNCTION()
+	void OnHitReactionCompleted();
+
 protected:
 	EGuardState CurrentGuardState = EGuardState::None;
+
+	/** HitReaction 재생 중 입력이 해제되었는지 여부 */
+	bool bInputReleased = false;
 
 	FTimerHandle PerfectGuardWindowTimer;
 	FTimerHandle GuardBreakTimer;

@@ -9,10 +9,12 @@
 UENUM(BlueprintType)
 enum class EGuardState : uint8
 {
-	None,           // 가드 비활성
-	ParryWindow,    // 퍼펙트 가드 판정 구간 (입력 직후 ~0.2초)
-	StandardGuard,  // 일반 가드 유지
-	GuardBroken     // 가드 브레이크
+	None,              // 가드 비활성
+	ParryWindow,       // 퍼펙트 가드 판정 구간 (입력 직후 ~0.2초)
+	StandardGuard,     // 일반 가드 유지
+	PerfectGuardHit,   // 퍼펙트 가드 HitReaction 재생 중
+	StandardGuardHit,  // 일반 가드 HitReaction 재생 중
+	GuardBroken        // 가드 브레이크
 };
 
 /**

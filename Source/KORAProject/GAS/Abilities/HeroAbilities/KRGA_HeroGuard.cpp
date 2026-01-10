@@ -31,6 +31,9 @@ void UKRGA_HeroGuard::ActivateAbility(
 		return;
 	}
 
+	// 입력 해제 플래그 초기화
+	bInputReleased = false;
+
 	StartGuardState();
 
 	GuardBrokenEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, KRTAG_EVENT_COMBAT_GUARDBROKEN, nullptr, false, true);
@@ -161,6 +164,21 @@ void UKRGA_HeroGuard::OnGuardHit(float IncomingDamage, AActor* Attacker)
 
 void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 {
+	// 퍼펙트 가드 윈도우 즉시 종료 (첫 번째 공격만 퍼펙트 가드 가능)
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PerfectGuardWindowTimer);
+	}
+
+	// Parry 태그 제거 (더 이상 퍼펙트 가드 불가)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_PARRY);
+	}
+
+	// 상태 변경: PerfectGuardHit (HitReaction 재생 중)
+	CurrentGuardState = EGuardState::PerfectGuardHit;
+
 	ApplyKnockback(Attacker, GuardConfig.PerfectGuardKnockback);
 
 	if (PerfectGuardMontage)
@@ -169,7 +187,7 @@ void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PerfectGuard"), PerfectGuardMontage, 1.0f);
 		if (MontageTask)
 		{
-			MontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageCompleted);
+			MontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnHitReactionCompleted);
 			MontageTask->ReadyForActivation();
 		}
 	}
@@ -188,12 +206,6 @@ void UKRGA_HeroGuard::OnPerfectGuardSuccess(AActor* Attacker)
 		ChargeEvent.Instigator = AvatarActor;
 		ChargeEvent.Target = Attacker;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(AvatarActor, KRTAG_EVENT_COREDRIVE_CHARGE_ONPARRY, ChargeEvent);
-	}
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(PerfectGuardWindowTimer);
-		World->GetTimerManager().SetTimer(PerfectGuardWindowTimer, this, &ThisClass::OnPerfectGuardWindowEnded, GuardConfig.PerfectGuardWindow, false);
 	}
 
 	FKRUIMessage_Guard GuardMessage;
@@ -216,6 +228,9 @@ void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
 		StaminaComp->ConsumeStamina(StaminaCost);
 	}
 
+	// 상태 변경: StandardGuardHit (HitReaction 재생 중)
+	CurrentGuardState = EGuardState::StandardGuardHit;
+
 	ApplyKnockback(Attacker, GuardConfig.StandardGuardKnockback);
 
 	if (GuardHitMontage)
@@ -224,7 +239,7 @@ void UKRGA_HeroGuard::OnStandardGuardHit(float IncomingDamage, AActor* Attacker)
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("GuardHit"), GuardHitMontage, 1.0f);
 		if (MontageTask)
 		{
-			MontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageCompleted);
+			MontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnHitReactionCompleted);
 			MontageTask->ReadyForActivation();
 		}
 	}
@@ -303,16 +318,62 @@ void UKRGA_HeroGuard::OnGuardBreakEnded()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
+void UKRGA_HeroGuard::InputPressed(
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
+	// HitReaction 중 버튼을 뗐다가 다시 누른 경우
+	if (!bInputReleased)
+	{
+		return;
+	}
+
+	bInputReleased = false;
+
+	if (CurrentGuardState == EGuardState::PerfectGuardHit)
+	{
+		// 퍼펙트 가드 HitReaction 중 다시 누르면 새 패리 윈도우 시작
+		CurrentGuardState = EGuardState::ParryWindow;
+
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			ASC->AddLooseGameplayTag(KRTAG_STATE_ACTING_PARRY);
+		}
+
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().SetTimer(
+				PerfectGuardWindowTimer,
+				this,
+				&ThisClass::OnPerfectGuardWindowEnded,
+				GuardConfig.PerfectGuardWindow,
+				false
+			);
+		}
+	}
+	// StandardGuardHit 상태에서는 bInputReleased = false만 설정
+	// (패리 윈도우 없이 일반 가드 유지, HitReaction 완료 후 RestartGuard 호출됨)
+}
+
 void UKRGA_HeroGuard::InputReleased(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-	if (CurrentGuardState == EGuardState::GuardBroken)
+
+	// HitReaction 재생 중이거나 GuardBroken 상태에서는 즉시 종료하지 않음
+	if (CurrentGuardState == EGuardState::GuardBroken ||
+		CurrentGuardState == EGuardState::PerfectGuardHit ||
+		CurrentGuardState == EGuardState::StandardGuardHit)
 	{
+		bInputReleased = true;  // 플래그만 설정, HitReaction 완료 후 종료
 		return;
 	}
+
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
@@ -329,8 +390,25 @@ void UKRGA_HeroGuard::OnParrySuccessEventReceived(FGameplayEventData Payload)
 
 void UKRGA_HeroGuard::OnGuardHitEventReceived(FGameplayEventData Payload)
 {
-	if (CurrentGuardState == EGuardState::None || CurrentGuardState == EGuardState::GuardBroken)
+	// 가드 불가 상태
+	if (CurrentGuardState == EGuardState::None ||
+		CurrentGuardState == EGuardState::GuardBroken)
 	{
+		return;
+	}
+
+	// HitReaction 재생 중 추가 공격 처리
+	if (CurrentGuardState == EGuardState::PerfectGuardHit ||
+		CurrentGuardState == EGuardState::StandardGuardHit)
+	{
+		// 버튼을 누르고 있으면 일반 가드로 막을 수 있음
+		if (!bInputReleased)
+		{
+			float IncomingDamage = Payload.EventMagnitude;
+			AActor* Attacker = const_cast<AActor*>(Payload.Instigator.Get());
+			OnStandardGuardHit(IncomingDamage, Attacker);
+		}
+		// 버튼을 뗀 상태면 무시 (HitReaction 완료 후 GA 종료 예정)
 		return;
 	}
 
@@ -341,12 +419,19 @@ void UKRGA_HeroGuard::OnGuardHitEventReceived(FGameplayEventData Payload)
 
 void UKRGA_HeroGuard::OnMontageCompleted()
 {
-	if (CurrentGuardState != EGuardState::GuardBroken && GuardLoopMontage)
+	// GuardStart/GuardLoop 몽타주 완료 시 GuardLoop로 전환
+	// (HitReaction 완료는 OnHitReactionCompleted에서 처리)
+	if (CurrentGuardState == EGuardState::ParryWindow ||
+		CurrentGuardState == EGuardState::StandardGuard)
 	{
-		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("GuardLoop"), GuardLoopMontage, 1.0f, NAME_None, true);
-		if (MontageTask)
+		if (GuardLoopMontage)
 		{
-			MontageTask->ReadyForActivation();
+			MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+				this, FName("GuardLoop"), GuardLoopMontage, 1.0f, NAME_None, true);
+			if (MontageTask)
+			{
+				MontageTask->ReadyForActivation();
+			}
 		}
 	}
 }
@@ -374,6 +459,42 @@ void UKRGA_HeroGuard::StopCurrentMontageTask()
 		MontageTask->OnInterrupted.RemoveDynamic(this, &ThisClass::OnMontageInterrupted);
 		MontageTask->OnCancelled.RemoveDynamic(this, &ThisClass::OnMontageInterrupted);
 		MontageTask->OnCompleted.RemoveDynamic(this, &ThisClass::OnMontageCompleted);
+		MontageTask->OnCompleted.RemoveDynamic(this, &ThisClass::OnHitReactionCompleted);
 		MontageTask->EndTask();
+	}
+}
+
+void UKRGA_HeroGuard::OnHitReactionCompleted()
+{
+	if (bInputReleased)
+	{
+		// 버튼을 뗀 상태면 GA 종료
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+	else
+	{
+		// 버튼 유지 중이면 일반 가드 상태로 복귀
+		RestartGuard();
+	}
+}
+
+void UKRGA_HeroGuard::RestartGuard()
+{
+	// 일반 가드 상태로 복귀 (퍼펙트 가드 윈도우 없음)
+	CurrentGuardState = EGuardState::StandardGuard;
+
+	// Guard 태그는 이미 존재하므로 다시 추가하지 않음 (카운트 증가 방지)
+	// Parry 태그도 추가하지 않음 - 일반 가드만 유지
+
+	// GuardLoop 몽타주 재생
+	if (GuardLoopMontage)
+	{
+		StopCurrentMontageTask();
+		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+			this, FName("GuardLoop"), GuardLoopMontage, 1.0f, NAME_None, true);
+		if (MontageTask)
+		{
+			MontageTask->ReadyForActivation();
+		}
 	}
 }
