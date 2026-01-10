@@ -195,18 +195,6 @@ void AKREnemyPawn::OnHealthChanged(const FOnAttributeChangeData& Data)
 	// 체력이 감소했을 때만 Hit Ability 실행
 	if (NewHealth < OldHealth && EnemyASC)
 	{
-		if (ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
-		{
-			UAISense_Damage::ReportDamageEvent(
-			GetWorld(),
-			this,
-			PlayerCharacter,
-			OldHealth - NewHealth,
-			PlayerCharacter->GetActorLocation(),
-			GetActorLocation()
-		);	
-		}
-		
 		FGameplayTagContainer TagContainer;
 		TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.HitReaction")));
 		EnemyASC->TryActivateAbilitiesByTag(TagContainer);
@@ -224,6 +212,18 @@ void AKREnemyPawn::OnHealthChanged(const FOnAttributeChangeData& Data)
 					StateTreeComp->SendStateTreeEvent(KRTAG_ENEMY_AISTATE_HITREACTION);
 				}
 			}
+		}
+
+		if (ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+		{
+			UAISense_Damage::ReportDamageEvent(
+				GetWorld(),
+				this,
+				PlayerCharacter,
+				OldHealth - NewHealth,
+				PlayerCharacter->GetActorLocation(),
+				GetActorLocation()
+			);	
 		}
 	}
 }

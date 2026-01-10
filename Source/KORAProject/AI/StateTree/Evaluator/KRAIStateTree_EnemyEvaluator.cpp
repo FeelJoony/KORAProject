@@ -42,16 +42,10 @@ void UKRAIStateTree_EnemyEvaluator::Tick(FStateTreeExecutionContext& Context, co
 			float MaxHealth = ASC->GetGameplayAttributeValue(UKRCombatCommonSet::GetMaxHealthAttribute(), bFound);
 			
 			CurrentHealthPercent = FMath::Max(0.f, CurrentHealth / MaxHealth);
-			if (!bIsRageStatus && CurrentHealthPercent <= EnterRageHealthPercent)
-			{
-				bIsRageStatus = true;
 
-				Context.SendEvent(KRTAG_ENEMY_AISTATE_RAGE);
-			}
-			else if (bIsRageStatus && CurrentHealthPercent > EnterRageHealthPercent)
-			{
-				bIsRageStatus = false;
-			}
+			bool bFoundRageStatus = false;
+			EnterRageHealthPercent = ASC->GetGameplayAttributeValue(UKREnemyAttributeSet::GetEnterRageStatusRateAttribute(), bFoundRageStatus);
+			bIsRageStatus = Actor->IsRage();
 			
 			if (bFound && CurrentHealth <= 0.f)
 			{

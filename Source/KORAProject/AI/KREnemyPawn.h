@@ -48,6 +48,9 @@ public:
 	UPROPERTY()
 	TObjectPtr<AActor> TargetActor = nullptr;
 
+	FORCEINLINE void SetRage(bool bInRage) { bIsRage = bInRage; }
+	FORCEINLINE bool IsRage() const { return bIsRage; }
+
 protected:	
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	// TObjectPtr<class UCapsuleComponent> CapsuleComponent;
@@ -78,6 +81,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = GAS)
 	TArray<TSubclassOf<class UGameplayAbility>> ApplyAbilityClasses;
+
+	bool bIsRage = false;
 
 protected:
 	// UPROPERTY(EditDefaultsOnly, Category = Animation)

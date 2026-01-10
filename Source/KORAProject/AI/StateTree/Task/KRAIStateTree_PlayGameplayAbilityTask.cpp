@@ -14,25 +14,33 @@ EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::EnterState(FStateTre
 {
 	if (UAbilitySystemComponent* ASC = Actor->GetAbilitySystemComponent())
 	{
-		if (ASC->TryActivateAbilitiesByTag(AbilityTags))
+		ActivateSpec = ASC->FindAbilitySpecFromClass(AbilityClass);
+		if (!ASC->TryActivateAbility(ActivateSpec->Handle))
 		{
-			TArray<FGameplayAbilitySpecHandle> FindAbilities;
-			ASC->FindAllAbilitiesWithTags(FindAbilities, AbilityTags);
-			if (FindAbilities.Num() > 0)
-			{
-				for (FGameplayAbilitySpecHandle& FindAbility : FindAbilities)
-				{
-					ActivateSpec = ASC->FindAbilitySpecFromHandle(FindAbility);
-				}
-			}
+			UE_LOG(LogTemp, Error, TEXT("Failed to activate ability"));
+			
+			return EStateTreeRunStatus::Failed;
 		}
+		
+		// if (ASC->TryActivateAbilitiesByTag(AbilityTags))
+		// {
+		// 	TArray<FGameplayAbilitySpecHandle> FindAbilities;
+		// 	ASC->FindAllAbilitiesWithTags(FindAbilities, AbilityTags);
+		// 	if (FindAbilities.Num() > 0)
+		// 	{
+		// 		for (FGameplayAbilitySpecHandle& FindAbility : FindAbilities)
+		// 		{
+		// 			ActivateSpec = ASC->FindAbilitySpecFromHandle(FindAbility);
+		// 		}
+		// 	}
+		// }
 	}
 	
-	return Super::EnterState(Context, Transition);
+	return EStateTreeRunStatus::Running;
 }
 
 EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::Tick(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition)
+	const float DeltaTime)
 {
 	if (ActivateSpec && ActivateSpec->IsActive())
 	{
@@ -42,9 +50,11 @@ EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::Tick(FStateTreeExecu
 	return EStateTreeRunStatus::Succeeded;
 }
 
-void UKRAIStateTree_PlayGameplayAbilityTask::EndState(FStateTreeExecutionContext& Context,
-	FStateTreeTransitionResult& OutState)
+void UKRAIStateTree_PlayGameplayAbilityTask::ExitState(FStateTreeExecutionContext& Context,
+	const FStateTreeTransitionResult& Transition)
 {
 	ActivateSpec = nullptr;
+	
+	Super::ExitState(Context, Transition);
 }
 

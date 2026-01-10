@@ -60,7 +60,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
 	float CurrentHealthPercent = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Parameter")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Output)
 	float EnterRageHealthPercent = 0.f;
 	
 private:
