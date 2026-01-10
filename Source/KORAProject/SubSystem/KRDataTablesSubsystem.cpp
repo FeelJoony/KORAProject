@@ -1,6 +1,7 @@
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/CacheDataTable.h"
 #include "Data/CitizenDataStruct.h"
+#include "Data/DialogueDataStruct.h"
 #include "Data/ConsumeDataStruct.h"
 #include "Data/CurrencyDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
@@ -178,6 +179,7 @@ void UKRDataTablesSubsystem::InitializeDataTables()
 	AddDataTable<FCitizenDataStruct>(FString(TEXT("CitizenData")));
 	AddDataTable<FEnemyDataStruct>(FString(TEXT("EnemyData")));
 	AddDataTable<FEnemyAttributeDataStruct>(FString(TEXT("EnemyAttributeData")));
+	AddDataTable<FDialogueDataStruct>(FString(TEXT("DialogueData")));
 
 #if !UE_BUILD_SHIPPING
 	ValidateDataReferences();
