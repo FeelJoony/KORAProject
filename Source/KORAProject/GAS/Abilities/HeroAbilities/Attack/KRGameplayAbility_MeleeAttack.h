@@ -135,7 +135,7 @@ protected:
 	bool PerformBoxTrace(TArray<FHitResult>& OutHitResults) const;
 	bool PerformSphereTrace(TArray<FHitResult>& OutHitResults) const;
 	bool PerformCapsuleTrace(TArray<FHitResult>& OutHitResults) const;
-	void ProcessHitResults(const TArray<FHitResult>& HitResults);
+	virtual void ProcessHitResults(const TArray<FHitResult>& HitResults);
 	void ApplyHitToTarget(AActor* HitActor, const FHitResult& HitResult);
 	void ApplyDamage(AActor* TargetActor, const FHitResult& HitResult);
 	void SendHitReactionEvent(AActor* TargetActor, const FHitResult& HitResult);

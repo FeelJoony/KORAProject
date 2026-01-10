@@ -34,6 +34,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool TryActivateAbility(TSubclassOf<class UGameplayAbility> AbilityClass);
 
+	/** CurrentHealth 변경 감지를 위한 바인딩 */
+	void BindHealthChangedDelegate();
+
+	/** CurrentHealth 변경 시 호출되는 콜백 - 감소 시 Hit Ability 실행 */
+	void OnHealthChanged(const struct FOnAttributeChangeData& Data);
+
 	FORCEINLINE FGameplayTag GetEnemyTag() const { return EnemyTag; }
 
 	FOnSelectAttack OnSelectAttack;
@@ -87,6 +93,8 @@ protected:
 	TArray<FName> LockOnSockets;
 
 private:
+	FDelegateHandle HealthChangedDelegateHandle; // Health 변경 델리게이트핸들
+
 	template<typename TDataType>
 	const TDataType* FindDataByLoad(const FString& Path)
 	{

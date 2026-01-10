@@ -2,6 +2,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "Components/StateTreeAIComponent.h"
+#include "Characters/KRHeroCharacter.h"
 
 void UKRGameplayAbility_EnemyAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -92,5 +93,23 @@ void UKRGameplayAbility_EnemyAttack::EndAbility(const FGameplayAbilitySpecHandle
 UAnimMontage* UKRGameplayAbility_EnemyAttack::GetCurrentMontage() const
 {
 	return MontageToPlay;
+}
+
+void UKRGameplayAbility_EnemyAttack::ProcessHitResults(const TArray<FHitResult>& HitResults)
+{
+	// 플레이어만 필터링
+	TArray<FHitResult> FilteredHits;
+	for (const FHitResult& Hit : HitResults)
+	{
+		if (AActor* HitActor = Hit.GetActor())
+		{
+			if (HitActor->IsA<AKRHeroCharacter>())
+			{
+				FilteredHits.Add(Hit);
+			}
+		}
+	}
+
+	Super::ProcessHitResults(FilteredHits);
 }
 

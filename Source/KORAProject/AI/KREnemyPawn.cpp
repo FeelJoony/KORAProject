@@ -10,6 +10,7 @@
 #include "Data/EnemyDataStruct.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
+#include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Hit.h"
 #include "GAS/AttributeSets/KRCombatCommonSet.h"
 #include "GAS/AttributeSets/KREnemyAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
@@ -143,6 +144,9 @@ void AKREnemyPawn::InitializeComponents()
 		EnemyAttributeSet->SetCanAttackRange(EnemyAttributeDataStruct->CanAttackRange);
 		EnemyAttributeSet->SetEnterRageStatusRate(EnemyAttributeDataStruct->EnterRageStatusRate);
 	}
+
+	// CurrentHealth 변경 감지 바인딩
+	BindHealthChangedDelegate();
 }
 
 bool AKREnemyPawn::TryActivateAbility(TSubclassOf<UGameplayAbility> AbilityClass)
@@ -159,6 +163,57 @@ bool AKREnemyPawn::TryActivateAbility(TSubclassOf<UGameplayAbility> AbilityClass
 	}
 
 	return EnemyASC->TryActivateAbility(Spec->Handle);
+}
+
+void AKREnemyPawn::BindHealthChangedDelegate()
+{
+	if (!EnemyASC)
+	{
+		return;
+	}
+
+	// 이미 바인딩되어 있으면 제거
+	if (HealthChangedDelegateHandle.IsValid())
+	{
+		EnemyASC->GetGameplayAttributeValueChangeDelegate(
+			UKRCombatCommonSet::GetCurrentHealthAttribute()
+		).Remove(HealthChangedDelegateHandle);
+		HealthChangedDelegateHandle.Reset();
+	}
+
+	// CurrentHealth 변경 델리게이트에 콜백 바인딩
+	HealthChangedDelegateHandle = EnemyASC->GetGameplayAttributeValueChangeDelegate(
+		UKRCombatCommonSet::GetCurrentHealthAttribute()
+	).AddUObject(this, &AKREnemyPawn::OnHealthChanged);
+}
+
+void AKREnemyPawn::OnHealthChanged(const FOnAttributeChangeData& Data)
+{
+	const float OldHealth = Data.OldValue;
+	const float NewHealth = Data.NewValue;
+
+	// 체력이 감소했을 때만 Hit Ability 실행
+	if (NewHealth < OldHealth && EnemyASC)
+	{
+		//TryActivateAbility(UKRGA_Enemy_Hit::StaticClass());
+		
+		// 현재 바인딩된 Ability 중에서 KRGA_Enemy_Hit 찾아서 실행
+		// TArray<FGameplayAbilitySpec*> ActivatableAbilities;
+		// EnemyASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(FGameplayTagContainer(), ActivatableAbilities);
+		//
+		// for (FGameplayAbilitySpec* Spec : ActivatableAbilities)
+		// {
+		// 	if (Spec && Spec->Ability && Spec->Ability->IsA(UKRGA_Enemy_Hit::StaticClass()))
+		// 	{
+		// 		EnemyASC->TryActivateAbility(Spec->Handle);
+		// 		break;
+		// 	}
+		// }
+
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.HitReaction")));
+		EnemyASC->TryActivateAbilitiesByTag(TagContainer);
+	}
 }
 
 
