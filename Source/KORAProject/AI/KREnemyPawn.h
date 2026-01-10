@@ -40,6 +40,18 @@ public:
 	/** CurrentHealth 변경 시 호출되는 콜백 - 감소 시 Hit Ability 실행 */
 	void OnHealthChanged(const struct FOnAttributeChangeData& Data);
 
+	/** 태그 이벤트 등록 */
+	void RegisterTagEvent();
+
+	/** 태그 추가/제거 이벤트 처리 */
+	void HandleTagEvent(FGameplayTag Tag, int32 Count);
+
+	/** StateTree에 상태 이벤트 전송 */
+	void SetEnemyState(FGameplayTag StateTag);
+
+	/** GA 외부 종료 처리 */
+	void ExternalGAEnded(FGameplayTag Tag);
+
 	FORCEINLINE FGameplayTag GetEnemyTag() const { return EnemyTag; }
 
 	FOnSelectAttack OnSelectAttack;
@@ -102,6 +114,9 @@ protected:
 
 private:
 	FDelegateHandle HealthChangedDelegateHandle; // Health 변경 델리게이트핸들
+
+	/** 모니터링할 태그 목록 */
+	FGameplayTagContainer StateTags;
 
 	template<typename TDataType>
 	const TDataType* FindDataByLoad(const FString& Path)
