@@ -29,7 +29,6 @@ protected:
 
 private:
 	struct FEnemyDataStruct* EnemyData = nullptr;
-	struct FEnemyAbilityDataStruct* EnemyAbilityData = nullptr;
 	struct FEnemyAttributeDataStruct* EnemyAttributeData = nullptr;
 	
 	

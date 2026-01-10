@@ -4,7 +4,6 @@
 #include "AI/KREnemyPawn.h"
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "Data/EnemyDataStruct.h"
-#include "Data/EnemyAbilityDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "GameplayTag/KREnemyTag.h"
 
@@ -21,7 +20,6 @@ void UKRAIStateTree_OverlapPlayerEvaluator::TreeStart(FStateTreeExecutionContext
 
 	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
 	EnemyData = DataTablesSubsystem.GetData<FEnemyDataStruct>(EnemyTag);
-	EnemyAbilityData = DataTablesSubsystem.GetData<FEnemyAbilityDataStruct>(EnemyTag);
 	EnemyAttributeData = DataTablesSubsystem.GetData<FEnemyAttributeDataStruct>(EnemyTag);
 
 	const FStateTreeEventQueue& EventQueue = Context.GetEventQueue();

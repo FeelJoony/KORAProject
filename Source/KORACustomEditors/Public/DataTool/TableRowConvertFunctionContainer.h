@@ -57,8 +57,6 @@ public:
 	UFUNCTION()
 	void CreateEnemyData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
-	void CreateEnemyAbilityData(class UDataTable* OutDataTable, const FString& InCSVString);
-	UFUNCTION()
 	void CreateEnemyAttributeData(class UDataTable* OutDataTable, const FString& InCSVString);
 	UFUNCTION()
 	void CreateDialogueData(class UDataTable* OutDataTable, const FString& InCSVString);

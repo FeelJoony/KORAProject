@@ -21,7 +21,6 @@
 #include "Data/ModuleDataStruct.h"
 #include "Data/KRDataAssetTableRows.h"
 #include "Data/CitizenDataStruct.h"
-#include "Data/EnemyAbilityDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
 #include "Data/DialogueDataStruct.h"
@@ -930,6 +929,7 @@ void UTableRowConvertFunctionContainer::CreateCitizenData(UDataTable* OutDataTab
 
 #pragma endregion 
 
+#pragma region DialogueDataFunction
 void UTableRowConvertFunctionContainer::CreateDialogueData(UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, FString(TEXT("DialogueData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -991,6 +991,8 @@ void UTableRowConvertFunctionContainer::CreateDialogueData(UDataTable* OutDataTa
 		}));
 }
 
+#pragma endregion
+
 #pragma region EnemyDataFunction
 
 void UTableRowConvertFunctionContainer::CreateEnemyData(class UDataTable* OutDataTable, const FString& InCSVString)
@@ -1026,53 +1028,6 @@ void UTableRowConvertFunctionContainer::CreateEnemyData(class UDataTable* OutDat
 				else
 				{
 					OutDataTable->AddRow(RowName, EnemyData);
-				}
-			}
-		}));
-}
-
-#pragma endregion
-
-#pragma region EquipAbilityDataFunction
-
-void UTableRowConvertFunctionContainer::CreateEnemyAbilityData(class UDataTable* OutDataTable,
-	const FString& InCSVString)
-{
-	CreateData(InCSVString, FString(TEXT("EnemyAbilityData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
-		{
-			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
-			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
-
-			for (int32 i = 0; i < Values.Num(); i++)
-			{
-				TArray<FString>& RowValue = Values[i];
-
-				int32 EnemyTag_Index = GetHeaderIndex(Headers, TEXT("EnemyTag"));
-				int32 AttackGA_Index = GetHeaderIndex(Headers, TEXT("AttackGA"));
-				int32 HitGA_Index = GetHeaderIndex(Headers, TEXT("HitGA"));
-				int32 DeathGA_Index = GetHeaderIndex(Headers, TEXT("DeathGA"));
-				int32 StunGA_Index = GetHeaderIndex(Headers, TEXT("StunGA"));
-				int32 SlashGA_Index = GetHeaderIndex(Headers, TEXT("SlashGA"));
-				int32 AlertGA_Index = GetHeaderIndex(Headers, TEXT("AlertGA"));
-
-				FEnemyAbilityDataStruct EnemyAbilityData;
-
-				EnemyAbilityData.EnemyTag = ParseGameplayTagValue(RowValue[EnemyTag_Index]);
-				//EnemyAbilityData.AttackGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[AttackGA_Index]);
-				//EnemyAbilityData.HitGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[HitGA_Index]);
-				//EnemyAbilityData.DeathGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[DeathGA_Index]);
-				//EnemyAbilityData.StunGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[StunGA_Index]);
-				//EnemyAbilityData.SlashGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[SlashGA_Index]);
-				//EnemyAbilityData.AlertGA = ParseSoftObjectValue<UKRGameplayAbility>(RowValue[AlertGA_Index]);
-				
-				FName RowName = *FString::Printf(TEXT("Enemy_%d"), i);
-				if (FEnemyAbilityDataStruct* FindRow = OutDataTable->FindRow<FEnemyAbilityDataStruct>(RowName, TEXT("")))
-				{
-					*FindRow = EnemyAbilityData;
-				}
-				else
-				{
-					OutDataTable->AddRow(RowName, EnemyAbilityData);
 				}
 			}
 		}));
@@ -1131,7 +1086,7 @@ void UTableRowConvertFunctionContainer::CreateEnemyAttributeData(class UDataTabl
 
 #pragma endregion 
 
-
+#pragma region LevelTransitionDataFunction
 void UTableRowConvertFunctionContainer::CreateLevelTransitionData(UDataTable* OutDataTable, const FString& InCSVString)
 {
 	CreateData(InCSVString, TEXT("LevelTransitionData"), FParseMethod::CreateLambda([&](FParseMethodParams Params)
@@ -1173,6 +1128,8 @@ void UTableRowConvertFunctionContainer::CreateLevelTransitionData(UDataTable* Ou
 		}
 	}));
 }
+
+#pragma endregion
 
 void UTableRowConvertFunctionContainer::OutHeaderAndValues(const FString& InCSVString, TMap<FName, int32>& OutHeaders, TArray<TArray<FString>>& OutValues, const FString& CSVFileName)
 {

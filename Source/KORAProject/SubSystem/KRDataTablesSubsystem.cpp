@@ -3,7 +3,6 @@
 #include "Data/CitizenDataStruct.h"
 #include "Data/ConsumeDataStruct.h"
 #include "Data/CurrencyDataStruct.h"
-#include "Data/EnemyAbilityDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
 #include "Data/ItemDataStruct.h"
@@ -183,7 +182,6 @@ void UKRDataTablesSubsystem::InitializeDataTables()
 	AddDataTable<FWorldEventDataStruct>(FString(TEXT("WorldEventData")));
 	AddDataTable<FCitizenDataStruct>(FString(TEXT("CitizenData")));
 	AddDataTable<FEnemyDataStruct>(FString(TEXT("EnemyData")));
-	AddDataTable<FEnemyAbilityDataStruct>(FString(TEXT("EnemyAbilityData")));
 	AddDataTable<FEnemyAttributeDataStruct>(FString(TEXT("EnemyAttributeData")));
 
 #if !UE_BUILD_SHIPPING

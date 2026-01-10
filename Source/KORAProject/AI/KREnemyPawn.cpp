@@ -6,7 +6,6 @@
 #include "Components/KRCombatComponent.h"
 #include "Components/StateTreeAIComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Data/EnemyAbilityDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
 #include "GAS/KRAbilitySystemComponent.h"
@@ -104,7 +103,6 @@ void AKREnemyPawn::InitializeComponents()
 	}
 
 	const FEnemyDataStruct* EnemyDataStruct = nullptr;
-	const FEnemyAbilityDataStruct* EnemyAbilityDataStruct = nullptr;
 	const FEnemyAttributeDataStruct* EnemyAttributeDataStruct = nullptr;
 
 	UWorld* World = GetWorld();
@@ -117,7 +115,6 @@ void AKREnemyPawn::InitializeComponents()
 		static const FString EnemyAttributeTableName = TEXT("EnemyAttributeData");
 
 		EnemyDataStruct = FindDataByLoad<FEnemyDataStruct>(FPaths::Combine(TablePath, EnemyTableName));
-		EnemyAbilityDataStruct = FindDataByLoad<FEnemyAbilityDataStruct>(FPaths::Combine(TablePath, EnemyAbilityTableName));
 		EnemyAttributeDataStruct = FindDataByLoad<FEnemyAttributeDataStruct>(FPaths::Combine(TablePath, EnemyAttributeTableName));
 	}
 	else
@@ -125,7 +122,6 @@ void AKREnemyPawn::InitializeComponents()
 		UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(this);
 		
 		EnemyDataStruct = DataTablesSubsystem.GetData<FEnemyDataStruct>(EnemyTag);
-		EnemyAbilityDataStruct = DataTablesSubsystem.GetData<FEnemyAbilityDataStruct>(EnemyTag);
 		EnemyAttributeDataStruct = DataTablesSubsystem.GetData<FEnemyAttributeDataStruct>(EnemyTag);
 	}
 
@@ -133,26 +129,6 @@ void AKREnemyPawn::InitializeComponents()
 	{
 		EnemyASC->K2_GiveAbility(AbilityClass);
 	}
-
-	// if (EnemyAbilityDataStruct)
-	// {
-	// 	if (EnemyASC)
-	// 	{
-	// 		auto GiveAbilityToEnemyASC = [this](const TSoftObjectPtr<UKRGameplayAbility>& InGA)
-	// 		{
-	// 			UKRGameplayAbility* GA = InGA.LoadSynchronous();
-	// 			EnemyASC->GiveAbility(*GA->GetCurrentAbilitySpec());
-	// 		};
-	//
-	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->AttackGA);	
-	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->HitGA);	
-	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->DeathGA);	
-	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->StunGA);	
-	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->StunGA);	
-	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->SlashGA);	
-	// 		GiveAbilityToEnemyASC(EnemyAbilityDataStruct->AlertGA);
-	// 	}
-	// }
 
 	if (EnemyAttributeDataStruct)
 	{
