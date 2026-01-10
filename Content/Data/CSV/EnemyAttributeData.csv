@@ -1,5 +1,7 @@
 EnemyTag,MaxHealth,AttackPower,DefensePower,DealDamageMultiply,TakeDamageMultiply,DamageTaken,CanAttackRange,EnterRageStatusRate
-Enemy.Type.FerroLoader,100,5000,1651,0.1,1.5,2.1,150,0.35
-Enemy.Type.Arbid,90,45000,81612,0.3,1.4,2.5,150,0.35
-Enemy.Type.SpinderBreed,80,9000,31851,0.5,1.265,2.2,150,0.35
-Enemy.Type.Nerras,70,158423,651484,1.2,1.2549,2.05484,150,0.35
+Enemy.Type.FerroLoader,1000,15,20,1.5,1,1,150,0.35
+Enemy.Type.Arbid,1000,10,10,1,1,1,150,0.35
+Enemy.Type.SpinderBreed,1000,20,15,2,1,1,150,0.35
+Enemy.Type.Human.Melee,1000,15,15,1.5,1,1,150,0.35
+Enemy.Type.Nerras,5000,30,25,2.5,1,1,150,0.35
+Enemy.Type.MainBoss,15000,50,30,3,1,1,150,0.35

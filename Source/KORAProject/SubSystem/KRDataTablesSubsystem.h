@@ -68,7 +68,7 @@ public:
 
 private:
 	UPROPERTY()
-	TMap<TObjectPtr<UScriptStruct>, TSoftObjectPtr<UCacheDataTable>> DataTables;
+	TMap<TObjectPtr<UScriptStruct>, TObjectPtr<UCacheDataTable>> DataTables;
 
 	const FString TablePath = TEXT("/Game/Data/DataTables");
 	const FString DefaultStringContext = TEXT("");

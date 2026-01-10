@@ -63,18 +63,13 @@ UKRDataTablesSubsystem* UKRDataTablesSubsystem::GetSafe(const UObject* WorldCont
 
 UCacheDataTable* UKRDataTablesSubsystem::GetTable(UScriptStruct* InStruct)
 {
-	TSoftObjectPtr<UCacheDataTable>& CacheDataTable = DataTables[InStruct];
-	if (!CacheDataTable.IsValid())
+	TObjectPtr<UCacheDataTable>* CacheDataTable = DataTables.Find(InStruct);
+	if (!CacheDataTable || !(*CacheDataTable))
 	{
 		return nullptr;
 	}
 
-	if (CacheDataTable.IsPending())
-	{
-		CacheDataTable.LoadSynchronous();
-	}
-
-	return CacheDataTable.Get();
+	return *CacheDataTable;
 }
 
 void UKRDataTablesSubsystem::ValidateDataReferences()

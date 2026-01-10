@@ -3,3 +3,5 @@ Enemy.Type.FerroLoader,/Game/Data/AI/StateTree/ST_FerroLoader.ST_FerroLoader,-1,
 Enemy.Type.Arbid,-1,-1,-1,-1
 Enemy.Type.SpinderBreed,-1,-1,-1,-1
 Enemy.Type.Nerras,-1,-1,-1,-1
+Enemy.Type.MainBoss,-1,-1,-1,-1
+Enemy.Type.Human.Melee,-1,-1,-1,-1

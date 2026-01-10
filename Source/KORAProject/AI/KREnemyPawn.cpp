@@ -133,6 +133,7 @@ void AKREnemyPawn::InitializeComponents()
 	if (EnemyAttributeDataStruct)
 	{
 		CombatCommonSet->SetMaxHealth(EnemyAttributeDataStruct->MaxHealth);
+		CombatCommonSet->SetCurrentHealth(EnemyAttributeDataStruct->MaxHealth);
 		CombatCommonSet->SetAttackPower(EnemyAttributeDataStruct->AttackPower);
 		CombatCommonSet->SetDefensePower(EnemyAttributeDataStruct->DefensePower);
 		CombatCommonSet->SetDealDamageMult(EnemyAttributeDataStruct->DealDamageMultiply);
