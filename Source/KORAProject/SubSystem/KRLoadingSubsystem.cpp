@@ -8,6 +8,7 @@
 #include "Widgets/Images/SThrobber.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Engine/GameViewportClient.h"
+#include "Subsystem/KRUIRouterSubsystem.h"
 
 class SKRLoadingScreen : public SCompoundWidget
 {
@@ -114,6 +115,9 @@ private:
 void UKRLoadingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	
+	LevelTransitionCutscenes.FindOrAdd(FName("MainMenu")).Add(FName("Office"), FName("Tutorial_Info"));
+	LevelTransitionCutscenes.FindOrAdd(FName("ForgottenCity")).Add(FName("Barion"), FName("Finalboss"));
 }
 
 void UKRLoadingSubsystem::Deinitialize()
@@ -166,7 +170,37 @@ void UKRLoadingSubsystem::HideLoadingScreen()
 
 	LoadingScreenSlateWidget.Reset();
 	bIsVisible = false;
-	
+
+	CheckLevelTransitionCutscene();
+
 	OnLoadingScreenHidden.Broadcast();
+}
+
+void UKRLoadingSubsystem::CheckLevelTransitionCutscene()
+{
+	if (!GEngine) return;
+
+	UWorld* World = GEngine->GetCurrentPlayWorld();
+	if (!World) return;
+
+	FString MapName = World->GetMapName();
+	MapName.RemoveFromStart(World->StreamingLevelsPrefix);
+	FName CurrentLevel = FName(*MapName);
+
+	if (const TMap<FName, FName>* ToLevelMap = LevelTransitionCutscenes.Find(PreviousLevelName))
+	{
+		if (const FName* CutsceneRoute = ToLevelMap->Find(CurrentLevel))
+		{
+			if (UGameInstance* GI = World->GetGameInstance())
+			{
+				if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+				{
+					Router->ToggleRoute(*CutsceneRoute);
+				}
+			}
+		}
+	}
+
+	PreviousLevelName = CurrentLevel;
 }
 

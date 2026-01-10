@@ -26,9 +26,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Loading")
 	bool IsLoadingScreenVisible() const { return bIsVisible; }
 
+	void SetPreviousLevelName(const FName& InLevelName) { PreviousLevelName = InLevelName; }
+
 	FOnLoadingScreenHidden OnLoadingScreenHidden;
 	
 private:
+	void CheckLevelTransitionCutscene();
+
 	TSharedPtr<SWidget> LoadingScreenSlateWidget;
 	bool bIsVisible = false;
+
+	FName PreviousLevelName;
+	TMap<FName, TMap<FName, FName>> LevelTransitionCutscenes;
 };
