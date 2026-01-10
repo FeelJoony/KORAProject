@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
+#include "Data/DataAssets/KRSoundDefinition.h"
 #include "KRGA_Reload.generated.h"
 
 class UGameplayEffect;
@@ -20,4 +21,30 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Reload")
 	TSubclassOf<UGameplayEffect> ReloadEffectClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Reload|Sound")
+	TObjectPtr<UKRSoundDefinition> DA_ReloadStart;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Reload|Sound")
+	TObjectPtr<UKRSoundDefinition> DA_ReloadLoad;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Reload|Sound")
+	TObjectPtr<UKRSoundDefinition> DA_ReloadEnd;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Reload|Time")
+	float Delay_Start = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Reload|Time")
+	float Delay_Load = 0.5f;
+
+private:
+	void Step1_StartReload();
+
+	UFUNCTION()
+	void Step2_LoadReload();
+
+	UFUNCTION()
+	void Step3_EndReload();
+	
+	USoundBase* GetSoundFromDA(UKRSoundDefinition* InDA);
 };
