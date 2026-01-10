@@ -9,25 +9,6 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC, const FName& InBossNameKey)
-{
-	UnbindAll();
-
-	if (!InASC) return;
-
-	BindToBossASC(InASC);
-	InitBossBarFromASC();
-
-	static const FName TableId = FName("/Game/UI/StringTable/ST_EnemyNames");
-
-	if (BossName)
-	{
-		FText BossDisplayName = FText::FromStringTable(TableId, InBossNameKey.ToString());
-		BossName->SetText(BossDisplayName);
-	}
-
-	SetVisibility(ESlateVisibility::Visible);
-}
 
 void UKRBossHealthWidget::OnHUDInitialized()
 {
@@ -39,6 +20,14 @@ void UKRBossHealthWidget::OnHUDInitialized()
 		BossHP->SetVisibility(ESlateVisibility::Hidden);
 	}
 	SetVisibility(ESlateVisibility::Collapsed);
+
+	if (UWorld* World = GetWorld())
+	{
+		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(World);
+
+		BossMessageListenerHandle = MessageSubsystem.RegisterListener<FKRUIMessage_Boss>(
+			FKRUIMessageTags::Boss(), this, &ThisClass::OnBossMessageReceived);
+	}
 }
 
 void UKRBossHealthWidget::NativeDestruct()
@@ -52,6 +41,12 @@ void UKRBossHealthWidget::UnbindAll()
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
+
+		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(World);
+		if (BossMessageListenerHandle.IsValid())
+		{
+			MessageSubsystem.UnregisterListener(BossMessageListenerHandle);
+		}
 	}
 
 	if (BossASCWeak.IsValid() && BossHealthChangedHandle.IsValid())
@@ -111,6 +106,12 @@ void UKRBossHealthWidget::OnBossHealthAttributeChanged(const FOnAttributeChangeD
 	const float OldHP = Data.OldValue;
 	const float NewHP = Data.NewValue;
 
+	if (NewHP <= 0.f)
+	{
+		SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+
 	const float OldPercent = FMath::Clamp(OldHP / MaxHP, 0.f, 1.f);
 	const float NewPercent = FMath::Clamp(NewHP / MaxHP, 0.f, 1.f);
 	const float Delta = NewPercent - OldPercent;
@@ -169,4 +170,32 @@ void UKRBossHealthWidget::TickBossAnim()
 			World->GetTimerManager().ClearTimer(BossAnimTimerHandle);
 		}
 	}
+}
+
+void UKRBossHealthWidget::OnBossMessageReceived(FGameplayTag Channel, const FKRUIMessage_Boss& Message)
+{
+	if (Message.BossASC.IsValid())
+	{
+		SetBossASC(Message.BossASC.Get(), Message.BossNameKey);
+	}
+}
+
+void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC, const FName& InBossNameKey)
+{
+	UnbindAll();
+
+	if (!InASC) return;
+
+	BindToBossASC(InASC);
+	InitBossBarFromASC();
+
+	static const FName TableId = FName("/Game/UI/StringTable/ST_EnemyNames");
+
+	if (BossName)
+	{
+		FText BossDisplayName = FText::FromStringTable(TableId, InBossNameKey.ToString());
+		BossName->SetText(BossDisplayName);
+	}
+
+	SetVisibility(ESlateVisibility::Visible);
 }

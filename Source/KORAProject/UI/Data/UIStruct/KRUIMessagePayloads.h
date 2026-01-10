@@ -6,6 +6,8 @@
 #include "GameplayTag/KRUITag.h"
 #include "KRUIMessagePayloads.generated.h"
 
+class UAbilitySystemComponent;
+
 // -----  Message Tag Helper -----
 
 struct KORAPROJECT_API FKRUIMessageTags
@@ -22,6 +24,7 @@ struct KORAPROJECT_API FKRUIMessageTags
 	static const FGameplayTag Tutorial() { return KRTAG_UI_MESSAGE_TUTORIAL; }
 	static const FGameplayTag EquipmentUI() { return KRTAG_UI_MESSAGE_EQUIPMENTUI; }
 	static const FGameplayTag SaveDeathLevelInfo() { return KRTAG_UI_MESSAGE_INFO; }
+	static const FGameplayTag Boss() { return KRTAG_UI_MESSAGE_BOSS; }
 
 	static const FGameplayTag QuickSlot_North() { return KRTAG_UI_QUICKSLOT_NORTH; }
 	static const FGameplayTag QuickSlot_East() { return KRTAG_UI_QUICKSLOT_EAST; }
@@ -232,4 +235,14 @@ struct KORAPROJECT_API FKRUIMessage_Info
 
 	UPROPERTY(BlueprintReadWrite) EInfoContext Context = EInfoContext::SaveGame;
 	UPROPERTY(BlueprintReadWrite) FString StringTableKey = TEXT("");
+};
+
+// ----- Boss -----
+USTRUCT(BlueprintType)
+struct KORAPROJECT_API FKRUIMessage_Boss
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite) TWeakObjectPtr<UAbilitySystemComponent> BossASC;
+	UPROPERTY(BlueprintReadWrite) FName BossNameKey;
 };
