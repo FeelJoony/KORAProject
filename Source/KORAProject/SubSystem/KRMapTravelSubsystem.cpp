@@ -85,12 +85,9 @@ void UKRMapTravelSubsystem::TravelToExperience(const FString& UserFacingPath)
 	
 	UKRDataTablesSubsystem& DataTableSubsystem = UKRDataTablesSubsystem::Get(this);
 
-	// ObjectiveTag를 RowName으로 변환
-	FName RowName = FName(*ActivationTag.ToString());
-
 	// GetTable로 직접 DataTable 접근
-	UCacheDataTable* CacheTable = DataTableSubsystem.GetTable(FLevelTransitionData::StaticStruct());
-	FLevelTransitionData* TransitionData = nullptr;
+	UCacheDataTable* CacheTable = DataTableSubsystem.GetTable(FLevelTransitionDataStruct::StaticStruct());
+	FLevelTransitionDataStruct* TransitionData = nullptr;
 
 	if (CacheTable)
 	{

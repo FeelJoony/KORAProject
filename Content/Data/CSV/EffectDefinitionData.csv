@@ -27,6 +27,11 @@ Effect.Combat.Sword.Attack.Light,/Game/Data/DataAssets/Effect/Combat/DA_Effect_C
 Effect.Combat.Sword.Attack.Combo1,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Attack_Combo1.DA_Effect_Combat_Sword_Attack_Combo1,Attack Combo1,TRUE
 Effect.Combat.Sword.Attack.Combo2,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Attack_Combo2.DA_Effect_Combat_Sword_Attack_Combo2,Attack Combo2,TRUE
 Effect.Combat.Sword.Attack.Combo3,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_Attack_Combo3.DA_Effect_Combat_Sword_Attack_Combo3,Attack Combo3,TRUE
+Effect.Combat.Sword.BossAttack.Phase1,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Boss_Phase1.DA_Effect_Combat_Boss_Phase1,Boss Attack Phase1,TRUE
+Effect.Combat.Sword.BossAttack.Phase2.Normal,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Boss_Phase2_Normal.DA_Effect_Combat_Boss_Phase2_Normal,Boss Attack Phase2 Normal,TRUE
+Effect.Combat.Sword.BossAttack.Phase2.Special,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Boss_Phase2_Special.DA_Effect_Combat_Boss_Phase2_Special,Boss Attack Phase2 Special,TRUE
+Effect.Combat.Melee.SemiBoss.Left,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_SemiBoss_Left.DA_Effect_Combat_SemiBoss_Left,SemiBoss Left Attack,TRUE
+Effect.Combat.Melee.SemiBoss.Right,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_SemiBoss_Right.DA_Effect_Combat_SemiBoss_Right,SemiBoss Right Attack,TRUE
 Effect.Damage.Hit.Enemy,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Hit_Blood.DA_Effect_Combat_Hit_Blood,Hit Blood,TRUE
 Effect.Combat.Sword.Charge.Start,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_ChargeStart.DA_Effect_Combat_Sword_ChargeStart,Charge Start,TRUE
 Effect.Combat.Sword.Charge.Release,/Game/Data/DataAssets/Effect/Combat/DA_Effect_Combat_Sword_ChargeAttack.DA_Effect_Combat_Sword_ChargeAttack,Charge Attack,TRUE

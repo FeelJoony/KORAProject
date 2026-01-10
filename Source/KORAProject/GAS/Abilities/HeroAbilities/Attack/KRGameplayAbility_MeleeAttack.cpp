@@ -756,13 +756,11 @@ void UKRGameplayAbility_MeleeAttack::SetupHitCheckEventListeners()
 
 void UKRGameplayAbility_MeleeAttack::OnHitCheckBeginEvent(FGameplayEventData Payload)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[MeleeAttack] HitCheck BEGIN received"));
 	BeginHitCheck();
 }
 
 void UKRGameplayAbility_MeleeAttack::OnHitCheckTickEvent(FGameplayEventData Payload)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[MeleeAttack] HitCheck TICK received"));
 	PerformHitCheck();
 }
 
