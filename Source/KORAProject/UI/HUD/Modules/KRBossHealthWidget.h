@@ -3,6 +3,8 @@
 #pragma once
 
 #include "UI/HUD/KRHUDWidgetBase.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "KRBossHealthWidget.generated.h"
 
 class UProgressBar;
@@ -17,8 +19,6 @@ class KORAPROJECT_API UKRBossHealthWidget : public UKRHUDWidgetBase
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable) void SetBossASC(UAbilitySystemComponent* InASC, const FName& InBossNameKey);
-
 	virtual void OnHUDInitialized() override;
 	virtual void NativeDestruct() override;
 
@@ -40,6 +40,8 @@ private:
 	float BossAnimElapsed = 0.f;
 	FTimerHandle BossAnimTimerHandle;
 
+	FGameplayMessageListenerHandle BossMessageListenerHandle;
+
 	void BindToBossASC(UAbilitySystemComponent* InASC);
 	void InitBossBarFromASC();
 
@@ -47,4 +49,7 @@ private:
 
 	void StartBossAnim();
 	void TickBossAnim();
+
+	void OnBossMessageReceived(FGameplayTag Channel, const FKRUIMessage_Boss& Message);
+	void SetBossASC(UAbilitySystemComponent* InASC, const FName& InBossNameKey);
 };
