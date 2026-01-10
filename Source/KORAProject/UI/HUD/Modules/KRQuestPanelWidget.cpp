@@ -11,7 +11,7 @@ void UKRQuestPanelWidget::OnHUDInitialized()
 	
 	if (!QuestStringTable.IsNull() && QuestStringTable.IsPending())
 	{
-		QuestStringTable.LoadSynchronous();
+		CachedQuestStringTable = QuestStringTable.LoadSynchronous();
 	}
 
 	if (UWorld* World = GetWorld())
@@ -54,16 +54,10 @@ void UKRQuestPanelWidget::OnQuestMessageReceived(FGameplayTag Channel, const FKR
 
 FText UKRQuestPanelWidget::GetQuestTextFromStringTable(FName Key) const
 {
-	if (QuestStringTable.IsNull())
+	if (!CachedQuestStringTable)
 	{
 		return FText::FromName(Key);
 	}
 
-	UStringTable* LoadedTable = QuestStringTable.Get();
-	if (!LoadedTable)
-	{
-		return FText::FromName(Key);
-	}
-
-	return FText::FromStringTable(LoadedTable->GetStringTableId(), Key.ToString());
+	return FText::FromStringTable(CachedQuestStringTable->GetStringTableId(), Key.ToString());
 }
