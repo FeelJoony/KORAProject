@@ -239,11 +239,11 @@ void UKRQuestSubsystem::TriggerQuestCutscene(int32 QuestIndex, int32 OrderIndex)
 {
 	FName CutsceneRoute = NAME_None;
 	
-	if (QuestIndex == 1 && OrderIndex == 5)
+	if (QuestIndex == 2 && OrderIndex == 6)
 	{
 		CutsceneRoute = FName("SemiBoss");
 	}
-	else if (QuestIndex == 1 && OrderIndex == 8)
+	else if (QuestIndex == 2 && OrderIndex == 8)
 	{
 		CutsceneRoute = FName("Ending");
 	}
