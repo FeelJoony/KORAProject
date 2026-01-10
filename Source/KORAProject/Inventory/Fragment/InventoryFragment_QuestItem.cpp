@@ -16,7 +16,7 @@ void UInventoryFragment_QuestItem::OnInstanceCreated(UKRInventoryItemInstance* I
 	if (!ContextObj) return;
 
 	UKRDataTablesSubsystem& DataTablesSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
-	const FItemDataStruct* ItemData = DataTablesSubsystem.GetDataSafe<FItemDataStruct>(QuestItemTag);
+	const FItemDataStruct* ItemData = DataTablesSubsystem.GetData<FItemDataStruct>(QuestItemTag);
 	if (ItemData)
 	{
 		QuestID = ItemData->QuestID;

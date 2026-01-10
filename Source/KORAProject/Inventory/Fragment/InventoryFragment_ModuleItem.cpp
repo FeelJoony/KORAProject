@@ -22,7 +22,7 @@ void UInventoryFragment_ModuleItem::InitializeFromData(UKRInventoryItemInstance*
 	const FGameplayTag& ItemTag = Instance->GetItemTag();
 	
 	UKRDataTablesSubsystem& DataSubsystem = UKRDataTablesSubsystem::Get(ContextObj);
-	const FModuleDataStruct* ModuleData = DataSubsystem.GetDataSafe<FModuleDataStruct>(ItemTag);
+	const FModuleDataStruct* ModuleData = DataSubsystem.GetData<FModuleDataStruct>(ItemTag);
 
 	if (!ModuleData)
 	{
