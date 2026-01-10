@@ -326,7 +326,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformShapeTrace(TArray<FHitResult>& OutHi
 		{
 			UKRMeleeAttackLibrary::DrawDebugAttackShape(
 				AvatarActor,
-				AvatarActor->GetActorLocation(),
+				AvatarActor->GetActorLocation() + Config.AddStartLocation,
 				AvatarActor->GetActorForwardVector(),
 				Config,
 				bHit ? FColor::Green : FColor::Red,
@@ -344,7 +344,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformConeTrace(TArray<FHitResult>& OutHit
 	if (!AvatarActor) return false;
 
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	const FVector Origin = AvatarActor->GetActorLocation();
+	const FVector Origin = AvatarActor->GetActorLocation() + Config.AddStartLocation;
 	const FVector Forward = AvatarActor->GetActorForwardVector();
 
 	FCollisionQueryParams QueryParams;
@@ -387,7 +387,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformBoxTrace(TArray<FHitResult>& OutHitR
 	if (!AvatarActor) return false;
 
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	const FVector Origin = AvatarActor->GetActorLocation();
+	const FVector Origin = AvatarActor->GetActorLocation() + Config.AddStartLocation;
 	const FVector Forward = AvatarActor->GetActorForwardVector();
 	const FVector End = Origin + Forward * Config.AttackRange;
 
@@ -413,7 +413,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformSphereTrace(TArray<FHitResult>& OutH
 	if (!AvatarActor) return false;
 
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	const FVector Origin = AvatarActor->GetActorLocation();
+	const FVector Origin = AvatarActor->GetActorLocation() + Config.AddStartLocation;
 	const FVector Forward = AvatarActor->GetActorForwardVector();
 	const FVector End = Origin + Forward * Config.AttackRange;
 
@@ -439,7 +439,7 @@ bool UKRGameplayAbility_MeleeAttack::PerformCapsuleTrace(TArray<FHitResult>& Out
 	if (!AvatarActor) return false;
 
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
-	const FVector Origin = AvatarActor->GetActorLocation();
+	const FVector Origin = AvatarActor->GetActorLocation() + Config.AddStartLocation;
 	const FVector Forward = AvatarActor->GetActorForwardVector();
 	const FVector End = Origin + Forward * Config.AttackRange;
 
