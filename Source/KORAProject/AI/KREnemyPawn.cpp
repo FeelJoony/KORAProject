@@ -57,10 +57,6 @@ void AKREnemyPawn::BeginPlay()
 	Super::BeginPlay();
 	if (EnemyASC)
 	{
-		// EnemyASC->GetGameplayAttributeValueChangeDelegate(
-		// 	UKRCombatCommonSet::GetCurrentHealthAttribute()
-		// ).AddUObject(this, &AKREnemyPawn::OnGEAdded);
-
 		HPWidgetComp = FindComponentByClass<UWidgetComponent>();
 		if (!HPWidgetComp) return;
 
@@ -68,6 +64,8 @@ void AKREnemyPawn::BeginPlay()
 		if (!HPWidget) return;
 
 		HPWidget->InitFromASC(EnemyASC, this);
+
+		EnemyASC->AddLooseGameplayTags(DefaultTags);
 	}
 }
 
