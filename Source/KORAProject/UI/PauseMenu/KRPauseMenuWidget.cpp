@@ -263,7 +263,6 @@ void UKRPauseMenuWidget::OpenQuickSlotInventoryForSlot(const FGameplayTag& SlotD
 	{
 		if (UWorld* World = GetWorld())
 		{
-			FTimerHandle TempHandle;
 			World->GetTimerManager().SetTimerForNextTick([this]()
 			{
 				if (QuickSlotInventoryGrid)
