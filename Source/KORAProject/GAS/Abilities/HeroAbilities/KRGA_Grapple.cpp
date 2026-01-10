@@ -76,6 +76,17 @@ void UKRGA_Grapple::EndAbility(const FGameplayAbilitySpecHandle Handle,
 {
     ApplyCableVisibility(false);
 	MontageStop(0.25);
+
+	ACharacter* TargetCharacter = Cast<ACharacter>(CachedTargetPawn);
+	if (TargetCharacter)
+	{
+		UCharacterMovementComponent* EnemyMoveComp = TargetCharacter->GetCharacterMovement();
+		if (EnemyMoveComp)
+		{
+			//EnemyMoveComp->SetMovementMode(MOVE_Walking);
+			EnemyMoveComp->SetDefaultMovementMode();
+		}
+	}
 	
 	CachedTargetPawn = nullptr;
 
