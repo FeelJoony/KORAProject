@@ -206,9 +206,6 @@ void UKRQuestSubsystem::OnCompletedBroadcast(EQuestType Type, int32 OrderIndex)
 	{
 		QuestDelegate->OnCompletedBroadcast(OrderIndex);
 	}
-	
-	const int32 QuestIndex = GetCurrentQuestIndex();
-	TriggerQuestCutscene(QuestIndex, OrderIndex);
 }
 
 void UKRQuestSubsystem::OnFailedBroadcast(EQuestType Type, int32 OrderIndex)
@@ -225,6 +222,9 @@ void UKRQuestSubsystem::OnSetNextSubBroadcast(EQuestType Type, int32 OrderIndex)
 	{
 		QuestDelegate->OnSetNextSubBroadcast(OrderIndex);
 	}
+
+	const int32 QuestIndex = GetCurrentQuestIndex();
+	TriggerQuestCutscene(QuestIndex, OrderIndex);
 }
 
 void UKRQuestSubsystem::OnProgressBroadcast(EQuestType Type, int32 OrderIndex, const struct FSubQuestEvalData& EvalData)
