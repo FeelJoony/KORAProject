@@ -9,7 +9,7 @@ void UKRQuestPanelWidget::OnHUDInitialized()
 {
 	Super::OnHUDInitialized();
 	
-	if (!QuestStringTable.IsNull() && QuestStringTable.IsPending())
+	if (!QuestStringTable.IsNull())
 	{
 		CachedQuestStringTable = QuestStringTable.LoadSynchronous();
 	}
