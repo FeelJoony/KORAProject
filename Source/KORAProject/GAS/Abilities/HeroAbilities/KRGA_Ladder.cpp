@@ -6,10 +6,12 @@
 #include "Components/KRCharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "Interaction/KRLadderActor.h"
-#include "Components/SkeletalMeshComponent.h" 
+#include "Components/SkeletalMeshComponent.h"
 #include "GameplayTag/KREventTag.h"
 #include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
+#include "Player/KRPlayerController.h"
+#include "Interaction/InteractableActorBase.h"
 
 UKRGA_Ladder::UKRGA_Ladder(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -17,6 +19,33 @@ UKRGA_Ladder::UKRGA_Ladder(const FObjectInitializer& ObjectInitializer)
 	ActivationPolicy = EKRAbilityActivationPolicy::OnSpawn;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+}
+
+bool UKRGA_Ladder::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+	FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+	
+	if (ActorInfo && ActorInfo->AvatarActor.IsValid())
+	{
+		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+		{
+			if (AKRPlayerController* PC = Cast<AKRPlayerController>(Character->GetController()))
+			{
+				AInteractableActorBase* CurrentInteractable = PC->GetCurrentInteractableActor();
+				if (CurrentInteractable && Cast<AKRLadderActor>(CurrentInteractable))
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
 void UKRGA_Ladder::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
