@@ -12,6 +12,7 @@ class KORAPROJECT_API UKRGA_Enemy_Stun : public UKRGameplayAbility
 	GENERATED_BODY()
 
 public:
+	UKRGA_Enemy_Stun(const FObjectInitializer& ObjectInitializer);
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)override;
 
