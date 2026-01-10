@@ -42,6 +42,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Charge")
 	float DamageMulti_Success = 2.0f;
 
+	/** 차지 실패 시 모션 워핑 거리 */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Charge")
+	float WarpDistance_Fail = 100.0f;
+
+	/** 차지 성공 시 모션 워핑 거리 */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Charge")
+	float WarpDistance_Success = 300.0f;
+
 	/** 차지 완료에 필요한 시간 (초) */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Charge")
 	float TargetChargeTime = 1.0f;

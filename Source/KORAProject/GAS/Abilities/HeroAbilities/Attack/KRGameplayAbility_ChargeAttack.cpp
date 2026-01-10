@@ -1,5 +1,6 @@
 #include "KRGameplayAbility_ChargeAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Components/KRStaminaComponent.h"
 #include "Equipment/KREquipmentManagerComponent.h"
 #include "GAS/Abilities/Tasks/KRAbilityTask_WaitTick.h"
 #include "GAS/Abilities/HeroAbilities/Libraries/KRMotionWarpingLibrary.h"
@@ -159,6 +160,7 @@ void UKRGameplayAbility_ChargeAttack::InputReleased(
 	bIsChargeSuccess = false;
 	DefaultAttackConfig.DamageMultiplier = DamageMulti_Fail;
 	DefaultAttackConfig.HitIntensity = EKRHitIntensity::Medium;
+	DefaultAttackConfig.WarpDistance = WarpDistance_Fail;
 
 	StartReleaseMontage(false);
 }
@@ -181,6 +183,7 @@ void UKRGameplayAbility_ChargeAttack::OnChargeTick(float DeltaTime)
 
 		DefaultAttackConfig.DamageMultiplier = DamageMulti_Success;
 		DefaultAttackConfig.HitIntensity = EKRHitIntensity::Heavy;
+		DefaultAttackConfig.WarpDistance = WarpDistance_Success;
 
 		// 차지 틱 태스크 종료
 		if (ChargeTickTask)
@@ -203,6 +206,17 @@ void UKRGameplayAbility_ChargeAttack::StartReleaseMontage(bool bSuccess)
 		return;
 	}
 
+	// 스태미나 소모 (릴리즈 시점에)
+	if (UKRStaminaComponent* StaminaComp = Char->FindComponentByClass<UKRStaminaComponent>())
+	{
+		if (!StaminaComp->HasEnoughStamina(AttackStaminaCost))
+		{
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+			return;
+		}
+		StaminaComp->ConsumeStamina(AttackStaminaCost);
+	}
+
 	// 차지 페이즈 몽타주 정리
 	if (ChargePlayTask)
 	{
@@ -219,10 +233,45 @@ void UKRGameplayAbility_ChargeAttack::StartReleaseMontage(bool bSuccess)
 		}
 	}
 
-	// 모션 워핑 설정 (릴리즈 시점에)
+	// 모션 워핑 설정 (릴리즈 시점에 - 성공/실패에 따른 워프 거리 직접 적용)
 	if (bUseMotionWarping)
 	{
-		SetupMotionWarping();
+		const float CurrentWarpDistance = bSuccess ? WarpDistance_Success : WarpDistance_Fail;
+		AActor* TargetActor = FindBestTarget();
+
+		if (TargetActor)
+		{
+			float CurrentDistance = FVector::Dist2D(
+				Char->GetActorLocation(),
+				TargetActor->GetActorLocation()
+			);
+
+			if (CurrentDistance > DefaultAttackConfig.MinApproachDistance)
+			{
+				float DistToTarget = CurrentDistance - DefaultAttackConfig.MinApproachDistance;
+				float FinalWarpDistance = FMath::Min(CurrentWarpDistance, DistToTarget);
+
+				FVector Direction = UKRMotionWarpingLibrary::GetDirectionToActor(Char, TargetActor, true);
+				UKRMotionWarpingLibrary::SetWarpTargetByDirection(
+					Char,
+					WarpTargetName,
+					Direction,
+					FinalWarpDistance,
+					true
+				);
+			}
+		}
+		else
+		{
+			// 타겟 없으면 전방으로 워핑
+			UKRMotionWarpingLibrary::SetWarpTargetByDirection(
+				Char,
+				WarpTargetName,
+				Char->GetActorForwardVector(),
+				CurrentWarpDistance,
+				true
+			);
+		}
 	}
 
 	// 릴리즈 페이즈 몽타주 재생
