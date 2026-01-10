@@ -130,7 +130,10 @@ void UKRMainMenuWidget::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleSelect));
 	}
 	
-	UpdateMenuSelection(0);
+	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+	{
+		UpdateMenuSelection(0);
+	});
 }
 
 void UKRMainMenuWidget::NativeOnDeactivated()

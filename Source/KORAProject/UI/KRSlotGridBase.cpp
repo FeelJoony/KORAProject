@@ -73,7 +73,7 @@ int32 UKRSlotGridBase::GetSelectedIndex() const
 	if (!ButtonGroup) return INDEX_NONE;
 
 	const int32 GroupIndex = ButtonGroup->GetSelectedButtonIndex();
-	if (GroupIndex == INDEX_NONE) return INDEX_NONE;
+	if (GroupIndex == INDEX_NONE) return 0;
 
 	if (Slots.IsValidIndex(GroupIndex) && Slots[GroupIndex])
 	{
@@ -86,7 +86,7 @@ bool UKRSlotGridBase::SelectIndexSafe(int32 Index)
 {
 	if (!ButtonGroup) return false;
 	if (!Slots.IsValidIndex(Index)) return false;
-
+	
 	ButtonGroup->SelectButtonAtIndex(Index);
 	return true;
 }
