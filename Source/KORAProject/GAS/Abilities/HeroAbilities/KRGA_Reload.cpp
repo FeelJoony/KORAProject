@@ -2,11 +2,11 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 #include "Equipment/KREquipmentManagerComponent.h"
-#include "GameFramework/Character.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
-#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "SubSystem/KRSoundSubsystem.h" 
 
 UKRGA_Reload::UKRGA_Reload(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -46,21 +46,31 @@ void UKRGA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Step1_StartReload();
 }
 
-USoundBase* UKRGA_Reload::GetSoundFromDA(UKRSoundDefinition* InDA)
+void UKRGA_Reload::PlaySoundByTag(FGameplayTag Tag)
 {
-	if (InDA && !InDA->Sound.IsNull())
+	if (!Tag.IsValid()) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+	
+	if (UKRSoundSubsystem* SoundSubsystem = World->GetSubsystem<UKRSoundSubsystem>())
 	{
-		return InDA->Sound.LoadSynchronous();
+		AActor* Avatar = GetAvatarActorFromActorInfo();
+		if (Avatar)
+		{
+			UAudioComponent* AC = SoundSubsystem->PlaySoundByTag(Tag, Avatar->GetActorLocation(), Avatar);
+			
+			if (AC)
+			{
+				AC->AttachToComponent(Avatar->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			}
+		}
 	}
-	return nullptr;
 }
 
 void UKRGA_Reload::Step1_StartReload()
 {
-	if (USoundBase* Sound = GetSoundFromDA(DA_ReloadStart))
-	{
-		UGameplayStatics::SpawnSoundAttached(Sound, GetAvatarActorFromActorInfo()->GetRootComponent());
-	}
+	PlaySoundByTag(ReloadStartTag);
 	
 	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, Delay_Start);
 	Task->OnFinish.AddDynamic(this, &UKRGA_Reload::Step2_LoadReload);
@@ -69,10 +79,7 @@ void UKRGA_Reload::Step1_StartReload()
 
 void UKRGA_Reload::Step2_LoadReload()
 {
-	if (USoundBase* Sound = GetSoundFromDA(DA_ReloadLoad))
-	{
-		UGameplayStatics::SpawnSoundAttached(Sound, GetAvatarActorFromActorInfo()->GetRootComponent());
-	}
+	PlaySoundByTag(ReloadLoadTag);
 	
 	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, Delay_Load);
 	Task->OnFinish.AddDynamic(this, &UKRGA_Reload::Step3_EndReload);
@@ -81,10 +88,7 @@ void UKRGA_Reload::Step2_LoadReload()
 
 void UKRGA_Reload::Step3_EndReload()
 {
-	if (USoundBase* Sound = GetSoundFromDA(DA_ReloadEnd))
-	{
-		UGameplayStatics::SpawnSoundAttached(Sound, GetAvatarActorFromActorInfo()->GetRootComponent());
-	}
+	PlaySoundByTag(ReloadEndTag);
 	
 	if (ReloadEffectClass)
 	{

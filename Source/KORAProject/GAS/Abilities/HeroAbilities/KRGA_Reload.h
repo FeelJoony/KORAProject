@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
-#include "Data/DataAssets/KRSoundDefinition.h"
+#include "GameplayTagContainer.h"
 #include "KRGA_Reload.generated.h"
 
 class UGameplayEffect;
@@ -23,13 +23,13 @@ protected:
 	TSubclassOf<UGameplayEffect> ReloadEffectClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Reload|Sound")
-	TObjectPtr<UKRSoundDefinition> DA_ReloadStart;
+	FGameplayTag ReloadStartTag = FGameplayTag::RequestGameplayTag(FName("Sound.Combat.Gun.Reload.Start"));
 
 	UPROPERTY(EditDefaultsOnly, Category = "Reload|Sound")
-	TObjectPtr<UKRSoundDefinition> DA_ReloadLoad;
+	FGameplayTag ReloadLoadTag = FGameplayTag::RequestGameplayTag(FName("Sound.Combat.Gun.Reload.Loop"));
 
 	UPROPERTY(EditDefaultsOnly, Category = "Reload|Sound")
-	TObjectPtr<UKRSoundDefinition> DA_ReloadEnd;
+	FGameplayTag ReloadEndTag = FGameplayTag::RequestGameplayTag(FName("Sound.Combat.Gun.Reload.End"));
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Reload|Time")
 	float Delay_Start = 0.5f;
@@ -46,5 +46,5 @@ private:
 	UFUNCTION()
 	void Step3_EndReload();
 	
-	USoundBase* GetSoundFromDA(UKRSoundDefinition* InDA);
+	void PlaySoundByTag(FGameplayTag Tag);
 };
