@@ -14,6 +14,10 @@
 #include "Player/KRPlayerState.h"
 #include "SubSystem/KRDataAssetRegistry.h"
 #include "KRWorldSettings.h"
+#include "Game/KRGameInstance.h"
+#include "SubSystem/KRLoadingSubsystem.h"
+#include "EngineUtils.h"
+#include "GameFramework/PlayerStart.h"
 
 AKRBaseGameMode::AKRBaseGameMode()
 {
@@ -184,6 +188,15 @@ void AKRBaseGameMode::OnExperienceLoaded(const UKRExperienceDefinition* CurrentE
 {
 	RegisterDataAssets();
 
+	// 리스폰 또는 레벨 로드 완료 시 로딩 화면 숨기기
+	if (GEngine)
+	{
+		if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
+		{
+			LoadingSys->HideLoadingScreen();
+		}
+	}
+
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 	{
 		APlayerController* PC = Cast<APlayerController>(*Iterator);
@@ -203,4 +216,104 @@ void AKRBaseGameMode::OnExperienceLoaded(const UKRExperienceDefinition* CurrentE
 			PC->bShowMouseCursor = false;
 		}
 	}
+}
+
+void AKRBaseGameMode::StartRespawnSequence(AController* Controller, float Delay)
+{
+	// 기존 타이머가 있으면 취소
+	GetWorld()->GetTimerManager().ClearTimer(RespawnTimerHandle);
+
+	PendingRespawnController = Controller;
+
+	UE_LOG(LogTemp, Log, TEXT("[GameMode] Respawn sequence started. Delay: %.1f seconds"), Delay);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RespawnTimerHandle,
+		this,
+		&ThisClass::OnRespawnTimerExpired,
+		Delay,
+		false
+	);
+}
+
+void AKRBaseGameMode::OnRespawnTimerExpired()
+{
+	UE_LOG(LogTemp, Log, TEXT("[GameMode] Respawn timer expired, executing respawn..."));
+
+	if (PendingRespawnController.IsValid())
+	{
+		RequestRespawn(PendingRespawnController.Get());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GameMode] PendingRespawnController is invalid!"));
+	}
+}
+
+void AKRBaseGameMode::RequestRespawn(AController* Controller)
+{
+	if (GEngine)
+	{
+		if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
+		{
+			LoadingSys->ShowLoadingScreen();
+		}
+	}
+
+	GetWorld()->ServerTravel("?Restart", false);
+}
+
+AActor* AKRBaseGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	FName TargetTag = NAME_None;
+	if (UKRGameInstance* GI = Cast<UKRGameInstance>(GetGameInstance()))
+	{
+		TargetTag = GI->LastCheckpointTag;
+	}
+
+	if (!TargetTag.IsNone())
+	{
+		AActor* FoundStart = nullptr;
+		for (TActorIterator<APlayerStart> It(GetWorld()); It; ++It)
+		{
+			APlayerStart* Start = *It;
+			if (Start && Start->PlayerStartTag == TargetTag)
+			{
+				FoundStart = Start;
+				break;
+			}
+		}
+
+		if (FoundStart)
+		{
+			return FoundStart;
+		}
+	}
+
+	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+void AKRBaseGameMode::RestartPlayer(AController* NewPlayer)
+{
+	if (!NewPlayer)
+	{
+		return;
+	}
+
+	// 체크포인트가 설정되어 있으면 Transform 기반으로 직접 스폰
+	if (UKRGameInstance* GI = Cast<UKRGameInstance>(GetGameInstance()))
+	{
+		if (GI->bHasCheckpoint)
+		{
+			UE_LOG(LogTemp, Log, TEXT("[GameMode] Spawning player at checkpoint transform: %s"),
+				*GI->LastCheckpointTransform.GetLocation().ToString());
+
+			// RestartPlayerAtTransform을 사용하여 정확한 위치에 스폰
+			RestartPlayerAtTransform(NewPlayer, GI->LastCheckpointTransform);
+			return;
+		}
+	}
+
+	// 체크포인트가 없으면 기본 동작 (PlayerStart 사용)
+	Super::RestartPlayer(NewPlayer);
 }
