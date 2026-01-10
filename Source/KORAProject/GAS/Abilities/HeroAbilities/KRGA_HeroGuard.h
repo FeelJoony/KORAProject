@@ -8,6 +8,7 @@
 class UAbilityTask_WaitGameplayEvent;
 class UAbilityTask_PlayMontageAndWait;
 class UKRStaminaComponent;
+class AKRHeroCharacter;
 
 /**
  * P의 거짓 스타일 가드 GA
@@ -15,6 +16,7 @@ class UKRStaminaComponent;
  * - 입력 직후 퍼펙트 가드 윈도우 (0.2초)
  * - 윈도우 후 일반 가드 상태 유지
  * - 스태미나 기반 가드 브레이크
+ * - 모션 워핑 기반 넉백 적용
  */
 UCLASS()
 class KORAPROJECT_API UKRGA_HeroGuard : public UKRGameplayAbility
@@ -26,109 +28,69 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-	// ─────────────────────────────────────────
-	// 외부 호출용 (데미지 시스템에서 호출)
-	// ─────────────────────────────────────────
-
-	/** 현재 퍼펙트 가드 상태인지 확인 */
 	UFUNCTION(BlueprintPure, Category = "Guard")
 	bool IsInPerfectGuardWindow() const { return CurrentGuardState == EGuardState::ParryWindow; }
 
-	/** 현재 가드 상태 조회 */
 	UFUNCTION(BlueprintPure, Category = "Guard")
 	EGuardState GetCurrentGuardState() const { return CurrentGuardState; }
 
-	/** 가드 히트 시 스태미나 소모 (GEExecCalc에서 호출) */
 	void OnGuardHit(float IncomingDamage, AActor* Attacker);
 
-	/** 가드 설정 조회 (GEExecCalc에서 감소율 조회용) */
 	UFUNCTION(BlueprintPure, Category = "Guard")
 	const FKRGuardConfig& GetGuardConfig() const { return GuardConfig; }
 
 protected:
-	// ─────────────────────────────────────────
-	// 설정
-	// ─────────────────────────────────────────
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Config")
 	FKRGuardConfig GuardConfig;
 
-	// ─────────────────────────────────────────
-	// 애니메이션
-	// ─────────────────────────────────────────
-
-	/** 가드 시작 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Animation")
 	TObjectPtr<UAnimMontage> GuardStartMontage;
 
-	/** 가드 유지 몽타주 (루프) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Animation")
 	TObjectPtr<UAnimMontage> GuardLoopMontage;
 
-	/** 가드 피격 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Animation")
 	TObjectPtr<UAnimMontage> GuardHitMontage;
 
-	/** 퍼펙트 가드 성공 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Animation")
 	TObjectPtr<UAnimMontage> PerfectGuardMontage;
 
-	/** 가드 브레이크 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Animation")
 	TObjectPtr<UAnimMontage> GuardBreakMontage;
 
-	// ─────────────────────────────────────────
-	// GameplayCue
-	// ─────────────────────────────────────────
-
-	/** 퍼펙트 가드 이펙트/사운드 큐 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Cue")
 	FGameplayTag PerfectGuardCueTag;
 
-	/** 일반 가드 히트 큐 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Cue")
 	FGameplayTag GuardHitCueTag;
 
-	/** 가드 브레이크 큐 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guard|Cue")
 	FGameplayTag GuardBreakCueTag;
 
-	// ─────────────────────────────────────────
-	// 내부 함수
-	// ─────────────────────────────────────────
-
-	/** 가드 상태 시작 */
+private:
 	void StartGuardState();
-
-	/** 가드 상태 종료 */
 	void StopGuardState();
-
-	/** 퍼펙트 가드 윈도우 종료 콜백 */
 	void OnPerfectGuardWindowEnded();
-
-	/** 가드 브레이크 처리 */
 	void TriggerGuardBreak();
-
-	/** 가드 브레이크 종료 콜백 */
 	void OnGuardBreakEnded();
 
-	/** 퍼펙트 가드 성공 처리 */
 	void OnPerfectGuardSuccess(AActor* Attacker);
-
-	/** 일반 가드 히트 처리 */
 	void OnStandardGuardHit(float IncomingDamage, AActor* Attacker);
 
-	/** 스태미나 컴포넌트 조회 */
+	/** 넉백에 대한 모션 워핑을 적용합니다. */
+	void ApplyKnockback(AActor* Attacker, float KnockbackDistance);
+
+	/** HitReaction 완료 후 일반 가드 상태로 복귀합니다. */
+	void RestartGuard();
+
 	UKRStaminaComponent* GetStaminaComponent() const;
+	AKRHeroCharacter* GetKRHeroCharacter() const;
 
-	/** 현재 몽타주 태스크를 안전하게 종료 (인터럽트 핸들러 해제 후 종료) */
+	/** 현재 몽타주 태스크를 안전하게 종료합니다. */
 	void StopCurrentMontageTask();
-
-	// ─────────────────────────────────────────
-	// 이벤트 핸들러
-	// ─────────────────────────────────────────
 
 	UFUNCTION()
 	void OnGuardBrokenEventReceived(FGameplayEventData Payload);
@@ -145,21 +107,19 @@ protected:
 	UFUNCTION()
 	void OnMontageInterrupted();
 
-protected:
-	// ─────────────────────────────────────────
-	// 런타임 상태
-	// ─────────────────────────────────────────
+	/** HitReaction 몽타주 완료 시 호출 (퍼펙트/일반 가드 공통) */
+	UFUNCTION()
+	void OnHitReactionCompleted();
 
-	/** 현재 가드 상태 */
+protected:
 	EGuardState CurrentGuardState = EGuardState::None;
 
-	/** 퍼펙트 가드 윈도우 타이머 */
-	FTimerHandle PerfectGuardWindowTimer;
+	/** HitReaction 재생 중 입력이 해제되었는지 여부 */
+	bool bInputReleased = false;
 
-	/** 가드 브레이크 타이머 */
+	FTimerHandle PerfectGuardWindowTimer;
 	FTimerHandle GuardBreakTimer;
 
-	/** 태스크들 */
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitGameplayEvent> GuardBrokenEventTask;
 

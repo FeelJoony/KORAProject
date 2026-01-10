@@ -154,4 +154,51 @@ private:
 
 	// AudioComponent 생성 및 설정
 	UAudioComponent* CreateAndConfigureAudioComponent(const UKRSoundDefinition* SoundDef, const FVector& Location, AActor* Owner, float Volume, float Pitch);
+
+public:
+
+	UFUNCTION()
+	void BGMTagMapping();
+
+	UFUNCTION()
+	void CategoryTagMapping();
+	// 태그 기반 BGM List (월드 이벤트에서 호출)
+	UFUNCTION()
+	void PlayBGMForWorldEvent(const FGameplayTag& WorldEventTag);
+
+	UFUNCTION()
+	void PlayNextBGM();
+
+	UFUNCTION(BlueprintCallable, Category = "KR|BGM")
+	UAudioComponent* PlayBGMByTag(const FGameplayTag& BGMTag);
+
+	// 사운드 정의로 직접 재생
+	UFUNCTION(BlueprintCallable, Category = "KR|BGM")
+	UAudioComponent* PlayBGM(const UKRSoundDefinition* BGMDef);
+
+	UFUNCTION(BlueprintCallable, Category = "KR|BGM")
+	bool CanPlayBGM(const FGameplayTag& BGMTag) const;
+
+	UFUNCTION(BlueprintCallable, Category = "KR|BGM")
+	void StopBGM(float FadeOutTime);
+
+protected:
+	UPROPERTY()
+	TObjectPtr<UKRSoundDefinition> CurrentBGM;
+
+	TMap<FGameplayTag, FGameplayTag> WorldEventToBGMCategoryMap;
+
+	// Category → BGM 후보 목록
+	TMap<FGameplayTag, TArray<FGameplayTag>> CategoryBGMMap;
+
+	// 현재 월드 이벤트
+	UPROPERTY()
+	FGameplayTag CurrentWorldCategoryTag;
+
+	// 현재 재생 인덱스
+	UPROPERTY()
+	int32 CurrentBGMIndex = INDEX_NONE;
+
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> CurrentBGMComponent;
 };

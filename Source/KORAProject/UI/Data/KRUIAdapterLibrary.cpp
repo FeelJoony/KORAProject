@@ -206,3 +206,22 @@ bool UKRUIAdapterLibrary::GetQuickSlotUIData(UObject* WorldContextObject, const 
     return false;
 }
 
+bool UKRUIAdapterLibrary::GetItemUIDataByTag(UObject* WorldContextObject, const FGameplayTag& ItemTag, FKRItemUIData& Out)
+{
+    Out = {};
+    if (!WorldContextObject || !ItemTag.IsValid()) return false;
+
+    if (UGameInstance* GI = UGameplayStatics::GetGameInstance(WorldContextObject))
+    {
+        if (UKRInventorySubsystem* Inv = GI->GetSubsystem<UKRInventorySubsystem>())
+        {
+            TArray<UKRInventoryItemInstance*> Items = Inv->FindItemsByTag(ItemTag);
+            if (Items.Num() > 0)
+            {
+                return MakeUIDataFromItemInstance(Items[0], Out);
+            }
+        }
+    }
+    return false;
+}
+

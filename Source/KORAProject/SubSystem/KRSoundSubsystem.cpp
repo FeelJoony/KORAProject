@@ -2,11 +2,16 @@
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "GameplayTag/KRSoundTag.h"
+#include "GameplayTag/KRCombatTag.h"
 
 void UKRSoundSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	MasterVolume = 1.0f;
+
+	BGMTagMapping();
+	CategoryTagMapping();
 }
 
 void UKRSoundSubsystem::Deinitialize()
@@ -370,4 +375,197 @@ UAudioComponent* UKRSoundSubsystem::CreateAndConfigureAudioComponent(const UKRSo
 	}
 
 	return AudioComponent;
+}
+
+void UKRSoundSubsystem::BGMTagMapping()
+{
+	//MainMenu
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_MAINMENU, {
+		KRTAG_SOUND_BGM_MAINMENU_WAKEUP, KRTAG_SOUND_BGM_MAINMENU_INSPIRE,	KRTAG_SOUND_BGM_MAINMENU_WAR});
+	//DirectorRoom
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_DIRECTORROOM,	{
+		KRTAG_SOUND_BGM_DIRECTORROOM_WHISPERS, KRTAG_SOUND_BGM_DIRECTORROOM_HURRY,	KRTAG_SOUND_BGM_DIRECTORROOM_SOLEMN });
+	//Barion
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_BARION, {
+		KRTAG_SOUND_BGM_BARION_NIGHT, KRTAG_SOUND_BGM_BARION_TEMPO, KRTAG_SOUND_BGM_BARION_RAVEN});
+	//Forgotten_DownTown
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_FORGOTTEN_DOWNTOWN,{
+		KRTAG_SOUND_BGM_FORGOTTEN_DOWNTOWN_DISCOVERY, KRTAG_SOUND_BGM_FORGOTTEN_DOWNTOWN_DARKNESS, KRTAG_SOUND_BGM_FORGOTTEN_DOWNTOWN_MAESTA });
+	//Forgotten_Beach
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_FORGOTTEN_BEACH, {
+		KRTAG_SOUND_BGM_FORGOTTEN_BEACH_TIMELESS, KRTAG_SOUND_BGM_FORGOTTEN_BEACH_ETERNAL, KRTAG_SOUND_BGM_FORGOTTEN_BEACH_SENDERO });
+	//SemiBoss
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_SEMIBOSS,	{
+		KRTAG_SOUND_BGM_SEMIBOSS_COMMEND, KRTAG_SOUND_BGM_SEMIBOSS_EPIC });
+	//FinalBoss
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_FINALBOSS_PHASE1, {
+		KRTAG_SOUND_BGM_FINALBOSS_PHASE1_FIND, KRTAG_SOUND_BGM_FINALBOSS_PHASE1_CHASE });
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_FINALBOSS_PHASE2, {
+		KRTAG_SOUND_BGM_FINALBOSS_PHASE2_GOD, KRTAG_SOUND_BGM_FINALBOSS_PHASE2_BADASS, KRTAG_SOUND_BGM_FINALBOSS_PHASE2_FIGHT });
+	CategoryBGMMap.Add(KRTAG_SOUND_CATEGORY_BGM_FINALBOSS_PHASE3, {
+		KRTAG_SOUND_BGM_FINALBOSS_PHASE3_HONOR, KRTAG_SOUND_BGM_FINALBOSS_PHASE3_EPIC });
+}
+
+void UKRSoundSubsystem::CategoryTagMapping()
+{
+	// WorldEvent → Category
+
+	//MainMenu
+	WorldEventToBGMCategoryMap.Add(KRTAG_WORLDEVENT_MAINMENU, KRTAG_SOUND_CATEGORY_BGM_MAINMENU);
+	//DirectorRoom
+	WorldEventToBGMCategoryMap.Add(KRTAG_WORLDEVENT_DIRECTIONROOM, KRTAG_SOUND_CATEGORY_BGM_DIRECTORROOM);
+	//Barion
+	WorldEventToBGMCategoryMap.Add(KRTAG_WORLDEVENT_BARION,	KRTAG_SOUND_CATEGORY_BGM_BARION);
+	//Forgotten_DownTown
+	WorldEventToBGMCategoryMap.Add(KRTAG_WORLDEVENT_FORGOTTEN_DOWNTOWN,	KRTAG_SOUND_CATEGORY_BGM_FORGOTTEN_DOWNTOWN);
+	//Forgotten_Beach
+	WorldEventToBGMCategoryMap.Add(KRTAG_WORLDEVENT_FORGOTTEN_BEACH, KRTAG_SOUND_CATEGORY_BGM_FORGOTTEN_BEACH);
+	//SemiBoss
+	WorldEventToBGMCategoryMap.Add(KRTAG_WORLDEVENT_SEMIBOSS, KRTAG_SOUND_CATEGORY_BGM_SEMIBOSS);
+}
+
+void UKRSoundSubsystem::PlayBGMForWorldEvent(const FGameplayTag& WorldEventTag)
+{
+	const FGameplayTag* CategoryTag = WorldEventToBGMCategoryMap.Find(WorldEventTag);
+	if (!CategoryTag || !CategoryTag->IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No BGM Category mapped for WorldEvent: %s"),	*WorldEventTag.ToString());
+		return;
+	}
+	if (CurrentWorldCategoryTag == *CategoryTag && CurrentBGMComponent)
+	{
+		return;
+	}
+	StopBGM(1.0f);
+
+	CurrentWorldCategoryTag = *CategoryTag;
+	CurrentBGMIndex = 0;
+
+	PlayNextBGM();
+}
+
+void UKRSoundSubsystem::PlayNextBGM()
+{
+	if (!CurrentWorldCategoryTag.IsValid())
+	{
+		return;
+	}
+	const TArray<FGameplayTag>* BGMs = CategoryBGMMap.Find(CurrentWorldCategoryTag);
+
+	if (!BGMs || BGMs->Num() == 0)
+	{
+		return;
+	}
+	
+	if (!BGMs->IsValidIndex(CurrentBGMIndex))
+	{
+		CurrentBGMIndex = 0;
+	}
+
+	const FGameplayTag& NextBGMTag = (*BGMs)[CurrentBGMIndex];
+	CurrentBGMIndex++;
+
+	PlayBGMByTag(NextBGMTag);
+}
+
+UAudioComponent* UKRSoundSubsystem::PlayBGMByTag(const FGameplayTag& BGMTag)
+{
+	UKRSoundDefinition* SoundDef = GetSoundDefinition(BGMTag);
+	if (!SoundDef)
+	{
+		return nullptr;
+	}
+
+	return PlayBGM(SoundDef);
+}
+
+UAudioComponent* UKRSoundSubsystem::PlayBGM(const UKRSoundDefinition* SoundDef)
+{
+	if (!SoundDef || !CanPlayBGM(SoundDef->SoundTag))
+	{
+		return nullptr;
+	}
+
+	// 같은 BGM이면 무시
+	if (CurrentBGM == SoundDef && CurrentBGMComponent)
+	{
+		return CurrentBGMComponent;
+	}
+
+	// 이전 BGM 정리
+	if (CurrentBGMComponent)
+	{
+		CurrentBGMComponent->FadeOut(1.0f, 0.0f);
+		CurrentBGMComponent = nullptr;
+		CurrentBGM = nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return nullptr;
+	}
+
+	USoundBase* Sound = SoundDef->Sound.LoadSynchronous();
+	if (!Sound)
+	{
+		return nullptr;
+	}
+
+	// 새 AudioComponent 생성
+	UAudioComponent* AudioComp =
+		UGameplayStatics::SpawnSound2D(
+			World,
+			Sound,
+			SoundDef->VolumeSettings.BaseVolume,
+			1.0f,
+			0.0f,
+			nullptr,
+			false
+		);
+
+	if (!AudioComp)
+	{
+		return nullptr;
+	}
+
+	AudioComp->OnAudioFinished.AddDynamic(
+		this,
+		&UKRSoundSubsystem::PlayNextBGM
+	);
+
+	// 루프 & 페이드 인
+	AudioComp->bIsUISound = true;
+	AudioComp->Play();
+
+	CurrentBGMComponent = AudioComp;
+	CurrentBGM = const_cast<UKRSoundDefinition*>(SoundDef);
+
+	return AudioComp;
+}
+
+bool UKRSoundSubsystem::CanPlayBGM(const FGameplayTag& BGMTag) const
+{
+	const UKRSoundDefinition* BGMDef = GetSoundDefinition(BGMTag);
+	if (!BGMDef)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BGM Def Null"));
+		return false;
+	}
+
+	return true;
+}
+
+void UKRSoundSubsystem::StopBGM(float FadeOutTime)
+{
+	if (CurrentBGMComponent)
+	{
+		CurrentBGMComponent->FadeOut(FadeOutTime, 0.0f);
+		CurrentBGMComponent->OnAudioFinished.Clear();
+	}
+
+	CurrentBGMComponent = nullptr;
+	CurrentBGM = nullptr;
+	CurrentWorldCategoryTag = FGameplayTag();
+	CurrentBGMIndex = INDEX_NONE;
 }

@@ -1,1 +1,16 @@
----,EventTag,WorldEventData,Description,bEnabled
+EventTag,WorldEventData,Description,bEnabled
+WorldEvent.Interaction.Box.Open,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Box_Open.DA_WorldEvent_Interaction_Box_Open,Box Open,TRUE
+WorldEvent.Interaction.PickUp,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Item_PickUp.DA_WorldEvent_Interaction_Item_PickUp,PickUp,TRUE
+WorldEvent.Interaction.Ladder.Climb,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Ladder_Climb.DA_WorldEvent_Interaction_Ladder_Climb,Ladder Climb,TRUE
+WorldEvent.Interaction.Save.Fire,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Save_Fire.DA_WorldEvent_Interaction_Save_Fire,Save Fire,TRUE
+WorldEvent.Interaction.Scan.Sense.Start,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Scan_Start.DA_WorldEvent_Interaction_Scan_Start,Scan Start,TRUE
+WorldEvent.Interaction.Scan.Sense.Enemy,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Interaction_Scan_Enemy.DA_WorldEvent_Interaction_Scan_Enemy,Scan Enemy,TRUE
+WorldEvent.MainMenu,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_MainMenu.DA_WorldEvent_MainMenu,MainMenu,TRUE
+WorldEvent.DirectionRoom,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_DirectorRoom.DA_WorldEvent_DirectorRoom,Director Room,TRUE
+WorldEvent.Barion,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Barion.DA_WorldEvent_Barion,Barion,TRUE
+WorldEvent.Forgotten.DownTown,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Forgotten_DownTown.DA_WorldEvent_Forgotten_DownTown,Forgotten DownTown,TRUE
+WorldEvent.Forgotten.Beach,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_Forgotten_Beach.DA_WorldEvent_Forgotten_Beach,Forgotten Beach,TRUE
+WorldEvent.SemiBoss,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_SemiBoss.DA_WorldEvent_SemiBoss,SemiBoss,TRUE
+WorldEvent.FinalBoss.Phase1,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_FinalBoss_Phase1.DA_WorldEvent_FinalBoss_Phase1,FinalBoss Phase1,TRUE
+WorldEvent.FinalBoss.Phase2,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_FinalBoss_Phase2.DA_WorldEvent_FinalBoss_Phase2,FinalBoss Phase2,TRUE
+WorldEvent.FinalBoss.Phase3,/Game/Data/DataAssets/WorldEvent/DA_WorldEvent_FinalBoss_Phase3.DA_WorldEvent_FinalBoss_Phase3,FinalBoss Phase3,TRUE

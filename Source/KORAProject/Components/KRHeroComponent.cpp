@@ -182,8 +182,6 @@ void UKRHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompone
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = KRLP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	check(Subsystem)
-
-	//Subsystem->ClearAllMappings();
 	
 	if (const UKRPawnExtensionComponent* PawnExtComp = UKRPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 	{
@@ -214,18 +212,6 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 	APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn) return;
 
-	// 이동 제한 태그 확인
-	if (AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
-	{
-		if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
-		{
-			if (ASC->HasMatchingGameplayTag(KRTAG_STATE_RESTRICT_MOVEMENT))
-			{
-				return;
-			}
-		}
-	}
-
 	AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
 	if (KRPS)
 	{
@@ -234,6 +220,17 @@ void UKRHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 			if (ASC->HasMatchingGameplayTag(KRTAG_STATE_RESTRICT_INPUT))
 			{
 				return; 
+			}
+		}
+	}
+	
+	if (KRPS)
+	{
+		if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
+		{
+			if (ASC->HasMatchingGameplayTag(KRTAG_STATE_RESTRICT_MOVEMENT))
+			{
+				return;
 			}
 		}
 	}
@@ -271,9 +268,12 @@ void UKRHeroComponent::Input_Look(const FInputActionValue& InputActionValue)
 	AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>();
 	if (UKRAbilitySystemComponent* ASC = KRPS->GetKRAbilitySystemComponent())
 	{
-		if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("State.Acting.LockOn")))
+		if (ASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_DEAD) || ASC->HasMatchingGameplayTag(KRTAG_STATE_RESTRICT_INPUT))
 		{
-			LastLookInput = InputActionValue.Get<FVector2D>();
+			return;
+		}
+		if (ASC->HasMatchingGameplayTag(KRTAG_STATE_ACTING_LOCKON))
+		{
 			return;
 		}
 	}
@@ -293,11 +293,7 @@ void UKRHeroComponent::Input_Look(const FInputActionValue& InputActionValue)
 
 void UKRHeroComponent::Input_AbilityInputPressed(FGameplayTag InputTag)
 {
-	APawn* Pawn = GetPawn<APawn>();
-	if (!Pawn) return;
-
-	const AKRPlayerState* KRPS = Pawn->GetPlayerState<AKRPlayerState>();
-	if (KRPS)
+	if (const AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
 	{
 		if (UKRAbilitySystemComponent* KRASC = KRPS->GetKRAbilitySystemComponent())
 		{
@@ -308,11 +304,7 @@ void UKRHeroComponent::Input_AbilityInputPressed(FGameplayTag InputTag)
 
 void UKRHeroComponent::Input_AbilityInputReleased(FGameplayTag InputTag)
 {
-	APawn* Pawn = GetPawn<APawn>();
-	if (!Pawn) return;
-
-	const AKRPlayerState* KRPS = Pawn->GetPlayerState<AKRPlayerState>();
-	if (KRPS)
+	if (const AKRPlayerState* KRPS = GetPlayerState<AKRPlayerState>())
 	{
 		if (UKRAbilitySystemComponent* KRASC = KRPS->GetKRAbilitySystemComponent())
 		{
@@ -351,4 +343,9 @@ TSubclassOf<UKRCameraMode> UKRHeroComponent::DetermineCameraMode() const
 	}
 
 	return nullptr;
+}
+
+void UKRHeroComponent::SetAbilityCameraMode(TSubclassOf<UKRCameraMode> InCameraMode)
+{
+	AbilityCameraMode = InCameraMode;
 }

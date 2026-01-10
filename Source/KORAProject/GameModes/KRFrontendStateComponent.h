@@ -41,10 +41,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Frontend")
 	void TravelToContinue();
 
-	// Travel to specific experience
-	UFUNCTION(BlueprintCallable, Category = "Frontend")
-	void TravelToExperience(const UKRUserFacingExperience* Experience);
-
 	// Check if save data exists
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Frontend")
 	bool HasSaveData() const;

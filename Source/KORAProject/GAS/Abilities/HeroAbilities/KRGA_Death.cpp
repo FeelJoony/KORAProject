@@ -6,6 +6,9 @@
 #include "GameplayTag/KRAbilityTag.h"
 #include "GameplayTag/KREventTag.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
+#include "GameModes/KRBaseGameMode.h"
 
 UKRGA_Death::UKRGA_Death(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -51,6 +54,26 @@ void UKRGA_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	if (UKRCurrencyComponent* CurrencyComp = GetAvatarActorFromActorInfo()->FindComponentByClass<UKRCurrencyComponent>())
 	{
 		CurrencyComp->HandleDeath();
+	}
+
+	// UI Message Broadcast (Client Only)
+	if (IsLocallyControlled())
+	{
+		FKRUIMessage_Info DeathMessage;
+		DeathMessage.Context = EInfoContext::Death;
+		DeathMessage.StringTableKey = TEXT("Info_Death");
+
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
+		MessageSystem.BroadcastMessage(FKRUIMessageTags::SaveDeathLevelInfo(), DeathMessage);
+	}
+
+	// Respawn Timer (Server Only) - GameMode에 위임하여 어빌리티 수명과 무관하게 동작
+	if (GetOwningActorFromActorInfo()->HasAuthority())
+	{
+		if (AKRBaseGameMode* GM = Cast<AKRBaseGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			GM->StartRespawnSequence(Cast<AController>(CurrentActorInfo->PlayerController), 3.2f);
+		}
 	}
 
 	if (DeathMontage)

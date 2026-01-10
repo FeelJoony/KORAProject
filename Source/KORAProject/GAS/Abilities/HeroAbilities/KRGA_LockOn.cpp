@@ -1,4 +1,4 @@
-﻿#include "KRGA_LockOn.h"
+#include "GAS/Abilities/HeroAbilities/KRGA_LockOn.h"
 #include "GAS/Abilities/Tasks/KRAbilityTask_WaitTick.h"
 #include "Characters/KRHeroCharacter.h"
 #include "Components/KRCameraComponent.h"
@@ -11,10 +11,9 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/KRHeroComponent.h"
 #include "GameplayTag/KREnemyTag.h"
+#include "GameplayTag/KRStateTag.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "IMediaCache.h"
-#include "IMediaControls.h"
 #include "Characters/KREnemyCharacter.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
@@ -32,7 +31,6 @@ AActor* UKRGA_LockOn::GetLockedTargetFor(AActor* Actor)
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
 	if (!ASC) return nullptr;
 
-	// 활성화된 LockOn GA 찾기
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
 		if (!Spec.IsActive()) continue;
@@ -67,7 +65,7 @@ void UKRGA_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Acting.LockOn"));
+		ASC->AddLooseGameplayTag(KRTAG_STATE_ACTING_LOCKON);
 	}
 
 	if (AKRHeroCharacter* Hero = Cast<AKRHeroCharacter>(GetAvatarActorFromActorInfo()))
@@ -113,7 +111,7 @@ void UKRGA_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Acting.LockOn"));
+		ASC->RemoveLooseGameplayTag(KRTAG_STATE_ACTING_LOCKON);
 	}
 	
 	if (AKRHeroCharacter* Hero = Cast<AKRHeroCharacter>(GetAvatarActorFromActorInfo()))
@@ -223,36 +221,26 @@ void UKRGA_LockOn::ResetCamera()
 void UKRGA_LockOn::OnResetCameraTick(float DeltaTime)
 {
 	AKRPlayerController* PC = GetKRPlayerControllerFromActorInfo();
-	if (!PC)
+	if (!PC || !IsActive())
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-		return;
-	}
-	
-	if (!IsActive())
-	{
 		return;
 	}
 	
 	CameraResetElapsedTime += DeltaTime;
 	
-	float Alpha = 1.f;
-	if (CameraResetDuration > KINDA_SMALL_NUMBER)
-	{
-		Alpha = FMath::Clamp(CameraResetElapsedTime / CameraResetDuration, 0.f, 1.f);
-	}
+	float Alpha = FMath::Clamp(CameraResetElapsedTime / CameraResetDuration, 0.f, 1.f);
 	
 	FRotator NewRot = FMath::Lerp(CameraResetStartRot, CameraResetTargetRot, Alpha);
 	
 	PC->SetControlRotation(NewRot);
 	
-	if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
+	if (Alpha >= 1.f)
 	{
 		PC->SetControlRotation(CameraResetTargetRot);
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }
-
 
 FVector UKRGA_LockOn::GetTargetLocation(AActor* Target, FName SocketName) const
 {
@@ -306,11 +294,37 @@ void UKRGA_LockOn::OnTick(float DeltaTime)
 		return;
 	}
 
+	if (!GetAbilitySystemComponentFromActorInfo()->HasMatchingGameplayTag(KRTAG_STATE_ACTING_UNINTERRUPTIBLE))
+	{
+		UpdateTargetRotation(DeltaTime);
+	}
+
+	if (LockOnWidgetInstance && GetKRPlayerControllerFromActorInfo())
+	{
+		FVector TargetLoc = GetTargetLocation(CurrentTarget, CurrentSocketName);
+		FVector2D ScreenPos;
+		if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetKRPlayerControllerFromActorInfo(), TargetLoc, ScreenPos, true))
+		{
+			LockOnWidgetInstance->SetPositionInViewport(ScreenPos, false);
+			LockOnWidgetInstance->SetAlignmentInViewport(FVector2D(0.5f, 0.5f));
+		}
+	}
+	
+	CheckForTargetSwitch();
+}
+
+void UKRGA_LockOn::UpdateTargetRotation(float DeltaTime)
+{
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (!AvatarActor)
+	{
+		return;
+	}
+
 	FVector TargetLoc = GetTargetLocation(CurrentTarget, CurrentSocketName);
 
 	if (AKRPlayerController* PC = GetKRPlayerControllerFromActorInfo())
 	{
-		// [수정] 카메라 위치를 기준으로 LookAt 계산 (플레이어 발 위치가 아닌)
 		FVector CameraLoc;
 		FRotator CameraRot;
 		PC->GetPlayerViewPoint(CameraLoc, CameraRot);
@@ -328,23 +342,10 @@ void UKRGA_LockOn::OnTick(float DeltaTime)
 		FRotator CurrentRot = PC->GetControlRotation();
 		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRot, DeltaTime, RotationInterpSpeed);
 
-		// [수정] 피치 범위 확장 (더 아래를 볼 수 있도록)
 		NewRot.Pitch = FMath::ClampAngle(NewRot.Pitch, -60.f, 30.f);
 
 		PC->SetControlRotation(NewRot);
 	}
-
-	if (LockOnWidgetInstance && GetKRPlayerControllerFromActorInfo())
-	{
-		FVector2D ScreenPos;
-		if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetKRPlayerControllerFromActorInfo(), TargetLoc, ScreenPos, true))
-		{
-			LockOnWidgetInstance->SetPositionInViewport(ScreenPos, false);
-			LockOnWidgetInstance->SetAlignmentInViewport(FVector2D(0.5f, 0.5f));
-		}
-	}
-	
-	CheckForTargetSwitch();
 }
 
 void UKRGA_LockOn::CheckForTargetSwitch()
@@ -450,8 +451,6 @@ void UKRGA_LockOn::SwitchTarget(FVector2D InputDirection)
 		CurrentSocketName = BestNewSocket;
 	}
 }
-
-
 
 bool UKRGA_LockOn::IsTargetValid(AActor* TargetActor) const
 {

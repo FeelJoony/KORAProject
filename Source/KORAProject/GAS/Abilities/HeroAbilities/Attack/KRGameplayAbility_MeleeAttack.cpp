@@ -246,11 +246,18 @@ void UKRGameplayAbility_MeleeAttack::SetupMotionWarping()
 		// 최소 접근 거리보다 가까우면 워핑 스킵
 		if (CurrentDistance > Config.MinApproachDistance)
 		{
-			UKRMotionWarpingLibrary::SetWarpTargetToActor(
+			// 락온 시에도 설정된 WarpDistance만큼만 이동하도록 제한 (텔레포트 방지)
+			// 단, 타겟보다 더 멀리 이동하지 않도록 거리 클램핑
+			float DistToTarget = CurrentDistance - Config.MinApproachDistance;
+			float FinalWarpDistance = FMath::Min(Config.WarpDistance, DistToTarget);
+
+			FVector Direction = UKRMotionWarpingLibrary::GetDirectionToActor(AvatarActor, TargetActor, true);
+
+			UKRMotionWarpingLibrary::SetWarpTargetByDirection(
 				AvatarActor,
 				WarpTargetName,
-				TargetActor,
-				Config.MinApproachDistance,
+				Direction,
+				FinalWarpDistance,
 				true
 			);
 		}
@@ -487,10 +494,13 @@ void UKRGameplayAbility_MeleeAttack::ApplyHitToTarget(AActor* HitActor, const FH
 	// 1. 데미지 적용
 	ApplyDamage(HitActor, HitResult);
 
-	// 2. 히트 Cue 실행 (공격자 측 이펙트/사운드)
+	// 2. 히트 리액션 이벤트 전송 (피격자에게 알림)
+	SendHitReactionEvent(HitActor, HitResult);
+
+	// 3. 히트 Cue 실행 (공격자 측 이펙트/사운드)
 	ExecuteHitCue(HitResult);
 
-	// 3. 히트스톱 적용
+	// 4. 히트스톱 적용
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
 	if (Config.bUseHitStop)
 	{

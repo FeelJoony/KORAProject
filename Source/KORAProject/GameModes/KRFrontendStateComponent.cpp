@@ -5,6 +5,7 @@
 #include "CommonSessionSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
+#include "SubSystem/KRMapTravelSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(KRFrontendStateComponent)
 
@@ -75,11 +76,19 @@ void UKRFrontendStateComponent::TravelToGameplay()
 {
 	if (UKRUserFacingExperience* Experience = DefaultGameplayExperience.LoadSynchronous())
 	{
-		TravelToExperience(Experience);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[FrontendState] DefaultGameplayExperience is not set!"));
+		if (UGameInstance* GI = GetWorld()->GetGameInstance())
+		{
+			if (UKRMapTravelSubsystem* MapTravel =
+				GI->GetSubsystem<UKRMapTravelSubsystem>())
+			{
+				MapTravel->TravelToExperience(
+					Experience->GetPathName()
+				);
+				return;
+			}
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("[FrontendState] MapTravelSubsystem missing"));
 	}
 }
 
@@ -92,42 +101,6 @@ void UKRFrontendStateComponent::TravelToContinue()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[FrontendState] No save data found for continue"));
-	}
-}
-
-void UKRFrontendStateComponent::TravelToExperience(const UKRUserFacingExperience* Experience)
-{
-	if (!Experience)	
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[FrontendState] TravelToExperience: Experience is null"));
-		return;
-	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return;
-	}
-	
-	APlayerController* HostingPlayer = World->GetFirstPlayerController();
-	if (!HostingPlayer)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[FrontendState] TravelToExperience: No valid PlayerController found!"));
-		return;
-	}
-
-	if (UGameInstance* GI = World->GetGameInstance())
-	{
-		if (UCommonSessionSubsystem* SessionSubsystem = GI->GetSubsystem<UCommonSessionSubsystem>())
-		{
-			UCommonSession_HostSessionRequest* Request = Experience->CreateHostingRequest();
-			if (Request)
-			{
-				UE_LOG(LogTemp, Log, TEXT("[FrontendState] Hosting session with MapID: %s"),
-					*Experience->MapID.ToString());
-				SessionSubsystem->HostSession(HostingPlayer, Request);
-			}
-		}
 	}
 }
 

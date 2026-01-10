@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GAS/Abilities/KRGameplayAbility.h"
@@ -19,18 +19,11 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-	/** 현재 락온 대상 반환 */
 	UFUNCTION(BlueprintPure, Category = "KR|LockOn")
 	AActor* GetLockedTarget() const { return CurrentTarget; }
 
-	/** ASC에서 활성화된 LockOn GA의 타겟을 가져오는 헬퍼 함수 */
 	UFUNCTION(BlueprintPure, Category = "KR|LockOn", meta = (DefaultToSelf = "Actor"))
 	static AActor* GetLockedTargetFor(AActor* Actor);
-	
-	// FORCEINLINE AActor* GetTarget() const
-	// {
-	// 	return CurrentTarget;
-	// }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
@@ -51,9 +44,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TargetTraceChannels;
 
-	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn")
-	float TargetSwitchInputThreshold = 0.5f;
-
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Input")
 	float TargetSwitchMouseThreshold = 15.f;
 
@@ -66,25 +56,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Selection")
 	float DistanceScoreWeight = 0.3f;
 
-	// ===== 피치 오프셋 설정 (거리 기반 내려다보기) =====
-
-	/** 거리 기반 피치 조정 활성화 */
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera")
 	bool bAdjustPitchBasedOnDistance = true;
 
-	/** 피치 계산 계수 (거리 * 계수). 값이 클수록 거리 변화에 민감 */
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
 	float PitchDistanceCoefficient = 0.02f;
 
-	/** 피치 기본 오프셋 (기본적으로 적용되는 내려다보기 각도) */
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
 	float PitchBaseOffset = 5.f;
 
-	/** 피치 오프셋 최소값 (음수 = 아래로, 최대 내려다보기 각도) */
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
 	float PitchOffsetMin = -30.f;
 
-	/** 피치 오프셋 최대값 (0 = 수평) */
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
 	float PitchOffsetMax = 0.f;
 
@@ -98,7 +81,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<UUserWidget> LockOnWidgetInstance;
 
-
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|CameraReset")
 	float CameraResetDuration = 0.2f;
 	
@@ -110,6 +92,9 @@ private:
 	
 	UFUNCTION()
 	void OnTick(float DeltaTime);
+
+	/** 락온 타겟을 향해 캐릭터의 ControlRotation을 업데이트합니다. */
+	void UpdateTargetRotation(float DeltaTime);
 	
 	UFUNCTION()
 	void ResetCamera();
@@ -127,7 +112,4 @@ private:
 
 	bool IsTargetValid(AActor* TargetActor) const;
 	void GetAvailableTargets(TArray<AActor*>& OutActors);
-
 };
-
-

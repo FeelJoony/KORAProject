@@ -33,6 +33,26 @@ protected:
 	void OnMatchAssignmentGiven(FPrimaryAssetId ExperienceId);
 	bool IsExperienceLoaded() const;
 	void OnExperienceLoaded(const class UKRExperienceDefinition* CurrentExperience);
- 
-	
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Respawn")
+	void RequestRespawn(AController* Controller);
+
+	// 리스폰 시퀀스 시작 (GA_Death에서 호출)
+	UFUNCTION(BlueprintCallable, Category = "Respawn")
+	void StartRespawnSequence(AController* Controller, float Delay = 4.0f);
+
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+	// Transform 기반 리스폰 지원
+	virtual void RestartPlayer(AController* NewPlayer) override;
+
+protected:
+	// 리스폰 타이머 콜백
+	UFUNCTION()
+	void OnRespawnTimerExpired();
+
+private:
+	FTimerHandle RespawnTimerHandle;
+	TWeakObjectPtr<AController> PendingRespawnController;
 };

@@ -101,7 +101,10 @@ void UKRGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 	else if (Attacker && Victim)
 	{
-		CachedCueParams.HitNormal = (Victim->GetActorLocation() - Attacker->GetActorLocation()).GetSafeNormal();
+		// HitResult가 없는 경우 Fallback
+		// ApplyKnockback에서 -HitDirection을 수행하므로, 여기서 '피해자 -> 공격자' 방향(Surface Normal 근사)을 구해야 함
+		// Attacker - Victim = Victim에서 Attacker로 향하는 벡터
+		CachedCueParams.HitNormal = (Attacker->GetActorLocation() - Victim->GetActorLocation()).GetSafeNormal();
 	}
 	
 	UAnimMontage* SelectedMontage = GetMontageByDirection(CachedCueParams.HitDirection);
@@ -219,7 +222,9 @@ void UKRGA_HitReaction::ApplyKnockback(const FVector& HitDirection)
 		return;
 	}
 
-	FVector KnockbackDirection = HitDirection;
+	// [수정] 넉백 방향을 반대로 뒤집습니다. HitDirection은 '공격이 들어온 방향'을 의미하므로,
+	// -를 붙여 '공격의 반대 방향', 즉 밀려나야 할 방향으로 만듭니다.
+	FVector KnockbackDirection = -HitDirection;
 	KnockbackDirection.Z = 0.f;
 	KnockbackDirection.Normalize();
 

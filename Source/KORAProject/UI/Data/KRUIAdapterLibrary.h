@@ -37,4 +37,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UIAdapter|QuickSlot", meta = (WorldContext = "WorldContextObject"))
 	static bool GetQuickSlotUIData(UObject* WorldContextObject, const FGameplayTag& SlotTag, FKRItemUIData& Out);
+
+	UFUNCTION(BlueprintCallable, Category = "KR|UI|Item", meta = (WorldContext = "WorldContextObject"))
+	static bool GetItemUIDataByTag(UObject* WorldContextObject, const FGameplayTag& ItemTag, FKRItemUIData& Out);
 };
