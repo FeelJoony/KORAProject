@@ -36,7 +36,7 @@ void UKRMeleeAttackLibrary::DrawDebugAttackShape(
 		{
 			// 박스 형태 시각화
 			const FQuat Rotation = FRotationMatrix::MakeFromX(NormalizedForward).ToQuat();
-			const FVector Center = Origin + NormalizedForward * (Config.AttackRange * 0.5f);
+			const FVector Center = Origin + Config.AddStartLocation + NormalizedForward * (Config.AttackRange * 0.5f);
 			DrawDebugBox(World, Center, Config.BoxExtent, Rotation, Color, false, Duration);
 		}
 		break;
