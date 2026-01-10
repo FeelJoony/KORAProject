@@ -82,6 +82,7 @@ struct KORAPROJECT_API FKRUIMessage_ItemLog
 
 	UPROPERTY(BlueprintReadOnly) EItemLogEvent EventType = EItemLogEvent::AcquiredNormal;
 	UPROPERTY(BlueprintReadOnly) FGameplayTag ItemTag;
+	UPROPERTY(BlueprintReadOnly) int32 AcquiredQuantity = 0;
 	UPROPERTY(BlueprintReadOnly) int32 NewTotalQuantity = 0;
 	UPROPERTY(BlueprintReadOnly) FName ItemNameKey;
 };

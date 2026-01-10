@@ -73,6 +73,7 @@ void UKRQuestSubsystem::AcceptQuest(int32 Index)
 		QuestInstance->Initialize(Index);
 		
 		ActiveInstance = QuestInstance;
+		ActiveActor = QuestActor;
 		QuestActor->SetQuestInstance(QuestInstance);
 	}
 	
@@ -82,6 +83,27 @@ void UKRQuestSubsystem::AcceptQuest(int32 Index)
 bool UKRQuestSubsystem::AbandonQuest(int32 Index)
 {
 	return false;
+}
+
+void UKRQuestSubsystem::RespawnQuestActorForLevelTransition()
+{
+	if (!ActiveInstance) return;
+	if (ActiveInstance->GetQuestState() != EQuestState::InProgress) return;
+	if (IsValid(ActiveActor)) return;
+	
+	const int32 QuestIndex = ActiveInstance->GetQuestIndex();
+	TSubclassOf<AKRQuestActor> QuestActorClass = LoadQuestActorClass(QuestIndex);
+	if (!QuestActorClass) return;
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	AKRQuestActor* NewQuestActor = World->SpawnActorDeferred<AKRQuestActor>(QuestActorClass, FTransform::Identity);
+	if (!NewQuestActor) return;
+
+	NewQuestActor->SetQuestInstance(ActiveInstance);
+	ActiveActor = NewQuestActor;
+	NewQuestActor->FinishSpawning(FTransform::Identity);
+	ReinitializeQuestDelegate(ActiveInstance);
 }
 
 void UKRQuestSubsystem::NotifyObjectiveEvent(FGameplayTag TargetTag, int32 Count)
