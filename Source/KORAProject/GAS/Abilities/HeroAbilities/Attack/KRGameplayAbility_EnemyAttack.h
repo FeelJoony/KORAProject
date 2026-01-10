@@ -20,6 +20,7 @@ public:
 	TArray<TSubclassOf<UGameplayEffect>> GameplayEffectClassesWhileAnimating;
 protected:
 	virtual UAnimMontage* GetCurrentMontage() const override;
+	virtual void ProcessHitResults(const TArray<FHitResult>& HitResults) override;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags")
 	FGameplayTagContainer EndAbilityTags;

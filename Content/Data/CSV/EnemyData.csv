@@ -1,7 +1,7 @@
 EnemyTag,StateTree,AttackMontage,HitMontage,DeathMontage
 Enemy.Type.FerroLoader,/Game/Data/AI/StateTree/ST_FerroLoader.ST_FerroLoader,-1,-1,-1
-Enemy.Type.Arbid,-1,-1,-1,-1
-Enemy.Type.SpinderBreed,-1,-1,-1,-1
-Enemy.Type.Nerras,-1,-1,-1,-1
+Enemy.Type.Arbid,/Game/Data/AI/StateTree/ST_Arbid.ST_Arbid,-1,-1,-1
+Enemy.Type.SpinderBreed,/Game/Data/AI/StateTree/ST_SpinderBreed.ST_SpinderBreed,-1,-1,-1
+Enemy.Type.Nerras,/Game/Data/AI/StateTree/ST_Nerras.ST_Nerras,-1,-1,-1
 Enemy.Type.MainBoss,-1,-1,-1,-1
-Enemy.Type.Human.Melee,-1,-1,-1,-1
+Enemy.Type.Human.Melee,/Game/Data/AI/StateTree/ST_MeleeHuman.ST_MeleeHuman,-1,-1,-1

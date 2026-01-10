@@ -1,5 +1,5 @@
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Die.h"
-#include "Characters/KREnemyCharacter.h"
+#include "AI/KREnemyPawn.h"
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GameplayTag/KREnemyTag.h"
 
@@ -48,8 +48,8 @@ void UKRGA_Enemy_Die::EndAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
-	UKRAbilitySystemComponent* EnemyASC = Cast<UKRAbilitySystemComponent>(Enemy->GetEnemyAbilitySystemCompoent());
+	AKREnemyPawn* Enemy = Cast<AKREnemyPawn>(GetAvatarActorFromActorInfo());
+	UKRAbilitySystemComponent* EnemyASC = Cast<UKRAbilitySystemComponent>(Enemy->GetAbilitySystemComponent());
 	if (!EnemyASC) return;
 
 	if (EnemyASC->HasMatchingGameplayTag(KRTAG_ENEMY_AISTATE_DEAD))
@@ -60,8 +60,8 @@ void UKRGA_Enemy_Die::EndAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UKRGA_Enemy_Die::OrganizeStateTag()
 {
-	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
-	UKRAbilitySystemComponent* EnemyASC = Cast<UKRAbilitySystemComponent>(Enemy->GetEnemyAbilitySystemCompoent());
+	AKREnemyPawn* Enemy = Cast<AKREnemyPawn>(GetAvatarActorFromActorInfo());
+	UKRAbilitySystemComponent* EnemyASC = Cast<UKRAbilitySystemComponent>(Enemy->GetAbilitySystemComponent());
 	if (!EnemyASC) return;
 
 	const FGameplayTagContainer& CurrentTags = EnemyASC->GetOwnedGameplayTags();
@@ -93,7 +93,7 @@ void UKRGA_Enemy_Die::ActivationDie()
 
 void UKRGA_Enemy_Die::OnMontageEnded()
 {
-	AKREnemyCharacter* Enemy = Cast<AKREnemyCharacter>(GetAvatarActorFromActorInfo());
+	AKREnemyPawn* Enemy = Cast<AKREnemyPawn>(GetAvatarActorFromActorInfo());
 	USkeletalMeshComponent* Mesh = Enemy->GetMesh();
 	if (Mesh)
 	{

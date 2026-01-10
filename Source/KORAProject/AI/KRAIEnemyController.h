@@ -34,6 +34,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UAISenseConfig_Sight> SightConfig;
 
+	UPROPERTY()
+	TObjectPtr<class UAISenseConfig_Damage> DamageConfig;
+
 private:
 	bool IsPlayerCharacter(AActor* InActor);
 	APawn* ResolveToPawn(AActor* InActor) const;

@@ -52,9 +52,9 @@ public:
 
 	APawn* SearchLockOnTarget();
 	
-	class AKREnemyCharacter* IsEnemy(const FHitResult& HitResult);
+	class AKREnemyPawn* IsEnemy(const FHitResult& HitResult);
 	
-	/*static*/ bool IsGrappleableEnemy(AKREnemyCharacter* TargetEnemy);
+	/*static*/ bool IsGrappleableEnemy(AKREnemyPawn* TargetEnemy);
 
 	TArray<class AGrappleVolume*> ReturnGrappleVolume();
 
@@ -92,6 +92,8 @@ public:
 	void CleanupAllTasks();
 	
 	void CleanupAllTimers();
+
+	void PlayGrappleSound(USoundWave* SoundWave);
 
 	UKRAbilitySystemComponent* ReturnKRASC(APawn* APawn);
 
@@ -143,19 +145,16 @@ private:
 	float TraceRange = 5000.f; //수정할 때 GrappleVolume도 수정
 
 	UPROPERTY(EditDefaultsOnly)
-	float TargetMoveInverseSpeed = 200.f;
+	float TargetMoveInverseSpeed = 0.0005f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float MoveToInverseSpeed = 0.1f;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float StopNealyDistSquared = 60000.f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float EnemyGrappleDuration = 1.5f;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float StopNealyDistSquared = 200.f;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float DecalSize = 20.f;
+	// UPROPERTY(EditDefaultsOnly)
+	// float DecalSize = 20.f;
 
 	//Cached
 	UPROPERTY()

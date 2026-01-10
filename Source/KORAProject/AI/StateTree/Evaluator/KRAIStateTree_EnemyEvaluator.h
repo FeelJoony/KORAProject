@@ -65,6 +65,4 @@ public:
 	
 private:
 	void SetDefaultValues();
-
-	float MaxHealth = 0.f;
 };
