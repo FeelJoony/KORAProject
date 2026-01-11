@@ -42,32 +42,23 @@ protected:
 	float RecoveryMontagePlayRate = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "HitCheck")
-	FGameplayTag HitCheckEventTag;
-
-	UPROPERTY(EditDefaultsOnly, Category = "HitCheck")
 	float HitCheckSphereRadius = 150.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "HitCheck")
-	float HitCheckForwardOffset = 1200.0f;
+	float HitCheckForwardOffset = 800.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float BaseDamage = 10.0f;
+
+	virtual void PerformHitCheck() override;
 
 private:
 	void StartBackstepPhase();
 	void StartAttackPhase();
 	void StartRecoveryPhase();
 
-	void SetupHitCheckEventListener();
-
-	UFUNCTION()
-	void OnHitCheckEventReceived(FGameplayEventData Payload);
-
-	void PerformHitCheck();
-
 	UFUNCTION()
 	void OnBackstepTick(float DeltaTime);
-
 	UFUNCTION()
 	void OnBackstepMontageCompleted();
 	UFUNCTION()
@@ -98,12 +89,6 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> AttackMontageTask;
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> RecoveryMontageTask;
-
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitCheckEventTask;
-
-	UPROPERTY()
-	TSet<TObjectPtr<AActor>> HitActorsInAttack;
 
 	UPROPERTY()
 	TWeakObjectPtr<AActor> CachedPlayerActor;

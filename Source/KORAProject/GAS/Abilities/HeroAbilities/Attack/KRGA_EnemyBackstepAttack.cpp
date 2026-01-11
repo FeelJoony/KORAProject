@@ -17,14 +17,14 @@
 UKRGA_EnemyBackstepAttack::UKRGA_EnemyBackstepAttack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	HitCheckEventTag = KRTAG_EVENT_MELEE_HITCHECK_TICK;
 }
 
 void UKRGA_EnemyBackstepAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
-	HitActorsInAttack.Empty();
+	HitActorsThisSwing.Empty();
+	bIsHitCheckActive = false;
 
 	if (ActorInfo)
 	{
@@ -47,7 +47,7 @@ void UKRGA_EnemyBackstepAttack::ActivateAbility(const FGameplayAbilitySpecHandle
 		}
 	}
 
-	SetupHitCheckEventListener();
+	SetupHitCheckEventListeners();
 
 	if (ActorInfo->OwnerActor.IsValid())
 	{
@@ -76,7 +76,8 @@ void UKRGA_EnemyBackstepAttack::EndAbility(const FGameplayAbilitySpecHandle Hand
 		BackstepTickTask = nullptr;
 	}
 
-	HitActorsInAttack.Empty();
+	HitActorsThisSwing.Empty();
+	bIsHitCheckActive = false;
 	CurrentPhase = EAttackPhase::None;
 	CachedPlayerActor.Reset();
 
@@ -255,7 +256,7 @@ void UKRGA_EnemyBackstepAttack::OnBackstepMontageInterrupted()
 
 void UKRGA_EnemyBackstepAttack::OnAttackMontageCompleted()
 {
-	PerformHitCheck();
+	EndHitCheck();
 	StartRecoveryPhase();
 }
 
@@ -274,35 +275,10 @@ void UKRGA_EnemyBackstepAttack::OnRecoveryMontageInterrupted()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-void UKRGA_EnemyBackstepAttack::SetupHitCheckEventListener()
-{
-	if (!HitCheckEventTag.IsValid())
-	{
-		return;
-	}
-
-	HitCheckEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this,
-		HitCheckEventTag,
-		nullptr,
-		false,
-		true
-	);
-
-	if (HitCheckEventTask)
-	{
-		HitCheckEventTask->EventReceived.AddDynamic(this, &ThisClass::OnHitCheckEventReceived);
-		HitCheckEventTask->ReadyForActivation();
-	}
-}
-
-void UKRGA_EnemyBackstepAttack::OnHitCheckEventReceived(FGameplayEventData Payload)
-{
-	PerformHitCheck();
-}
-
 void UKRGA_EnemyBackstepAttack::PerformHitCheck()
 {
+	if (!bIsHitCheckActive) return;
+
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
 	if (!AvatarActor)
 	{
@@ -345,7 +321,7 @@ void UKRGA_EnemyBackstepAttack::PerformHitCheck()
 		for (const FOverlapResult& Overlap : OverlapResults)
 		{
 			AActor* HitActor = Overlap.GetActor();
-			if (!HitActor || HitActorsInAttack.Contains(HitActor))
+			if (!HitActor || HitActorsThisSwing.Contains(HitActor))
 			{
 				continue;
 			}
@@ -379,7 +355,7 @@ void UKRGA_EnemyBackstepAttack::PerformHitCheck()
 					}
 				}
 			}
-			HitActorsInAttack.Add(HitActor);
+			HitActorsThisSwing.Add(HitActor);
 		}
 	}
 }

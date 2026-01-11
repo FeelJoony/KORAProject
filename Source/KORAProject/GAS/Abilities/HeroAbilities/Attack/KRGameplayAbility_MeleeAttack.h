@@ -36,13 +36,13 @@ public:
 	// 히트 체크 (GameplayEvent로 트리거됨)
 	// ─────────────────────────────────────────────────────
 	UFUNCTION(BlueprintCallable, Category = "KR|MeleeAttack")
-	void BeginHitCheck();
+	virtual void BeginHitCheck();
 
 	UFUNCTION(BlueprintCallable, Category = "KR|MeleeAttack")
-	void PerformHitCheck();
+	virtual void PerformHitCheck();
 
 	UFUNCTION(BlueprintCallable, Category = "KR|MeleeAttack")
-	void EndHitCheck();
+	virtual void EndHitCheck();
 	
 	UFUNCTION(BlueprintPure, Category = "KR|MeleeAttack")
 	const FKRMeleeAttackConfig& GetCurrentAttackConfig() const;
