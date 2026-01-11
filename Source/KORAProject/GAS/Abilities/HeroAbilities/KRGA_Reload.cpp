@@ -6,6 +6,7 @@
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Components/AudioComponent.h"
+#include "GameplayTag/KRAbilityTag.h"
 #include "SubSystem/KRSoundSubsystem.h" 
 
 UKRGA_Reload::UKRGA_Reload(const FObjectInitializer& ObjectInitializer)
@@ -41,6 +42,11 @@ void UKRGA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
+	}
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->AddLooseGameplayTag(KRTAG_ABILITY_WEAPON_RELOAD);
 	}
 
 	Step1_StartReload();
@@ -90,6 +96,13 @@ void UKRGA_Reload::Step3_EndReload()
 {
 	PlaySoundByTag(ReloadEndTag);
 	
+	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, Delay_End);
+	Task->OnFinish.AddDynamic(this, &UKRGA_Reload::Step4_FinishReload);
+	Task->ReadyForActivation();
+}
+
+void UKRGA_Reload::Step4_FinishReload()
+{
 	if (ReloadEffectClass)
 	{
 		ApplyGameplayEffectToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ReloadEffectClass.GetDefaultObject(), 1.0f);
@@ -115,6 +128,11 @@ void UKRGA_Reload::Step3_EndReload()
 			UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Weapon(), Msg);
 		}
 	}
-
+	
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->RemoveLooseGameplayTag(KRTAG_ABILITY_WEAPON_RELOAD);
+	}
+	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
