@@ -3,6 +3,8 @@
 #include "GAS/Abilities/Tasks/KRAbilityTask_WaitTick.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
+#include "SubSystem/KREffectSubsystem.h"
+#include "Data/DataAssets/KREffectDefinition.h"
 
 const FName UKRGameplayAbility_RangeCharge::SECTION_START = FName("Start");
 const FName UKRGameplayAbility_RangeCharge::SECTION_FAIL = FName("Fire");
@@ -72,10 +74,53 @@ void UKRGameplayAbility_RangeCharge::ActivateAbility(const FGameplayAbilitySpecH
 		ChargeTickTask->OnTick.AddDynamic(this, &ThisClass::OnChargeTick);
 		ChargeTickTask->ReadyForActivation();
 	}
-	
 	else
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	if (ChargeEffectTag.IsValid())
+	{
+		if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+		{
+			if (USkeletalMeshComponent* Mesh = Character->GetMesh())
+			{
+				if (UWorld* World = GetWorld())
+				{
+					if (UKREffectSubsystem* EffectSubsystem = World->GetSubsystem<UKREffectSubsystem>())
+					{
+						UKREffectDefinition* EffectDef = EffectSubsystem->GetEffectDefinition(ChargeEffectTag);
+						if (EffectDef)
+						{
+							const FKREffectSpawnSettings& SpawnSettings = EffectDef->SpawnSettings;
+							FName SocketToUse = NAME_None;
+							if (SpawnSettings.bAttachToParent)
+							{
+								SocketToUse = SpawnSettings.AttachSocketName;
+							}
+
+							if (SocketToUse != NAME_None)
+							{
+								EffectSubsystem->SpawnEffectAttached(
+									ChargeEffectTag,
+									Mesh,
+									SocketToUse,
+									SpawnSettings.LocationOffset,
+									SpawnSettings.RotationOffset
+								);
+							}
+							else
+							{
+								FTransform SpawnTransform = Character->GetActorTransform();
+								SpawnTransform.SetLocation(SpawnTransform.GetLocation() + SpawnSettings.LocationOffset);
+								EffectSubsystem->SpawnEffectByTag(ChargeEffectTag, SpawnTransform, Character);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -143,9 +188,11 @@ void UKRGameplayAbility_RangeCharge::StartReleaseMontage(bool bSuccess)
 		}
 	}
 
+	float FinalMultiplier = bSuccess ? DamageMulti_Success : DamageMulti_Fail;
+	
 	FRotator AimRot = GetFinalAimRotation(MaxRange);
-	FireWeaponActor(AimRot);
-
+	FireWeaponActor(AimRot, FinalMultiplier);
+	
 	const FName ReleaseSection = bSuccess ? SECTION_SUCCESS : SECTION_FAIL;
 	
 	ReleasePlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
@@ -197,11 +244,22 @@ void UKRGameplayAbility_RangeCharge::OnReleasePhaseInterrupted()
 void UKRGameplayAbility_RangeCharge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	bIsCharging = false;
-	
+
 	if (ChargeTickTask)
 	{
 		ChargeTickTask->EndTask();
 		ChargeTickTask = nullptr;
+	}
+
+	if (ChargeEffectTag.IsValid())
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (UKREffectSubsystem* EffectSubsystem = World->GetSubsystem<UKREffectSubsystem>())
+			{
+				EffectSubsystem->StopEffectByTag(ChargeEffectTag);
+			}
+		}
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

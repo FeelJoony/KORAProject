@@ -2,9 +2,11 @@
 #include "GAS/KRAbilitySystemComponent.h"
 #include "GAS/AttributeSets/KRPlayerAttributeSet.h"
 #include "Equipment/KREquipmentManagerComponent.h"
-#include "GameFramework/Character.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "UI/Data/UIStruct/KRUIMessagePayloads.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "Components/AudioComponent.h"
+#include "SubSystem/KRSoundSubsystem.h" 
 
 UKRGA_Reload::UKRGA_Reload(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -21,7 +23,6 @@ bool UKRGA_Reload::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 	
 	if (UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo())
 	{
-		bool bFound = false;
 		float CurrentAmmo = KRASC->GetNumericAttribute(UKRPlayerAttributeSet::GetCurrentAmmoAttribute());
 		float MaxAmmo = KRASC->GetNumericAttribute(UKRPlayerAttributeSet::GetMaxAmmoAttribute());
 
@@ -41,18 +42,59 @@ void UKRGA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+	Step1_StartReload();
+}
+
+void UKRGA_Reload::PlaySoundByTag(FGameplayTag Tag)
+{
+	if (!Tag.IsValid()) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+	
+	if (UKRSoundSubsystem* SoundSubsystem = World->GetSubsystem<UKRSoundSubsystem>())
+	{
+		AActor* Avatar = GetAvatarActorFromActorInfo();
+		if (Avatar)
+		{
+			UAudioComponent* AC = SoundSubsystem->PlaySoundByTag(Tag, Avatar->GetActorLocation(), Avatar);
+			
+			if (AC)
+			{
+				AC->AttachToComponent(Avatar->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			}
+		}
+	}
+}
+
+void UKRGA_Reload::Step1_StartReload()
+{
+	PlaySoundByTag(ReloadStartTag);
+	
+	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, Delay_Start);
+	Task->OnFinish.AddDynamic(this, &UKRGA_Reload::Step2_LoadReload);
+	Task->ReadyForActivation();
+}
+
+void UKRGA_Reload::Step2_LoadReload()
+{
+	PlaySoundByTag(ReloadLoadTag);
+	
+	UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, Delay_Load);
+	Task->OnFinish.AddDynamic(this, &UKRGA_Reload::Step3_EndReload);
+	Task->ReadyForActivation();
+}
+
+void UKRGA_Reload::Step3_EndReload()
+{
+	PlaySoundByTag(ReloadEndTag);
 	
 	if (ReloadEffectClass)
 	{
-		ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, ReloadEffectClass.GetDefaultObject(), 1.0f);
-		UE_LOG(LogTemp, Log, TEXT(">> [KRGA_Reload] Instant Reload Applied."));
+		ApplyGameplayEffectToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ReloadEffectClass.GetDefaultObject(), 1.0f);
 	}
 	
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT(">> [KRGA_Reload] ReloadEffectClass is NULL! Check Blueprint."));
-	}
-
 	if (AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
 		if (UKREquipmentManagerComponent* EMC = Avatar->FindComponentByClass<UKREquipmentManagerComponent>())
@@ -63,7 +105,6 @@ void UKRGA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 			if (UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo())
 			{
-				bool bFound = false;
 				float CurrentAmmo = KRASC->GetNumericAttribute(UKRPlayerAttributeSet::GetCurrentAmmoAttribute());
 				float MaxAmmo = KRASC->GetNumericAttribute(UKRPlayerAttributeSet::GetMaxAmmoAttribute());
 
@@ -74,6 +115,6 @@ void UKRGA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 			UGameplayMessageSubsystem::Get(this).BroadcastMessage(FKRUIMessageTags::Weapon(), Msg);
 		}
 	}
-	
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

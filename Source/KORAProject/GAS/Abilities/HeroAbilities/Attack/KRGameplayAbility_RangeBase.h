@@ -21,7 +21,7 @@ protected:
 	FRotator GetFinalAimRotation(float InMaxRange) const;
 
 	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
-	void FireWeaponActor(const FRotator& InAimRotation);
+	void FireWeaponActor(const FRotator& InAimRotation, float InDamageMultiplier = 1.0f);
 
 	AKRRangeWeapon* GetRangeWeapon() const;
 	

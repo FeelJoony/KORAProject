@@ -4,7 +4,6 @@
 #include "UI/PauseMenu/KRSlotNameWidget.h"
 #include "CommonTextBlock.h"
 #include "CommonButtonBase.h"
-#include "Internationalization/StringTableRegistry.h"
 
 void UKRSlotNameWidget::SetupForMenu(FName MenuNameKey)
 {
@@ -28,7 +27,7 @@ void UKRSlotNameWidget::SetupForQuickSlot(FName ItemNameKey)
 {
 	if (LabelText)
 	{
-		if (ItemNameKey.IsNone()) 
+		if (ItemNameKey.IsNone())
 		{
 			LabelText->SetText(MakeText(TEXT("Slot_Empty")));
 
@@ -68,6 +67,8 @@ void UKRSlotNameWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	EnsureStringTablesLoaded();
+
 	if (PrimaryButton)
 	{
 		PrimaryButton->OnClicked().AddUObject(this, &ThisClass::HandlePrimaryClicked);
@@ -78,14 +79,66 @@ void UKRSlotNameWidget::NativeConstruct()
 	}
 }
 
-FText UKRSlotNameWidget::MakeText(FName Key) const
+void UKRSlotNameWidget::EnsureStringTablesLoaded()
 {
-	return FText::FromStringTable(StringTableId, Key.ToString());
+	if (bStringTablesLoaded)
+	{
+		return;
+	}
+
+	if (!UIStringTableAsset.IsNull())
+	{
+		CachedUIStringTable = UIStringTableAsset.LoadSynchronous();
+	}
+
+	if (!ItemStringTableAsset.IsNull())
+	{
+		CachedItemStringTable = ItemStringTableAsset.LoadSynchronous();
+	}
+
+	bStringTablesLoaded = true;
 }
 
-FText UKRSlotNameWidget::MakeItemName(FName Key) const
+FText UKRSlotNameWidget::MakeText(FName Key)
 {
-	return FText::FromStringTable(ItemTableId, Key.ToString());
+	if (Key.IsNone())
+	{
+		return FText::GetEmpty();
+	}
+
+	EnsureStringTablesLoaded();
+
+	if (CachedUIStringTable)
+	{
+		FText Result = FText::FromStringTable(CachedUIStringTable->GetStringTableId(), Key.ToString());
+		if (!Result.IsEmpty())
+		{
+			return Result;
+		}
+	}
+
+	return FText::FromName(Key);
+}
+
+FText UKRSlotNameWidget::MakeItemName(FName Key)
+{
+	if (Key.IsNone())
+	{
+		return FText::GetEmpty();
+	}
+
+	EnsureStringTablesLoaded();
+
+	if (CachedItemStringTable)
+	{
+		FText Result = FText::FromStringTable(CachedItemStringTable->GetStringTableId(), Key.ToString());
+		if (!Result.IsEmpty())
+		{
+			return Result;
+		}
+	}
+
+	return FText::FromName(Key);
 }
 
 void UKRSlotNameWidget::HandlePrimaryClicked()

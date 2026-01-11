@@ -22,6 +22,7 @@
 #include "GameplayTag/KREventTag.h"
 #include "GameplayTag/KRItemTypeTag.h"
 #include "Quest/Condition/QuestEnterLocationChecker.h"
+#include "Subsystem/KRUIRouterSubsystem.h"
 
 DEFINE_LOG_CATEGORY(LogQuestSubSystem);
 
@@ -221,6 +222,9 @@ void UKRQuestSubsystem::OnSetNextSubBroadcast(EQuestType Type, int32 OrderIndex)
 	{
 		QuestDelegate->OnSetNextSubBroadcast(OrderIndex);
 	}
+
+	const int32 QuestIndex = GetCurrentQuestIndex();
+	TriggerQuestCutscene(QuestIndex, OrderIndex);
 }
 
 void UKRQuestSubsystem::OnProgressBroadcast(EQuestType Type, int32 OrderIndex, const struct FSubQuestEvalData& EvalData)
@@ -228,6 +232,31 @@ void UKRQuestSubsystem::OnProgressBroadcast(EQuestType Type, int32 OrderIndex, c
 	if (UQuestDelegate* QuestDelegate = QuestDelegateMap.FindRef(Type))
 	{
 		QuestDelegate->OnProgressBroadcast(OrderIndex, EvalData);
+	}
+}
+
+void UKRQuestSubsystem::TriggerQuestCutscene(int32 QuestIndex, int32 OrderIndex)
+{
+	FName CutsceneRoute = NAME_None;
+	
+	if (QuestIndex == 2 && OrderIndex == 6)
+	{
+		CutsceneRoute = FName("SemiBoss");
+	}
+	else if (QuestIndex == 2 && OrderIndex == 8)
+	{
+		CutsceneRoute = FName("Ending");
+	}
+
+	if (CutsceneRoute != NAME_None)
+	{
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+			{
+				Router->ToggleRoute(CutsceneRoute);
+			}
+		}
 	}
 }
 

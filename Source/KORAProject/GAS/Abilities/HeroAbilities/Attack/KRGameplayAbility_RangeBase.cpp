@@ -58,11 +58,11 @@ FRotator UKRGameplayAbility_RangeBase::GetFinalAimRotation(float InMaxRange) con
 	return UKismetMathLibrary::FindLookAtRotation(MuzzleLoc, TargetPoint);
 }
 
-void UKRGameplayAbility_RangeBase::FireWeaponActor(const FRotator& InAimRotation)
+void UKRGameplayAbility_RangeBase::FireWeaponActor(const FRotator& InAimRotation, float InDamageMultiplier)
 {
 	if (AKRRangeWeapon* Weapon = GetRangeWeapon())
 	{
-		Weapon->FireProjectile(InAimRotation);
+		Weapon->FireProjectile(InAimRotation, InDamageMultiplier);
 	}
 }
 

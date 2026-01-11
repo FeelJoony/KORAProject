@@ -11,8 +11,14 @@ UCLASS()
 class KORAPROJECT_API UKRItemDescriptionBase : public UCommonUserWidget
 {
 	GENERATED_BODY()
-	
+
+public:
+	static const FName ItemStringTableId;
+
 public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void UpdateItemInfo(const FName& ItemNameKey, const FName& ItemDescriptionKey, const TSoftObjectPtr<UTexture2D>& ItemIcon, int32 UpgradeLevel = -1);
+
+	UFUNCTION(BlueprintCallable, Category = "Item Description")
+	FText GetLocalizedTextFromKey(const FName& InKey) const;
 };

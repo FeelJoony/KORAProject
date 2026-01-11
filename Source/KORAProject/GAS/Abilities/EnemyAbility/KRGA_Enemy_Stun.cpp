@@ -28,8 +28,12 @@ void UKRGA_Enemy_Stun::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			1.f,
 			NAME_None
 		);
-
-		ActivationStun();
+		
+		MontageTask->OnCompleted.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
+		MontageTask->OnCancelled.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
+		MontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
+		MontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
+		MontageTask->ReadyForActivation();
 	}
 
 	if (AActor* OwnerActor = ActorInfo->OwnerActor.Get())
@@ -61,14 +65,6 @@ void UKRGA_Enemy_Stun::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UKRGA_Enemy_Stun::ActivationStun()
-{
-	MontageTask->OnCompleted.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
-	MontageTask->OnCancelled.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
-	MontageTask->OnInterrupted.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
-	MontageTask->OnBlendOut.AddDynamic(this, &UKRGA_Enemy_Stun::OnMontageEnded);
-	MontageTask->ReadyForActivation();
-}
 
 void UKRGA_Enemy_Stun::OnMontageEnded()
 {

@@ -238,13 +238,6 @@ void AKREnemyPawn::RegisterTagEvent()
 	if (!EnemyASC) return;
 
 	StateTags.AddTag(KRTAG_STATE_HASCC_STUN);
-	StateTags.AddTag(KRTAG_ENEMY_ACTION_SLASH);
-	StateTags.AddTag(KRTAG_ENEMY_AISTATE_COMBAT);
-	StateTags.AddTag(KRTAG_ENEMY_AISTATE_ALERT);
-	StateTags.AddTag(KRTAG_ENEMY_AISTATE_PATROL);
-	StateTags.AddTag(KRTAG_ENEMY_AISTATE_CHASE);
-	StateTags.AddTag(KRTAG_ENEMY_AISTATE_HITREACTION);
-	StateTags.AddTag(KRTAG_ENEMY_AISTATE_DEAD);
 
 	for (const FGameplayTag& Tag : StateTags)
 	{
@@ -257,7 +250,16 @@ void AKREnemyPawn::HandleTagEvent(FGameplayTag Tag, int32 Count)
 {
 	if (!StateTags.HasTag(Tag)) return;
 
-	if (EnemyASC->HasMatchingGameplayTag(Tag) && Count > 0)
+	// if (EnemyASC->HasMatchingGameplayTag(Tag) && Count > 0)
+	// {
+	// 	SetEnemyState(Tag);
+	// }
+	// else if (Count == 0)
+	// {
+	// 	ExternalGAEnded(Tag);
+	// }
+
+	if (Count == 1)
 	{
 		SetEnemyState(Tag);
 	}
@@ -269,37 +271,22 @@ void AKREnemyPawn::HandleTagEvent(FGameplayTag Tag, int32 Count)
 
 void AKREnemyPawn::SetEnemyState(FGameplayTag StateTag)
 {
-	AController* AIController = GetController();
-	if (!AIController) return;
+	if (!EnemyASC)
+	{
+		return;
+	}
 
-	UStateTreeAIComponent* StateTreeComp = AIController->GetComponentByClass<UStateTreeAIComponent>();
-	if (!StateTreeComp) return;
-
-	FStateTreeEvent Event;
-	Event.Tag = StateTag;
-
-	StateTreeComp->SendStateTreeEvent(Event);
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(StateTag);
+	EnemyASC->TryActivateAbilitiesByTag(TagContainer);
 }
 
 void AKREnemyPawn::ExternalGAEnded(FGameplayTag Tag)
 {
 	if (!EnemyASC) return;
 
-	for (FGameplayAbilitySpec& Spec : EnemyASC->GetActivatableAbilities())
-	{
-		if (Tag == KRTAG_STATE_HASCC_STUN)
-		{
-			if (Spec.Ability && Spec.Ability->IsA(UKRGA_Enemy_Stun::StaticClass()))
-			{
-				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
-				{
-					if (UKRGA_Enemy_Stun* StunGA = Cast<UKRGA_Enemy_Stun>(Instance))
-					{
-						StunGA->ExternalAbilityEnded();
-						return;
-					}
-				}
-			}
-		}
-	}
+	UKRGA_Enemy_Stun* StunGA = EnemyASC->GetActiveAbilityByClass<UKRGA_Enemy_Stun>();
+	if (!StunGA) return;
+	
+	StunGA->ExternalAbilityEnded();
 }

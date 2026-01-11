@@ -86,3 +86,4 @@ Sound.BGM.FinalBoss.Phase2.Badass,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_F
 Sound.BGM.FinalBoss.Phase2.Fight,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase2_Fight.DA_Sound_BGM_FinalBoss_Phase2_Fight,BGM FinalBoss Fight,TRUE
 Sound.BGM.FinalBoss.Phase3.Honor,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase3_Honor.DA_Sound_BGM_FinalBoss_Phase3_Honor,BGM FinalBoss Honor,TRUE
 Sound.BGM.FinalBoss.Phase3.Epic,/Game/Data/DataAssets/Sound/BGM/DA_Sound_BGM_FinalBoss_Phase3_Epic.DA_Sound_BGM_FinalBoss_Phase3_Epic,BGM FinalBoss Epic,TRUE
+Sound.UI.MapTransition,/Game/Data/DataAssets/Sound/Etc/DA_MapTransition.DA_MapTransition,MapTransition Sound,TRUE

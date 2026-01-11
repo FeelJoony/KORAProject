@@ -45,6 +45,9 @@ private:
 	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IVS);
 	FDelegateHandle WorldInitHandle;
 
+	void OnLoadingScreenHiddenCallback();
+	FDelegateHandle LoadingScreenHiddenHandle;
+
 	FName PendingLevelNameKey;
 	FGameplayTag PendingLevelSoundTag;
 	

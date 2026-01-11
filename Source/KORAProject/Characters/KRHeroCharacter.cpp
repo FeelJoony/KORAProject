@@ -11,6 +11,7 @@
 #include "Components/KRCoreDriveComponent.h"
 #include "Components/KRGuardRegainComponent.h"
 #include "MotionWarpingComponent.h"
+#include "Engine/OverlapResult.h"
 
 AKRHeroCharacter::AKRHeroCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UKRCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -88,7 +89,33 @@ void AKRHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AKRHeroCharacter::GetIgnoredActorsForCameraPenetration(TArray<const AActor*>& OutActorsAllowPenetration) const
 {
+	// 플레이어 자신 무시
 	OutActorsAllowPenetration.Add(this);
+
+	// 주변 Pawn(적) 무시 - 적의 공격 메시가 카메라 침투 감지에 걸리는 것 방지
+	if (CameraPenetrationIgnoreRadius > 0.f)
+	{
+		TArray<FOverlapResult> Overlaps;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		GetWorld()->OverlapMultiByChannel(
+			Overlaps,
+			GetActorLocation(),
+			FQuat::Identity,
+			ECC_Pawn,
+			FCollisionShape::MakeSphere(CameraPenetrationIgnoreRadius),
+			QueryParams
+		);
+
+		for (const FOverlapResult& Overlap : Overlaps)
+		{
+			if (const APawn* OtherPawn = Cast<APawn>(Overlap.GetActor()))
+			{
+				OutActorsAllowPenetration.Add(OtherPawn);
+			}
+		}
+	}
 }
 
 TOptional<AActor*> AKRHeroCharacter::GetCameraPreventPenetrationTarget() const

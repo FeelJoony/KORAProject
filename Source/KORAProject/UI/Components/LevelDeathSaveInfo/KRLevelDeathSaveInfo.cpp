@@ -16,7 +16,7 @@ void UKRLevelDeathSaveInfo::NativeOnInitialized()
 	
 	if (!StringTableAsset.IsNull())
 	{
-		StringTableAsset.LoadSynchronous();
+		CachedStringTable = StringTableAsset.LoadSynchronous();
 	}
 
 	if (UWorld* World = GetWorld())
@@ -163,12 +163,16 @@ void UKRLevelDeathSaveInfo::OnAutoHideTimeout()
 
 void UKRLevelDeathSaveInfo::UpdateInfoText(const FString& StringTableKey)
 {
-	if (!InfoText)
+	if (!InfoText || !CachedStringTable)
 	{
 		return;
 	}
 
-	FString TablePath = StringTableAsset.ToSoftObjectPath().GetAssetPathString();
-	FText LocalizedText = FText::FromStringTable(*TablePath, StringTableKey);
+	if (StringTableKey.IsEmpty() || StringTableKey.Equals(TEXT("None"), ESearchCase::IgnoreCase))
+	{
+		return;
+	}
+
+	FText LocalizedText = FText::FromStringTable(CachedStringTable->GetStringTableId(), StringTableKey);
 	InfoText->SetText(LocalizedText);
 }

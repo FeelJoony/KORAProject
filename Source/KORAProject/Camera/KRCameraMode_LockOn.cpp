@@ -21,6 +21,7 @@ void UKRCameraMode_LockOn::UpdateView(float DeltaTime)
 	if (!TargetActor)
 	{
 		CurrentHeightOffset = FMath::FInterpTo(CurrentHeightOffset, 0.f, DeltaTime, HeightInterpSpeed);
+		CurrentPushBackDistance = FMath::FInterpTo(CurrentPushBackDistance, 0.f, DeltaTime, PushBackInterpSpeed);
 		return;
 	}
 
@@ -28,27 +29,27 @@ void UKRCameraMode_LockOn::UpdateView(float DeltaTime)
 	AActor* LockOnTarget = UKRGA_LockOn::GetLockedTargetFor(TargetActor);
 	if (!LockOnTarget)
 	{
-		// 락온 타겟이 없으면 높이 오프셋을 0으로 보간
+		// 락온 타겟이 없으면 오프셋을 0으로 보간
 		CurrentHeightOffset = FMath::FInterpTo(CurrentHeightOffset, 0.f, DeltaTime, HeightInterpSpeed);
+		CurrentPushBackDistance = FMath::FInterpTo(CurrentPushBackDistance, 0.f, DeltaTime, PushBackInterpSpeed);
 		return;
 	}
 
 	// 플레이어와 타겟 사이 거리 계산
-	float Distance = FVector::Dist(TargetActor->GetActorLocation(), LockOnTarget->GetActorLocation());
+	const float Distance = FVector::Dist(TargetActor->GetActorLocation(), LockOnTarget->GetActorLocation());
 
-	// 목표 높이 오프셋 계산
+	// ===== 높이 오프셋 계산 =====
 	float TargetHeightOffset = 0.f;
 
 	if (DistanceToHeightCurve)
 	{
-		// 커브가 있으면 커브에서 값 가져오기
 		TargetHeightOffset = DistanceToHeightCurve->GetFloatValue(Distance);
 	}
 	else
 	{
 		const float CloseDistance = 200.f;
 		const float FarDistance = 800.f;
-		const float HeightAtClose = -40.f; // 필요하다면 0.f로 설정해도 됨 (기존 150.f에서 대폭 수정)
+		const float HeightAtClose = -40.f;
 		const float HeightAtFar = 0.f;
 
 		TargetHeightOffset = FMath::GetMappedRangeValueClamped(
@@ -58,12 +59,31 @@ void UKRCameraMode_LockOn::UpdateView(float DeltaTime)
 		);
 	}
 
-	// 높이 오프셋 범위 제한
 	TargetHeightOffset = FMath::Clamp(TargetHeightOffset, 0.f, MaxHeightOffset);
-
-	// 부드러운 보간 적용
 	CurrentHeightOffset = FMath::FInterpTo(CurrentHeightOffset, TargetHeightOffset, DeltaTime, HeightInterpSpeed);
 
-	// 카메라 위치에 높이 오프셋 적용 (시각적 표현만, ControlRotation은 건드리지 않음)
+	// ===== 거리 기반 카메라 뒤로 밀기 =====
+	float TargetPushBackDistance = 0.f;
+
+	if (bPushBackAtCloseRange && Distance < CloseRangeThreshold)
+	{
+		// 가까울수록 카메라를 뒤로 더 밀기
+		const float CloseRatio = 1.0f - (Distance / CloseRangeThreshold);
+		TargetPushBackDistance = CloseRatio * MaxPushBackDistance;
+	}
+
+	CurrentPushBackDistance = FMath::FInterpTo(CurrentPushBackDistance, TargetPushBackDistance, DeltaTime, PushBackInterpSpeed);
+
+	// ===== 최종 카메라 위치 적용 =====
+	// 높이 오프셋
 	View.Location.Z += CurrentHeightOffset;
+
+	// 뒤로 밀기 (카메라 회전 기준 후방으로)
+	if (CurrentPushBackDistance > KINDA_SMALL_NUMBER)
+	{
+		FVector BackDirection = -View.Rotation.Vector();
+		BackDirection.Z = 0.f;
+		BackDirection.Normalize();
+		View.Location += BackDirection * CurrentPushBackDistance;
+	}
 }

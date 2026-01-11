@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CommonUserWidget.h"
+#include "Internationalization/StringTable.h"
+#include "UObject/SoftObjectPath.h"
 #include "KRSlotNameWidget.generated.h"
 
 class UCommonTextBlock;
@@ -20,11 +22,16 @@ UCLASS()
 class KORAPROJECT_API UKRSlotNameWidget : public UCommonUserWidget
 {
 	GENERATED_BODY()
-	
+
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Localization")	FName StringTableId = TEXT("/Game/UI/StringTable/ST_UIBaseTexts");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Localization")	FName ItemTableId = TEXT("/Game/UI/StringTable/ST_ItemList");
-	UPROPERTY(BlueprintReadOnly, Category = "SlotName")						EKRSlotNameContext Context = EKRSlotNameContext::Menu;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Localization")
+	TSoftObjectPtr<UStringTable> UIStringTableAsset = TSoftObjectPtr<UStringTable>(FSoftObjectPath(TEXT("/Game/UI/StringTable/ST_UIBaseTexts.ST_UIBaseTexts")));
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Localization")
+	TSoftObjectPtr<UStringTable> ItemStringTableAsset = TSoftObjectPtr<UStringTable>(FSoftObjectPath(TEXT("/Game/UI/StringTable/ST_ItemList.ST_ItemList")));
+
+	UPROPERTY(BlueprintReadOnly, Category = "SlotName")
+	EKRSlotNameContext Context = EKRSlotNameContext::Menu;
 
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UCommonTextBlock> LabelText;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UCommonButtonBase> PrimaryButton;
@@ -44,9 +51,20 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
-	FText MakeText(FName Key) const;
-	FText MakeItemName(FName ItemNameKey) const;
+	FText MakeText(FName Key);
+	FText MakeItemName(FName ItemNameKey);
 
 	UFUNCTION() void HandlePrimaryClicked();
 	UFUNCTION() void HandleSecondaryClicked();
+
+private:
+	void EnsureStringTablesLoaded();
+
+	UPROPERTY(Transient)
+	TObjectPtr<UStringTable> CachedUIStringTable;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UStringTable> CachedItemStringTable;
+
+	bool bStringTablesLoaded = false;
 };

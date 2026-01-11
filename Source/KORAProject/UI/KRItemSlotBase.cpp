@@ -5,9 +5,12 @@
 #include "CommonLazyImage.h"
 #include "CommonTextBlock.h"
 #include "CommonNumericTextBlock.h"
-#include "Internationalization/StringTableRegistry.h"
 
-const FName UKRItemSlotBase::ItemStringTableId(TEXT("ST_ItemList"));
+void UKRItemSlotBase::NativeConstruct()
+{
+	Super::NativeConstruct();
+	EnsureStringTableLoaded();
+}
 
 void UKRItemSlotBase::SetItemData(const FKRItemUIData& InData, int32 OverrideFields)
 {
@@ -20,7 +23,7 @@ void UKRItemSlotBase::SetItemData(const FKRItemUIData& InData, int32 OverrideFie
 
 	if (ItemName)			ItemName->SetText(GetSourceStringFromTable(InData.ItemNameKey));
 	if (ItemDescription)	ItemDescription->SetText(GetSourceStringFromTable(InData.ItemDescriptionKey));
-    if (ItemCount)			ItemCount->SetText(FText::AsNumber(InData.Quantity));
+	if (ItemCount)			ItemCount->SetText(FText::AsNumber(InData.Quantity));
 	if (ItemPrice)			ItemPrice->SetText(FText::AsNumber(InData.Price));
 	if (ItemIcon)
 	{
@@ -78,27 +81,38 @@ bool UKRItemSlotBase::IsDataEmpty(const FKRItemUIData& D)
 	return bNoName && bNoDesc && bNoIcon && bNoQty && bNoPrice && bNoShopStock;
 }
 
+void UKRItemSlotBase::EnsureStringTableLoaded()
+{
+	if (bStringTableLoaded)
+	{
+		return;
+	}
+
+	if (!ItemStringTableAsset.IsNull())
+	{
+		CachedStringTable = ItemStringTableAsset.LoadSynchronous();
+	}
+
+	bStringTableLoaded = true;
+}
+
 FText UKRItemSlotBase::GetSourceStringFromTable(const FName& InKey)
 {
 	if (InKey.IsNone())
 	{
 		return FText::GetEmpty();
 	}
-	
-	FStringTableConstPtr StringTable = FStringTableRegistry::Get().FindStringTable(ItemStringTableId);
-	if (!StringTable.IsValid())
+
+	EnsureStringTableLoaded();
+
+	if (CachedStringTable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ItemSlot] StringTable not loaded - TableId: %s, Key: %s"),*ItemStringTableId.ToString(), *InKey.ToString());
-		return FText::FromName(InKey);
+		FText Result = FText::FromStringTable(CachedStringTable->GetStringTableId(), InKey.ToString());
+		if (!Result.IsEmpty())
+		{
+			return Result;
+		}
 	}
 
-	FText Result = FText::FromStringTable(ItemStringTableId, InKey.ToString());
-	
-	if (Result.IsEmpty())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[ItemSlot] StringTable entry empty - TableId: %s, Key: %s"),*ItemStringTableId.ToString(), *InKey.ToString());
-		return FText::FromName(InKey);
-	}
-
-	return Result;
+	return FText::FromName(InKey);
 }

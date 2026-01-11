@@ -71,6 +71,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bAdjustPitchBasedOnDistance"))
 	float PitchOffsetMax = 0.f;
 
+	/** 가까운 거리에서 Pitch 제한을 강화할지 여부 */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera")
+	bool bLimitPitchAtCloseRange = true;
+
+	/** 근거리로 판단하는 기준 거리 */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bLimitPitchAtCloseRange"))
+	float CloseRangeThreshold = 300.0f;
+
+	/** 근거리에서의 최소 Pitch (덜 아래를 보도록) */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|LockOn|Camera", meta = (EditCondition = "bLimitPitchAtCloseRange"))
+	float CloseRangePitchMin = -25.0f;
+
 private:
 	UPROPERTY()
 	TObjectPtr<AActor> CurrentTarget;

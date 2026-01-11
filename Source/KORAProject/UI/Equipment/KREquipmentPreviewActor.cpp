@@ -343,14 +343,14 @@ void AKREquipmentPreviewActor::PreviewEquipment(UKRInventoryItemInstance* ItemIn
 	if (!ItemInstance) return;
 
 	const FGameplayTag& ItemTag = ItemInstance->GetItemTag();
-	const FItemDataStruct* ItemData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FItemDataStruct>(ItemTag);
+	const FItemDataStruct* ItemData = UKRDataTablesSubsystem::Get(this).GetData<FItemDataStruct>(ItemTag);
 	if (!ItemData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[PreviewActor] PreviewEquipment - ItemData is NULL for %s"), *ItemTag.ToString());
 		return;
 	}
 
-	const FEquipDataStruct* EquipData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FEquipDataStruct>(static_cast<uint32>(ItemData->EquipID));
+	const FEquipDataStruct* EquipData = UKRDataTablesSubsystem::Get(this).GetData<FEquipDataStruct>(static_cast<uint32>(ItemData->EquipID));
 	if (!EquipData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[PreviewActor] PreviewEquipment - EquipData is NULL for EquipID: %d"), ItemData->EquipID);
@@ -888,10 +888,10 @@ void AKREquipmentPreviewActor::PreloadEquipmentAssets()
 		if (UKRInventoryItemInstance* Inst = HeroEquipMgr->GetEquippedItemInstanceBySlotTag(SlotTag))
 		{
 			const FGameplayTag& ItemTag = Inst->GetItemTag();
-			const FItemDataStruct* ItemData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FItemDataStruct>(ItemTag);
+			const FItemDataStruct* ItemData = UKRDataTablesSubsystem::Get(this).GetData<FItemDataStruct>(ItemTag);
 			if (!ItemData) continue;
 
-			const FEquipDataStruct* EquipData = UKRDataTablesSubsystem::Get(this).GetDataSafe<FEquipDataStruct>(ItemData->EquipID);
+			const FEquipDataStruct* EquipData = UKRDataTablesSubsystem::Get(this).GetData<FEquipDataStruct>(ItemData->EquipID);
 			if (!EquipData) continue;
 			
 			if (!EquipData->EquipmentMesh.IsNull())

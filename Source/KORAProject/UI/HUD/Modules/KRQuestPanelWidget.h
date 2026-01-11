@@ -33,5 +33,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Quest")
 	TSoftObjectPtr<UStringTable> QuestStringTable;
 
+	UPROPERTY()
+	TObjectPtr<UStringTable> CachedQuestStringTable;
+
 	FGameplayMessageListenerHandle QuestListener;
 };

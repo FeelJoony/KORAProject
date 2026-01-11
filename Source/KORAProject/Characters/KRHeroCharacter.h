@@ -53,5 +53,9 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void GetIgnoredActorsForCameraPenetration(TArray<const AActor*>& OutActorsAllowPenetration) const override;
 	virtual TOptional<AActor*> GetCameraPreventPenetrationTarget() const override;
+
+	/** 카메라 침투 감지에서 무시할 Pawn 탐지 반경 */
+	UPROPERTY(EditDefaultsOnly, Category = "KR|Camera")
+	float CameraPenetrationIgnoreRadius = 500.0f;
 };
 

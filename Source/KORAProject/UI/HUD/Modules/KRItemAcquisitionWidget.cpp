@@ -3,6 +3,8 @@
 #include "UI/HUD/Modules/KRItemAcquisitionWidget.h"
 #include "Engine/World.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
+#include "SubSystem/KRDataTablesSubsystem.h"
+#include "Data/CurrencyDataStruct.h"
 
 void UKRItemAcquisitionWidget::NativeConstruct()
 {
@@ -35,6 +37,37 @@ void UKRItemAcquisitionWidget::OnItemLogMessageReceived(FGameplayTag Channel, co
 {
 	if (Message.EventType == EItemLogEvent::AcquiredNormal || Message.EventType == EItemLogEvent::AcquiredQuest)
 	{
+		if (Message.ItemTag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Currency"))))
+		{
+			FName CurrencyDisplayName = NAME_None;
+			if (UKRDataTablesSubsystem* DataSubsystem = UKRDataTablesSubsystem::GetSafe(this))
+			{
+				if (UCacheDataTable* CurrencyTable = DataSubsystem->GetTable(FCurrencyDataStruct::StaticStruct()))
+				{
+					if (UDataTable* DT = CurrencyTable->GetTable())
+					{
+						TArray<FCurrencyDataStruct*> AllRows;
+						DT->GetAllRows(TEXT("CurrencyLookup"), AllRows);
+						for (const FCurrencyDataStruct* Row : AllRows)
+						{
+							if (Row && Row->CurrencyTag == Message.ItemTag)
+							{
+								CurrencyDisplayName = Row->CurrencyID;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (CurrencyDisplayName == NAME_None)
+			{
+				CurrencyDisplayName = Message.ItemTag.GetTagName();
+			}
+			BP_OnItemAcquired(CurrencyDisplayName, Message.AcquiredQuantity);
+			return;
+		}
+
 		FKRItemUIData UIData;
 		if (UKRUIAdapterLibrary::GetItemUIDataByTag(this, Message.ItemTag, UIData))
 		{
