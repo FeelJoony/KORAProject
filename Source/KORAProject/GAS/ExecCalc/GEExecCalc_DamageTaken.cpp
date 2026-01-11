@@ -318,8 +318,8 @@ void UGEExecCalc_DamageTaken::Execute_Implementation(
 
 #if !UE_BUILD_SHIPPING
 	// 디버그 로그
-	UE_LOG(LogTemp, Log, TEXT("[DamageTaken] BaseDamage: %.1f, DealMult: %.2f, CritMult: %.2f, Defense: %.1f, TakeMult: %.2f, GuardRed: %.2f -> Final: %.1f %s%s"),
-		BaseDamage, SourceDealDamageMult, CritMultiplier, TargetDefensePower, TargetTakeDamageMult, GuardDamageReduction, FinalDamage,
+	UE_LOG(LogTemp, Log, TEXT("[DamageTaken] BaseDamage: %.1f, DealMult: %.2f, CritChance: %.2f, CritMult: %.2f, Defense: %.1f, TakeMult: %.2f, GuardRed: %.2f -> Final: %.1f %s%s"),
+		BaseDamage, SourceDealDamageMult, SourceCritChance, CritMultiplier, TargetDefensePower, TargetTakeDamageMult, GuardDamageReduction, FinalDamage,
 		bIsCritical ? TEXT("[CRIT]") : TEXT(""),
 		bIsParried ? TEXT("[PARRIED]") : (bIsGuarding ? TEXT("[GUARDED]") : TEXT("")));
 #endif
