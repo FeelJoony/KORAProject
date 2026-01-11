@@ -164,6 +164,13 @@ UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_ROAR, "Sound.Boss.Roar");
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_BOSS_DEATH, "Sound.Boss.Death");
 
 // ============================================================
+// SOUND TAGS - Boss
+// ============================================================
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SEMIBOSS_GROUNDIMPACT, "Sound.SemiBoss.GroundImpact");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SEMIBOSS_JUMPSCREAM, "Sound.SemiBoss.JumpScream");
+UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SEMIBOSS_MONSTERDEATH, "Sound.SemiBoss.MonsterDeath");
+
+// ============================================================
 // SOUND TAGS - Special Skills (StarDash, AerialCombo, etc.)
 // ============================================================
 UE_DEFINE_GAMEPLAY_TAG(KRTAG_SOUND_SKILL_STARDASH_START, "Sound.Skill.StarDash.Start");
