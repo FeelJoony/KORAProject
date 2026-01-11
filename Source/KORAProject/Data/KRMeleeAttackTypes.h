@@ -32,6 +32,7 @@ struct KORAPROJECT_API FKRMeleeAttackConfig
 	FKRMeleeAttackConfig()
 		: AttackShape(EKRAttackShapeType::Cone)
 		, AttackRange(200.0f)
+		, AddStartLocation(0.f)
 		, ConeAngle(90.0f)
 		, BoxExtent(50.0f, 100.0f, 100.0f)
 		, SphereRadius(100.0f)
@@ -57,6 +58,9 @@ struct KORAPROJECT_API FKRMeleeAttackConfig
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection")
 	float AttackRange;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection")
+	FVector AddStartLocation;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitDetection",
 		meta = (EditCondition = "AttackShape == EKRAttackShapeType::Cone", EditConditionHides, ClampMin = "10.0", ClampMax = "180.0"))

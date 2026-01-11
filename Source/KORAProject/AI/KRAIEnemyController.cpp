@@ -2,6 +2,7 @@
 
 #include "SubSystem/KRDataTablesSubsystem.h"
 #include "KREnemyPawn.h"
+#include "Characters/KRHeroCharacter.h"
 #include "Components/StateTreeAIComponent.h"
 #include "Data/EnemyDataStruct.h"
 #include "GameplayTag/KREnemyTag.h"
@@ -91,31 +92,31 @@ void AKRAIEnemyController::OnPossess(APawn* InPawn)
 void AKRAIEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (!Actor || !GetWorld()) return;
+	if (!IsPlayerCharacter(Actor)) return; 
 
-	const bool bIsSight = (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>()) && IsPlayerCharacter(Actor);
-	const bool bIsDamage = (Stimulus.Type == UAISense::GetSenseID<UAISense_Damage>()) && IsPlayerCharacter(Actor);
+	const bool bIsSight = Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>();
+	const bool bIsDamage = Stimulus.Type == UAISense::GetSenseID<UAISense_Damage>();
 	
 	if (!bIsSight && !bIsDamage) return;
 	
-	APawn* PlayerPawn0 = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!PlayerPawn0)
+	APawn* PlayerPawn = Cast<APawn>(Actor);
+	if (!PlayerPawn)
 	{
-		return;
+		PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 	}
-
-	if (TargetActor)
-	{
-		return;
-	}
+	if (!PlayerPawn) return;
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		TargetActor = PlayerPawn0;
-		SetFocus(PlayerPawn0);
-
-		if (StateTreeComponent)
+		if (!TargetActor)
 		{
-			StateTreeComponent->SendStateTreeEvent(KRTAG_ENEMY_AISTATE_COMBAT);
+			TargetActor = PlayerPawn;
+			SetFocus(PlayerPawn);
+
+			if (StateTreeComponent)
+			{
+				StateTreeComponent->SendStateTreeEvent(KRTAG_ENEMY_AISTATE_COMBAT);
+			}
 		}
 	}
 	else
@@ -132,11 +133,9 @@ bool AKRAIEnemyController::IsPlayerCharacter(AActor* InActor)
 {
 	if (!InActor || !GetWorld()) return false;
 
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!PlayerPawn) return false;
-
 	APawn* SensedPawn = ResolveToPawn(InActor);
-	return (SensedPawn && SensedPawn == PlayerPawn);
+	if (!SensedPawn) return false;
+	return SensedPawn->IsA<AKRHeroCharacter>();
 }
 
 APawn* AKRAIEnemyController::ResolveToPawn(AActor* InActor) const

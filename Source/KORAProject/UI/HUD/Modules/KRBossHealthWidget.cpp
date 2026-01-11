@@ -177,6 +177,9 @@ void UKRBossHealthWidget::OnBossMessageReceived(FGameplayTag Channel, const FKRU
 	if (Message.BossASC.IsValid())
 	{
 		SetBossASC(Message.BossASC.Get(), Message.BossNameKey);
+	} else
+	{
+		SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -195,6 +198,11 @@ void UKRBossHealthWidget::SetBossASC(UAbilitySystemComponent* InASC, const FName
 	{
 		FText BossDisplayName = FText::FromStringTable(TableId, InBossNameKey.ToString());
 		BossName->SetText(BossDisplayName);
+	}
+
+	if (BossHP)
+	{
+		BossHP->SetVisibility(ESlateVisibility::Visible);
 	}
 
 	SetVisibility(ESlateVisibility::Visible);

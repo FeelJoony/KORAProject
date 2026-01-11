@@ -56,6 +56,10 @@ void UKRGA_Enemy_Die::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		EnemyASC->RemoveLooseGameplayTag(KRTAG_ENEMY_AISTATE_DEAD);
 	}
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(DestroyTimerHandle);
+	}
 }
 
 void UKRGA_Enemy_Die::OrganizeStateTag()
@@ -106,6 +110,24 @@ void UKRGA_Enemy_Die::OnMontageEnded()
 	{
 		AIC->BrainComponent->StopLogic(TEXT("Dead"));
 		AIC->UnPossess();
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		TWeakObjectPtr<AActor> WeakEnemy = Enemy;
+
+		World->GetTimerManager().SetTimer(
+			DestroyTimerHandle,
+			[WeakEnemy]()
+			{
+				if (WeakEnemy.IsValid())
+				{
+					WeakEnemy->Destroy();
+				}
+			},
+			DestroyDelay,
+			false
+		);
 	}
 }
 

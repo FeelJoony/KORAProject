@@ -44,4 +44,10 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = KRState)
 	FGameplayTag DieAbilityTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = KRState)
+	float DestroyDelay = 3.f;
+
+private:
+	FTimerHandle DestroyTimerHandle;
 };

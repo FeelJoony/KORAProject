@@ -14,8 +14,8 @@ public:
 	
 protected:
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) override;
-	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition);
-	virtual void EndState(FStateTreeExecutionContext& Context, FStateTreeTransitionResult& OutState);
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Context, meta = (Context))
 	TObjectPtr<class AKREnemyPawn> Actor;
@@ -25,6 +25,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Parameter", meta = (AllowPrivateAccess = "true"))
 	FGameplayTagContainer AbilityTags;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Parameter", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UGameplayAbility> AbilityClass;
 
 	struct FGameplayAbilitySpec* ActivateSpec = nullptr;
 };

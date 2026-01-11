@@ -82,6 +82,12 @@ void UKREnemyHPWidget::OnHealthAttributeChanged(const FOnAttributeChangeData& Da
     const float OldHP = Data.OldValue;
     const float NewHP = Data.NewValue;
 
+    if (NewHP <= 0.f)
+    {
+        SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
+
     const float OldPercent = FMath::Clamp(OldHP / MaxHP, 0.f, 1.f);
     const float NewPercent = FMath::Clamp(NewHP / MaxHP, 0.f, 1.f);
     const float Delta = NewPercent - OldPercent;
