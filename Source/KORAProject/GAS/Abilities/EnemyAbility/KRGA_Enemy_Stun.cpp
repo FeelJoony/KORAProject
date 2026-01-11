@@ -2,22 +2,6 @@
 #include "GAS/KRAbilitySystemComponent.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "GameplayTag/KRStateTag.h"
-
-UKRGA_Enemy_Stun::UKRGA_Enemy_Stun(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	// FGameplayTagContainer Tags;
-	// Tags.AddTag(KRTAG_STATE_HASCC_STUN);
-	// SetAssetTags(Tags);
-	
-	// ⭐ 트리거 설정: 특정 태그가 추가되면 자동 실행
-	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag = KRTAG_STATE_HASCC_STUN;  // 이 태그가 추가되면
-	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;  // 이벤트로 트리거
-    
-	AbilityTriggers.Add(TriggerData);
-}
 
 void UKRGA_Enemy_Stun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
                                        const FGameplayAbilityActorInfo* ActorInfo, 
