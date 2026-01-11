@@ -35,6 +35,8 @@ public:
 	UFUNCTION()
 	void ExternalAbilityEnded();
 
+	UFUNCTION()
+	void SpawnDrops();
 
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* MontageTask;

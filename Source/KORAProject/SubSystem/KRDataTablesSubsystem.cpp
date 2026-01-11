@@ -6,6 +6,7 @@
 #include "Data/CurrencyDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
+#include "Data/EnemyDropDataStruct.h"
 #include "Data/ItemDataStruct.h"
 #include "Data/EquipDataStruct.h"
 #include "Data/ModuleDataStruct.h"
@@ -182,6 +183,7 @@ void UKRDataTablesSubsystem::InitializeDataTables()
 	AddDataTable<FEnemyAttributeDataStruct>(FString(TEXT("EnemyAttributeData")));
 	AddDataTable<FDialogueDataStruct>(FString(TEXT("DialogueData")));
 	AddDataTable<FLevelTransitionDataStruct>(FString(TEXT("LevelTransitionData")));
+	AddDataTable<FEnemyDropDataStruct>(FString(TEXT("EnemyDropData")));
 
 #if !UE_BUILD_SHIPPING
 	ValidateDataReferences();
