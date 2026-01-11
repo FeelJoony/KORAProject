@@ -13,7 +13,6 @@ void UQuestDelegate::Initialize(class UKRQuestInstance* NewQuestInstance)
 
 void UQuestDelegate::Reinitialize(class UKRQuestInstance* NewQuestInstance)
 {
-	// Clear existing delegate bindings before reinitializing
 	Uninitialize();
 	Initialize(NewQuestInstance);
 }

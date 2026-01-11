@@ -88,8 +88,13 @@ protected:
 	TArray<FSubtitleTiming> SubtitleTimings;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cutscene")
 	FName CutsceneRouteName = "Cutscene";
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cutscene|Skip")
+	bool bAllowSkip = true;
 
 private:
+	void SkipCutscene();
+	
 	UPROPERTY(Transient)
 	TObjectPtr<UMediaPlayer> MediaPlayer;
 	UPROPERTY(Transient)

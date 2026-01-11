@@ -56,15 +56,22 @@ void UKRFrontendStateComponent::ShowMainMenu()
 	{
 		return;
 	}
-	
+	FString MapName = World->GetMapName();
+	MapName.RemoveFromStart(World->StreamingLevelsPrefix);
+	if (!MapName.Contains(TEXT("MainMenu")))
+	{
+		bHasShownMainMenu = true;
+		OnFrontendReady.Broadcast();
+		OnFrontendReadyEvent();
+		return;
+	}
+
 	if (UGameInstance* GI = World->GetGameInstance())
 	{
 		if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
 		{
 			Router->OpenRoute(MainMenuRouteName);
 			bHasShownMainMenu = true;
-
-			UE_LOG(LogTemp, Log, TEXT("[FrontendState] Main menu opened - input mode managed by UIRouter"));
 		}
 	}
 	
@@ -78,6 +85,11 @@ void UKRFrontendStateComponent::TravelToGameplay()
 	{
 		if (UGameInstance* GI = GetWorld()->GetGameInstance())
 		{
+			if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+			{
+				Router->CloseRoute(MainMenuRouteName);
+			}
+
 			if (UKRMapTravelSubsystem* MapTravel =
 				GI->GetSubsystem<UKRMapTravelSubsystem>())
 			{
@@ -87,7 +99,6 @@ void UKRFrontendStateComponent::TravelToGameplay()
 				return;
 			}
 		}
-		
 		UE_LOG(LogTemp, Warning, TEXT("[FrontendState] MapTravelSubsystem missing"));
 	}
 }
