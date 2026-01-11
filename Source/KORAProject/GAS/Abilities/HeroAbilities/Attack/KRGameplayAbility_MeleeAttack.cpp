@@ -493,14 +493,11 @@ void UKRGameplayAbility_MeleeAttack::ApplyHitToTarget(AActor* HitActor, const FH
 
 	// 1. 데미지 적용
 	ApplyDamage(HitActor, HitResult);
-
-	// 2. 히트 리액션 이벤트 전송 (피격자에게 알림)
-	SendHitReactionEvent(HitActor, HitResult);
-
-	// 3. 히트 Cue 실행 (공격자 측 이펙트/사운드)
+	
+	// 2. 히트 Cue 실행 (공격자 측 이펙트/사운드)
 	ExecuteHitCue(HitResult);
 
-	// 4. 히트스톱 적용
+	// 3. 히트스톱 적용
 	const FKRMeleeAttackConfig& Config = GetCurrentAttackConfig();
 	if (Config.bUseHitStop)
 	{
