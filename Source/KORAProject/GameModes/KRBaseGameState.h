@@ -17,6 +17,9 @@ class KORAPROJECT_API AKRBaseGameState : public AGameStateBase
 public:
 	AKRBaseGameState();
 
+	virtual void PreInitializeComponents() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UPROPERTY()
-	TObjectPtr<class UKRExperienceManagerComponent> ExperienceManagerComponent;	
+	TObjectPtr<class UKRExperienceManagerComponent> ExperienceManagerComponent;
 };
