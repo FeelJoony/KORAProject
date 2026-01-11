@@ -2,6 +2,7 @@
 
 #include "UI/Shop/KRShopSell.h"
 #include "UI/KRSlotGridBase.h"
+#include "UI/KRItemSlotBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "GameplayTag/KRItemTypeTag.h"
 #include "UI/Data/KRItemUIData.h"
@@ -32,6 +33,14 @@ void UKRShopSell::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &UKRShopSell::HandleMoveDown));
 		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &UKRShopSell::HandleSelect));
 	}
+
+	// Set initial selection to first item
+	if (ShoppingSlot && CachedShopItems.Num() > 0)
+	{
+		ShoppingSlot->RebindButtonGroup();
+		ShoppingSlot->SelectIndexSafe(0);
+		UpdateItemDescription(0);
+	}
 }
 
 void UKRShopSell::NativeOnDeactivated()
@@ -45,6 +54,15 @@ void UKRShopSell::NativeConstruct()
 
 	if (ConsumablesButton) ConsumablesButton->OnClicked().AddUObject(this, &UKRShopSell::OnClickConsumables);
 	if (MaterialButton) MaterialButton->OnClicked().AddUObject(this, &UKRShopSell::OnClickMaterial);
+
+	// Setup slot grid for hover-to-select behavior
+	if (ShoppingSlot)
+	{
+		ShoppingSlot->bSelectOnHover = true;
+		ShoppingSlot->OnSelectionChanged.AddDynamic(this, &ThisClass::OnPlayerItemSelected);
+		ShoppingSlot->OnHoverChanged.AddDynamic(this, &ThisClass::OnPlayerItemHovered);
+		ShoppingSlot->OnSlotClicked.AddDynamic(this, &ThisClass::OnShopSlotClicked);
+	}
 
 	OnClickConsumables();
 	if (UWorld* World = GetWorld())
@@ -61,6 +79,13 @@ void UKRShopSell::NativeConstruct()
 
 void UKRShopSell::NativeDestruct()
 {
+	if (ShoppingSlot)
+	{
+		ShoppingSlot->OnSelectionChanged.RemoveAll(this);
+		ShoppingSlot->OnHoverChanged.RemoveAll(this);
+		ShoppingSlot->OnSlotClicked.RemoveAll(this);
+	}
+
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
@@ -81,10 +106,21 @@ void UKRShopSell::FilterSellableItems(const FGameplayTag& FilterTag)
 	RefreshShopInventory();
 }
 
-void UKRShopSell::OnPlayerItemSelected(int32 SelectedIndex)
+void UKRShopSell::OnPlayerItemSelected(int32 SelectedIndex, UKRItemSlotBase* SlotBase)
 {
-
 	UpdateItemDescription(SelectedIndex);
+}
+
+void UKRShopSell::OnPlayerItemHovered(int32 HoveredIndex, UKRItemSlotBase* SlotBase)
+{
+	// Update description when hover changes (hover persists even after mouse leaves)
+	UpdateItemDescription(HoveredIndex);
+}
+
+void UKRShopSell::OnShopSlotClicked()
+{
+	// Clicking a slot triggers the same action as keyboard Select
+	HandleSelect();
 }
 
 void UKRShopSell::UpdateItemDescription(int32 CellIndex)
@@ -137,10 +173,7 @@ void UKRShopSell::HandleSelect()
 
 void UKRShopSell::HandleMoveLeft()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -148,16 +181,12 @@ void UKRShopSell::HandleMoveLeft()
 
 	int32 Next = StepGrid(Current, 0, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnPlayerItemSelected(Next);
+	// OnSelectionChanged delegate will automatically call OnPlayerItemSelected
 }
 
 void UKRShopSell::HandleMoveRight()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -165,16 +194,11 @@ void UKRShopSell::HandleMoveRight()
 
 	int32 Next = StepGrid(Current, 1, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnPlayerItemSelected(Next);
 }
 
 void UKRShopSell::HandleMoveUp()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -182,16 +206,11 @@ void UKRShopSell::HandleMoveUp()
 
 	int32 Next = StepGrid(Current, 2, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnPlayerItemSelected(Next);
 }
 
 void UKRShopSell::HandleMoveDown()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -199,8 +218,6 @@ void UKRShopSell::HandleMoveDown()
 
 	int32 Next = StepGrid(Current, 3, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnPlayerItemSelected(Next);
 }
 
 int32 UKRShopSell::StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int32 NumTotal) const

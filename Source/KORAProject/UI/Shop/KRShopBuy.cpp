@@ -2,6 +2,7 @@
 
 #include "UI/Shop/KRShopBuy.h"
 #include "UI/KRSlotGridBase.h"
+#include "UI/KRItemSlotBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRItemUIData.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
@@ -32,6 +33,14 @@ void UKRShopBuy::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &UKRShopBuy::HandleMoveDown));
 		InputSubsys->BindRow(this, TEXT("Select"), FSimpleDelegate::CreateUObject(this, &UKRShopBuy::HandleSelect));
 	}
+
+	// Set initial selection to first item
+	if (ShoppingSlot && CachedShopItems.Num() > 0)
+	{
+		ShoppingSlot->RebindButtonGroup();
+		ShoppingSlot->SelectIndexSafe(0);
+		UpdateItemDescription(0);
+	}
 }
 
 void UKRShopBuy::NativeOnDeactivated()
@@ -43,6 +52,15 @@ void UKRShopBuy::NativeOnDeactivated()
 void UKRShopBuy::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	// Setup slot grid for hover-to-select behavior
+	if (ShoppingSlot)
+	{
+		ShoppingSlot->bSelectOnHover = true;
+		ShoppingSlot->OnSelectionChanged.AddDynamic(this, &ThisClass::OnShopItemSelected);
+		ShoppingSlot->OnHoverChanged.AddDynamic(this, &ThisClass::OnShopItemHovered);
+		ShoppingSlot->OnSlotClicked.AddDynamic(this, &ThisClass::OnShopSlotClicked);
+	}
 
 	RefreshShopInventory();
 	if (UWorld* World = GetWorld())
@@ -59,6 +77,13 @@ void UKRShopBuy::NativeConstruct()
 
 void UKRShopBuy::NativeDestruct()
 {
+	if (ShoppingSlot)
+	{
+		ShoppingSlot->OnSelectionChanged.RemoveAll(this);
+		ShoppingSlot->OnHoverChanged.RemoveAll(this);
+		ShoppingSlot->OnSlotClicked.RemoveAll(this);
+	}
+
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayMessageSubsystem& Subsys = UGameplayMessageSubsystem::Get(World);
@@ -72,9 +97,21 @@ void UKRShopBuy::NativeDestruct()
 }
 
 
-void UKRShopBuy::OnShopItemSelected(int32 SelectedIndex)
+void UKRShopBuy::OnShopItemSelected(int32 SelectedIndex, UKRItemSlotBase* SlotBase)
 {
 	UpdateItemDescription(SelectedIndex);
+}
+
+void UKRShopBuy::OnShopItemHovered(int32 HoveredIndex, UKRItemSlotBase* SlotBase)
+{
+	// Update description when hover changes (hover persists even after mouse leaves)
+	UpdateItemDescription(HoveredIndex);
+}
+
+void UKRShopBuy::OnShopSlotClicked()
+{
+	// Clicking a slot triggers the same action as keyboard Select
+	HandleSelect();
 }
 
 void UKRShopBuy::UpdateItemDescription(int32 CellIndex)
@@ -169,10 +206,7 @@ void UKRShopBuy::HandleSelect()
 
 void UKRShopBuy::HandleMoveLeft()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -180,16 +214,12 @@ void UKRShopBuy::HandleMoveLeft()
 
 	int32 Next = StepGrid(Current, 0, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnShopItemSelected(Next);
+	// OnSelectionChanged delegate will automatically call OnShopItemSelected
 }
 
 void UKRShopBuy::HandleMoveRight()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -197,16 +227,11 @@ void UKRShopBuy::HandleMoveRight()
 
 	int32 Next = StepGrid(Current, 1, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnShopItemSelected(Next);
 }
 
 void UKRShopBuy::HandleMoveUp()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -214,16 +239,11 @@ void UKRShopBuy::HandleMoveUp()
 
 	int32 Next = StepGrid(Current, 2, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnShopItemSelected(Next);
 }
 
 void UKRShopBuy::HandleMoveDown()
 {
-	if (!ShoppingSlot)
-	{
-		return;
-	}
+	if (!ShoppingSlot) return;
 
 	int32 Current = ShoppingSlot->GetSelectedIndex();
 	int32 Columns = ShoppingSlot->GetColumnCount();
@@ -231,8 +251,6 @@ void UKRShopBuy::HandleMoveDown()
 
 	int32 Next = StepGrid(Current, 3, Columns, Total);
 	ShoppingSlot->SelectIndexSafe(Next);
-
-	OnShopItemSelected(Next);
 }
 
 int32 UKRShopBuy::StepGrid(int32 Current, int32 DirIndex, int32 NumColumns, int32 NumTotal) const

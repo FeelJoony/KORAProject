@@ -10,6 +10,7 @@
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonUserWidget;
+class UKRItemSlotBase;
 struct FKRItemUIData;
 
 UCLASS()
@@ -29,7 +30,9 @@ protected:
 	virtual void NativeDestruct() override;
 
 private:
-	void OnShopItemSelected(int32 SelectedIndex);
+	UFUNCTION() void OnShopItemSelected(int32 SelectedIndex, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnShopItemHovered(int32 HoveredIndex, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnShopSlotClicked();
 	void UpdateItemDescription(int32 CellIndex);
 
 	void HandleSelect();
