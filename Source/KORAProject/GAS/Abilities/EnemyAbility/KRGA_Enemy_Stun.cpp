@@ -2,11 +2,15 @@
 #include "GAS/KRAbilitySystemComponent.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AI/KREnemyPawn.h"
+#include "Components/StateTreeAIComponent.h"
+#include "GameplayTag/KRAbilityTag.h"
+#include "GameplayTag/KRStateTag.h"
 
 void UKRGA_Enemy_Stun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
-										const FGameplayAbilityActorInfo* ActorInfo, 
-										const FGameplayAbilityActivationInfo ActivationInfo, 
-										const FGameplayEventData* TriggerEventData)
+                                       const FGameplayAbilityActorInfo* ActorInfo, 
+                                       const FGameplayAbilityActivationInfo ActivationInfo, 
+                                       const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
@@ -27,6 +31,18 @@ void UKRGA_Enemy_Stun::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 		ActivationStun();
 	}
+
+	if (AActor* OwnerActor = ActorInfo->OwnerActor.Get())
+	{
+		if (AKREnemyPawn* EnemyPawn = Cast<AKREnemyPawn>(OwnerActor))
+		{
+			EnemyPawn->HasCC();
+			if (UStateTreeAIComponent* StateTreeAIComponent = EnemyPawn->GetComponentByClass<UStateTreeAIComponent>())
+			{
+				StateTreeAIComponent->SendStateTreeEvent(KRTAG_STATE_HASCC_STUN);
+			}
+		}
+	}
 }
 
 void UKRGA_Enemy_Stun::EndAbility(const FGameplayAbilitySpecHandle Handle, 
@@ -34,6 +50,14 @@ void UKRGA_Enemy_Stun::EndAbility(const FGameplayAbilitySpecHandle Handle,
 									const FGameplayAbilityActivationInfo ActivationInfo, 
 									bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (AActor* OwnerActor = ActorInfo->OwnerActor.Get())
+	{
+		if (AKREnemyPawn* EnemyPawn = Cast<AKREnemyPawn>(OwnerActor))
+		{
+			EnemyPawn->EndCC();
+		}
+	}
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
