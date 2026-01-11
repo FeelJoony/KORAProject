@@ -1,5 +1,6 @@
 #include "Camera/KRCameraMode_ThirdPerson.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "Components/PrimitiveComponent.h"
 #include "Engine/Canvas.h"
@@ -20,7 +21,7 @@ UKRCameraMode_ThirdPerson::UKRCameraMode_ThirdPerson()
 
 void UKRCameraMode_ThirdPerson::UpdateView(float DeltaTime)
 {
-	FVector PivotLocation = GetPivotLocation(); 
+	FVector PivotLocation = GetPivotLocation();
 	FRotator PivotRotation = GetPivotRotation();
 
 	PivotRotation.Pitch = FMath::ClampAngle(PivotRotation.Pitch, ViewPitchMin, ViewPitchMax);
@@ -29,13 +30,30 @@ void UKRCameraMode_ThirdPerson::UpdateView(float DeltaTime)
 	View.Rotation = PivotRotation;
 	View.ControlRotation = View.Rotation;
 	View.FieldOfView = FieldOfView;
-	
+
 	if (TargetOffsetCurve)
 	{
 		const FVector TargetOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
 		View.Location = PivotLocation + PivotRotation.RotateVector(TargetOffset);
 	}
-	
+
+	// 급격한 이동 감지 (넉백 대응)
+	if (bSkipInterpolationOnRapidMovement)
+	{
+		if (const AActor* TargetActor = GetTargetActor())
+		{
+			if (const ACharacter* Character = Cast<ACharacter>(TargetActor))
+			{
+				const float Speed = Character->GetVelocity().Size();
+				if (Speed > RapidMovementSpeedThreshold)
+				{
+					// 급격한 이동 시 보간 스킵 - 카메라가 즉시 따라가도록
+					AimLineToDesiredPosBlockedPct = 1.0f;
+				}
+			}
+		}
+	}
+
 	UpdatePreventPenetration(DeltaTime);
 }
 
@@ -187,10 +205,28 @@ void UKRCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const& Vie
 	}
 
 	DistBlockedPct = FMath::Clamp<float>(DistBlockedPct, 0.f, 1.f);
-	
+
 	if (DistBlockedPct < (1.f - KINDA_SMALL_NUMBER))
 	{
 		CameraLoc = SafeLoc + (CameraLoc - SafeLoc) * DistBlockedPct;
+	}
+
+	// 최소 카메라 거리 보장 (캐릭터 내부 침투 방지)
+	if (MinCameraDistance > 0.f)
+	{
+		const float CurrentDistance = FVector::Dist(SafeLoc, CameraLoc);
+		if (CurrentDistance < MinCameraDistance)
+		{
+			FVector Direction = (CameraLoc - SafeLoc).GetSafeNormal();
+			if (Direction.IsNearlyZero())
+			{
+				// 방향이 없으면 카메라 회전 기준 뒤쪽으로
+				Direction = -View.Rotation.Vector();
+				Direction.Z = 0.f;
+				Direction.Normalize();
+			}
+			CameraLoc = SafeLoc + Direction * MinCameraDistance;
+		}
 	}
 }
 

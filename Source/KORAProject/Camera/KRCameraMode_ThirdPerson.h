@@ -58,7 +58,7 @@ public:
 	float PenetrationBlendInTime = 0.1f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
-	float PenetrationBlendOutTime = 0.15f;
+	float PenetrationBlendOutTime = 0.08f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
 	bool bPreventPenetration = true;
@@ -68,6 +68,18 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
 	float CollisionPushOutDistance = 2.0f;
+
+	/** 카메라와 SafeLocation 사이의 최소 거리 (캐릭터 내부 침투 방지) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
+	float MinCameraDistance = 80.0f;
+
+	/** 급격한 이동 감지 시 보간 스킵 여부 (넉백 대응) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
+	bool bSkipInterpolationOnRapidMovement = true;
+
+	/** 급격한 이동으로 판단하는 속도 임계값 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision", meta = (EditCondition = "bSkipInterpolationOnRapidMovement"))
+	float RapidMovementSpeedThreshold = 800.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
 	float ReportPenetrationPercent = 0.0f;
