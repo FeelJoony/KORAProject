@@ -26,8 +26,6 @@ void UKRGameplayAbility_AttackBase::IncrementCombo()
 	{
 		CurrentComboIndex = 0;
 	}
-
-	Debug::Print("[AttackBase] Combo Incremented: " + FString::FromInt(CurrentComboIndex), FColor::Green);
 }
 
 void UKRGameplayAbility_AttackBase::ResetCombo()
