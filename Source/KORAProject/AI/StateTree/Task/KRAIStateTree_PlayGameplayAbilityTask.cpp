@@ -8,6 +8,7 @@ UKRAIStateTree_PlayGameplayAbilityTask::UKRAIStateTree_PlayGameplayAbilityTask(c
 	: Super(ObjectInitializer)
 {
 	ActivateSpec = nullptr;
+	ActivateType = EKRAI_PlayGameplayAbilityTaskActivateType::SingleUse; 
 }
 
 EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
@@ -15,7 +16,7 @@ EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::EnterState(FStateTre
 	if (UAbilitySystemComponent* ASC = Actor->GetAbilitySystemComponent())
 	{
 		ActivateSpec = ASC->FindAbilitySpecFromClass(AbilityClass);
-		if (!ASC->TryActivateAbility(ActivateSpec->Handle))
+		if (!ActivateSpec || !ASC->TryActivateAbility(ActivateSpec->Handle))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed to activate ability"));
 			
@@ -34,6 +35,15 @@ EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::EnterState(FStateTre
 		// 		}
 		// 	}
 		// }
+
+		if (ActivateType == EKRAI_PlayGameplayAbilityTaskActivateType::SingleUse)
+		{
+			ActivateSpec->Ability->K2_CancelAbility();
+
+			FinishTask();
+			
+			return EStateTreeRunStatus::Succeeded;
+		}
 	}
 	
 	return EStateTreeRunStatus::Running;
@@ -42,6 +52,11 @@ EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::EnterState(FStateTre
 EStateTreeRunStatus UKRAIStateTree_PlayGameplayAbilityTask::Tick(FStateTreeExecutionContext& Context,
 	const float DeltaTime)
 {
+	if (ActivateType == EKRAI_PlayGameplayAbilityTaskActivateType::SingleUse)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+	
 	if (ActivateSpec && ActivateSpec->IsActive())
 	{
 		return EStateTreeRunStatus::Running;

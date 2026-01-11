@@ -30,35 +30,32 @@ void UKRGA_EnemyPlayMontage::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	CurrentSectionIndex = 0;
 	NumSections = SectionNames.Num();
 	
-	if (MontageToPlay != nullptr && AnimInstance != nullptr && AnimInstance->GetActiveMontageInstance() == nullptr)
+	if (MontageToPlay != nullptr && AnimInstance != nullptr)
 	{
-		TArray<const UGameplayEffect*> Effects;
-		GetGameplayEffectsWhileAnimating(Effects);
-		if (Effects.Num() > 0)
+		if (!bBlockPlayOtherMontage || (bBlockPlayOtherMontage && AnimInstance->GetActiveMontageInstance() == nullptr))
 		{
-			UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
-			for (const UGameplayEffect* Effect : Effects)
+			TArray<const UGameplayEffect*> Effects;
+			GetGameplayEffectsWhileAnimating(Effects);
+			if (Effects.Num() > 0)
 			{
-				FActiveGameplayEffectHandle EffectHandle = AbilitySystemComponent->ApplyGameplayEffectToSelf(Effect, 1.f, MakeEffectContext(Handle, ActorInfo));
-				if (EffectHandle.IsValid())
+				UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+				for (const UGameplayEffect* Effect : Effects)
 				{
-					AppliedEffects.Add(EffectHandle);
+					FActiveGameplayEffectHandle EffectHandle = AbilitySystemComponent->ApplyGameplayEffectToSelf(Effect, 1.f, MakeEffectContext(Handle, ActorInfo));
+					if (EffectHandle.IsValid())
+					{
+						AppliedEffects.Add(EffectHandle);
+					}
 				}
 			}
+
+			if (SectionNames.IsEmpty())
+			{
+				SectionNames.Add(NAME_None);
+			}
+
+			PlayNextSection();	
 		}
-
-		if (SectionNames.IsEmpty())
-		{
-			SectionNames.Add(NAME_None);
-		}
-
-		PlayNextSection();
-		
-		//float const Duration = AnimInstance->Montage_Play(MontageToPlay, PlayRates[CurrentSectionIndex]);
-
-		// FOnMontageEnded EndDelegate;
-		// EndDelegate.BindUObject(this, &UKRGA_EnemyPlayMontage::OnMontageEnded, ActorInfo->AbilitySystemComponent, AppliedEffects);
-		// AnimInstance->Montage_SetEndDelegate(EndDelegate);
 	}
 
 	if (ActorInfo->OwnerActor.IsValid())

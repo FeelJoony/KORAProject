@@ -62,6 +62,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Output)
 	float EnterRageHealthPercent = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Output)
+	bool bIsDuringCC = false;
 	
 private:
 	void SetDefaultValues();

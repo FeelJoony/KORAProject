@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
 	TArray<TSubclassOf<UGameplayEffect>> GameplayEffectClassesWhileAnimating;
 
+	UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
+	bool bBlockPlayOtherMontage = false;
+
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted, TWeakObjectPtr<UAbilitySystemComponent> AbilitySystemComponent);
 
 	void GetGameplayEffectsWhileAnimating(TArray<const UGameplayEffect*>& OutEffects) const;

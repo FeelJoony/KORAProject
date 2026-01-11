@@ -4,6 +4,13 @@
 #include "KRAIStateTreeTaskBase.h"
 #include "KRAIStateTree_PlayGameplayAbilityTask.generated.h"
 
+UENUM(BlueprintType)
+enum class EKRAI_PlayGameplayAbilityTaskActivateType : uint8
+{
+	SingleUse	UMETA(DisplayName = "Single Use"),
+	Continuous	UMETA(DisplayName = "Continuous")
+};
+
 UCLASS(Category = "KRAI", meta = (DisplayName = "Play Enemy GameplayAbility", ToolTip = "A task that play enemy GameplayAbility", Keywords = "Ability, Task, AI, KRAI"))
 class KORAPROJECT_API UKRAIStateTree_PlayGameplayAbilityTask : public UKRAIStateTreeTaskBase
 {
@@ -28,6 +35,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Parameter", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UGameplayAbility> AbilityClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Parameter", meta = (AllowPrivateAccess = "true"))
+	EKRAI_PlayGameplayAbilityTaskActivateType ActivateType;
 
 	struct FGameplayAbilitySpec* ActivateSpec = nullptr;
 };

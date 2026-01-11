@@ -46,6 +46,7 @@ void UKRAIStateTree_EnemyEvaluator::Tick(FStateTreeExecutionContext& Context, co
 			bool bFoundRageStatus = false;
 			EnterRageHealthPercent = ASC->GetGameplayAttributeValue(UKREnemyAttributeSet::GetEnterRageStatusRateAttribute(), bFoundRageStatus);
 			bIsRageStatus = Actor->IsRage();
+			bIsDuringCC = Actor->IsDuringCC();
 			
 			if (bFound && CurrentHealth <= 0.f)
 			{

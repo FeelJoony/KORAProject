@@ -32,11 +32,6 @@ void UKRAIStateTree_PlayerEvaluator::TreeStart(FStateTreeExecutionContext& Conte
 void UKRAIStateTree_PlayerEvaluator::Tick(FStateTreeExecutionContext& Context, const float DeltaTime)
 {
 	PlayerActor = AIController->TargetActor;
-	if (PlayerActor == nullptr)
-	{
-		
-	}
-	
 	if (!PlayerActor)
 	{
 		SetDefaultValues();
