@@ -23,6 +23,7 @@
 #include "Data/CitizenDataStruct.h"
 #include "Data/EnemyAttributeDataStruct.h"
 #include "Data/EnemyDataStruct.h"
+#include "Data/EnemyDropDataStruct.h"
 #include "Data/DialogueDataStruct.h"
 #include "Data/GameDataType.h"
 #include "Data/LevelTransitionDataStruct.h"
@@ -1084,7 +1085,83 @@ void UTableRowConvertFunctionContainer::CreateEnemyAttributeData(class UDataTabl
 		}));
 }
 
-#pragma endregion 
+#pragma endregion
+
+#pragma region EnemyDropDataFunction
+
+void UTableRowConvertFunctionContainer::CreateEnemyDropData(class UDataTable* OutDataTable, const FString& InCSVString)
+{
+	CreateData(InCSVString, FString(TEXT("EnemyDropData")), FParseMethod::CreateLambda([&](FParseMethodParams Params)
+		{
+			auto& Headers = const_cast<TMap<FName, int32>&>(Params.Headers);
+			auto& Values = const_cast<TArray<TArray<FString>>&>(Params.Values);
+
+			for (int32 i = 0; i < Values.Num(); i++)
+			{
+				TArray<FString>& RowValue = Values[i];
+
+				int32 EnemyTag_Index = GetHeaderIndex(Headers, TEXT("EnemyTag"));
+				int32 GearingMin_Index = GetHeaderIndex(Headers, TEXT("GearingMin"));
+				int32 GearingMax_Index = GetHeaderIndex(Headers, TEXT("GearingMax"));
+				int32 CorbyteChanceMin_Index = GetHeaderIndex(Headers, TEXT("CorbyteChanceMin"));
+				int32 CorbyteChanceMax_Index = GetHeaderIndex(Headers, TEXT("CorbyteChanceMax"));
+				int32 CorbyteAmount_Index = GetHeaderIndex(Headers, TEXT("CorbyteAmount"));
+				int32 GuaranteedItemCount_Index = GetHeaderIndex(Headers, TEXT("GuaranteedItemCount"));
+				int32 CommonChance_Index = GetHeaderIndex(Headers, TEXT("CommonChance"));
+				int32 UncommonChance_Index = GetHeaderIndex(Headers, TEXT("UncommonChance"));
+				int32 RareChance_Index = GetHeaderIndex(Headers, TEXT("RareChance"));
+				int32 DroppableItems_Index = GetHeaderIndex(Headers, TEXT("DroppableItems"));
+
+				FEnemyDropDataStruct EnemyDropData;
+
+				EnemyDropData.EnemyTag = ParseGameplayTagValue(RowValue[EnemyTag_Index]);
+				EnemyDropData.GearingMin = ParseIntValue(RowValue[GearingMin_Index]);
+				EnemyDropData.GearingMax = ParseIntValue(RowValue[GearingMax_Index]);
+				EnemyDropData.CorbyteChanceMin = ParseFloatValue(RowValue[CorbyteChanceMin_Index]);
+				EnemyDropData.CorbyteChanceMax = ParseFloatValue(RowValue[CorbyteChanceMax_Index]);
+				EnemyDropData.CorbyteAmount = ParseIntValue(RowValue[CorbyteAmount_Index]);
+				EnemyDropData.GuaranteedItemCount = ParseIntValue(RowValue[GuaranteedItemCount_Index]);
+				EnemyDropData.CommonChance = ParseFloatValue(RowValue[CommonChance_Index]);
+				EnemyDropData.UncommonChance = ParseFloatValue(RowValue[UncommonChance_Index]);
+				EnemyDropData.RareChance = ParseFloatValue(RowValue[RareChance_Index]);
+
+				if (DroppableItems_Index != INDEX_NONE && RowValue.IsValidIndex(DroppableItems_Index))
+				{
+					TArray<FString> ItemEntries = ParseArrayValue(RowValue[DroppableItems_Index]);
+					for (const FString& ItemEntry : ItemEntries)
+					{
+						TArray<FString> ItemParts;
+						ItemEntry.ParseIntoArray(ItemParts, TEXT(":"));
+
+						if (ItemParts.Num() >= 1)
+						{
+							FDropItemEntry DropEntry;
+							DropEntry.ItemTag = ParseGameplayTagValue(ItemParts[0]);
+							DropEntry.MinCount = ItemParts.Num() > 1 ? ParseIntValue(ItemParts[1]) : 1;
+							DropEntry.MaxCount = ItemParts.Num() > 2 ? ParseIntValue(ItemParts[2]) : DropEntry.MinCount;
+
+							if (DropEntry.ItemTag.IsValid())
+							{
+								EnemyDropData.DroppableItems.Add(DropEntry);
+							}
+						}
+					}
+				}
+
+				FName RowName = *FString::Printf(TEXT("EnemyDrop_%d"), i);
+				if (FEnemyDropDataStruct* FindRow = OutDataTable->FindRow<FEnemyDropDataStruct>(RowName, TEXT("")))
+				{
+					*FindRow = EnemyDropData;
+				}
+				else
+				{
+					OutDataTable->AddRow(RowName, EnemyDropData);
+				}
+			}
+		}));
+}
+
+#pragma endregion
 
 #pragma region LevelTransitionDataFunction
 void UTableRowConvertFunctionContainer::CreateLevelTransitionData(UDataTable* OutDataTable, const FString& InCSVString)

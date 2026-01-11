@@ -1,0 +1,8 @@
+EnemyTag,GearingMin,GearingMax,CorbyteChanceMin,CorbyteChanceMax,CorbyteAmount,GuaranteedItemCount,CommonChance,UncommonChance,RareChance,DroppableItems
+Enemy.Type.Human.Melee,60,80,6,6,1,1,80,18,2,ItemType.Material.Human.WornKnuckle:1:1|ItemType.Material.Human.TornUniform:1:1|ItemType.Material.Human.SpentBrass:1:1|ItemType.Material.Human.RustedBadge:1:1|ItemType.Material.Human.DamagedScope:1:1|ItemType.Material.Human.EncryptedChip:1:1|ItemType.Material.Human.BloodstainedNote:1:1
+Enemy.Type.Human.Ranged,65,85,8,8,1,1,75,20,5,ItemType.Material.Human.WornKnuckle:1:1|ItemType.Material.Human.TornUniform:1:1|ItemType.Material.Human.SpentBrass:1:1|ItemType.Material.Human.RustedBadge:1:1|ItemType.Material.Human.DamagedScope:1:1|ItemType.Material.Human.EncryptedChip:1:1|ItemType.Material.Human.BloodstainedNote:1:1
+Enemy.Type.FerroLoader,10,20,6,8,1,1,80,20,0,ItemType.Material.Ferro.ChippedSickle:1:1|ItemType.Material.Ferro.RatmailPlate:1:1
+Enemy.Type.Arbid,10,20,6,10,1,1,80,20,0,ItemType.Material.Arbid.WebSpool:1:1|ItemType.Material.Arbid.EyeCluster:1:1
+Enemy.Type.SpinderBreed,20,30,15,22,1,1,70,25,5,ItemType.Material.Spinder.VenomFang:1:1|ItemType.Material.Spinder.ChitinPlate:1:1|ItemType.Material.Spinder.CompoundLens:1:1
+Enemy.Type.Nerras,30,50,25,35,1,2,40,45,15,ItemType.Material.Nerras.DualBladeFrag:1:2|ItemType.Material.Nerras.ExoPlating:1:1
+Enemy.Type.MainBoss,140,220,20,35,1,1,0,0,100,ItemType.Material.Human.EncryptedChip:1:1
