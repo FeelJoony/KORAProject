@@ -11,7 +11,6 @@
 #include "GameplayTag/KRSetByCallerTag.h"
 #include "Kismet/GameplayStatics.h"
 #include "GAS/Abilities/Tasks/KRAbilityTask_WaitTick.h"
-#include "DrawDebugHelpers.h"
 #include "Characters/KRHeroCharacter.h"
 
 UKRGA_EnemyBackstepAttack::UKRGA_EnemyBackstepAttack(const FObjectInitializer& ObjectInitializer)
@@ -294,14 +293,6 @@ void UKRGA_EnemyBackstepAttack::PerformHitCheck()
 	const FVector Origin = AvatarActor->GetActorLocation();
 	const FVector Forward = AvatarActor->GetActorForwardVector();
 	const FVector SphereCenter = Origin + Forward * HitCheckForwardOffset;
-
-#if ENABLE_DRAW_DEBUG
-	DrawDebugSphere(World, SphereCenter, HitCheckSphereRadius, 16, FColor::Red, false, 2.0f);
-	if (CachedPlayerActor.IsValid())
-	{
-		DrawDebugSphere(World, CachedPlayerActor->GetActorLocation(), 50.0f, 12, FColor::Green, false, 2.0f);
-	}
-#endif
 
 	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams QueryParams;
