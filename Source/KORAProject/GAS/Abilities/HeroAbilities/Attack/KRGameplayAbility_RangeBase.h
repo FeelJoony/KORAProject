@@ -16,6 +16,8 @@ class KORAPROJECT_API UKRGameplayAbility_RangeBase : public UKRGameplayAbility_A
 public:
 	UKRGameplayAbility_RangeBase(const FObjectInitializer& ObjectInitializer);
 
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	
 protected:
 	UFUNCTION(BlueprintCallable, Category = "KR|Combat")
 	FRotator GetFinalAimRotation(float InMaxRange) const;
@@ -41,4 +43,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Cost")
 	TSubclassOf<UGameplayEffect> AmmoCostEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "KR|Cost")
+	float AttackStaminaCost = 5.0f;
 };

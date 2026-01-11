@@ -11,6 +11,7 @@ class UUniformGridPanel;
 class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
+class UKRItemSlotBase;
 
 UCLASS()
 class KORAPROJECT_API UKRInventoryMain : public UCommonActivatableWidget
@@ -34,17 +35,22 @@ protected:
 
 private:
 	TArray<FKRItemUIData> CachedUIData;
+	FGameplayTag CurrentFilterTag;
+	FTimerHandle DescriptionUpdateTimerHandle;
 
 	UFUNCTION() void OnClickConsumables();
 	UFUNCTION() void OnClickMaterial();
 	UFUNCTION() void OnClickQuest();
 
-	UFUNCTION() void OnGridSlotSelected(int32 CellIndex);
+	UFUNCTION() void OnGridSlotSelected(int32 CellIndex, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnGridSlotHovered(int32 CellIndex, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnGridSlotClicked();
 
 	void FilterAndCacheItems(const FGameplayTag& FilterTag);
 	void RebuildInventoryUI(const FGameplayTag& FilterTag);
 	void BindInventoryEvents();
 	void UpdateDescriptionUI(int32 CellIndex);
+	void DelayedInitialDescriptionUpdate();
 
 	void HandleMoveLeft();
 	void HandleMoveRight();

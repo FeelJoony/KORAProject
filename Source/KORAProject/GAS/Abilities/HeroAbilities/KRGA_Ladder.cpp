@@ -122,8 +122,6 @@ void UKRGA_Ladder::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 					OrangeCirclePos, 
 					FaceLadderRot
 				);
-            
-				DrawDebugSphere(GetWorld(), OrangeCirclePos, 15.f, 12, FColor::Blue, false, 5.f);
 			}
 		}
 		
@@ -269,8 +267,6 @@ void UKRGA_Ladder::OnReachedTop(FGameplayEventData Payload)
                         LandLocation, 
                         LandRotation
                     );
-                	
-                    DrawDebugSphere(GetWorld(), LandLocation, 15.f, 12, FColor::Green, false, 5.f);
                 }
             }
         }

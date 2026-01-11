@@ -5,16 +5,12 @@
 #include "UI/KRSlotGridBase.h"
 #include "UI/KRItemDescriptionBase.h"
 #include "UI/Data/KRUIAdapterLibrary.h"
-#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 #include "SubSystem/KRUIInputSubsystem.h"
-#include "SubSystem/KRInventorySubsystem.h"
-#include "SubSystem/KRUIRouterSubsystem.h"
 
 #include "CommonButtonBase.h"
 #include "GameplayTag/KRItemTypeTag.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
 
 void UKRInventoryMain::NativeOnActivated()
 {
@@ -29,6 +25,7 @@ void UKRInventoryMain::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveUp));
 		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveDown));
 	}
+	RebuildInventoryUI(KRTAG_ITEMTYPE_CONSUME);
 }
 
 void UKRInventoryMain::NativeOnDeactivated()
@@ -50,18 +47,32 @@ void UKRInventoryMain::NativeConstruct()
 
 	if (InventorySlot)
 	{
-		//InventorySlot->OnSlotSelected.AddDynamic(this, &UKRInventoryMain::OnGridSlotSelected);
+		InventorySlot->bSelectOnHover = true;
+		InventorySlot->OnSelectionChanged.AddDynamic(this, &ThisClass::OnGridSlotSelected);
+		InventorySlot->OnHoverChanged.AddDynamic(this, &ThisClass::OnGridSlotHovered);
+		InventorySlot->OnSlotClicked.AddDynamic(this, &ThisClass::OnGridSlotClicked);
 	}
 
-	//BindInventoryEvents();
 	OnClickConsumables();
 }
 
 void UKRInventoryMain::NativeDestruct()
 {
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(DescriptionUpdateTimerHandle);
+	}
+
 	if (ConsumablesButton) ConsumablesButton->OnClicked().RemoveAll(this);
 	if (MaterialButton)    MaterialButton->OnClicked().RemoveAll(this);
 	if (QuestButton)       QuestButton->OnClicked().RemoveAll(this);
+
+	if (InventorySlot)
+	{
+		InventorySlot->OnSelectionChanged.RemoveAll(this);
+		InventorySlot->OnHoverChanged.RemoveAll(this);
+		InventorySlot->OnSlotClicked.RemoveAll(this);
+	}
 
 	Super::NativeDestruct();
 }
@@ -70,9 +81,19 @@ void UKRInventoryMain::OnClickConsumables() { RebuildInventoryUI(KRTAG_ITEMTYPE_
 void UKRInventoryMain::OnClickMaterial() { RebuildInventoryUI(KRTAG_ITEMTYPE_MATERIAL); }
 void UKRInventoryMain::OnClickQuest() { RebuildInventoryUI(KRTAG_ITEMTYPE_QUEST); }
 
-void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex)
+void UKRInventoryMain::OnGridSlotSelected(int32 CellIndex, UKRItemSlotBase* SlotBase)
 {
 	UpdateDescriptionUI(CellIndex);
+}
+
+void UKRInventoryMain::OnGridSlotHovered(int32 CellIndex, UKRItemSlotBase* SlotBase)
+{
+	UpdateDescriptionUI(CellIndex);
+}
+
+void UKRInventoryMain::OnGridSlotClicked()
+{
+	HandleSelect();
 }
 
 void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
@@ -82,6 +103,7 @@ void UKRInventoryMain::FilterAndCacheItems(const FGameplayTag& FilterTag)
 
 void UKRInventoryMain::RebuildInventoryUI(const FGameplayTag& FilterTag)
 {
+	CurrentFilterTag = FilterTag;
 	FilterAndCacheItems(FilterTag);
 
 	if (InventorySlot)
@@ -90,12 +112,32 @@ void UKRInventoryMain::RebuildInventoryUI(const FGameplayTag& FilterTag)
 
 		if (CachedUIData.Num() > 0)
 		{
-			UpdateDescriptionUI(0);
+			InventorySlot->RebindButtonGroup();
+			InventorySlot->SelectIndexSafe(0);
 		}
-		else
+		if (UWorld* World = GetWorld())
 		{
-			UpdateDescriptionUI(INDEX_NONE);
+			World->GetTimerManager().ClearTimer(DescriptionUpdateTimerHandle);
+			World->GetTimerManager().SetTimer(
+				DescriptionUpdateTimerHandle,
+				this,
+				&UKRInventoryMain::DelayedInitialDescriptionUpdate,
+				0.01f,
+				false
+			);
 		}
+	}
+}
+
+void UKRInventoryMain::DelayedInitialDescriptionUpdate()
+{
+	if (CachedUIData.Num() > 0)
+	{
+		UpdateDescriptionUI(0);
+	}
+	else
+	{
+		UpdateDescriptionUI(INDEX_NONE);
 	}
 }
 
@@ -140,7 +182,6 @@ void UKRInventoryMain::HandleMoveInternal(uint8 DirIdx)
 	{
 		InventorySlot->SelectIndexSafe(Next);
 		if (UWidget* W = InventorySlot->GetSelectedWidget()) W->SetFocus();
-		UpdateDescriptionUI(Next);
 	}
 }
 

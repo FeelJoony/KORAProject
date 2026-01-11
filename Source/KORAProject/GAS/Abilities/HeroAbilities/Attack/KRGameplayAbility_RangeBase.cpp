@@ -5,14 +5,32 @@
 #include "GAS/Abilities/HeroAbilities/KRGA_LockOn.h"
 #include "Characters/KRHeroCharacter.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayTag/KRAbilityTag.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GameplayTag/KRCombatTag.h"
-#include "GameplayTag/KRItemTypeTag.h"
 
 UKRGameplayAbility_RangeBase::UKRGameplayAbility_RangeBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	FireTag = KRTAG_COMBAT_GUN_FIRE;
+}
+
+bool UKRGameplayAbility_RangeBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+	
+	if (const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
+	{
+		if (ASC->HasMatchingGameplayTag(KRTAG_ABILITY_WEAPON_RELOAD))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 FRotator UKRGameplayAbility_RangeBase::GetFinalAimRotation(float InMaxRange) const
