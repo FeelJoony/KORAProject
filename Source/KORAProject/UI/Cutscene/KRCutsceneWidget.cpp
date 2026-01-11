@@ -7,6 +7,8 @@
 #include "MediaSoundComponent.h"
 #include "Styling/SlateBrush.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 
 void UKRCutsceneWidget::NativeOnInitialized()
 {
@@ -46,13 +48,16 @@ void UKRCutsceneWidget::NativeConstruct()
 
 	if (UWorld* World = GetWorld())
 	{
-		if (AActor* OwnerActor = World->GetFirstPlayerController())
+		if (APlayerController* PC = World->GetFirstPlayerController())
 		{
-			MediaSoundComponent = NewObject<UMediaSoundComponent>(OwnerActor);
-			if (MediaSoundComponent)
+			if (APawn* Pawn = PC->GetPawn())
 			{
-				MediaSoundComponent->RegisterComponent();
-				MediaSoundComponent->SetMediaPlayer(MediaPlayer);
+				MediaSoundComponent = NewObject<UMediaSoundComponent>(Pawn);
+				if (MediaSoundComponent)
+				{
+					MediaSoundComponent->RegisterComponent();
+					MediaSoundComponent->SetMediaPlayer(MediaPlayer);
+				}
 			}
 		}
 	}
@@ -71,7 +76,11 @@ void UKRCutsceneWidget::NativeDestruct()
 
 	if (MediaSoundComponent)
 	{
-		MediaSoundComponent->DestroyComponent();
+		MediaSoundComponent->SetMediaPlayer(nullptr);
+		if (MediaSoundComponent->IsRegistered())
+		{
+			MediaSoundComponent->UnregisterComponent();
+		}
 		MediaSoundComponent = nullptr;
 	}
 
