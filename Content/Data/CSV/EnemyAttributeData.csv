@@ -4,4 +4,4 @@ Enemy.Type.Arbid,100,12,0,1,1,1,150,0
 Enemy.Type.SpinderBreed,100,10,10,2,1,1,150,0
 Enemy.Type.Human.Melee,100,18,15,1.1,1,1,150,0
 Enemy.Type.Nerras,1000,20,5,1.1,1,1,150,0.5
-Enemy.Type.MainBoss,15000,50,30,3,1,1,150,0
+Enemy.Type.MainBoss,2500,25,20,3,1,1,150,0
