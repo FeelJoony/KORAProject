@@ -16,8 +16,10 @@
 #include "KRWorldSettings.h"
 #include "Game/KRGameInstance.h"
 #include "SubSystem/KRLoadingSubsystem.h"
+#include "SubSystem/KRMapTravelSubsystem.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
+#include "Engine/LevelStreaming.h"
 
 AKRBaseGameMode::AKRBaseGameMode()
 {
@@ -187,15 +189,21 @@ bool AKRBaseGameMode::IsExperienceLoaded() const
 void AKRBaseGameMode::OnExperienceLoaded(const UKRExperienceDefinition* CurrentExperience)
 {
 	RegisterDataAssets();
-
-	// 리스폰 또는 레벨 로드 완료 시 로딩 화면 숨기기
-	// if (GEngine)
-	// {
-	// 	if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
-	// 	{
-	// 		LoadingSys->HideLoadingScreen();
-	// 	}
-	// }
+	
+	if (GEngine)
+	{
+		if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
+		{
+			if (LoadingSys->IsLoadingScreenVisible())
+			{
+				UKRMapTravelSubsystem* MapTravelSys = GetGameInstance()->GetSubsystem<UKRMapTravelSubsystem>();
+				if (!MapTravelSys || !MapTravelSys->IsHandlingTransition())
+				{
+					WaitAndHideLoadingScreen();
+				}
+			}
+		}
+	}
 
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 	{
@@ -316,4 +324,53 @@ void AKRBaseGameMode::RestartPlayer(AController* NewPlayer)
 
 	// 체크포인트가 없으면 기본 동작 (PlayerStart 사용)
 	Super::RestartPlayer(NewPlayer);
+}
+
+void AKRBaseGameMode::WaitAndHideLoadingScreen()
+{
+	CheckStreamingAndHideLoading();
+}
+
+void AKRBaseGameMode::CheckStreamingAndHideLoading()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	
+	if (IsAsyncLoading())
+	{
+		World->GetTimerManager().SetTimer(
+			LoadingHideTimerHandle,
+			this,
+			&ThisClass::CheckStreamingAndHideLoading,
+			0.1f,
+			false
+		);
+		return;
+	}
+	
+	for (ULevelStreaming* StreamingLevel : World->GetStreamingLevels())
+	{
+		if (StreamingLevel && StreamingLevel->ShouldBeVisible() && !StreamingLevel->IsLevelVisible())
+		{
+			World->GetTimerManager().SetTimer(
+				LoadingHideTimerHandle,
+				this,
+				&ThisClass::CheckStreamingAndHideLoading,
+				0.1f,
+				false
+			);
+			return;
+		}
+	}
+	
+	if (GEngine)
+	{
+		if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
+		{
+			LoadingSys->HideLoadingScreen();
+		}
+	}
 }

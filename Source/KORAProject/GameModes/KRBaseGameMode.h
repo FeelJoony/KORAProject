@@ -55,4 +55,9 @@ protected:
 private:
 	FTimerHandle RespawnTimerHandle;
 	TWeakObjectPtr<AController> PendingRespawnController;
+
+	// 리스폰 시 로딩 화면 처리
+	void WaitAndHideLoadingScreen();
+	void CheckStreamingAndHideLoading();
+	FTimerHandle LoadingHideTimerHandle;
 };
