@@ -342,7 +342,20 @@ void UKRGA_LockOn::UpdateTargetRotation(float DeltaTime)
 		FRotator CurrentRot = PC->GetControlRotation();
 		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRot, DeltaTime, RotationInterpSpeed);
 
-		NewRot.Pitch = FMath::ClampAngle(NewRot.Pitch, -60.f, 30.f);
+		// 거리 기반 Pitch 제한
+		float MinPitch = -60.f;
+		if (bLimitPitchAtCloseRange)
+		{
+			const float DistanceToTarget = FVector::Dist(AvatarActor->GetActorLocation(), TargetLoc);
+			if (DistanceToTarget < CloseRangeThreshold)
+			{
+				// 가까울수록 Pitch를 덜 아래로 내려가게 제한
+				const float DistRatio = DistanceToTarget / CloseRangeThreshold;
+				MinPitch = FMath::Lerp(CloseRangePitchMin, -60.f, DistRatio);
+			}
+		}
+
+		NewRot.Pitch = FMath::ClampAngle(NewRot.Pitch, MinPitch, 30.f);
 
 		PC->SetControlRotation(NewRot);
 	}
