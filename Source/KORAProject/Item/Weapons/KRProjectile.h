@@ -16,12 +16,16 @@ class KORAPROJECT_API AKRProjectile : public AActor
 public:	
 	AKRProjectile();
 
+	void SetDamageMultiplier(float NewMultiplier) { DamageMultiplier = NewMultiplier; }
+
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	float DamageMultiplier = 1.0f;
 	
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile")
 	TObjectPtr<USphereComponent> SphereComponent;

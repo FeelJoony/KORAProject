@@ -1,4 +1,6 @@
 #include "Item/Weapons/KRRangeWeapon.h"
+
+#include "KRProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Equipment/KREquipmentInstance.h"
 #include "Inventory/Fragment/InventoryFragment_EquippableItem.h"
@@ -34,7 +36,6 @@ void AKRRangeWeapon::FireProjectile()
 
 	if (Projectile)
 	{
-		// 속도 적용
 		if (UProjectileMovementComponent* MoveComp = Projectile->FindComponentByClass<UProjectileMovementComponent>())
 		{
 			MoveComp->Velocity = SpawnRotation.Vector() * ProjectileSpeed;
@@ -51,23 +52,35 @@ FTransform AKRRangeWeapon::GetMuzzleTransform() const
 	return FTransform::Identity;
 }
 
-void AKRRangeWeapon::FireProjectile(const FRotator& InOverrideRotation)
+void AKRRangeWeapon::FireProjectile(const FRotator& InOverrideRotation, float InDamageMultiplier)
 {
 	if (!ProjectileClass || !GetWorld()) return;
-
+	
 	FVector SpawnLocation = MuzzlePoint->GetComponentLocation();
+
+	AActor* OwnerActor = GetOwner();
+	if (!OwnerActor) return;
+	
+	FRotator CharacterRotation = OwnerActor->GetActorRotation();
+	FVector ForwardDir = CharacterRotation.Vector();
+	FRotator SpawnRotation = CharacterRotation;
     
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = GetOwner();
+	SpawnParams.Owner = OwnerActor;
 	SpawnParams.Instigator = GetInstigator();
-
-	AActor* Projectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, InOverrideRotation, SpawnParams);
+	
+	AActor* Projectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
 
 	if (Projectile)
 	{
+		if (AKRProjectile* KRRrojectile = Cast<AKRProjectile>(Projectile))
+		{
+			KRRrojectile->SetDamageMultiplier(InDamageMultiplier);
+		}
+
 		if (UProjectileMovementComponent* MoveComp = Projectile->FindComponentByClass<UProjectileMovementComponent>())
 		{
-			MoveComp->Velocity = InOverrideRotation.Vector() * ProjectileSpeed;
+			MoveComp->Velocity = ForwardDir * ProjectileSpeed;
 		}
 	}
 }

@@ -88,4 +88,6 @@ private:
 	UPROPERTY() TMap<int32, FQuestDialogueNPCSet> QuestDialogueNPCs;
 
 	TSubclassOf<class AKRQuestActor> LoadQuestActorClass(int32 Index);
+
+	void TriggerQuestCutscene(int32 QuestIndex, int32 OrderIndex);
 };

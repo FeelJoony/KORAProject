@@ -39,6 +39,11 @@ void AKRProjectile::BeginPlay()
 
 void AKRProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (OtherActor == GetInstigator())
+	{
+		return;
+	}
+	
 	if (!OtherActor || OtherActor == this || !GetInstigator())
 	{
 		Destroy();
@@ -60,6 +65,8 @@ void AKRProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		
 		if (!bFound) AttackPower = 0.f;
 		
+		float FinalBaseDamage = AttackPower * DamageMultiplier;
+		
 		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
 		Context.AddHitResult(Hit);
 		
@@ -67,11 +74,10 @@ void AKRProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		
 		if (SpecHandle.IsValid())
 		{
-			SpecHandle.Data->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_BASEDAMAGE, AttackPower);
+			SpecHandle.Data->SetSetByCallerMagnitude(KRTAG_SETBYCALLER_BASEDAMAGE, FinalBaseDamage);
 			SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
 		}
 	}
 
 	Destroy();
 }
-

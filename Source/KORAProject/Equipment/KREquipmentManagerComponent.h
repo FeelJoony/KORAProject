@@ -238,6 +238,8 @@ private:
 
 	UMaterialInterface* GetCachedMaterial(const TSoftObjectPtr<UMaterialInterface>& SoftPtr) const;
 
+	void OnCurrentAmmoChanged(const FOnAttributeChangeData& Data);
+	
 	UPROPERTY()
 	TMap<FSoftObjectPath, TObjectPtr<UMaterialInterface>> CachedMaterials;
 	TSharedPtr<FStreamableHandle> MaterialPreloadHandle;

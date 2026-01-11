@@ -17,8 +17,8 @@ void UInventoryFragment_DisplayUI::OnInstanceCreated(UKRInventoryItemInstance* I
 	
 	UGameInstance* GI = Cast<UGameInstance>(ContextObj);
 	if (!GI) { return; }
-	
-	auto* DT = UKRDataTablesSubsystem::GetSafe(this);
+
+	UKRDataTablesSubsystem* DT = GI->GetSubsystem<UKRDataTablesSubsystem>();
 	if (!DT) { return; }
 
 	FItemDataStruct* Row = DT->GetData<FItemDataStruct>(ItemTag);

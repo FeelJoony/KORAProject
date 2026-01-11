@@ -23,7 +23,6 @@ void AKRPlayerController::BeginPlay()
 		if (UKRUIInputSubsystem* UIInputSubsystem = LP->GetSubsystem<UKRUIInputSubsystem>())
 		{
 			UIInputSubsystem->ForceResetUIMode();
-			UE_LOG(LogTemp, Warning, TEXT("[PlayerController] BeginPlay - Reset UIInputSubsystem"));
 		}
 	}
 
@@ -31,7 +30,6 @@ void AKRPlayerController::BeginPlay()
 	SetShowMouseCursor(false);
 	FInputModeGameOnly GameOnlyMode;
 	SetInputMode(GameOnlyMode);
-	UE_LOG(LogTemp, Warning, TEXT("[PlayerController] BeginPlay - Set InputMode to GameOnly"));
 }
 
 void AKRPlayerController::OnUnPossess()

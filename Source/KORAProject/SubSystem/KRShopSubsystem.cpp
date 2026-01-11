@@ -89,7 +89,7 @@ void UKRShopSubsystem::GenerateShopStock()
 }
 void UKRShopSubsystem::LoadShopDataCache()
 {
-	UKRDataTablesSubsystem* DataSubsystem = UKRDataTablesSubsystem::GetSafe(this);
+	UKRDataTablesSubsystem* DataSubsystem = GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>();
 	UCacheDataTable* ShopCacheTable = DataSubsystem ? DataSubsystem->GetTable(FShopItemDataStruct::StaticStruct()) : nullptr;
 	if (!ShopCacheTable || !ShopCacheTable->GetTable()) return;
 
@@ -226,7 +226,7 @@ bool UKRShopSubsystem::PrepareShopGeneration()
 	CurrentShopInventory.Empty();
 	ShopStockCountMap.Empty();
 
-	if (!UKRDataTablesSubsystem::GetSafe(this))
+	if (!GetGameInstance()->GetSubsystem<UKRDataTablesSubsystem>())
 	{
 		UE_LOG(LogShopSubSystem, Error, TEXT("DataTablesSubsystem is not valid."));
 		return false;
