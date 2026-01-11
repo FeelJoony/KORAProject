@@ -36,6 +36,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Reload|Time")
 	float Delay_Load = 0.5f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Reload|Time")
+	float Delay_End = 0.5f;
 
 private:
 	void Step1_StartReload();
@@ -45,6 +48,9 @@ private:
 
 	UFUNCTION()
 	void Step3_EndReload();
+	
+	UFUNCTION()
+	void Step4_FinishReload();
 	
 	void PlaySoundByTag(FGameplayTag Tag);
 };

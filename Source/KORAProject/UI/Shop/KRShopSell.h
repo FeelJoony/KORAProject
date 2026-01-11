@@ -11,6 +11,7 @@ class UKRSlotGridBase;
 class UKRItemDescriptionBase;
 class UCommonButtonBase;
 class UCommonUserWidget;
+class UKRItemSlotBase;
 struct FKRItemUIData;
 
 UCLASS()
@@ -34,7 +35,9 @@ protected:
 
 private:
 	void FilterSellableItems(const FGameplayTag& FilterTag);
-	void OnPlayerItemSelected(int32 SelectedIndex);
+	UFUNCTION() void OnPlayerItemSelected(int32 SelectedIndex, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnPlayerItemHovered(int32 HoveredIndex, UKRItemSlotBase* SlotBase);
+	UFUNCTION() void OnShopSlotClicked();
 	void UpdateItemDescription(int32 CellIndex);
 
 	void HandleSelect();

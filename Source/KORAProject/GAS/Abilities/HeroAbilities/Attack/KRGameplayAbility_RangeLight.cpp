@@ -1,5 +1,6 @@
 #include "GAS/Abilities/HeroAbilities/Attack/KRGameplayAbility_RangeLight.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Components/KRStaminaComponent.h"
 #include "Equipment/KREquipmentManagerComponent.h"
 #include "Item/Weapons/KRRangeWeapon.h"
 #include "GAS/KRAbilitySystemComponent.h"
@@ -14,6 +15,20 @@ UKRGameplayAbility_RangeLight::UKRGameplayAbility_RangeLight(const FObjectInitia
 
 void UKRGameplayAbility_RangeLight::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (AvatarActor)
+	{
+		if (UKRStaminaComponent* StaminaComp = AvatarActor->FindComponentByClass<UKRStaminaComponent>())
+		{
+			if (!StaminaComp->HasEnoughStamina(AttackStaminaCost))
+			{
+				EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+				return;
+			}
+			StaminaComp->ConsumeStamina(AttackStaminaCost);
+		}
+	}
+	
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		if (UKRAbilitySystemComponent* KRASC = GetKRAbilitySystemComponentFromActorInfo())

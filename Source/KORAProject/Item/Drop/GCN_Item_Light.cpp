@@ -1,5 +1,6 @@
 #include "GCN_Item_Light.h"
 
+#include "Components/CapsuleComponent.h"
 #include "Components/PointLightComponent.h"
 #include "GameFramework/Actor.h"
 #include "Components/SceneComponent.h"
@@ -21,9 +22,9 @@ static USceneComponent* GetAttachRoot(AActor* Target)
 {
 	if (!Target) return nullptr;
 	
-	if (USkeletalMeshComponent* MeshComp = Target->FindComponentByClass<USkeletalMeshComponent>())
+	if (UCapsuleComponent* Capsule = Target->FindComponentByClass<UCapsuleComponent>())
 	{
-		return MeshComp;
+		return Capsule;
 	}
 
 	return Target->GetRootComponent();
@@ -37,6 +38,7 @@ bool AGCN_Item_Light::OnActive_Implementation(AActor* MyTarget, const FGameplayC
 	{
 		LightComp->SetVisibility(true);
 		LightComp->Activate(true);
+		LightComp->SetRelativeLocation(FVector(0, 0, 180));
 	}
 	
 	if (USceneComponent* AttachRoot = GetAttachRoot(MyTarget))
@@ -54,11 +56,6 @@ bool AGCN_Item_Light::OnActive_Implementation(AActor* MyTarget, const FGameplayC
 	return true;
 }
 
-bool AGCN_Item_Light::WhileActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
-{
-	return true;
-}
-
 bool AGCN_Item_Light::OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
 {
 	if (LightComp)
@@ -66,6 +63,6 @@ bool AGCN_Item_Light::OnRemove_Implementation(AActor* MyTarget, const FGameplayC
 		LightComp->Deactivate();
 		LightComp->SetVisibility(false);
 	}
-	
+
 	return true;
 }

@@ -13,6 +13,7 @@ void UQuestDelegate::Initialize(class UKRQuestInstance* NewQuestInstance)
 
 void UQuestDelegate::Reinitialize(class UKRQuestInstance* NewQuestInstance)
 {
+	Uninitialize();
 	Initialize(NewQuestInstance);
 }
 

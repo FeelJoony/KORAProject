@@ -76,6 +76,18 @@ void UKRPauseMenuWidget::NativeOnActivated()
 {
 	Super::NativeOnActivated();
 
+	// Close any lower-layer popups (like ScreenInteract) to prevent input conflicts
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UKRUIRouterSubsystem* Router = GI->GetSubsystem<UKRUIRouterSubsystem>())
+		{
+			if (Router->IsRouteOpen(TEXT("ScreenInteract")))
+			{
+				Router->CloseRoute(TEXT("ScreenInteract"));
+			}
+		}
+	}
+
 	ResetQuickSlotAssignState(true);
 
 	if (auto* InputSubsys = GetOwningLocalPlayer()->GetSubsystem<UKRUIInputSubsystem>())
@@ -88,7 +100,7 @@ void UKRPauseMenuWidget::NativeOnActivated()
 		InputSubsys->BindRow(this, TEXT("Increase"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveUp));
 		InputSubsys->BindRow(this, TEXT("Decrease"), FSimpleDelegate::CreateUObject(this, &ThisClass::HandleMoveDown));
 	}
-	
+
 	SetNavigationContext(EKRPauseNavigationContext::MenuTab);
 	UpdateMenuTabSelection(0);
 	HandleMenuHovered(EquipmentButton);

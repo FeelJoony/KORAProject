@@ -2,6 +2,7 @@
 #include "Equipment/KREquipmentManagerComponent.h"
 #include "GAS/Abilities/Tasks/KRAbilityTask_WaitTick.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Components/KRStaminaComponent.h"
 #include "GameFramework/Character.h"
 #include "SubSystem/KREffectSubsystem.h"
 #include "Data/DataAssets/KREffectDefinition.h"
@@ -27,6 +28,16 @@ const TArray<TObjectPtr<UAnimMontage>>* UKRGameplayAbility_RangeCharge::GetMonta
 
 void UKRGameplayAbility_RangeCharge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	if (APlayerController* PC = Cast<APlayerController>(ActorInfo->PlayerController.Get()))
+	{
+		PC->SetIgnoreMoveInput(true);
+	}
+
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	bIsCharging = true;
+	CurrentChargeTime = 0.0f;
+	
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -174,6 +185,16 @@ void UKRGameplayAbility_RangeCharge::StartReleaseMontage(bool bSuccess)
 		return;
 	}
 
+	if (UKRStaminaComponent* StaminaComp = Char->FindComponentByClass<UKRStaminaComponent>())
+	{
+		if (!StaminaComp->HasEnoughStamina(AttackStaminaCost))
+		{
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+			return;
+		}
+		StaminaComp->ConsumeStamina(AttackStaminaCost);
+	}
+	
 	if (ChargePlayTask)
 	{
 		ChargePlayTask->EndTask();
@@ -243,6 +264,11 @@ void UKRGameplayAbility_RangeCharge::OnReleasePhaseInterrupted()
 
 void UKRGameplayAbility_RangeCharge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (APlayerController* PC = Cast<APlayerController>(ActorInfo->PlayerController.Get()))
+	{
+		PC->SetIgnoreMoveInput(false);
+	}
+	
 	bIsCharging = false;
 
 	if (ChargeTickTask)

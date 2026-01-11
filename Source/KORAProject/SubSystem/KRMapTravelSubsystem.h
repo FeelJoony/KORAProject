@@ -28,6 +28,9 @@ public:
 	FOnMapTravelStarted OnMapTravelStarted;
 	FOnMapTravelCompleted OnMapTravelCompleted;
 
+	UFUNCTION(BlueprintPure, Category = "MapTravel")
+	bool IsHandlingTransition() const { return bIsTransitioning || bWaitingForAsyncLoading; }
+
 private:
 	void StartTransitionSequence(const class UKRUserFacingExperience* Experience,
 		const struct FLevelTransitionDataStruct& TransitionData,

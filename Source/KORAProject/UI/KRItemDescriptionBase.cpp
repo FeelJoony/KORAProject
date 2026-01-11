@@ -2,29 +2,50 @@
 
 
 #include "UI/KRItemDescriptionBase.h"
-#include "Internationalization/StringTableRegistry.h"
+#include "Internationalization/StringTable.h"
+#include "Internationalization/StringTableCore.h"
 
-const FName UKRItemDescriptionBase::ItemStringTableId(TEXT("ST_ItemList"));
+void UKRItemDescriptionBase::NativeConstruct()
+{
+	Super::NativeConstruct();
+	EnsureStringTableLoaded();
+}
 
-FText UKRItemDescriptionBase::GetLocalizedTextFromKey(const FName& InKey) const
+void UKRItemDescriptionBase::EnsureStringTableLoaded()
+{
+	if (bStringTableLoaded)
+	{
+		return;
+	}
+
+	if (!ItemStringTableAsset.IsNull())
+	{
+		CachedStringTable = ItemStringTableAsset.LoadSynchronous();
+	}
+
+	bStringTableLoaded = true;
+}
+
+FText UKRItemDescriptionBase::GetLocalizedTextFromKey(const FName& InKey)
 {
 	if (InKey.IsNone())
 	{
 		return FText::GetEmpty();
 	}
 
-	FStringTableConstPtr StringTable = FStringTableRegistry::Get().FindStringTable(ItemStringTableId);
-	if (!StringTable.IsValid())
+	EnsureStringTableLoaded();
+
+	if (CachedStringTable)
 	{
-		return FText::FromName(InKey);
+		// Check if the key exists in the StringTable before getting the text
+		const FStringTable& RawTable = CachedStringTable->GetStringTable().Get();
+		FStringTableEntryConstPtr Entry = RawTable.FindEntry(InKey.ToString());
+		if (Entry.IsValid())
+		{
+			return FText::FromStringTable(CachedStringTable->GetStringTableId(), InKey.ToString());
+		}
 	}
 
-	FText Result = FText::FromStringTable(ItemStringTableId, InKey.ToString());
-
-	if (Result.IsEmpty())
-	{
-		return FText::FromName(InKey);
-	}
-
-	return Result;
+	// Fallback: return the key itself as display text
+	return FText::FromName(InKey);
 }

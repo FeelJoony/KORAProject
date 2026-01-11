@@ -7,6 +7,9 @@
 #include "MediaSoundComponent.h"
 #include "Styling/SlateBrush.h"
 #include "SubSystem/KRUIRouterSubsystem.h"
+#include "SubSystem/KRUIInputSubsystem.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 
 void UKRCutsceneWidget::NativeOnInitialized()
 {
@@ -71,7 +74,11 @@ void UKRCutsceneWidget::NativeDestruct()
 
 	if (MediaSoundComponent)
 	{
-		MediaSoundComponent->DestroyComponent();
+		MediaSoundComponent->SetMediaPlayer(nullptr);
+		if (MediaSoundComponent->IsRegistered())
+		{
+			MediaSoundComponent->UnregisterComponent();
+		}
 		MediaSoundComponent = nullptr;
 	}
 
@@ -81,6 +88,17 @@ void UKRCutsceneWidget::NativeDestruct()
 void UKRCutsceneWidget::NativeOnActivated()
 {
 	Super::NativeOnActivated();
+	if (bAllowSkip)
+	{
+		SetIsFocusable(true);
+		if (ULocalPlayer* LP = GetOwningLocalPlayer())
+		{
+			if (UKRUIInputSubsystem* InputSubsystem = LP->GetSubsystem<UKRUIInputSubsystem>())
+			{
+				InputSubsystem->BindRow(this, InputSubsystem->Rows.Select, FSimpleDelegate::CreateUObject(this, &ThisClass::SkipCutscene), false, true);
+			}
+		}
+	}
 
 	if (!bCutscenePlaying && DefaultMediaSource)
 	{
@@ -262,5 +280,13 @@ void UKRCutsceneWidget::CheckSubtitleTiming()
 		{
 			HideSubtitle();
 		}
+	}
+}
+
+void UKRCutsceneWidget::SkipCutscene()
+{
+	if (bCutscenePlaying && bAllowSkip)
+	{
+		StopCutscene();
 	}
 }

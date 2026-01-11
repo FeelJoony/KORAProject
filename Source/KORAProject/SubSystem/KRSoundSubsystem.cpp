@@ -356,13 +356,19 @@ UAudioComponent* UKRSoundSubsystem::CreateAndConfigureAudioComponent(const UKRSo
 		return nullptr;
 	}
 
+	if (World->bIsTearingDown)
+	{
+		return nullptr;
+	}
+
 	USoundBase* Sound = SoundDef->Sound.LoadSynchronous();
 	if (!Sound)
 	{
 		return nullptr;
 	}
 
-	UAudioComponent* AudioComponent = NewObject<UAudioComponent>(Owner ? Owner : (UObject*)World);
+	UObject* Outer = Owner ? (UObject*)Owner : (UObject*)World;
+	UAudioComponent* AudioComponent = NewObject<UAudioComponent>(Outer);
 	if (AudioComponent)
 	{
 		AudioComponent->SetSound(Sound);
@@ -371,7 +377,15 @@ UAudioComponent* UKRSoundSubsystem::CreateAndConfigureAudioComponent(const UKRSo
 		AudioComponent->SetWorldLocation(Location);
 		AudioComponent->bAllowSpatialization = true;
 		AudioComponent->AttenuationSettings = nullptr;
-		AudioComponent->RegisterComponent();
+		if (AudioComponent->GetWorld() && !AudioComponent->GetWorld()->bIsTearingDown)
+		{
+			AudioComponent->RegisterComponent();
+		}
+		else
+		{
+			AudioComponent->MarkAsGarbage();
+			return nullptr;
+		}
 	}
 
 	return AudioComponent;
@@ -408,8 +422,6 @@ void UKRSoundSubsystem::BGMTagMapping()
 
 void UKRSoundSubsystem::CategoryTagMapping()
 {
-	// WorldEvent → Category
-
 	//MainMenu
 	WorldEventToBGMCategoryMap.Add(KRTAG_WORLDEVENT_MAINMENU, KRTAG_SOUND_CATEGORY_BGM_MAINMENU);
 	//DirectorRoom
@@ -490,13 +502,11 @@ UAudioComponent* UKRSoundSubsystem::PlayBGM(const UKRSoundDefinition* SoundDef)
 		return nullptr;
 	}
 
-	// 같은 BGM이면 무시
 	if (CurrentBGM == SoundDef && CurrentBGMComponent)
 	{
 		return CurrentBGMComponent;
 	}
 
-	// 이전 BGM 정리
 	if (CurrentBGMComponent)
 	{
 		CurrentBGMComponent->FadeOut(1.0f, 0.0f);
@@ -516,7 +526,6 @@ UAudioComponent* UKRSoundSubsystem::PlayBGM(const UKRSoundDefinition* SoundDef)
 		return nullptr;
 	}
 
-	// 새 AudioComponent 생성
 	UAudioComponent* AudioComp =
 		UGameplayStatics::SpawnSound2D(
 			World,
@@ -537,8 +546,7 @@ UAudioComponent* UKRSoundSubsystem::PlayBGM(const UKRSoundDefinition* SoundDef)
 		this,
 		&UKRSoundSubsystem::PlayNextBGM
 	);
-
-	// 루프 & 페이드 인
+	
 	AudioComp->bIsUISound = true;
 	AudioComp->Play();
 
