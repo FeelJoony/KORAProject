@@ -24,6 +24,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MapTravel|Gameplay")
 	void TravelToExperience(const FString& UserFacingPath);
 
+	FName GetPendingLevelNameKey() const { return PendingLevelNameKey; }
+	
 	// 델리게이트
 	FOnMapTravelStarted OnMapTravelStarted;
 	FOnMapTravelCompleted OnMapTravelCompleted;

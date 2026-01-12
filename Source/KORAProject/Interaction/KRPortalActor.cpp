@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "NiagaraComponent.h"
+#include "Characters/KRHeroCharacter.h"
 #include "Subsystem/KRInventorySubsystem.h"
 #include "GAS/Abilities/EnemyAbility/KRGA_Enemy_Die.h"
 #include "Quest/KRQuestEventTriggerBox.h"
@@ -115,23 +116,21 @@ void AKRPortalActor::OnNPCDialogueCompleted(FGameplayTag Channel, const struct F
 	ActivatePortalIfMatch(Channel);
 }
 
-void AKRPortalActor::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AKRPortalActor::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!bIsActivated)
 	{
 		return;
 	}
 
-	// 플레이어 체크
-	if (OtherActor && OtherActor->ActorHasTag(TEXT("Player")))
+	AKRHeroCharacter* Player = Cast<AKRHeroCharacter>(OtherActor);
+	if (!Player)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Portal] Player entered portal! Target: %s"), *TargetUserFacingPath.ToString());
-
-		// MapTravelSubsystem 호출
-		UKRMapTravelSubsystem& TravelSubsystem = UKRMapTravelSubsystem::Get(this);
-		TravelSubsystem.TravelToExperience(TargetUserFacingPath.ToString());
+		return;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[Portal] Player entered portal!"));
+	UKRMapTravelSubsystem::Get(this).TravelToExperience(TargetUserFacingPath.ToString());
 }
 
 void AKRPortalActor::ActivatePortalIfMatch(FGameplayTag Channel)

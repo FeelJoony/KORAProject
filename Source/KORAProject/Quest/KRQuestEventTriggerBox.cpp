@@ -9,7 +9,6 @@ AKRQuestEventTriggerBox::AKRQuestEventTriggerBox()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	PrimaryActorTick.bCanEverTick = false;
 
-	// TriggerBox는 보이지 않으므로 Ray Tracing 불필요
 	if (UShapeComponent* CollisionComp = GetCollisionComponent())
 	{
 		CollisionComp->SetVisibleInRayTracing(false);
@@ -24,22 +23,26 @@ void AKRQuestEventTriggerBox::BeginPlay()
 void AKRQuestEventTriggerBox::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
+	
 	if (bTriggered) return;
 
+	AKRHeroCharacter* Player = Cast<AKRHeroCharacter>(OtherActor);
 
-	if (AKRHeroCharacter* Character = Cast<AKRHeroCharacter>(OtherActor))
+	if (!Player) return;
+
+	if (!EventGameplayTag.IsValid())
 	{
-		if (!EventGameplayTag.IsValid())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[QuestEventTriggerBox] EventGameplayTag is not set!"));
-			return;
-		}
-
-		bTriggered = true;
-
-		FQuestEventTriggerBoxMessage Message;
-		Message.EventGameplayTag = EventGameplayTag;
-		UGameplayMessageSubsystem& GameplayMessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-		GameplayMessageSubsystem.BroadcastMessage(EventGameplayTag, Message);
+		UE_LOG(LogTemp, Warning, TEXT("[QuestEventTriggerBox] EventGameplayTag is not set!"));
+		return;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[QuestEventTriggerBox] EventGameplayTag: %s"), *EventGameplayTag.ToString());
+
+	bTriggered = true;
+
+	FQuestEventTriggerBoxMessage Message;
+	Message.EventGameplayTag = EventGameplayTag;
+	
+	UGameplayMessageSubsystem& GameplayMessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	GameplayMessageSubsystem.BroadcastMessage(EventGameplayTag, Message);
 }

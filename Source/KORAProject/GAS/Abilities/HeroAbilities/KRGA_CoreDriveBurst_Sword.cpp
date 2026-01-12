@@ -325,7 +325,7 @@ void UKRGA_CoreDriveBurst_Sword::PerformMultiHit()
 		AvatarActor->GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, BurstAnchorRotation.Quaternion(), ECC_Pawn, FCollisionShape::MakeBox(AttackConfig.BoxExtent), QueryParams);
 	}
 
-	DrawDebugAttackShape();
+	//DrawDebugAttackShape();
 
 	for (const FOverlapResult& Overlap : OverlapResults)
 	{
@@ -388,7 +388,7 @@ void UKRGA_CoreDriveBurst_Sword::PerformFinalHit()
 		AvatarActor->GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, BurstAnchorRotation.Quaternion(), ECC_Pawn, FCollisionShape::MakeBox(AttackConfig.BoxExtent * 1.5f), QueryParams);
 	}
 
-	DrawDebugAttackShape();
+	//DrawDebugAttackShape();
 
 	for (const FOverlapResult& Overlap : OverlapResults)
 	{

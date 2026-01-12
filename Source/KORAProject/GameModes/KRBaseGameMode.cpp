@@ -20,6 +20,10 @@
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
 #include "Engine/LevelStreaming.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "Quest/KRQuestInstance.h"
+#include "SubSystem/KRQuestSubsystem.h"
+#include "UI/Data/UIStruct/KRUIMessagePayloads.h"
 
 AKRBaseGameMode::AKRBaseGameMode()
 {
@@ -371,6 +375,38 @@ void AKRBaseGameMode::CheckStreamingAndHideLoading()
 		if (UKRLoadingSubsystem* LoadingSys = GEngine->GetEngineSubsystem<UKRLoadingSubsystem>())
 		{
 			LoadingSys->HideLoadingScreen();
+
+			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+			FKRUIMessage_Info Message;
+			Message.Context = EInfoContext::LevelTransition;
+
+			if (UKRMapTravelSubsystem* MapTravelSys = GetGameInstance()->GetSubsystem<UKRMapTravelSubsystem>())
+			{
+				Message.StringTableKey = MapTravelSys->GetPendingLevelNameKey().ToString();
+			}
+
+			MessageSubsystem.BroadcastMessage(
+				FKRUIMessageTags::SaveDeathLevelInfo(),
+				Message
+			);
+
+			UKRQuestSubsystem& QuestSubsystem = UKRQuestSubsystem::Get(GetWorld());
+			QuestSubsystem.RespawnQuestActorForLevelTransition();
+			if (UKRQuestInstance* ActiveQuest = QuestSubsystem.GetActiveInstance())
+			{
+				if (ActiveQuest->GetQuestState() == EQuestState::InProgress)
+				{
+					const FSubQuestEvalDataStruct& CurrentEvalData = ActiveQuest->GetSubQuestEvalDataStruct();
+
+					if (CurrentEvalData.UIRowName.IsValid())
+					{
+						FKRUIMessage_Quest QuestMessage;
+						QuestMessage.QuestNameKey = CurrentEvalData.UIRowName;
+						MessageSubsystem.BroadcastMessage(FKRUIMessageTags::Quest(), QuestMessage);
+					}
+				}
+			}
 		}
 	}
 }
